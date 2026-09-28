@@ -22,10 +22,15 @@ WORKDIR /app
 COPY --from=vendor /app /app
 COPY infra/production/entrypoint.sh /usr/local/bin/muhasebi-entrypoint
 
+# FrankenPHP (Caddy) runs as www-data: it writes its state to /data/caddy and
+# /config/caddy at startup and binds port 80.
 RUN chmod +x /usr/local/bin/muhasebi-entrypoint \
  && mkdir -p resources/views storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
  && rm -rf tests .env .env.* storage/logs/*.log bootstrap/cache/*.php \
- && chown -R www-data:www-data storage bootstrap/cache
+ && chown -R www-data:www-data storage bootstrap/cache \
+ && mkdir -p /data/caddy /config/caddy \
+ && chown -R www-data:www-data /data/caddy /config/caddy \
+ && setcap CAP_NET_BIND_SERVICE=+eip /usr/local/bin/frankenphp
 
 # FrankenPHP serves plain HTTP inside the network; the edge Caddy terminates TLS.
 ENV SERVER_NAME=":80" \

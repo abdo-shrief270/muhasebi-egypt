@@ -1,0 +1,10 @@
+# Use when the server already runs nginx on ports 80/443 for other sites.
+# nginx keeps the public ports and TLS; Caddy listens on localhost only.
+# Enabled by COMPOSE_FILE=compose.yml:compose.nginx.yml in .env (./init.sh ... nginx).
+services:
+  caddy:
+    environment:
+      SITE_ADDRESS: ":80"
+      TRUSTED_PROXIES: private_ranges
+    ports: !override
+      - "127.0.0.1:${EDGE_PORT:-8088}:80"

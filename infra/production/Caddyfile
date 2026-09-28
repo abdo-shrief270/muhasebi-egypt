@@ -1,8 +1,14 @@
 {
 	email {$ACME_EMAIL}
+	servers {
+		# Behind a host nginx (compose.nginx.yml) this is private_ranges, so the
+		# X-Forwarded-Proto: https that nginx sets reaches Laravel unchanged.
+		trusted_proxies static {$TRUSTED_PROXIES:127.0.0.1/32}
+	}
 }
 
-{$DOMAIN} {
+# The domain (Caddy gets the HTTPS certificate itself), or ":80" behind nginx.
+{$SITE_ADDRESS} {
 	encode zstd gzip
 
 	header {

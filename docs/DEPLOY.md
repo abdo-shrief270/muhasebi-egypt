@@ -58,6 +58,42 @@ crontab -e
 - النسخ بتتحفظ في `infra/production/backups/` لمدة 14 يوم.
 - **مهم:** انسخها برا السيرفر كمان (Cloudflare R2 / Google Drive بـ `rclone`)؛ نسخة على نفس الهارد مش كفاية.
 
+## لو السيرفر عليه nginx ومواقع تانية
+الإعداد الافتراضي بيخلّي Caddy بتاع محاسبي ياخد البورتات 80 و443. لو nginx شغال بالفعل على البورتات دي لمواقع تانية، فيه وضع مخصوص: **nginx يفضل ماسك 80 و443 وشهادات HTTPS**، وبيحوّل دومين محاسبي بس لـ Caddy على `127.0.0.1:8088`، اللي مش مكشوف على الإنترنت.
+
+```
+الإنترنت ──443──▶ nginx ──┬── مواقعك التانية (زي ما هي)
+                          └── app.muhasebi.com → 127.0.0.1:8088 → Caddy → Laravel / Nuxt / Reverb
+```
+
+**تشغيل جديد:** زوّد كلمة `nginx` في آخر أمر `init.sh`:
+```bash
+./init.sh app.muhasebi.com you@email.com nginx
+```
+
+**لو كنت شغّلت `init.sh` قبل كده** (ملف `.env` موجود):
+```bash
+cd /opt/muhasebi/infra/production
+echo 'COMPOSE_FILE=compose.yml:compose.nginx.yml' >> .env
+```
+
+**بعد كده (في الحالتين):**
+```bash
+# 1) موقع nginx لمحاسبي (غيّر الدومين)
+sed "s/app.example.com/app.muhasebi.com/" nginx-site.conf > /etc/nginx/sites-available/muhasebi
+ln -s /etc/nginx/sites-available/muhasebi /etc/nginx/sites-enabled/muhasebi
+nginx -t && systemctl reload nginx
+
+# 2) شهادة HTTPS (certbot بيعدّل ملف الموقع لوحده)
+apt-get install -y certbot python3-certbot-nginx   # لو مش متسطّب
+certbot --nginx -d app.muhasebi.com
+
+# 3) شغّل محاسبي
+./deploy.sh
+```
+- اتأكد إن `ss -ltnp | grep 8088` مش بيطلّع حاجة قبل التشغيل. لو البورت ده مستخدم، اختار غيره: ضيف `EDGE_PORT=8090` في `.env` وغيّر `8088` في ملف nginx.
+- التجديد التلقائي لشهادة HTTPS بيبقى مسؤولية certbot (بيتظبط لوحده مع التسطيب).
+
 ## كل تحديث بعد كده
 ```bash
 cd /opt/muhasebi/infra/production && ./deploy.sh

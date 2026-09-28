@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # First-time setup: creates .env with strong random secrets.
-# Usage: ./init.sh app.yourdomain.com you@email.com
+# Usage: ./init.sh app.yourdomain.com you@email.com [nginx]
+#   nginx: the server already runs nginx on 80/443 (see compose.nginx.yml, nginx-site.conf).
 set -euo pipefail
 cd "$(dirname "$0")"
 
 DOMAIN="${1:?usage: ./init.sh <domain> <email>}"
 EMAIL="${2:?usage: ./init.sh <domain> <email>}"
+EDGE="${3:-caddy}"
 
 if [[ -f .env ]]; then
   echo ".env already exists — not touching it." >&2
@@ -27,6 +29,10 @@ sed \
   -e "s|^REVERB_APP_KEY=.*|REVERB_APP_KEY=$(rand 16)|" \
   -e "s|^REVERB_APP_SECRET=.*|REVERB_APP_SECRET=$(rand 24)|" \
   .env.example > .env
+
+if [[ "$EDGE" == "nginx" ]]; then
+  printf '\n# Behind the host nginx (Caddy on 127.0.0.1:8088 only)\nCOMPOSE_FILE=compose.yml:compose.nginx.yml\n' >> .env
+fi
 
 chmod 600 .env
 echo "Created .env for ${DOMAIN}. Keep a copy of it somewhere safe (it holds your APP_KEY and DB password)."

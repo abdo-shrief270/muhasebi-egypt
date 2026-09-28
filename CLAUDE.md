@@ -25,7 +25,7 @@ SaaS for mobile-phone parts/accessories/repair shops in Egypt. Product plan: `PL
 - Menu icons come from module manifests; add new ones to `icon.clientBundle.icons` in `apps/web/nuxt.config.ts`.
 
 ## Deployment
-- `infra/production/`: Docker Compose stack (Caddy edge with auto-HTTPS serving the Nuxt static build and proxying `/api` to FrankenPHP; Horizon worker, scheduler, Reverb, Postgres 17, Redis). `init.sh` once, `deploy.sh` per update, `backup.sh`/`restore.sh`. Guide: `docs/DEPLOY.md`.
+- `infra/production/`: Docker Compose stack (Caddy edge with auto-HTTPS serving the Nuxt static build and proxying `/api` to FrankenPHP; Horizon worker, scheduler, Reverb, Postgres 17, Redis). `init.sh` once, `deploy.sh` per update, `backup.sh`/`restore.sh`. Guide: `docs/DEPLOY.md`. On a server whose nginx already owns 80/443, `COMPOSE_FILE=compose.yml:compose.nginx.yml` (set by `./init.sh <domain> <email> nginx`) binds Caddy to `127.0.0.1:8088` over plain HTTP and trusts nginx's `X-Forwarded-*`; `nginx-site.conf` is the matching nginx site.
 
 ## Commands
 - API: `php artisan test`, `vendor/bin/pint`

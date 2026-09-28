@@ -25,7 +25,7 @@ services:
     image: muhasebi-web:latest
     restart: unless-stopped
     environment:
-      DOMAIN: ${DOMAIN}
+      SITE_ADDRESS: ${DOMAIN}
       ACME_EMAIL: ${ACME_EMAIL}
     ports:
       - "80:80"

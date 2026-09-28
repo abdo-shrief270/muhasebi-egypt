@@ -22,6 +22,7 @@ SaaS for mobile-phone parts/accessories/repair shops in Egypt. Product plan: `PL
 - Don't cache Eloquent models (Laravel 13 cache refuses to unserialize objects); cache arrays.
 - Other shops' public info (name, code, phone) comes from `Identity\Contracts\ShopDirectory`, never from Identity's models.
 - UI follows design direction A (`docs/design/option-a-*.png`): theme tokens in `apps/web/app/assets/css/main.css`. Dates/numbers use Latin digits (`ar-EG-u-nu-latn`, `.num`).
+- Catalog: what is sold/stocked is a `ProductVariant` (own barcode, prices in piasters); compatibility (`device_model_product`) is per product. Text search goes through `Catalog\Support\SearchText` (Arabic normalisation: أإآ→ا، ة→ه، ى→ي) against stored `search_name` columns with `pg_trgm` indexes; `Product::search()` ANDs the words across name, SKU, barcode, brand and compatible models. New shops get `DefaultCatalog` via `TenantRegistered`.
 - Menu icons come from module manifests; add new ones to `icon.clientBundle.icons` in `apps/web/nuxt.config.ts`.
 
 ## Deployment

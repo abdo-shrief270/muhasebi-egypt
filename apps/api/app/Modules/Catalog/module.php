@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Catalog\CatalogServiceProvider;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -17,5 +18,6 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/products', 'الأصناف', 'i-lucide-package', 'products.view'),
     ],
+    provider: CatalogServiceProvider::class,
     sort: 20,
 );

@@ -134,3 +134,61 @@ export interface ShopConnection {
   shop: ShopRef | null
   created_at: string
 }
+
+export type CategoryType = 'accessory' | 'part' | 'device' | 'other'
+export type QualityGrade = 'original' | 'service_pack' | 'high_copy' | 'copy'
+
+export interface Category {
+  id: number
+  name: string
+  type: CategoryType
+  type_label: string
+  products_count?: number
+}
+
+export interface DeviceModel {
+  id: number
+  brand_id: number
+  name: string
+  full_name: string
+}
+
+export interface Brand {
+  id: number
+  name: string
+  models?: DeviceModel[]
+}
+
+/** Prices are piasters. */
+export interface ProductVariant {
+  id: string
+  name: string | null
+  quality_grade: QualityGrade | null
+  quality_label: string | null
+  barcode: string | null
+  price_retail: number
+  price_wholesale: number | null
+  price_technician: number | null
+  price_online: number | null
+  min_stock: number
+  is_active: boolean
+}
+
+export interface Product {
+  id: string
+  name: string
+  sku: string | null
+  track_serial: boolean
+  is_active: boolean
+  notes: string | null
+  category: { id: number, name: string }
+  brand: { id: number, name: string } | null
+  variants: ProductVariant[]
+  device_models: DeviceModel[]
+  created_at: string
+}
+
+export interface Paginated<T> {
+  data: T[]
+  meta: { current_page: number, last_page: number, per_page: number, total: number }
+}

@@ -8,7 +8,8 @@
 
 | الموضوع | القرار |
 |---|---|
-| Backend | **Laravel** (آخر إصدار مستقر 12.x/13.x) + PHP 8.4 — **Modular Monolith** مقسّم بالـ Domains |
+| Backend | **Laravel** (آخر إصدار مستقر 12.x/13.x) + PHP 8.4 — **Modular Monolith**: Modules مستقلة **تتفعّل لكل محل حسب اشتراكه** |
+| التواصل بين الـ Modules | **Event-Driven**: Domain Events + **Transactional Outbox** + Listeners في الـ Queue (مش Event Sourcing) |
 | قاعدة البيانات | **PostgreSQL 17** |
 | Real time | **Laravel Reverb** (WebSockets) + Laravel Echo |
 | Queues | Redis + **Laravel Horizon** |
@@ -24,7 +25,7 @@
 | الاختبارات | Pest + Larastan + Pint / Vitest + Playwright |
 | النشر | Docker + VPS (Coolify أو Laravel Forge) + Cloudflare (DNS/R2) + Sentry |
 
-**ليه Modular Monolith؟** مشروع واحد، Deploy واحد، داتابيز واحدة — أسرع حاجة لمطور واحد. والتقسيم بالـ Domains بيخلّي الكود منظم ويسهّل فصل أي جزء بعدين لو احتجنا.
+**ليه Modular Monolith؟** مشروع واحد، Deploy واحد، داتابيز واحدة — أسرع حاجة لمطور واحد. والتقسيم لـ Modules بحدود واضحة، والتواصل بينها بالـ Events، بيخلّي أي Module يتفعّل أو يتقفل لمحل معيّن من غير ما يأثر على الباقي، ويسهّل فصل أي جزء كخدمة لوحده بعدين لو احتجنا.
 
 ---
 
@@ -70,46 +71,52 @@ muhasebi-egypt/
 
 ## 3. هيكل الـ Backend (Laravel)
 
-### 3.1 التقسيم بالـ Domains
+### 3.1 التقسيم لـ Modules
 
 ```
 apps/api/app/
-├── Domains/
+├── Modules/
+│   │   ── Platform (دايماً شغالة، مش بتظهر كـ Module للمحل) ──
 │   ├── Identity/          # Tenants, Branches, Users, Roles, Devices, PIN login
-│   ├── Catalog/           # Categories, Brands, DeviceModels, Products, Variants, Compatibility
-│   ├── Inventory/         # StockLevels, StockMovements, StockLots, SerialItems, Stocktake, Transfers
-│   ├── Sales/             # Sales, SaleItems, Payments, Returns, Holds
-│   ├── Customers/         # Customers, CustomerLedger, Installments
-│   ├── Suppliers/         # Suppliers, Purchases, SupplierLedger
-│   ├── SupplierReturns/   # سلة المرتجعات حسب المصدر
-│   ├── Imports/           # ImportContacts, Shipments, Costs, Payments, Claims
-│   ├── Repairs/           # Tickets, Faults, IntakeChecklist, StatusLogs, Parts
-│   ├── UsedDevices/       # شراء وبيع المستعمل
-│   ├── Services/          # كروت الشحن + تحويلات المحافظ
-│   ├── Cash/              # Shifts, CashMovements, Expenses
-│   ├── Messaging/         # MessageTemplates, MessageLogs, wa.me links
+│   ├── ModuleManager/     # كتالوج الـ Modules + تفعيلها لكل محل
 │   ├── Billing/           # Plans, Subscriptions, Invoices, Payments, Gateways
-│   ├── Reports/           # Query classes للتقارير
-│   └── Sync/              # Push/Pull للأجهزة الأوفلاين
-└── Support/               # Money, Tenancy, Phone, Numbering, BaseModel …
+│   ├── Messaging/         # MessageTemplates, MessageLogs, wa.me links
+│   ├── Sync/              # Push/Pull للأجهزة الأوفلاين
+│   │   ── Core (في كل الاشتراكات) ──
+│   ├── Catalog/           # Categories, Brands, DeviceModels, Products, Variants, Compatibility
+│   ├── Inventory/         # StockLevels, StockMovements, StockLots, SerialItems, Stocktake
+│   ├── Sales/             # Sales, SaleItems, Payments, Returns, Holds  (POS)
+│   ├── Customers/         # Customers, CustomerLedger (الآجل)
+│   ├── Suppliers/         # Suppliers, Purchases, SupplierLedger
+│   ├── Cash/              # Shifts, CashMovements, Expenses
+│   ├── Reports/           # Read models + Query classes
+│   │   ── Optional (بتتفعّل حسب الاشتراك) ──
+│   ├── Repairs/           # الصيانة
+│   ├── Imports/           # الاستيراد
+│   ├── SupplierReturns/   # مرتجعات الموردين حسب المصدر
+│   ├── UsedDevices/       # المستعمل
+│   ├── Services/          # كروت الشحن + تحويلات المحافظ
+│   ├── Installments/      # التقسيط
+│   ├── MultiBranch/       # التحويلات بين الفروع + التقارير المجمّعة
+│   └── EInvoicing/        # ETA
+└── Support/               # Money, Tenancy, Phone, Numbering, Events (Outbox) …
 ```
 
-جوه كل Domain:
+جوه كل Module:
 ```
-Domains/Sales/
-├── Models/          Sale.php, SaleItem.php, SalePayment.php
-├── Enums/           SaleStatus.php, PaymentMethod.php
-├── Actions/         CompleteSaleAction.php, VoidSaleAction.php, ReturnSaleItemsAction.php
-├── Data/            SaleData.php (DTOs)
-├── Events/          SaleCompleted.php
-├── Listeners/
-├── Policies/        SalePolicy.php
-├── Http/
-│   ├── Controllers/ SaleController.php
-│   ├── Requests/    StoreSaleRequest.php
-│   └── Resources/   SaleResource.php
-└── routes.php       # بيتسجل من ServiceProvider
+Modules/Repairs/
+├── module.php        # الـ Manifest: key, اسم، نوع، dependencies، صلاحيات، قايمة، إعدادات
+├── RepairsServiceProvider.php   # بيسجّل routes/listeners/policies/migrations
+├── Contracts/        # ← الواجهة العامة (Interfaces) اللي Modules تانية مسموح تستخدمها
+├── Events/           # ← الأحداث العامة اللي الـ Module بيطلعها (Public API برضه)
+├── Listeners/        # ردود أفعاله على أحداث Modules تانية
+├── Models/  Enums/  Actions/  Data/  Policies/
+├── Http/ Controllers/ Requests/ Resources/
+├── Database/ migrations/ seeders/ factories/
+├── routes.php
+└── Tests/
 ```
+**الحدود:** أي Module **مايلمسش** Models أو جداول Module تاني. المسموح بس: `Contracts/` و `Events/` بتاعته (وده بيتفرض بـ Pest Arch tests).
 
 ### 3.2 قواعد الكود (إجبارية)
 - **Controllers رفيعة**: Validation في Form Request ← Action ← API Resource. مفيش Business logic في الـ Controller.
@@ -145,6 +152,158 @@ composer require --dev pestphp/pest pestphp/pest-plugin-laravel larastan/larasta
 | `dedoc/scramble` | OpenAPI تلقائي من الكود |
 | `filament/filament` | لوحة إدارة المنصة (المحلات، الاشتراكات، الموافقات اليدوية) |
 
+### 3.4 نظام الـ Modules (تفعيل لكل محل)
+
+#### الـ Manifest
+```php
+// Modules/Imports/module.php
+return new ModuleManifest(
+    key: 'imports',
+    name: 'الاستيراد',
+    tier: ModuleTier::Optional,              // Platform | Core | Optional
+    dependsOn: ['inventory', 'suppliers'],
+    permissions: ['imports.view', 'imports.manage', 'imports.payments'],
+    menu: [new MenuItem('imports.index', 'الاستيراد', icon: 'i-lucide-ship', permission: 'imports.view')],
+    settings: ['default_cost_allocation' => 'value'],
+    seeders: [DefaultImportCostTypesSeeder::class],
+);
+```
+
+#### حالة الـ Module لكل محل
+| الحالة | المعنى | إيه اللي بيظهر |
+|---|---|---|
+| `not_entitled` | مش في اشتراكه | مش في القايمة. بيظهر بس في صفحة "الـ Modules" بزرار "فعّل" |
+| `trial` | تجربة مؤقتة (مثلاً 14 يوم) | شغال بالكامل + بانر المدة الباقية |
+| `enabled` | في الاشتراك ومتفعّل | شغال بالكامل |
+| `disabled` | في الاشتراك بس المالك قفله | مخفي، والداتا محفوظة |
+| `read_only` | الاشتراك خلص أو اتلغى | يقدر يشوف ويصدّر الداتا القديمة بس |
+
+- **الـ Entitlement (من الـ Billing)** منفصل عن **التفعيل (قرار المالك)**: الاشتراك بيقول "مسموح له"، والمالك يقرر "عايز يشوفه ولا لأ".
+- **الـ Dependencies:** تفعيل Module بيتأكد إن اللي بيعتمد عليه متفعّل. وقفل Module مش مسموح لو في Module متفعّل معتمد عليه.
+- **أول تفعيل:** بيشغّل الـ Seeders بتاعته (مثلاً قوايم الأعطال للصيانة، والقوالب) ويطلّع `ModuleEnabled`.
+- **الإلغاء عمره ما يمسح داتا.** الـ Module بيبقى `read_only`، ولو رجع يتفعّل كل حاجة ترجع زي ما هي.
+- **عند التسجيل:** المالك يختار نوع المحل (إكسسوارات / صيانة / إكسسوارات + صيانة / مستورد / جملة) ← نقترح Modules وباقة مناسبة.
+
+#### التطبيق في الكود
+```php
+// Routes
+Route::middleware(['auth:sanctum', 'tenant', 'module:imports'])->prefix('imports')->group(...);
+
+// في أي مكان
+if (Modules::enabled('repairs')) { ... }
+
+// ModuleGate: Cache لكل محل (Redis) — بيتمسح مع ModuleEnabled / ModuleDisabled / SubscriptionChanged
+final class ModuleGate
+{
+    public function enabled(string $key, ?Tenant $tenant = null): bool;
+    public function state(string $key, ?Tenant $tenant = null): ModuleState;
+    /** @return list<string> */
+    public function enabledKeys(?Tenant $tenant = null): array;
+}
+```
+- Middleware `module:{key}` ← 403 بكود `module_not_enabled` لو مش متفعّل (والـ Frontend يعرض صفحة "فعّل الـ Module").
+- الصلاحيات: أدوار المحل بتشوف صلاحيات الـ Modules المتفعّلة بس.
+- الـ Listeners بتاعة Module مقفول **مابتشتغلش** للمحل ده (شوف 3.5).
+- `GET /api/v1/me` بيرجع `modules: [{key, state, trial_ends_at}]` + القايمة الجاهزة — الـ Nuxt والـ Flutter والـ POS الأوفلاين بيبنوا القايمة والـ Routes منها.
+- الـ Sync pull بيبعت داتا الـ Modules المتفعّلة بس.
+
+### 3.5 Event-Driven Design
+
+**الفكرة:** كل Module بيعمل شغله وبيعلن "حصل إيه" كـ **Domain Event**. الـ Modules التانية بتسمع وتتصرف. مفيش Module بيكلّم التاني عشان "يعمله حاجة" إلا في حالة واحدة (تحت).
+
+#### القاعدة الذهبية: Contract ولا Event؟
+| السؤال | الطريقة | مثال |
+|---|---|---|
+| لو رد الفعل فشل، لازم العملية الأصلية كلها تفشل؟ | **Contract** (استدعاء مباشر لـ Interface جوه نفس الـ Transaction) | البيع لازم يخصم المخزون، والبيع الآجل لازم يتسجل على حساب العميل |
+| ممكن يتأخر ثواني أو يتعاد من غير مشكلة؟ | **Event** (Async في الـ Queue) | التقارير، الـ Real time، الإشعارات، تنبيه النواقص، الـ Audit، عدّادات الاستخدام، اقتراح رسالة WhatsApp |
+
+كده بنكسب الاتنين: **اتساق** الفلوس والمخزون، و**فصل** كامل لكل الباقي.
+
+#### Transactional Outbox (عشان ولا Event يضيع)
+```
+[Action]  ── DB::transaction ──┐
+   ├─ يكتب البيانات             │
+   └─ يكتب الـ Event في          │  نفس الـ Transaction
+      جدول domain_events  ──────┘
+                │
+     Relay (Job كل ثانية / بعد الـ commit)
+                │
+       Laravel Queue (Redis / Horizon)
+                │
+   ┌────────────┼──────────────┬───────────────┐
+Reports     Realtime        Messaging       Audit …
+(Listener)  (Broadcast)     (Listener)      (Listener)
+```
+- الـ Event بيتسجّل في `domain_events` **مع** البيانات. لو الـ Transaction فشلت، الـ Event مش موجود. لو نجحت، مضمون يتبعت حتى لو السيرفر وقع.
+- الـ Relay بيقرا الأحداث اللي لسه ماتنشرتش (`published_at IS NULL`) بالترتيب ويبعتها للـ Listeners، ويعلّمها.
+- **كل Listener Idempotent**: جدول `processed_events (event_id, listener)` Unique — لو الحدث اتبعت مرتين، يتنفذ مرة واحدة.
+- Retry بـ backoff، وبعد آخر محاولة يروح **Dead letter** (`failed_jobs` + تنبيه Sentry) ويتعاد يدوي من Horizon.
+
+#### شكل الـ Event
+```php
+final readonly class SaleCompleted implements DomainEvent
+{
+    public const NAME = 'sales.sale_completed';
+    public const VERSION = 1;
+
+    public function __construct(
+        public string $saleId,
+        public string $tenantId,
+        public string $branchId,
+        public ?string $customerId,
+        public int $totalPiasters,
+        public int $costPiasters,
+        public bool $isCredit,
+        /** @var list<array{variant_id: string, qty: int, lot_id: string}> */
+        public array $items,
+        public CarbonImmutable $occurredAt,
+    ) {}
+}
+```
+- الأسماء بصيغة الماضي `{module}.{something_happened}`، ومعاها **Version** عشان نغيّر الشكل من غير ما نكسر الـ Listeners القديمة.
+- الـ Payload فيه اللي الـ Listeners محتاجاه (IDs + أرقام)، مش Models كاملة.
+- كل Event بيحمل `tenant_id`، والـ Listener بيرجّع الـ Tenant context قبل ما يشتغل.
+
+**Base listener** بيتأكد إن الـ Module بتاعه متفعّل للمحل ده، ولو لأ بيتجاهل الحدث:
+```php
+abstract class ModuleListener implements ShouldQueue
+{
+    abstract protected function module(): string;
+
+    public function handle(DomainEvent $event): void
+    {
+        if (! Modules::enabled($this->module(), $event->tenantId)) return;
+        $this->once($event, fn () => $this->react($event));   // processed_events
+    }
+}
+```
+
+#### كتالوج الأحداث (البداية)
+| الحدث | بيطلع من | مين بيسمع (Async) |
+|---|---|---|
+| `sales.sale_completed` | Sales | Reports (ملخص يومي)، Cash (إجمالي الوردية)، Realtime، Inventory (فحص النواقص ← `inventory.stock_low`)، Messaging (اقتراح رسالة شكر) |
+| `sales.sale_returned` | Sales | SupplierReturns (لو معيب ← سلة المرتجعات)، Reports، Realtime |
+| `sales.sale_voided` | Sales | Reports، Audit، Realtime (للمالك) |
+| `inventory.stock_low` | Inventory | Realtime، Notifications، Suppliers (اقتراح طلبية) |
+| `inventory.item_marked_defective` | Inventory | SupplierReturns |
+| `purchases.purchase_received` | Suppliers | Reports، Inventory (تنبيه زيادة التكلفة) |
+| `repairs.ticket_created` / `repairs.status_changed` | Repairs | Realtime (الفنيين)، Messaging (رسالة مقترحة)، Reports |
+| `repairs.ticket_delivered` | Repairs | Reports، Cash، Customers (لو آجل — Contract جوه العملية نفسها) |
+| `imports.shipment_received` | Imports | Reports، Realtime (للمالك) |
+| `imports.payment_recorded` | Imports | Reports، Audit |
+| `supplier_returns.return_settled` | SupplierReturns | Reports |
+| `cash.shift_closed` | Cash | Reports، Realtime (العجز/الزيادة للمالك) |
+| `customers.debt_overdue` (Scheduler) | Customers | Messaging (تذكير مقترح)، Notifications |
+| `approvals.requested` / `approvals.decided` | Sales/Identity | Realtime (تطبيق المالك) |
+| `modules.module_enabled` / `module_disabled` | ModuleManager | Seeders، Cache، Billing (الاستخدام) |
+| `billing.subscription_changed` | Billing | ModuleManager (تحديث الـ Entitlements)، Notifications |
+
+- الـ **Real time** (قسم 8) = Listener واحد بيحوّل Events مختارة لـ Broadcast على Reverb.
+- الـ **Audit log** = Listener بيسجّل الأحداث الحساسة.
+- الـ **Reports** بتبني **Read models** (زي `daily_sales_summary`، `repair_stats`) من الأحداث بدل ما التقارير تعمل Queries تقيلة على الجداول الأساسية.
+- **مش Event Sourcing:** الجداول هي مصدر الحقيقة، والـ Events للتواصل والتفاعل. (جدول `stock_movements` هو الاستثناء الطبيعي: Ledger ثابت).
+- **مستقبلاً:** لو Module اتفصل كخدمة لوحده، الـ Relay يبعت الأحداث لـ Broker (RabbitMQ / Redis Streams) بدل الـ Queue الداخلي، من غير تغيير في الـ Modules.
+
 ---
 
 ## 4. Multi-tenancy
@@ -173,7 +332,7 @@ trait BelongsToTenant
 
 - `CurrentTenant` بيتحدد من المستخدم المسجّل (Middleware `ResolveTenant`)، والفرع من Header `X-Branch-Id` (ومتأكدين إن المستخدم له صلاحية عليه).
 - **خط دفاع تاني:** Postgres **Row Level Security** على الجداول الحساسة (`SET app.tenant_id` في أول كل request). لو حد نسي الـ scope، الداتابيز نفسها ترفض.
-- **اختبار إجباري** (Pest Arch + Feature): كل Model في `Domains/*/Models` لازم يستخدم `BelongsToTenant` (ماعدا الاستثناءات المعروفة)، وتست إن مستخدم محل A مش بيشوف أي بيانات لمحل B.
+- **اختبار إجباري** (Pest Arch + Feature): كل Model في `Modules/*/Models` لازم يستخدم `BelongsToTenant` (ماعدا الاستثناءات المعروفة)، وتست إن مستخدم محل A مش بيشوف أي بيانات لمحل B.
 - الـ Queued Jobs بتشيل `tenant_id` وبتعمل restore للـ context قبل ما تشتغل.
 - `spatie/laravel-permission` بـ `teams = true` و `team_id = tenant_id`.
 
@@ -265,6 +424,18 @@ billing_payments, payment_methods, coupons, credit_ledger, usage_counters, billi
 ```
 (التفاصيل في `PLAN.md` قسم 3.9 — الجداول دي **مش** عليها `tenant_id` scope الأوتوماتيكي لأنها بتاعة المنصة.)
 
+### 5.6 جداول الـ Modules والـ Events
+```
+modules            key(PK), name, tier(enum: platform|core|optional), depends_on(jsonb), is_public, sort
+plan_modules       plan_id, module_key                                 -- الباقة فيها أنهي Modules
+tenant_modules     tenant_id, module_key, entitled(bool), state(enum: trial|enabled|disabled|read_only),
+                   source(enum: plan|addon|trial|manual), trial_ends_at, enabled_at, disabled_at, settings(jsonb)
+domain_events      id(uuid), tenant_id, name, version, aggregate_type, aggregate_id, payload(jsonb),
+                   occurred_at, published_at, attempts                 -- الـ Outbox (Index على published_at IS NULL)
+processed_events   event_id, listener, processed_at                    -- PK مركّب (Idempotency)
+```
+- `domain_events` بيتعمله Partition شهري أو أرشفة بعد 90 يوم عشان حجمه.
+
 ---
 
 ## 6. محرّك المخزون (أهم جزء في الـ Business logic)
@@ -275,8 +446,9 @@ billing_payments, payment_methods, coupons, credit_ledger, usage_counters, billi
 final class CompleteSaleAction
 {
     public function __construct(
-        private readonly StockService $stock,
-        private readonly NumberingService $numbering,
+        private readonly StockLedger $stock,            // Inventory\Contracts — لازم ينجح مع البيعة
+        private readonly CustomerAccounts $accounts,    // Customers\Contracts — لازم ينجح مع البيعة
+        private readonly EventRecorder $events,         // Support\Events — بيكتب في الـ Outbox
     ) {}
 
     public function handle(SaleData $data, User $cashier): Sale
@@ -295,16 +467,21 @@ final class CompleteSaleAction
                     branchId: $data->branchId,
                     variantId: $item->variantId,
                     qty: $item->qty,
-                    ref: $sale,
+                    reference: StockReference::sale($sale->id),
                     serialId: $item->serialItemId,
                 );
                 $sale->items()->create([...$item->toArray(), 'lot_id' => $consumed->lotId, 'unit_cost' => $consumed->unitCost]);
             }
 
             $sale->payments()->createMany($data->payments);
-            $this->postToCustomerLedgerIfCredit($sale);
 
-            SaleCompleted::dispatch($sale); // ShouldBroadcast + afterCommit
+            if ($sale->due > 0) {
+                $this->accounts->charge($sale->customer_id, $sale->due, reference: "sale:{$sale->id}");
+            }
+
+            // الباقي كله (تقارير، Real time، نواقص، رسائل…) Listeners بتسمع للحدث ده
+            $this->events->record(SaleCompleted::fromSale($sale));
+
             return $sale;
         });
     }
@@ -358,7 +535,8 @@ GET  /api/v1/sync/pull?since=<cursor>&entities=products,stock,customers,template
 
 - Authorization للـ Channels في `routes/channels.php` بيتأكد من الـ tenant والفرع.
 - Nuxt: `laravel-echo` + `pusher-js`. Flutter: `dart_pusher_channels` (بروتوكول Pusher اللي Reverb بيدعمه).
-- الـ Events بتتبعت `ShouldBroadcast` + `afterCommit` عشان محدش يستلم حدث لعملية اترجعت.
+- الـ Broadcasting نفسه **Listener** على الـ Domain Events (بعد ما تتنشر من الـ Outbox)، فمحدش بيستلم حدث لعملية اترجعت، والـ Modules مش عارفة حاجة عن Reverb.
+- الـ Channels الخاصة بـ Module مقفول مابتتفتحش (الـ Authorization بيتأكد من `Modules::enabled`).
 - Payload صغير (IDs + أرقام أساسية)، والعميل يعمل refetch لو محتاج تفاصيل.
 
 ---
@@ -408,7 +586,9 @@ interface PaymentGateway
 ```
 - Webhooks: `POST /webhooks/{gateway}` ← تحقق HMAC ← `billing_events` بـ Unique على `gateway_ref` (Idempotent) ← Job يطبّق الدفع.
 - **Scheduler يومي:** `billing:generate-invoices`، `billing:charge-due`، `billing:transition-states` (past_due ← restricted ← suspended)، `billing:send-reminders`.
-- Middleware `EnsureSubscriptionAllows` + **Pennant** للـ features حسب الباقة، و`PlanLimits` للحدود (مستخدمين، فروع، أصناف).
+- الاشتراك = باقة (`plan_modules`) + Modules إضافية (`subscription_items` نوعها `module`). أي تغيير ← `billing.subscription_changed` ← ModuleManager يحدّث `tenant_modules.entitled`.
+- تجربة Module لوحده (مثلاً 14 يوم استيراد) من صفحة الـ Modules، وبعدها يا يشترك يا يبقى `read_only`.
+- Middleware `module:{key}` للـ Modules، و**Pennant** للـ features الصغيرة جوه الـ Module، و`PlanLimits` للحدود (مستخدمين، فروع، أصناف).
 - وضع RESTRICTED: القراءة والبيع مسموحين، الإنشاء في الكيانات المحددة ممنوع (403 برسالة واضحة + بانر).
 - لوحة Filament: المحلات، الاشتراكات، الموافقة على تحويلات InstaPay (صورة الإيصال)، الكوبونات، المندوبين.
 
@@ -450,7 +630,9 @@ apps/web/app/
 │   ├── imports/ supplier-returns/
 │   ├── cash/ reports/ settings/ billing/
 ├── layouts/  default.vue (Sidebar RTL) · pos.vue
-├── composables/  useApi.ts · useAuth.ts · useBranch.ts · useScanner.ts · useWhatsApp.ts · useEcho.ts
+├── composables/  useApi.ts · useAuth.ts · useBranch.ts · useModules.ts · useScanner.ts · useWhatsApp.ts · useEcho.ts
+├── middleware/  module.ts (بيمنع دخول Route لـ Module مش متفعّل ← صفحة "فعّل الـ Module")
+├── modules-registry.ts  # key ← routes + عناصر القايمة + الـ widgets في الداشبورد
 ├── stores/  (Pinia) auth · cart · settings · sync
 ├── offline/  db.ts (Dexie schema) · outbox.ts · sync.ts
 └── utils/  money.ts (قرش ⇄ جنيه) · phone.ts · print.ts
@@ -459,6 +641,8 @@ apps/web/app/
 - Types من الـ API: `openapi-typescript` على الـ spec اللي Scramble بيطلعه ← `packages/api-types`.
 - Auth: Sanctum SPA cookies للّوحة، والـ POS بـ Device token + دخول الكاشير بـ PIN.
 - أداء الكاشير: البحث في Dexie (مش في السيرفر)، هدف إضافة صنف < 100ms.
+- **الـ Modules في الواجهة:** القايمة والـ Dashboard widgets والأزرار (زي "تحويل لتذكرة صيانة" في الكاشير) بتتبني من `modules` اللي راجعة من `/me`. كل صفحة Module عليها `definePageMeta({ module: 'imports' })`. ويفضل Layers في Nuxt لكل Module كبير (`layers/repairs`, `layers/imports`) عشان الكود يفضل منفصل.
+- صفحة **"الـ Modules"** في الإعدادات: كل الـ Modules بوصف وسعر، والمتفعّل منها، وزرار تجربة/اشتراك/إخفاء.
 
 ---
 
@@ -484,7 +668,9 @@ apps/web/app/
 
 | الطبقة | الأداة | بيغطي إيه |
 |---|---|---|
-| Arch | Pest Arch | Controllers مفيهاش DB، كل Model عليه tenant trait، مفيش `env()` |
+| Arch | Pest Arch | Controllers مفيهاش DB، كل Model عليه tenant trait، مفيش `env()`، **مفيش Module بيستخدم Models Module تاني** (Contracts و Events بس) |
+| Modules | Pest | Route لـ Module مقفول ← 403، Listener مابيشتغلش لمحل الـ Module مقفول عنده، الـ Dependencies، الإلغاء مابيمسحش داتا |
+| Events | Pest | كل Action بيسجّل الحدث الصح في الـ Outbox (`Events::assertRecorded`)، الـ Listeners Idempotent (نفس الحدث مرتين ← أثر واحد)، Rollback ← مفيش حدث |
 | Unit | Pest | Money، توزيع تكلفة الاستيراد، FIFO، Proration، تجهيز رقم الموبايل |
 | Feature | Pest | كل Endpoint: نجاح + Validation + صلاحيات + **عزل المحلات** |
 | Concurrency | Pest | بيعتين في نفس اللحظة لنفس الصنف ← المخزون صح |
@@ -547,7 +733,7 @@ pnpm add @nuxt/ui @pinia/nuxt @nuxtjs/i18n @vite-pwa/nuxt @vueuse/nuxt dexie lar
 ### الأسبوع 1–3 — الأساس (Identity + Catalog)
 | الأسبوع | المهام |
 |---|---|
-| 1 | Tenancy (trait + scope + middleware + RLS + تست العزل)، تسجيل محل جديد (Tenant + فرع + Owner + Seed)، Login، الفروع، Money cast، هيكل الـ Domains |
+| 1 | Tenancy (trait + scope + middleware + RLS + تست العزل)، **هيكل الـ Modules (Manifest + ServiceProvider loader + ModuleGate + middleware)**، **الـ Outbox (EventRecorder + Relay + ModuleListener + processed_events)**، تسجيل محل جديد باختيار نوع المحل، Login، الفروع، Money cast |
 | 2 | المستخدمين والأدوار والصلاحيات، الأجهزة و PIN، Audit log، Layout الـ Nuxt RTL + Auth + اختيار الفرع |
 | 3 | التصنيفات، الماركات، الموديلات، الأصناف والمتغيرات، التوافق، الباركود، بحث pg_trgm، استيراد أصناف من Excel |
 
@@ -584,6 +770,8 @@ pnpm add @nuxt/ui @pinia/nuxt @nuxtjs/i18n @vite-pwa/nuxt @vueuse/nuxt dexie lar
 ## 19. Definition of Done (لكل Feature)
 - [ ] Migration قابلة للرجوع + Indexes.
 - [ ] Model عليه `BelongsToTenant` + Casts + Policy.
+- [ ] الـ Feature جوه Module واحد، والـ Routes عليها `module:{key}` لو Optional، والصلاحيات في الـ Manifest.
+- [ ] أي تأثير على Module تاني عن طريق Contract (لو لازم يبقى في نفس العملية) أو Event (غير كده) — ومتسجّل في كتالوج الأحداث.
 - [ ] Form Request + Action + API Resource.
 - [ ] تستات Feature (نجاح، Validation، صلاحيات، عزل المحلات).
 - [ ] الشاشة في Nuxt بالعربي RTL وشغالة على شاشة الموبايل.
@@ -596,6 +784,6 @@ pnpm add @nuxt/ui @pinia/nuxt @nuxtjs/i18n @vite-pwa/nuxt @vueuse/nuxt dexie lar
 ## 20. أول 5 مهام تبدأ بيها النهارده
 1. إنشاء الـ Monorepo + Laravel + Nuxt + Docker compose (Postgres/Redis).
 2. إعداد الـ CI (Pint + Larastan + Pest) من أول commit.
-3. `Tenant` + `Branch` + `User` + trait الـ Tenancy + تست العزل.
-4. تسجيل محل جديد (Onboarding API) مع Seed للأعطال والقوالب والأدوار.
+3. `Tenant` + `Branch` + `User` + trait الـ Tenancy + تست العزل + **هيكل الـ Modules والـ Outbox** (قبل أي Feature، عشان كل حاجة بعد كده تتبني عليهم).
+4. تسجيل محل جديد (Onboarding API) باختيار نوع المحل ← Modules مقترحة، مع Seed للأعطال والقوالب والأدوار.
 5. Layout الـ Nuxt بالعربي RTL + Login + اختيار الفرع.

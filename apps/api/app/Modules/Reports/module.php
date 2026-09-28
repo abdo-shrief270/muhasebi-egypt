@@ -14,7 +14,7 @@ return new ModuleManifest(
         'reports.profit' => 'رؤية الأرباح',
     ],
     menu: [
-        new MenuItem('/reports', 'التقارير', 'i-lucide-chart-column', 'reports.view'),
+        new MenuItem('/reports', 'التقارير', 'i-lucide-chart-column', 'reports.view', group: 'reports'),
     ],
     sort: 90,
 );

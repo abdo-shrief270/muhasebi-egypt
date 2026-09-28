@@ -15,7 +15,7 @@ return new ModuleManifest(
         'imports.manage' => 'الشحنات والدفعات',
     ],
     menu: [
-        new MenuItem('/imports', 'الاستيراد', 'i-lucide-ship', 'imports.view'),
+        new MenuItem('/imports', 'الاستيراد', 'i-lucide-ship', 'imports.view', group: 'stock'),
     ],
     sort: 210,
 );

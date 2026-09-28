@@ -18,8 +18,8 @@ return new ModuleManifest(
         'sales.void' => 'إلغاء فاتورة',
     ],
     menu: [
-        new MenuItem('/pos', 'الكاشير', 'i-lucide-shopping-cart', 'sales.sell'),
-        new MenuItem('/sales', 'المبيعات', 'i-lucide-receipt', 'sales.view'),
+        new MenuItem('/pos', 'الكاشير', 'i-lucide-shopping-cart', 'sales.sell', group: 'sales'),
+        new MenuItem('/sales', 'المبيعات', 'i-lucide-receipt', 'sales.view', group: 'sales'),
     ],
     sort: 10,
 );

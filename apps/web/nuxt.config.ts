@@ -21,8 +21,10 @@ export default defineNuxtConfig({
   },
 
   // Cairo is loaded from <head>; don't resolve fonts at build time.
-  // Design direction A is light-only; don't follow the device's dark mode (text turned white on our white inputs).
-  ui: { fonts: false, colorMode: false },
+  ui: { fonts: false },
+
+  // Light unless the user picks dark (or "follow the device") from the top bar.
+  colorMode: { preference: 'light', fallback: 'light', storageKey: 'muhasebi-color-mode' },
 
   // Menu icons come from the API (module manifests), so the bundler can't see them.
   // Keep this list in sync with the icons used in apps/api/app/Modules/*/module.php.

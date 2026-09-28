@@ -8,7 +8,10 @@ export interface MenuEntry {
   icon: string
   permission: string | null
   module: string
+  group: MenuGroup
 }
+
+export type MenuGroup = 'sales' | 'stock' | 'services' | 'reports' | 'settings'
 
 export interface SessionUser {
   id: string

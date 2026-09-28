@@ -16,7 +16,7 @@ return new ModuleManifest(
         'products.view_cost' => 'رؤية سعر التكلفة',
     ],
     menu: [
-        new MenuItem('/products', 'الأصناف', 'i-lucide-package', 'products.view'),
+        new MenuItem('/products', 'الأصناف', 'i-lucide-package', 'products.view', group: 'stock'),
     ],
     provider: CatalogServiceProvider::class,
     sort: 20,

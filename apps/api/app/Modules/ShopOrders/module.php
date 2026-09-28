@@ -16,7 +16,7 @@ return new ModuleManifest(
         'shop_orders.fulfil' => 'تجهيز طلبات المحلات',
         'shop_orders.partners' => 'إدارة الشركاء',
     ],
-    menu: [new MenuItem('/shop-orders', 'الطلبات بين المحلات', 'i-lucide-handshake', 'shop_orders.view')],
+    menu: [new MenuItem('/shop-orders', 'الطلبات بين المحلات', 'i-lucide-handshake', 'shop_orders.view', group: 'services')],
     provider: ShopOrdersServiceProvider::class,
     sort: 300,
 );

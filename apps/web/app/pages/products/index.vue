@@ -108,9 +108,11 @@ const api = useApi()
 const store = useSessionStore()
 const canManage = computed(() => store.can('products.manage'))
 
+const route = useRoute()
 const ALL = 0
-const q = ref('')
-const debouncedQ = ref('')
+// Opened from the quick search with ?q=
+const q = ref(typeof route.query.q === 'string' ? route.query.q : '')
+const debouncedQ = ref(q.value.trim())
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 watch(q, (value) => {
   clearTimeout(searchTimer)

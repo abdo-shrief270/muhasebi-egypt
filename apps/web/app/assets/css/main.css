@@ -24,6 +24,30 @@
   --app-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 4px 16px rgba(15, 23, 42, .04);
 }
 
+/*
+ * Dark mode: the same calm teal on deep slate. Must stay after :root — both selectors
+ * have the same specificity, so the later one wins when <html class="dark">.
+ */
+.dark {
+  --ui-primary: var(--ui-color-primary-400);
+  --ui-bg: #111927;                             /* cards, sidebar, top bar */
+  --ui-bg-muted: #0A1019;                       /* page background */
+  --ui-bg-elevated: #1A2433;                    /* chips, hovers, inset boxes */
+  --ui-bg-accented: #243044;
+  --ui-border: #243145;
+  --ui-border-muted: #1B2637;
+  --ui-border-accented: #31415A;
+  --ui-text: #E2E8F0;
+  --ui-text-muted: #94A3B8;
+  --ui-text-dimmed: #64748B;
+  --ui-text-toned: #CBD5E1;
+  --ui-text-highlighted: #F8FAFC;
+
+  --app-primary-soft: rgba(45, 212, 191, .12);
+  --app-primary-strong: #5EEAD4;
+  --app-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+
 /* Numbers stay Latin and tabular in tables and totals. */
 .num {
   font-variant-numeric: tabular-nums;

@@ -15,7 +15,7 @@ return new ModuleManifest(
         'cash.manage' => 'حركات الخزنة',
     ],
     menu: [
-        new MenuItem('/cash', 'الخزنة', 'i-lucide-wallet', 'cash.shift'),
+        new MenuItem('/cash', 'الخزنة', 'i-lucide-wallet', 'cash.shift', group: 'sales'),
     ],
     sort: 60,
 );

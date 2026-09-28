@@ -14,7 +14,7 @@ return new ModuleManifest(
         'messages.templates' => 'تعديل قوالب الرسائل',
     ],
     menu: [
-        new MenuItem('/settings/templates', 'قوالب الرسائل', 'i-lucide-message-circle', 'messages.templates'),
+        new MenuItem('/settings/templates', 'قوالب الرسائل', 'i-lucide-message-circle', 'messages.templates', group: 'settings'),
     ],
     sort: 95,
 );

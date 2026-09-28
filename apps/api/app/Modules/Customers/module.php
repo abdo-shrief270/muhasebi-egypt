@@ -15,7 +15,7 @@ return new ModuleManifest(
         'customers.credit' => 'البيع الآجل وتحصيل المديونيات',
     ],
     menu: [
-        new MenuItem('/customers', 'العملاء', 'i-lucide-users', 'customers.view'),
+        new MenuItem('/customers', 'العملاء', 'i-lucide-users', 'customers.view', group: 'sales'),
     ],
     sort: 40,
 );

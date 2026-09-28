@@ -14,7 +14,7 @@ return new ModuleManifest(
         'transfers.manage' => 'التحويلات بين الفروع',
     ],
     menu: [
-        new MenuItem('/transfers', 'التحويلات', 'i-lucide-git-compare-arrows', 'transfers.manage'),
+        new MenuItem('/transfers', 'التحويلات', 'i-lucide-git-compare-arrows', 'transfers.manage', group: 'stock'),
     ],
     sort: 260,
 );

@@ -62,6 +62,8 @@ class RegistrationTest extends TestCase
         $this->assertContains('/repairs', $menuTargets);
         $this->assertContains('/pos', $menuTargets);
         $this->assertNotContains('/imports', $menuTargets);
+        $groups = array_column($me['menu'], 'group', 'to');
+        $this->assertSame(['sales', 'stock', 'services'], [$groups['/pos'], $groups['/products'], $groups['/repairs']], 'the sidebar section each entry belongs to');
         $this->assertCount(1, $me['branches']);
     }
 

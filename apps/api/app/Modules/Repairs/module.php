@@ -17,7 +17,7 @@ return new ModuleManifest(
         'repairs.update_status' => 'تغيير حالة التذكرة',
         'repairs.settings' => 'تعديل قوايم الأعطال',
     ],
-    menu: [new MenuItem('/repairs', 'الصيانة', 'i-lucide-wrench', 'repairs.view')],
+    menu: [new MenuItem('/repairs', 'الصيانة', 'i-lucide-wrench', 'repairs.view', group: 'services')],
     provider: RepairsServiceProvider::class,
     sort: 200,
 );

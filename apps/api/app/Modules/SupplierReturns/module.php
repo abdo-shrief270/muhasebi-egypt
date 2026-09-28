@@ -15,7 +15,7 @@ return new ModuleManifest(
         'supplier_returns.manage' => 'فرز وإرسال المرتجعات',
     ],
     menu: [
-        new MenuItem('/supplier-returns', 'مرتجعات الموردين', 'i-lucide-undo-2', 'supplier_returns.view'),
+        new MenuItem('/supplier-returns', 'مرتجعات الموردين', 'i-lucide-undo-2', 'supplier_returns.view', group: 'stock'),
     ],
     sort: 220,
 );

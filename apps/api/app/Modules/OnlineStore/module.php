@@ -14,7 +14,7 @@ return new ModuleManifest(
         'online_store.manage' => 'إدارة المتجر الأونلاين',
     ],
     menu: [
-        new MenuItem('/online-store', 'المتجر الأونلاين', 'i-lucide-store', 'online_store.manage'),
+        new MenuItem('/online-store', 'المتجر الأونلاين', 'i-lucide-store', 'online_store.manage', group: 'sales'),
     ],
     sort: 290,
 );

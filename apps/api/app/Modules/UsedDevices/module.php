@@ -14,7 +14,7 @@ return new ModuleManifest(
         'used_devices.manage' => 'شراء وبيع المستعمل',
     ],
     menu: [
-        new MenuItem('/used-devices', 'المستعمل', 'i-lucide-smartphone', 'used_devices.manage'),
+        new MenuItem('/used-devices', 'المستعمل', 'i-lucide-smartphone', 'used_devices.manage', group: 'services'),
     ],
     sort: 230,
 );

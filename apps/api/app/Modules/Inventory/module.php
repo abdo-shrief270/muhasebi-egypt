@@ -15,7 +15,7 @@ return new ModuleManifest(
         'inventory.adjust' => 'الجرد وتسوية المخزون',
     ],
     menu: [
-        new MenuItem('/inventory', 'المخزون', 'i-lucide-warehouse', 'inventory.view'),
+        new MenuItem('/inventory', 'المخزون', 'i-lucide-warehouse', 'inventory.view', group: 'stock'),
     ],
     sort: 30,
 );

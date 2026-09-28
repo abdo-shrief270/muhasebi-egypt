@@ -14,7 +14,7 @@ return new ModuleManifest(
         'services.manage' => 'كروت الشحن والتحويلات',
     ],
     menu: [
-        new MenuItem('/services', 'الشحن والتحويلات', 'i-lucide-arrow-left-right', 'services.manage'),
+        new MenuItem('/services', 'الشحن والتحويلات', 'i-lucide-arrow-left-right', 'services.manage', group: 'services'),
     ],
     sort: 240,
 );

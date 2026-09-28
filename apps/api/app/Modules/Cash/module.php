@@ -9,8 +9,13 @@ return new ModuleManifest(
     name: 'الخزنة والورديات',
     tier: ModuleTier::Core,
     description: 'الورديات والمصروفات وحركات الخزنة.',
+    permissions: [
+        'cash.shift' => 'فتح وقفل الوردية',
+        'cash.expenses' => 'تسجيل مصروفات',
+        'cash.manage' => 'حركات الخزنة',
+    ],
     menu: [
-        new MenuItem('/cash', 'الخزنة', 'i-lucide-wallet'),
+        new MenuItem('/cash', 'الخزنة', 'i-lucide-wallet', 'cash.shift'),
     ],
     sort: 60,
 );

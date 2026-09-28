@@ -5,14 +5,26 @@ declare(strict_types=1);
 namespace App\Modules\ShopOrders\Http\Requests;
 
 use App\Modules\ShopOrders\Enums\OrderStatus;
+use App\Modules\ShopOrders\Enums\Party;
+use App\Modules\ShopOrders\Models\ShopOrder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 final class TransitionOrderRequest extends FormRequest
 {
+    /** Buyers need "place", sellers need "fulfil". */
     public function authorize(): bool
     {
-        return true;
+        $order = ShopOrder::query()->find($this->route('order'));
+        $tenantId = $this->user()?->getAttribute('tenant_id');
+
+        if ($order === null || $tenantId === null) {
+            return true; // let the controller answer 404
+        }
+
+        return (bool) $this->user()?->can(
+            $order->partyOf($tenantId) === Party::Buyer ? 'shop_orders.place' : 'shop_orders.fulfil',
+        );
     }
 
     /**

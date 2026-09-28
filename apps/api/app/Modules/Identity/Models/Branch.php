@@ -24,6 +24,11 @@ final class Branch extends Model
 {
     use BelongsToTenant, HasUuids;
 
+    protected $attributes = [
+        'is_main' => false,
+        'is_active' => true,
+    ];
+
     protected function casts(): array
     {
         return [

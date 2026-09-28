@@ -10,8 +10,11 @@ return new ModuleManifest(
     tier: ModuleTier::Optional,
     description: 'كتالوج أونلاين من المخزون وطلبات على WhatsApp.',
     dependsOn: ['catalog', 'inventory'],
+    permissions: [
+        'online_store.manage' => 'إدارة المتجر الأونلاين',
+    ],
     menu: [
-        new MenuItem('/online-store', 'المتجر الأونلاين', 'i-lucide-store'),
+        new MenuItem('/online-store', 'المتجر الأونلاين', 'i-lucide-store', 'online_store.manage'),
     ],
     sort: 290,
 );

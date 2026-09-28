@@ -10,7 +10,12 @@ return new ModuleManifest(
     name: 'الطلبات بين المحلات',
     tier: ModuleTier::Optional,
     description: 'اطلب بضاعة أو شغل صيانة من محل شريك وتابع التجهيز لحد الاستلام.',
-    permissions: ['shop_orders.view', 'shop_orders.place', 'shop_orders.fulfil', 'shop_orders.partners'],
+    permissions: [
+        'shop_orders.view' => 'عرض الطلبات بين المحلات',
+        'shop_orders.place' => 'طلب من محل شريك',
+        'shop_orders.fulfil' => 'تجهيز طلبات المحلات',
+        'shop_orders.partners' => 'إدارة الشركاء',
+    ],
     menu: [new MenuItem('/shop-orders', 'الطلبات بين المحلات', 'i-lucide-handshake', 'shop_orders.view')],
     provider: ShopOrdersServiceProvider::class,
     sort: 300,

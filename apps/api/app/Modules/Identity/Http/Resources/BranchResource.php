@@ -22,7 +22,10 @@ final class BranchResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'phone' => $this->phone,
+            'address' => $this->address,
+            'invoice_prefix' => $this->invoice_prefix,
             'is_main' => $this->is_main,
+            'is_active' => $this->is_active,
         ];
     }
 }

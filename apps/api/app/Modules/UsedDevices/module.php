@@ -10,8 +10,11 @@ return new ModuleManifest(
     tier: ModuleTier::Optional,
     description: 'شراء وبيع الأجهزة المستعملة مع تسجيل البطاقة وIMEI.',
     dependsOn: ['inventory', 'customers'],
+    permissions: [
+        'used_devices.manage' => 'شراء وبيع المستعمل',
+    ],
     menu: [
-        new MenuItem('/used-devices', 'المستعمل', 'i-lucide-smartphone'),
+        new MenuItem('/used-devices', 'المستعمل', 'i-lucide-smartphone', 'used_devices.manage'),
     ],
     sort: 230,
 );

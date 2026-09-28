@@ -9,8 +9,12 @@ return new ModuleManifest(
     name: 'التقارير',
     tier: ModuleTier::Core,
     description: 'المبيعات والأرباح والمخزون.',
+    permissions: [
+        'reports.view' => 'عرض التقارير',
+        'reports.profit' => 'رؤية الأرباح',
+    ],
     menu: [
-        new MenuItem('/reports', 'التقارير', 'i-lucide-chart-column'),
+        new MenuItem('/reports', 'التقارير', 'i-lucide-chart-column', 'reports.view'),
     ],
     sort: 90,
 );

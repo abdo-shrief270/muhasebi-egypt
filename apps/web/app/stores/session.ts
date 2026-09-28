@@ -4,6 +4,7 @@ import type { MenuEntry, Session } from '~/types/api'
 export const useSessionStore = defineStore('session', () => {
   const api = useApi()
   const auth = useAuthToken()
+  const branch = useBranchId()
   const session = ref<Session | null>(null)
 
   const isLoggedIn = computed(() => !!auth.token.value)
@@ -13,12 +14,27 @@ export const useSessionStore = defineStore('session', () => {
     return session.value?.enabled_modules.includes(key) ?? false
   }
 
+  function can(permission: string): boolean {
+    return session.value?.permissions.includes(permission) ?? false
+  }
+
+  const isOwner = computed(() => session.value?.user.is_owner ?? false)
+  const currentBranch = computed(() => session.value?.branches.find(b => b.id === session.value?.current_branch_id) ?? null)
+
+  async function switchBranch(id: string): Promise<void> {
+    branch.set(id)
+    await load()
+  }
+
   async function load(): Promise<Session | null> {
     if (!auth.token.value) {
       return null
     }
     const { data } = await api<{ data: Session }>('/auth/me')
     session.value = data
+    if (data.current_branch_id !== branch.branchId.value) {
+      branch.set(data.current_branch_id)
+    }
     return data
   }
 
@@ -43,10 +59,11 @@ export const useSessionStore = defineStore('session', () => {
     }
     finally {
       auth.set(null)
+      branch.set(null)
       session.value = null
       await navigateTo('/login')
     }
   }
 
-  return { session, isLoggedIn, menu, hasModule, load, login, register, logout }
+  return { session, isLoggedIn, isOwner, menu, currentBranch, hasModule, can, switchBranch, load, login, register, logout }
 })

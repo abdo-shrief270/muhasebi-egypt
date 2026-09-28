@@ -64,6 +64,8 @@
 <script setup lang="ts">
 import type { ModuleInfo } from '~/types/api'
 
+definePageMeta({ ownerOnly: true })
+
 const api = useApi()
 const store = useSessionStore()
 const route = useRoute()

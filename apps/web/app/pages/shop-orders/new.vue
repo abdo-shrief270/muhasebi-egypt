@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import type { ShopConnection, ShopOrder } from '~/types/api'
 
-definePageMeta({ module: 'shop_orders' })
+definePageMeta({ module: 'shop_orders', permission: 'shop_orders.place' })
 
 interface DraftItem { description: string, quantity: number, device_model: string, imei: string }
 

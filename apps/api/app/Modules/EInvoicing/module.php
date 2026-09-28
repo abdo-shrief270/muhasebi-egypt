@@ -10,8 +10,11 @@ return new ModuleManifest(
     tier: ModuleTier::Optional,
     description: 'الربط مع منظومة الإيصال والفاتورة الإلكترونية.',
     dependsOn: ['sales'],
+    permissions: [
+        'e_invoicing.manage' => 'إعدادات الإيصال الإلكتروني',
+    ],
     menu: [
-        new MenuItem('/settings/eta', 'الإيصال الإلكتروني', 'i-lucide-file-check'),
+        new MenuItem('/settings/eta', 'الإيصال الإلكتروني', 'i-lucide-file-check', 'e_invoicing.manage'),
     ],
     sort: 270,
 );

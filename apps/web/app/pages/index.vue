@@ -23,6 +23,7 @@
     </div>
 
     <UAlert
+      v-if="store.isOwner"
       icon="i-lucide-blocks"
       color="neutral"
       variant="subtle"

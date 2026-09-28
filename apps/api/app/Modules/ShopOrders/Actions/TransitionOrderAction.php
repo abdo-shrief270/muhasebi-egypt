@@ -8,6 +8,7 @@ use App\Modules\ShopOrders\Enums\OrderStatus;
 use App\Modules\ShopOrders\Enums\Party;
 use App\Modules\ShopOrders\Events\ShopOrderUpdated;
 use App\Modules\ShopOrders\Models\ShopOrder;
+use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class TransitionOrderAction
 {
-    public function __construct(private readonly EventRecorder $events) {}
+    public function __construct(
+        private readonly EventRecorder $events,
+        private readonly Auditor $audit,
+    ) {}
 
     /**
      * @param  array<int, int>  $unitPrices  item id => unit price in piasters
@@ -70,6 +74,8 @@ final class TransitionOrderAction
                 'note' => $note,
                 'created_at' => now(),
             ]);
+
+            $this->audit->record('shop_orders.'.$to->value, "حوّل الطلب {$order->reference()} لـ «{$to->label()}»", $order, tenantId: $tenantId);
 
             foreach ([$order->buyer_tenant_id => Party::Buyer, $order->seller_tenant_id => Party::Seller] as $partyTenant => $p) {
                 $this->events->record(new ShopOrderUpdated(

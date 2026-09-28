@@ -6,6 +6,7 @@ namespace App\Modules\ModuleManager\Actions;
 
 use App\Modules\ModuleManager\Events\ModuleEnabled;
 use App\Modules\ModuleManager\Models\TenantModule;
+use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
 use App\Support\Modules\ModuleAccess;
@@ -18,6 +19,7 @@ final class StartModuleTrialAction
         private readonly ModuleRules $rules,
         private readonly ModuleAccess $access,
         private readonly EventRecorder $events,
+        private readonly Auditor $audit,
     ) {}
 
     public function handle(string $tenantId, string $key): TenantModule
@@ -25,7 +27,7 @@ final class StartModuleTrialAction
         $module = $this->rules->optionalModule($key);
         $this->rules->assertDependenciesUsable($module, $tenantId);
 
-        return DB::transaction(function () use ($tenantId, $key): TenantModule {
+        return DB::transaction(function () use ($tenantId, $key, $module): TenantModule {
             $row = TenantModule::withoutTenancy()
                 ->where('tenant_id', $tenantId)
                 ->where('module_key', $key)
@@ -50,6 +52,7 @@ final class StartModuleTrialAction
                 'disabled_at' => null,
             ])->save();
 
+            $this->audit->record('modules.trial', "بدأ تجربة قسم «{$module->name}»", $row, tenantId: $tenantId);
             $this->events->record(new ModuleEnabled($tenantId, $key, 'trial'));
             DB::afterCommit(fn () => $this->access->forget($tenantId));
             $this->access->forget($tenantId);

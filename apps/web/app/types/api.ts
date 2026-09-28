@@ -16,13 +16,52 @@ export interface SessionUser {
   phone: string
   email: string | null
   is_owner: boolean
+  is_active: boolean
+  role?: { id: number, name: string } | null
+  branch_ids?: string[]
+}
+
+export interface Branch {
+  id: string
+  name: string
+  phone: string | null
+  address: string | null
+  invoice_prefix: string
+  is_main: boolean
+  is_active: boolean
+}
+
+export interface Role {
+  id: number
+  key: string | null
+  name: string
+  permissions: string[]
+  users_count?: number
+}
+
+export interface PermissionGroup {
+  module: string
+  name: string
+  permissions: { key: string, label: string }[]
+}
+
+export interface AuditEntry {
+  id: number
+  action: string
+  description: string
+  user_name: string
+  subject_type: string | null
+  ip: string | null
+  created_at: string
 }
 
 export interface Session {
   user: SessionUser
   tenant: { id: string, name: string, code: string, phone: string, shop_type: string, shop_type_label: string }
-  branches: { id: string, name: string, phone: string | null, is_main: boolean }[]
+  branches: Branch[]
+  current_branch_id: string | null
   enabled_modules: string[]
+  permissions: string[]
   modules: { key: string, state: ModuleState, usable: boolean }[]
   menu: MenuEntry[]
 }

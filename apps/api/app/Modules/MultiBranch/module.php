@@ -10,8 +10,11 @@ return new ModuleManifest(
     tier: ModuleTier::Optional,
     description: 'التحويلات بين الفروع والتقارير المجمّعة.',
     dependsOn: ['inventory'],
+    permissions: [
+        'transfers.manage' => 'التحويلات بين الفروع',
+    ],
     menu: [
-        new MenuItem('/transfers', 'التحويلات', 'i-lucide-git-compare-arrows'),
+        new MenuItem('/transfers', 'التحويلات', 'i-lucide-git-compare-arrows', 'transfers.manage'),
     ],
     sort: 260,
 );

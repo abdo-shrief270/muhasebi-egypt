@@ -13,7 +13,7 @@ final readonly class ModuleManifest
 {
     /**
      * @param  list<string>  $dependsOn  keys of modules that must be usable first
-     * @param  list<string>  $permissions
+     * @param  array<string, string>  $permissions  permission key => Arabic label
      * @param  list<MenuItem>  $menu
      * @param  class-string<ServiceProvider>|null  $provider
      */

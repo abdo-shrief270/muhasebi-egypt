@@ -10,8 +10,12 @@ return new ModuleManifest(
     tier: ModuleTier::Optional,
     description: 'فرز المرتجعات والتالف حسب المصدر وأذونات المرتجع.',
     dependsOn: ['inventory', 'suppliers'],
+    permissions: [
+        'supplier_returns.view' => 'عرض مرتجعات الموردين',
+        'supplier_returns.manage' => 'فرز وإرسال المرتجعات',
+    ],
     menu: [
-        new MenuItem('/supplier-returns', 'مرتجعات الموردين', 'i-lucide-undo-2'),
+        new MenuItem('/supplier-returns', 'مرتجعات الموردين', 'i-lucide-undo-2', 'supplier_returns.view'),
     ],
     sort: 220,
 );

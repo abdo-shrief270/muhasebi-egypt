@@ -6,6 +6,7 @@ namespace App\Modules\ModuleManager\Actions;
 
 use App\Modules\ModuleManager\Events\ModuleDisabled;
 use App\Modules\ModuleManager\Models\TenantModule;
+use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Modules\ModuleAccess;
 use App\Support\Modules\ModuleState;
@@ -20,6 +21,7 @@ final class DisableModuleAction
         private readonly ModuleRules $rules,
         private readonly ModuleAccess $access,
         private readonly EventRecorder $events,
+        private readonly Auditor $audit,
     ) {}
 
     public function handle(string $tenantId, string $key): ?TenantModule
@@ -27,7 +29,7 @@ final class DisableModuleAction
         $module = $this->rules->optionalModule($key);
         $this->rules->assertNoUsableDependents($module, $tenantId);
 
-        return DB::transaction(function () use ($tenantId, $key): ?TenantModule {
+        return DB::transaction(function () use ($tenantId, $key, $module): ?TenantModule {
             $row = TenantModule::withoutTenancy()
                 ->where('tenant_id', $tenantId)
                 ->where('module_key', $key)
@@ -40,6 +42,7 @@ final class DisableModuleAction
 
             $row->fill(['state' => ModuleState::Disabled, 'disabled_at' => now()])->save();
 
+            $this->audit->record('modules.disabled', "أخفى قسم «{$module->name}»", $row, tenantId: $tenantId);
             $this->events->record(new ModuleDisabled($tenantId, $key, 'owner'));
             $this->access->forget($tenantId);
             DB::afterCommit(fn () => $this->access->forget($tenantId));

@@ -11,7 +11,7 @@
       </div>
       <div class="flex gap-2">
         <UButton to="/shop-orders/partners" color="neutral" variant="outline" icon="i-lucide-users" label="الشركاء" />
-        <UButton to="/shop-orders/new" icon="i-lucide-plus" label="طلب جديد" />
+        <UButton v-if="store.can('shop_orders.place')" to="/shop-orders/new" icon="i-lucide-plus" label="طلب جديد" />
       </div>
     </div>
 
@@ -111,9 +111,10 @@
 <script setup lang="ts">
 import type { ShopOrder } from '~/types/api'
 
-definePageMeta({ module: 'shop_orders' })
+definePageMeta({ module: 'shop_orders', permission: 'shop_orders.view' })
 
 const api = useApi()
+const store = useSessionStore()
 const tabs = [
   { value: 'incoming', label: 'الطلبات الواردة', icon: 'i-lucide-inbox' },
   { value: 'outgoing', label: 'طلباتي من محلات تانية', icon: 'i-lucide-send' },

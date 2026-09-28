@@ -14,6 +14,9 @@ SaaS for mobile-phone parts/accessories/repair shops in Egypt. Product plan: `PL
 ## Conventions
 - New module: create `app/Modules/{Name}/module.php` returning a `ModuleManifest`; routes in `routes.php` (auto-prefixed `/api/v1`), migrations in `Database/migrations`, listeners registered via a `ModuleServiceProvider` `$listen` array.
 - Cross-module side effects: if it must succeed with the change → call a `Contracts\` interface inside the transaction; otherwise → `EventRecorder::record(new SomethingHappened(...))` and a `ModuleListener` elsewhere.
+- Permissions are declared in module manifests (`permissions: ['key' => 'Arabic label']`) and enforced with `can:{key}` route middleware / `$user->can()`. Owners have every permission of the modules the shop can use; others get their role's permissions ∩ usable modules (`Identity\PermissionResolver`). Owner-only screens use the `owner` gate.
+- Routes that act inside a branch add the `branch` middleware and read `Support\Tenancy\CurrentBranch` (from the `X-Branch-Id` header).
+- Sensitive actions call `Support\Audit\Auditor::record()` inside their transaction (shows in سجل العمليات).
 - Controllers are thin: Form Request → Action → API Resource. Business rule failures throw `DomainRuleException` (rendered as `{message, code}`).
 - Money is stored as integer piasters. IDs for shop data are UUIDv7 (`HasUuids`).
 - Don't cache Eloquent models (Laravel 13 cache refuses to unserialize objects); cache arrays.

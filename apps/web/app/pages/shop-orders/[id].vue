@@ -150,7 +150,7 @@
 <script setup lang="ts">
 import type { ShopOrder, ShopOrderStatus } from '~/types/api'
 
-definePageMeta({ module: 'shop_orders' })
+definePageMeta({ module: 'shop_orders', permission: 'shop_orders.view' })
 
 const api = useApi()
 const route = useRoute()

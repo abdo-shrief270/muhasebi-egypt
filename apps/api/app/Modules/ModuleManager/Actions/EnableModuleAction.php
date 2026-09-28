@@ -6,6 +6,7 @@ namespace App\Modules\ModuleManager\Actions;
 
 use App\Modules\ModuleManager\Events\ModuleEnabled;
 use App\Modules\ModuleManager\Models\TenantModule;
+use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
 use App\Support\Modules\ModuleAccess;
@@ -22,6 +23,7 @@ final class EnableModuleAction
         private readonly ModuleRules $rules,
         private readonly ModuleAccess $access,
         private readonly EventRecorder $events,
+        private readonly Auditor $audit,
     ) {}
 
     public function handle(string $tenantId, string $key): TenantModule
@@ -56,6 +58,7 @@ final class EnableModuleAction
                 'disabled_at' => null,
             ])->save();
 
+            $this->audit->record('modules.enabled', "أظهر قسم «{$module->name}»", $row, tenantId: $tenantId);
             $this->events->record(new ModuleEnabled($tenantId, $key, $row->source));
             $this->access->forget($tenantId);
             DB::afterCommit(fn () => $this->access->forget($tenantId));

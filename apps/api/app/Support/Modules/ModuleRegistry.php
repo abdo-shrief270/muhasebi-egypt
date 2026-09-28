@@ -68,6 +68,29 @@ final class ModuleRegistry
     }
 
     /**
+     * Every permission declared by any module.
+     *
+     * @return array<string, array{module: string, label: string}>
+     */
+    public function permissions(): array
+    {
+        $permissions = [];
+
+        foreach ($this->all() as $module) {
+            foreach ($module->permissions as $key => $label) {
+                $permissions[$key] = ['module' => $module->key, 'label' => $label];
+            }
+        }
+
+        return $permissions;
+    }
+
+    public function moduleOfPermission(string $permission): ?string
+    {
+        return $this->permissions()[$permission]['module'] ?? null;
+    }
+
+    /**
      * Modules that declare a dependency on the given key.
      *
      * @return list<ModuleManifest>

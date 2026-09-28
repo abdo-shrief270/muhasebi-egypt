@@ -4,6 +4,10 @@ declare module '#app' {
     guest?: boolean
     /** Key of the module this page belongs to; hidden when the module is not usable. */
     module?: string
+    /** Permission key the user needs to open the page. */
+    permission?: string
+    /** Only the shop owner may open the page. */
+    ownerOnly?: boolean
   }
 }
 

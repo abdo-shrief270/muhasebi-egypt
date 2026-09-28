@@ -10,8 +10,11 @@ return new ModuleManifest(
     tier: ModuleTier::Optional,
     description: 'أقساط العملاء بتواريخ الاستحقاق.',
     dependsOn: ['customers', 'sales'],
+    permissions: [
+        'installments.manage' => 'التقسيط',
+    ],
     menu: [
-        new MenuItem('/installments', 'التقسيط', 'i-lucide-calendar-clock'),
+        new MenuItem('/installments', 'التقسيط', 'i-lucide-calendar-clock', 'installments.manage'),
     ],
     sort: 250,
 );

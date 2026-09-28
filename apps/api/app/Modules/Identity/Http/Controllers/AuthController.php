@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Http\Controllers;
 
 use App\Modules\Identity\Actions\RegisterTenantAction;
+use App\Modules\Identity\BranchAccess;
 use App\Modules\Identity\Http\Requests\LoginRequest;
 use App\Modules\Identity\Http\Requests\RegisterTenantRequest;
 use App\Modules\Identity\Http\Resources\BranchResource;
@@ -12,7 +13,7 @@ use App\Modules\Identity\Http\Resources\TenantResource;
 use App\Modules\Identity\Http\Resources\UserResource;
 use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\User;
-use App\Support\Modules\MenuItem;
+use App\Modules\Identity\PermissionResolver;
 use App\Support\Modules\ModuleAccess;
 use App\Support\Modules\ModuleRegistry;
 use Illuminate\Http\JsonResponse;
@@ -41,6 +42,10 @@ final class AuthController
             throw ValidationException::withMessages(['phone' => 'رقم الموبايل أو كلمة السر غير صحيحة.']);
         }
 
+        if (! $user->is_active) {
+            throw ValidationException::withMessages(['phone' => 'الحساب ده اتوقف. كلّم صاحب المحل.']);
+        }
+
         return response()->json([
             'token' => $user->createToken($request->string('device_name')->toString())->plainTextToken,
             'user' => new UserResource($user),
@@ -48,12 +53,13 @@ final class AuthController
     }
 
     /**
-     * Everything a client needs to boot: who am I, which shop, which branches, which modules and menu.
+     * Everything a client needs to boot: who am I, which shop, which branches, modules, permissions and menu.
      */
-    public function me(Request $request, ModuleRegistry $registry, ModuleAccess $access): JsonResponse
+    public function me(Request $request, ModuleRegistry $registry, ModuleAccess $access, PermissionResolver $permissions, BranchAccess $branches): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
+        $granted = $permissions->permissionsFor($user);
 
         $modules = [];
         $menu = [];
@@ -65,21 +71,30 @@ final class AuthController
                 $modules[] = ['key' => $module->key, 'state' => $state->value, 'usable' => $state->isUsable()];
             }
 
-            if ($state->isUsable()) {
-                array_push($menu, ...array_map(
-                    fn (MenuItem $item): array => [...$item->toArray(), 'module' => $module->key],
-                    $module->menu,
-                ));
+            if (! $state->isUsable()) {
+                continue;
+            }
+
+            foreach ($module->menu as $item) {
+                if ($item->permission === null || in_array($item->permission, $granted, true)) {
+                    $menu[] = [...$item->toArray(), 'module' => $module->key];
+                }
             }
         }
 
+        $branchIds = $branches->branchIdsFor($user);
+
         return response()->json([
             'data' => [
-                'user' => new UserResource($user),
+                'user' => new UserResource($user->load('role')),
                 'tenant' => new TenantResource($user->tenant),
-                'branches' => BranchResource::collection(Branch::query()->where('is_active', true)->orderByDesc('is_main')->get()),
+                'branches' => BranchResource::collection(
+                    Branch::query()->whereIn('id', $branchIds)->orderByDesc('is_main')->orderBy('created_at')->get(),
+                ),
+                'current_branch_id' => $branches->resolve($user, $request->header('X-Branch-Id')),
                 'enabled_modules' => $access->enabledKeys(),
                 'modules' => $modules,
+                'permissions' => $granted,
                 'menu' => $menu,
             ],
         ]);

@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2">
+    <div v-if="store.can('shop_orders.partners')" class="grid gap-4 md:grid-cols-2">
       <UCard>
         <p class="text-sm text-(--ui-text-muted)">
           كود محلك
@@ -41,7 +41,7 @@
       </UCard>
     </div>
 
-    <UCard v-if="incoming.length" :ui="{ header: 'font-bold' }">
+    <UCard v-if="incoming.length && store.can('shop_orders.partners')" :ui="{ header: 'font-bold' }">
       <template #header>
         طلبات شراكة مستنية ردّك
       </template>
@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import type { ShopConnection } from '~/types/api'
 
-definePageMeta({ module: 'shop_orders' })
+definePageMeta({ module: 'shop_orders', permission: 'shop_orders.view' })
 
 const api = useApi()
 const toast = useToast()

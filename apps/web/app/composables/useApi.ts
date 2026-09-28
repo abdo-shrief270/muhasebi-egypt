@@ -18,6 +18,19 @@ export function useAuthToken() {
   return { token: readonly(token), set }
 }
 
+/** The branch the user works in; sent to the API as X-Branch-Id. */
+export function useBranchId() {
+  const cookie = useCookie<string | null>('muhasebi_branch', { sameSite: 'lax', maxAge: 60 * 60 * 24 * 365 })
+  const branchId = useState<string | null>('branch-id', () => cookie.value ?? null)
+
+  function set(value: string | null) {
+    branchId.value = value
+    cookie.value = value
+  }
+
+  return { branchId: readonly(branchId), set }
+}
+
 /**
  * Typed $fetch bound to the Laravel API with the bearer token.
  * A 401 logs out; a 403 `module_not_enabled` sends the user to the modules page.
@@ -25,6 +38,7 @@ export function useAuthToken() {
 export function useApi() {
   const config = useRuntimeConfig()
   const auth = useAuthToken()
+  const branch = useBranchId()
 
   return $fetch.create({
     baseURL: config.public.apiBase,
@@ -33,6 +47,9 @@ export function useApi() {
       if (auth.token.value) {
         options.headers.set('Authorization', `Bearer ${auth.token.value}`)
       }
+      if (branch.branchId.value) {
+        options.headers.set('X-Branch-Id', branch.branchId.value)
+      }
     },
     async onResponseError({ response }) {
       const body = response._data as ApiError | undefined
@@ -40,6 +57,9 @@ export function useApi() {
       if (response.status === 401) {
         auth.set(null)
         await navigateTo('/login')
+      }
+      else if (response.status === 403 && body?.code === 'branch_forbidden') {
+        branch.set(null)
       }
       else if (response.status === 403 && body?.code === 'module_not_enabled') {
         await navigateTo({ path: '/settings/modules', query: { need: body.module } })

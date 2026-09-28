@@ -14,7 +14,7 @@
 | Real time | **Laravel Reverb** (WebSockets) + Laravel Echo |
 | Queues | Redis + **Laravel Horizon** |
 | Auth | **Sanctum**: كوكيز للوحة الويب، Tokens لأجهزة الـ POS وتطبيق المالك |
-| الصلاحيات | `spatie/laravel-permission` بوضع **Teams** (الـ Team = المحل) |
+| الصلاحيات | أدوار لكل محل (جدول `roles` بصلاحيات JSON) + صلاحيات متعرّفة في الـ Manifest بتاع كل Module + `Gate::before`. (بدل spatie: أبسط مع UUID ومع ربط الصلاحية بتفعيل الـ Module) |
 | Frontend | **Nuxt 4** + TypeScript + Nuxt UI (RTL) + Pinia — تطبيق واحد فيه اللوحة والكاشير |
 | الكاشير أوفلاين | **PWA** + IndexedDB (**Dexie**) + Outbox Sync |
 | تطبيق المالك | **Flutter** + Riverpod + Dio + go_router |

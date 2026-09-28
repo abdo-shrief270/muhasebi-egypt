@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ module: 'repairs' })
+definePageMeta({ module: 'repairs', permission: 'repairs.view' })
 
 interface FaultCategory {
   id: number

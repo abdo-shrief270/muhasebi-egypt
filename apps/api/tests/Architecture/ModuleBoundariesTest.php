@@ -6,13 +6,14 @@ use App\Modules\Identity\Models\Tenant;
 use App\Modules\Identity\Models\User;
 use App\Support\Modules\ModuleRegistry;
 use App\Support\Tenancy\BelongsToTenant;
+use App\Support\Tenancy\SharedBetweenTenants;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 /**
  * Keeps the modular monolith honest:
  *  - a module talks to another module only through its Contracts\ and Events\
- *  - every model holding shop data is tenant scoped
+ *  - every model holding shop data is tenant scoped (one shop, or shared between the parties)
  *  - every route of an optional module is guarded by `module:{key}`
  */
 class ModuleBoundariesTest extends TestCase
@@ -51,12 +52,15 @@ class ModuleBoundariesTest extends TestCase
         foreach (glob(app_path('Modules/*/Models/*.php')) ?: [] as $file) {
             $class = 'App\\'.str_replace(['/', '.php'], ['\\', ''], substr($file, strlen(app_path()) + 1));
 
-            if (! in_array($class, self::UNSCOPED_MODELS, true) && ! in_array(BelongsToTenant::class, class_uses_recursive($class), true)) {
+            $traits = class_uses_recursive($class);
+            $scoped = in_array(BelongsToTenant::class, $traits, true) || in_array(SharedBetweenTenants::class, $traits, true);
+
+            if (! in_array($class, self::UNSCOPED_MODELS, true) && ! $scoped) {
                 $unscoped[] = $class;
             }
         }
 
-        $this->assertSame([], $unscoped, 'These models must use BelongsToTenant (or be added to the allowlist on purpose).');
+        $this->assertSame([], $unscoped, 'These models must use BelongsToTenant or SharedBetweenTenants (or be added to the allowlist on purpose).');
     }
 
     public function test_optional_module_routes_require_the_module(): void

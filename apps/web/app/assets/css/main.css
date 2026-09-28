@@ -1,9 +1,27 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-/* Placeholder theme — replaced once a design direction is chosen. */
+/*
+ * Design direction A — "نضيف وهادي": light, airy, soft corners, calm teal.
+ * Mockups: docs/design/option-a-*.png
+ */
 @theme {
   --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --ui-primary: var(--ui-color-primary-600);   /* #0D9488 */
+  --ui-radius: 0.4375rem;                       /* cards 14px, controls ~10px */
+  --ui-bg: #FFFFFF;
+  --ui-bg-muted: #F5F7FA;                       /* page background */
+  --ui-bg-elevated: #F1F5F9;                    /* chips, hovers, inset boxes */
+  --ui-border: #E4E8EE;
+  --ui-text: #0F172A;
+  --ui-text-muted: #64748B;
+
+  --app-primary-soft: #E3F4F1;
+  --app-primary-strong: #0F766E;
+  --app-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 4px 16px rgba(15, 23, 42, .04);
 }
 
 /* Numbers stay Latin and tabular in tables and totals. */
@@ -11,4 +29,14 @@
   font-variant-numeric: tabular-nums;
   direction: ltr;
   unicode-bidi: isolate;
+}
+
+/* Soft card shadow from the mockups (applied through app.config). */
+.app-card {
+  box-shadow: var(--app-shadow);
+}
+
+.app-soft {
+  background: var(--app-primary-soft);
+  color: var(--app-primary-strong);
 }

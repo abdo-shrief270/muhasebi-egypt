@@ -32,10 +32,10 @@ enum ShopType: string
     {
         return match ($this) {
             self::Accessories => [],
-            self::Repair => ['repairs', 'supplier_returns', 'used_devices'],
-            self::AccessoriesAndRepair => ['repairs', 'supplier_returns', 'used_devices', 'services'],
-            self::Importer => ['imports', 'supplier_returns', 'owner_app'],
-            self::Wholesale => ['supplier_returns', 'installments'],
+            self::Repair => ['repairs', 'supplier_returns', 'used_devices', 'shop_orders'],
+            self::AccessoriesAndRepair => ['repairs', 'supplier_returns', 'used_devices', 'services', 'shop_orders'],
+            self::Importer => ['imports', 'supplier_returns', 'owner_app', 'shop_orders'],
+            self::Wholesale => ['supplier_returns', 'installments', 'shop_orders'],
         };
     }
 }

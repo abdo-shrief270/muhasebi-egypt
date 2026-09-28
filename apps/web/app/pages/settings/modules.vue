@@ -44,7 +44,7 @@
           </div>
 
           <p v-if="mod.state === 'trial' && mod.trial_ends_at" class="mt-3 text-xs text-(--ui-text-muted)">
-            التجربة تنتهي {{ new Date(mod.trial_ends_at).toLocaleDateString('ar-EG') }}
+            التجربة تنتهي {{ formatDate(mod.trial_ends_at) }}
           </p>
 
           <template v-if="mod.tier === 'optional'" #footer>

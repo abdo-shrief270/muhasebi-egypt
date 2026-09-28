@@ -33,7 +33,7 @@ export default defineNuxtConfig({
         'lucide:file-check', 'lucide:git-compare-arrows', 'lucide:message-circle', 'lucide:package',
         'lucide:receipt', 'lucide:ship', 'lucide:shopping-cart', 'lucide:smartphone', 'lucide:store',
         'lucide:truck', 'lucide:undo-2', 'lucide:users', 'lucide:wallet', 'lucide:warehouse', 'lucide:wrench',
-        'lucide:box',
+        'lucide:box', 'lucide:handshake',
       ],
     },
   },

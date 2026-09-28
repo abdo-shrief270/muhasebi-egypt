@@ -8,7 +8,7 @@ SaaS for mobile-phone parts/accessories/repair shops in Egypt. Product plan: `PL
 
 ## Rules that tests enforce (`apps/api/tests/Architecture`)
 - A module may only reference another module's `Contracts\` and `Events\` namespaces.
-- Every model under `app/Modules/*/Models` uses `BelongsToTenant`, except the allowlist (Tenant, User).
+- Every model under `app/Modules/*/Models` uses `BelongsToTenant` (one shop) or `SharedBetweenTenants` (rows owned by two shops, e.g. inter-shop orders), except the allowlist (Tenant, User).
 - Every route of an `Optional` module carries `module:{key}` middleware.
 
 ## Conventions
@@ -17,6 +17,8 @@ SaaS for mobile-phone parts/accessories/repair shops in Egypt. Product plan: `PL
 - Controllers are thin: Form Request → Action → API Resource. Business rule failures throw `DomainRuleException` (rendered as `{message, code}`).
 - Money is stored as integer piasters. IDs for shop data are UUIDv7 (`HasUuids`).
 - Don't cache Eloquent models (Laravel 13 cache refuses to unserialize objects); cache arrays.
+- Other shops' public info (name, code, phone) comes from `Identity\Contracts\ShopDirectory`, never from Identity's models.
+- UI follows design direction A (`docs/design/option-a-*.png`): theme tokens in `apps/web/app/assets/css/main.css`. Dates/numbers use Latin digits (`ar-EG-u-nu-latn`, `.num`).
 - Menu icons come from module manifests; add new ones to `icon.clientBundle.icons` in `apps/web/nuxt.config.ts`.
 
 ## Commands

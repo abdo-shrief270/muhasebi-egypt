@@ -98,7 +98,8 @@ apps/api/app/
 │   ├── Services/          # كروت الشحن + تحويلات المحافظ
 │   ├── Installments/      # التقسيط
 │   ├── MultiBranch/       # التحويلات بين الفروع + التقارير المجمّعة
-│   └── EInvoicing/        # ETA
+│   ├── EInvoicing/        # ETA
+│   └── ShopOrders/        # الطلبات بين المحلات (شركاء + طلبات)
 └── Support/               # Money, Tenancy, Phone, Numbering, Events (Outbox) …
 ```
 
@@ -297,6 +298,7 @@ abstract class ModuleListener implements ShouldQueue
 | `approvals.requested` / `approvals.decided` | Sales/Identity | Realtime (تطبيق المالك) |
 | `modules.module_enabled` / `module_disabled` | ModuleManager | Seeders، Cache، Billing (الاستخدام) |
 | `billing.subscription_changed` | Billing | ModuleManager (تحديث الـ Entitlements)، Notifications |
+| `shop_orders.connection_requested` / `shop_orders.order_updated` (لكل طرف) | ShopOrders | Realtime، Notifications، Messaging، وبعدين Suppliers (فاتورة شراء للطالب) و Sales/Customers (فاتورة بيع + آجل للبايع) |
 
 - الـ **Real time** (قسم 8) = Listener واحد بيحوّل Events مختارة لـ Broadcast على Reverb.
 - الـ **Audit log** = Listener بيسجّل الأحداث الحساسة.
@@ -423,6 +425,19 @@ plans, plan_features, subscriptions, subscription_items, billing_invoices, billi
 billing_payments, payment_methods, coupons, credit_ledger, usage_counters, billing_events
 ```
 (التفاصيل في `PLAN.md` قسم 3.9 — الجداول دي **مش** عليها `tenant_id` scope الأوتوماتيكي لأنها بتاعة المنصة.)
+
+### 5.5.1 جداول الطلبات بين المحلات
+```
+tenants.code          كود المحل القصير (unique) — بيتعمل تلقائي
+shop_connections      id, requester_tenant_id, addressee_tenant_id, status(pending|accepted|declined), requested_by, responded_at
+shop_orders           id, number (sequence → SO-000123), buyer_tenant_id, seller_tenant_id, type(goods|repair), status,
+                      needed_by, notes, total, placed_by, accepted_at, ready_at, delivered_at, completed_at, closed_at
+shop_order_items      id, shop_order_id, buyer_tenant_id, seller_tenant_id, description, quantity, unit_price, device_model, imei, note
+shop_order_activities id, shop_order_id, buyer_tenant_id, seller_tenant_id, from_status, to_status, actor_party, actor_user_id, note, created_at
+```
+- الصفوف دي بتاعة **محلين في نفس الوقت**، فبتستخدم `SharedBetweenTenants` بدل `BelongsToTenant`: المحل يشوف الصف لو هو واحد من الطرفين، ومن غير محل مفيش نتايج.
+- الوصول لبيانات المحل التاني (الاسم، الكود، الموبايل) عن طريق Contract `Identity\Contracts\ShopDirectory` (بحث بالكود بالظبط بس).
+- كل خطوة بتطلّع حدث `shop_orders.order_updated` **مرة لكل محل** عشان الـ Listeners (إشعارات، Real time، وبعدين فاتورة الشراء/البيع) تشتغل في context كل محل.
 
 ### 5.6 جداول الـ Modules والـ Events
 ```

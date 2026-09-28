@@ -20,7 +20,7 @@ export interface SessionUser {
 
 export interface Session {
   user: SessionUser
-  tenant: { id: string, name: string, phone: string, shop_type: string, shop_type_label: string }
+  tenant: { id: string, name: string, code: string, phone: string, shop_type: string, shop_type_label: string }
   branches: { id: string, name: string, phone: string | null, is_main: boolean }[]
   enabled_modules: string[]
   modules: { key: string, state: ModuleState, usable: boolean }[]
@@ -47,4 +47,51 @@ export interface ApiError {
   code?: string
   module?: string
   errors?: Record<string, string[]>
+}
+
+export interface ShopRef {
+  id: string
+  name: string
+  code: string
+  phone: string
+}
+
+export type ShopOrderStatus = 'placed' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'completed' | 'rejected' | 'cancelled'
+
+export interface ShopOrderItem {
+  id: number
+  description: string
+  quantity: number
+  unit_price: number | null
+  device_model: string | null
+  imei: string | null
+  note: string | null
+}
+
+export interface ShopOrder {
+  id: string
+  reference: string
+  type: 'goods' | 'repair'
+  type_label: string
+  status: ShopOrderStatus
+  status_label: string
+  my_party: 'buyer' | 'seller'
+  counterparty: ShopRef | null
+  needed_by: string | null
+  notes: string | null
+  total: number | null
+  created_at: string
+  allowed_transitions: { status: ShopOrderStatus, label: string }[]
+  items_count: number | null
+  items?: ShopOrderItem[]
+  activities?: { to_status: ShopOrderStatus, to_status_label: string, by: 'buyer' | 'seller', note: string | null, at: string }[]
+}
+
+export interface ShopConnection {
+  id: string
+  status: 'pending' | 'accepted' | 'declined'
+  status_label: string
+  direction: 'incoming' | 'outgoing'
+  shop: ShopRef | null
+  created_at: string
 }

@@ -18,16 +18,39 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property string $id
  * @property string $name
+ * @property string $code short public code other shops use to find this shop
  * @property string $phone
  * @property ShopType $shop_type
  * @property array<string, mixed>|null $settings
  */
-#[Fillable(['name', 'phone', 'shop_type', 'settings'])]
+#[Fillable(['name', 'code', 'phone', 'shop_type', 'settings'])]
 #[UseFactory(TenantFactory::class)]
 final class Tenant extends Model
 {
     /** @use HasFactory<TenantFactory> */
     use HasFactory, HasUuids;
+
+    /** No 0/O/1/I so codes can be read over the phone. */
+    private const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+    protected static function booted(): void
+    {
+        self::creating(function (Tenant $tenant): void {
+            $tenant->code ??= self::newCode();
+        });
+    }
+
+    public static function newCode(): string
+    {
+        do {
+            $code = '';
+            for ($i = 0; $i < 6; $i++) {
+                $code .= self::CODE_ALPHABET[random_int(0, strlen(self::CODE_ALPHABET) - 1)];
+            }
+        } while (self::query()->where('code', $code)->exists());
+
+        return $code;
+    }
 
     protected function casts(): array
     {

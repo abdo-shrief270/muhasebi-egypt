@@ -100,6 +100,47 @@ cd /opt/muhasebi/infra/production && ./deploy.sh
 ```
 بيسحب آخر كود، ويبني، ويعمل الـ migrations، ويعيد تشغيل الـ workers. الداتا مش بتتلمس.
 
+## النشر التلقائي (CI/CD)
+أي push على `main` بيشغّل الـ CI على GitHub. لو التستات والـ typecheck وبناء الصور عدّوا، الـ job اللي اسمها `deploy` بتدخل على السيرفر بـ SSH وتنزّل **نفس الـ commit اللي اتجرّب بالظبط**، وبعدين تستنى لحد ما الـ API يبقى healthy. لو أي خطوة فشلت، الـ job بتبقى حمرا ومفيش حاجة بتتنشر.
+
+```
+push على main ──▶ api (تستات) + web (typecheck/build) + docker (بناء الصور)
+                         └── كلهم نجحوا ──▶ deploy: ssh ──▶ ci-deploy.sh <sha> ──▶ deploy.sh ──▶ فحص /up
+```
+
+**مفتاح الـ SSH بتاع GitHub مقفول على سكريبت واحد** (`ci-deploy.sh`). اللي معاه المفتاح ميقدرش يفتح shell ولا يشغّل أوامر، هو بس يطلب نشر commit موجود فعلاً على `main`.
+
+### الإعداد (مرة واحدة)
+**1) على السيرفر: مفتاح مخصوص لـ GitHub**
+```bash
+ssh-keygen -t ed25519 -N "" -C github-deploy -f /root/.ssh/github_deploy
+echo "restrict,command=\"/opt/muhasebi/infra/production/ci-deploy.sh\" $(cat /root/.ssh/github_deploy.pub)" >> /root/.ssh/authorized_keys
+
+cat /root/.ssh/github_deploy          # انسخه كله (ده DEPLOY_SSH_KEY)
+ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده DEPLOY_KNOWN_HOSTS)
+```
+بعد ما تحط المفتاح في GitHub (الخطوة 2)، امسحه من السيرفر: `rm /root/.ssh/github_deploy`، وسيب الـ `.pub`.
+
+**2) على GitHub:** Settings ← Secrets and variables ← Actions
+| النوع | الاسم | القيمة |
+|---|---|---|
+| Secret | `DEPLOY_HOST` | IP السيرفر |
+| Secret | `DEPLOY_USER` | `root` |
+| Secret | `DEPLOY_SSH_KEY` | محتوى `github_deploy` (المفتاح الخاص كله، من `-----BEGIN` لـ `-----END`) |
+| Secret | `DEPLOY_KNOWN_HOSTS` | ناتج `ssh-keyscan` |
+| Secret (اختياري) | `DEPLOY_PORT` | لو SSH مش على 22 |
+| Variable | `PRODUCTION_URL` | `https://app.muhasebi.com` |
+
+**3) branch اسمه `main`:** ده اللي بيتنشر منه. لو مش موجود، اعمله من الـ branch الحالي واختاره default branch (Settings ← General ← Default branch).
+
+**4) جرّب:** Actions ← CI ← Run workflow ← `main`. أو اعمل أي push على `main`.
+
+### ملاحظات
+- **موافقة قبل النشر (اختياري):** Settings ← Environments ← `production` ← Required reviewers. كده كل نشر بيستنى زرار Approve منك.
+- **الـ Pull Requests:** بتشغّل التستات بس، ومش بتنشر.
+- **نشر يدوي من السيرفر:** `./deploy.sh` لسه شغال زي ما هو، وبيسحب آخر `main`.
+- **الرجوع لنسخة قديمة:** اعمل `git revert` للـ commit اللي فيه المشكلة واعمله push على `main`، فبيتنشر لوحده. الـ migrations مش بترجع لوحدها، فخلّي بالك من أي migration بتمسح أو بتغيّر أعمدة.
+
 ## أوامر مفيدة
 | عايز | الأمر (من `infra/production`) |
 |---|---|

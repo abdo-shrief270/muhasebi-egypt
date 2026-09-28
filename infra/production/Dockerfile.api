@@ -5,7 +5,8 @@
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY apps/api/composer.json apps/api/composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --no-progress
+# The composer image lacks runtime extensions (pcntl, redis, ...); the runtime stage below installs them.
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --no-progress --ignore-platform-req="ext-*"
 COPY apps/api/ ./
 RUN composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts
 

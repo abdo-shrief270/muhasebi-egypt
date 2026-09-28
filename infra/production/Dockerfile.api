@@ -23,6 +23,7 @@ COPY --from=vendor /app /app
 COPY infra/production/entrypoint.sh /usr/local/bin/muhasebi-entrypoint
 
 RUN chmod +x /usr/local/bin/muhasebi-entrypoint \
+ && mkdir -p resources/views storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
  && rm -rf tests .env .env.* storage/logs/*.log bootstrap/cache/*.php \
  && chown -R www-data:www-data storage bootstrap/cache
 

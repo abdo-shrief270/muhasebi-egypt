@@ -10,7 +10,7 @@
 ```
 apps/api   Laravel 13 — API (Modular Monolith + Event-Driven)
 apps/web   Nuxt 4 + Nuxt UI — لوحة المحل والكاشير (RTL)
-infra      Docker compose للتطوير (Postgres 17, Redis, Mailpit, MinIO)
+infra      Docker compose للتطوير + infra/production للسيرفر (Caddy + FrankenPHP + Postgres + Redis)
 ```
 
 ## التشغيل محلياً
@@ -33,6 +33,10 @@ cd apps/web
 npm install
 npm run dev                         # http://localhost:3000
 ```
+
+## الرفع على سيرفر (Production)
+
+كل الخطوات في [`docs/DEPLOY.md`](docs/DEPLOY.md): سيرفر Ubuntu + Docker، و`./init.sh` مرة واحدة، و`./deploy.sh` لكل تحديث.
 
 ## الاختبارات
 

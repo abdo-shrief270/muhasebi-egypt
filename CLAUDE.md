@@ -24,6 +24,9 @@ SaaS for mobile-phone parts/accessories/repair shops in Egypt. Product plan: `PL
 - UI follows design direction A (`docs/design/option-a-*.png`): theme tokens in `apps/web/app/assets/css/main.css`. Dates/numbers use Latin digits (`ar-EG-u-nu-latn`, `.num`).
 - Menu icons come from module manifests; add new ones to `icon.clientBundle.icons` in `apps/web/nuxt.config.ts`.
 
+## Deployment
+- `infra/production/`: Docker Compose stack (Caddy edge with auto-HTTPS serving the Nuxt static build and proxying `/api` to FrankenPHP; Horizon worker, scheduler, Reverb, Postgres 17, Redis). `init.sh` once, `deploy.sh` per update, `backup.sh`/`restore.sh`. Guide: `docs/DEPLOY.md`.
+
 ## Commands
 - API: `php artisan test`, `vendor/bin/pint`
 - Web: `npx nuxi typecheck`, `npm run build`

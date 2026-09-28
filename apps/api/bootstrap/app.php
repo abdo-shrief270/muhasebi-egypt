@@ -28,6 +28,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'branch' => ResolveBranch::class,
         ]);
 
+        // The API only sits behind our own Caddy (never exposed directly), so trust it for client IP / HTTPS.
+        $middleware->trustProxies(at: '*');
+
+        // This is an API: unauthenticated requests get a 401, never a redirect to a login page.
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : '/login');
+
         // Resolve the shop (and branch) before route model binding, so bound models are tenant scoped.
         $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: ResolveBranch::class);
         $middleware->prependToPriorityList(before: ResolveBranch::class, prepend: ResolveTenant::class);

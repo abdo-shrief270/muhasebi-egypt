@@ -1,0 +1,36 @@
+# Laravel API — one image for every PHP role (web, queue worker, scheduler, websockets).
+# Build context: repository root.
+
+# ---- PHP dependencies ----
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY apps/api/composer.json apps/api/composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --no-progress
+COPY apps/api/ ./
+RUN composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scripts
+
+# ---- Runtime ----
+FROM dunglas/frankenphp:1-php8.4
+
+RUN install-php-extensions pdo_pgsql pgsql redis intl bcmath zip pcntl opcache \
+ && cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+COPY infra/production/php.ini "$PHP_INI_DIR/conf.d/zz-muhasebi.ini"
+
+WORKDIR /app
+COPY --from=vendor /app /app
+COPY infra/production/entrypoint.sh /usr/local/bin/muhasebi-entrypoint
+
+RUN chmod +x /usr/local/bin/muhasebi-entrypoint \
+ && rm -rf tests .env .env.* storage/logs/*.log bootstrap/cache/*.php \
+ && chown -R www-data:www-data storage bootstrap/cache
+
+# FrankenPHP serves plain HTTP inside the network; the edge Caddy terminates TLS.
+ENV SERVER_NAME=":80" \
+    APP_ENV=production \
+    APP_DEBUG=false \
+    LOG_CHANNEL=stderr
+
+USER www-data
+ENTRYPOINT ["muhasebi-entrypoint"]
+CMD ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile"]

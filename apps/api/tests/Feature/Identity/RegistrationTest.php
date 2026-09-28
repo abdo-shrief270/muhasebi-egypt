@@ -104,4 +104,9 @@ class RegistrationTest extends TestCase
         $this->postJson('/api/v1/auth/login', ['phone' => '01012345678', 'password' => 'wrong', 'device_name' => 'pos-1'])
             ->assertUnprocessable();
     }
+
+    public function test_unauthenticated_api_calls_get_a_401_even_without_a_json_accept_header(): void
+    {
+        $this->get('/api/v1/auth/me')->assertUnauthorized()->assertJson(['code' => 'unauthenticated']);
+    }
 }

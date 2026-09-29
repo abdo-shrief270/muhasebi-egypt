@@ -7,6 +7,7 @@ namespace App\Modules\Billing\Http\Controllers\Admin;
 use App\Modules\Billing\Models\BillingInvoice;
 use App\Modules\Billing\Models\PaymentRequest;
 use App\Modules\Billing\Models\Subscription;
+use App\Modules\Billing\Support\AdminLog;
 use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Billing\Support\Subscriptions;
@@ -26,6 +27,7 @@ final class AdminShopController
         private readonly Subscriptions $subscriptions,
         private readonly BillingView $view,
         private readonly Pricing $pricing,
+        private readonly AdminLog $log,
     ) {}
 
     public function overview(): JsonResponse
@@ -94,7 +96,8 @@ final class AdminShopController
             'note' => ['nullable', 'string', 'max:255'],
         ]);
         $quote = $this->pricing->quote($data['plan'], $data['cycle'], $data['modules'] ?? []);
-        $this->subscriptions->activate($tenant, $quote, 'manual', $data['reference'] ?? null, $request->user()?->getAttribute('name'), $data['amount'] ?? null, $data['note'] ?? null, $data['months'] ?? null);
+        $invoice = $this->subscriptions->activate($tenant, $quote, 'manual', $data['reference'] ?? null, $request->user()?->getAttribute('name'), $data['amount'] ?? null, $data['note'] ?? null, $data['months'] ?? null);
+        $this->log->record('shop_activated', $tenant, $invoice->id, ['plan' => $quote['plan'], 'cycle' => $quote['cycle'], 'modules' => $quote['modules'], 'amount' => $invoice->total, 'months' => $invoice->months, 'note' => $data['note'] ?? null]);
 
         return $this->show($tenant);
     }
@@ -106,6 +109,7 @@ final class AdminShopController
         $subscription = $this->subscriptions->for($tenant);
         abort_unless($subscription->on_trial, 422, 'الاشتراك مدفوع؛ استخدم التفعيل.');
         $subscription->update(['paid_until' => now()->max($subscription->paid_until)->addDays($data['days'])]);
+        $this->log->record('trial_extended', $tenant, details: ['days' => $data['days']]);
         $current->runAs($tenant, fn () => $audit->record('billing.trial_extended', "الإدارة مدّت التجربة {$data['days']} يوم", $subscription, tenantId: $tenant));
         $this->subscriptions->forget($tenant);
 
@@ -117,6 +121,7 @@ final class AdminShopController
         $data = $request->validate(['reason' => ['required', 'string', 'max:255']]);
         $subscription = $this->subscriptions->for($tenant);
         $subscription->update(['suspended_at' => now(), 'suspended_reason' => $data['reason']]);
+        $this->log->record('shop_suspended', $tenant, details: ['reason' => $data['reason']]);
         $current->runAs($tenant, fn () => $audit->record('billing.suspended', "الإدارة وقّفت الاشتراك: {$data['reason']}", $subscription, tenantId: $tenant));
         $this->subscriptions->forget($tenant);
 
@@ -127,6 +132,7 @@ final class AdminShopController
     {
         $subscription = $this->subscriptions->for($tenant);
         $subscription->update(['suspended_at' => null, 'suspended_reason' => null]);
+        $this->log->record('shop_unsuspended', $tenant);
         $current->runAs($tenant, fn () => $audit->record('billing.unsuspended', 'الإدارة رجّعت الاشتراك', $subscription, tenantId: $tenant));
         $this->subscriptions->forget($tenant);
 

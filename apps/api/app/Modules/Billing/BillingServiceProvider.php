@@ -23,7 +23,8 @@ final class BillingServiceProvider extends ModuleServiceProvider
         parent::boot();
 
         // The platform's own admins; a shop user never passes it (and admins never pass shop gates).
-        Gate::define('platform-admin', fn (mixed $user): bool => $user instanceof PlatformAdmin && $user->is_active);
+        // Only with an admin token (tokenCan('admin')), never a shop session.
+        Gate::define('platform-admin', fn (mixed $user): bool => $user instanceof PlatformAdmin && $user->is_active && $user->tokenCan('admin'));
 
         if ($this->app->runningInConsole()) {
             $this->commands([CreateAdminCommand::class, SyncSubscriptionModulesCommand::class]);

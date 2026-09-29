@@ -27,7 +27,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in rows" :key="row.shop?.id" class="cursor-pointer border-t border-(--ui-border) hover:bg-(--ui-bg-elevated)" @click="navigateTo(`/admin/shops/${row.shop?.id}`)">
+            <tr v-for="row in rows" :key="row.shop?.id" class="cursor-pointer border-t border-(--ui-border) hover:bg-(--ui-bg-elevated)" @click="navigateTo(`/shops/${row.shop?.id}`)">
               <td class="p-3">
                 <p class="font-bold">
                   {{ row.shop?.name }}
@@ -68,7 +68,6 @@
 <script setup lang="ts">
 import type { AdminShop, SubscriptionInfo } from '~/types/api'
 
-definePageMeta({ public: true, layout: 'admin', middleware: 'admin' })
 
 const api = useAdminApi()
 const route = useRoute()

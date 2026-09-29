@@ -15,6 +15,16 @@ return [
     'vat_basis_points' => 1400,
     'yearly_months' => 10,
 
+    // The platform admin panel (/api/v1/admin/*): answered only on this host (e.g. admin.example.com)
+    // and, when set, only from these IPs / CIDR ranges (comma separated). Empty = anywhere (dev, tests).
+    'admin' => [
+        'domain' => env('ADMIN_DOMAIN'),
+        'allowed_ips' => array_values(array_filter(array_map('trim', explode(',', (string) env('ADMIN_ALLOWED_IPS', ''))))),
+        'token_hours' => (int) env('ADMIN_TOKEN_HOURS', 8),
+        'max_login_attempts' => 5,
+        'lockout_minutes' => 15,
+    ],
+
     'instapay' => [
         'address' => env('BILLING_INSTAPAY_ADDRESS', ''),
         'name' => env('BILLING_INSTAPAY_NAME', ''),

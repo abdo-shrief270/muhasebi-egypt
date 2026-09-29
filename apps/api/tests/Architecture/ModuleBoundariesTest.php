@@ -3,6 +3,7 @@
 namespace Tests\Architecture;
 
 use App\Modules\Billing\Models\PlatformAdmin;
+use App\Modules\Billing\Models\PlatformAdminAction;
 use App\Modules\Identity\Models\Tenant;
 use App\Modules\Identity\Models\User;
 use App\Support\Modules\ModuleRegistry;
@@ -24,6 +25,7 @@ class ModuleBoundariesTest extends TestCase
         Tenant::class,
         User::class,
         PlatformAdmin::class,
+        PlatformAdminAction::class,
     ];
 
     public function test_modules_only_use_other_modules_contracts_and_events(): void

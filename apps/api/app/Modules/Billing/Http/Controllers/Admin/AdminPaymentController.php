@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Billing\Http\Controllers\Admin;
 
 use App\Modules\Billing\Models\PaymentRequest;
+use App\Modules\Billing\Support\AdminLog;
 use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Billing\Support\Subscriptions;
@@ -24,6 +25,7 @@ final class AdminPaymentController
     public function __construct(
         private readonly BillingView $view,
         private readonly PlatformShops $shops,
+        private readonly AdminLog $log,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -43,6 +45,7 @@ final class AdminPaymentController
     {
         $payment = PaymentRequest::withoutTenancy()->findOrFail($paymentRequest);
         abort_if($payment->proof_path === null || ! Storage::disk('local')->exists($payment->proof_path), 404);
+        $this->log->record('proof_viewed', $payment->tenant_id, $payment->id);
 
         return Storage::disk('local')->response($payment->proof_path);
     }
@@ -70,6 +73,8 @@ final class AdminPaymentController
                 'invoice_id' => $invoice->id,
             ]);
 
+            $this->log->record('payment_approved', $payment->tenant_id, $payment->id, ['reference' => $payment->reference, 'amount' => $invoice->total]);
+
             return $payment;
         });
 
@@ -91,6 +96,7 @@ final class AdminPaymentController
             'reviewed_by_name' => $admin?->getAttribute('name'),
             'reviewed_at' => now(),
         ]);
+        $this->log->record('payment_rejected', $payment->tenant_id, $payment->id, ['reference' => $payment->reference, 'reason' => $data['reason']]);
         $current->runAs($payment->tenant_id, fn () => $audit->record('billing.payment_rejected', "الإدارة رفضت طلب الدفع (رقم العملية {$payment->reference}): {$data['reason']}", $payment, tenantId: $payment->tenant_id));
 
         return response()->json(['data' => $this->view->request($payment)]);

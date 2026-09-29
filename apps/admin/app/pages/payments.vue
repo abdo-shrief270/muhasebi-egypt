@@ -8,7 +8,7 @@
         <UButton v-for="t in tabs" :key="t.value" :label="t.label" :color="status === t.value ? 'primary' : 'neutral'" :variant="status === t.value ? 'solid' : 'outline'" @click="status = t.value" />
       </UFieldGroup>
     </div>
-    <AdminPaymentCard v-for="p in payments" :key="p.id" :payment="p" @changed="refresh" />
+    <PaymentCard v-for="p in payments" :key="p.id" :payment="p" @changed="refresh" />
     <p v-if="!payments.length" class="py-10 text-center text-(--ui-text-muted)">
       مفيش حاجة هنا.
     </p>
@@ -18,7 +18,6 @@
 <script setup lang="ts">
 import type { AdminPayment } from '~/types/api'
 
-definePageMeta({ public: true, layout: 'admin', middleware: 'admin' })
 
 const api = useAdminApi()
 const tabs = [

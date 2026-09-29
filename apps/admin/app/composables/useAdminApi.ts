@@ -1,6 +1,6 @@
 /**
  * The platform admin's API client: a separate sign-in and token from any shop session.
- * A 401 sends the admin back to /admin/login.
+ * A 401 sends the admin back to /login.
  */
 export function useAdminToken() {
   const cookie = useCookie<string | null>('muhasebi_admin_token', { sameSite: 'strict', maxAge: 60 * 60 * 12 })
@@ -29,7 +29,7 @@ export function useAdminApi() {
     async onResponseError({ response }) {
       if (response.status === 401 || response.status === 403) {
         auth.set(null)
-        await navigateTo('/admin/login')
+        await navigateTo('/login')
       }
     },
   })

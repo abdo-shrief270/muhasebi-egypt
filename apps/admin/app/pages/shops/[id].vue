@@ -1,7 +1,7 @@
 <template>
   <div v-if="detail" class="space-y-6">
     <div class="flex flex-wrap items-center gap-3">
-      <UButton to="/admin/shops" color="neutral" variant="ghost" icon="i-lucide-arrow-right" square aria-label="رجوع" />
+      <UButton to="/shops" color="neutral" variant="ghost" icon="i-lucide-arrow-right" square aria-label="رجوع" />
       <div class="flex-1">
         <h1 class="text-2xl font-extrabold">
           {{ detail.shop.name }}
@@ -65,7 +65,7 @@
             </p>
           </template>
           <div class="space-y-3">
-            <AdminPaymentCard v-for="p in detail.requests" :key="p.id" :payment="{ ...p, shop: detail.shop }" @changed="refresh" />
+            <PaymentCard v-for="p in detail.requests" :key="p.id" :payment="{ ...p, shop: detail.shop }" @changed="refresh" />
           </div>
         </UCard>
 
@@ -156,7 +156,6 @@
 <script setup lang="ts">
 import type { AdminOverview, AdminShop, BillingInvoiceInfo, PaymentRequestInfo, SubscriptionInfo } from '~/types/api'
 
-definePageMeta({ public: true, layout: 'admin', middleware: 'admin' })
 
 interface Detail { shop: AdminShop, subscription: SubscriptionInfo, requests: PaymentRequestInfo[], invoices: BillingInvoiceInfo[] }
 

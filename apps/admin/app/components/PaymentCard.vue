@@ -2,7 +2,7 @@
   <UCard>
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div class="min-w-0 space-y-1">
-        <NuxtLink v-if="payment.shop" :to="`/admin/shops/${payment.tenant_id}`" class="text-lg font-extrabold hover:underline">
+        <NuxtLink v-if="payment.shop" :to="`/shops/${payment.tenant_id}`" class="text-lg font-extrabold hover:underline">
           {{ payment.shop.name }}
         </NuxtLink>
         <p class="text-sm text-(--ui-text-muted)">

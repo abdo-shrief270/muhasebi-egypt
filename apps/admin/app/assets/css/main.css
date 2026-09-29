@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/*
+ * Design direction A — "نضيف وهادي": light, airy, soft corners, calm teal.
+ * Mockups: docs/design/option-a-*.png
+ */
+@theme {
+  --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --ui-primary: var(--ui-color-primary-600);   /* #0D9488 */
+  --ui-radius: 0.4375rem;                       /* cards 14px, controls ~10px */
+  --ui-bg: #FFFFFF;
+  --ui-bg-muted: #F5F7FA;                       /* page background */
+  --ui-bg-elevated: #F1F5F9;                    /* chips, hovers, inset boxes */
+  --ui-border: #E4E8EE;
+  --ui-text: #0F172A;
+  --ui-text-muted: #64748B;
+
+  --app-primary-soft: #E3F4F1;
+  --app-primary-strong: #0F766E;
+  --app-chart: #0D9488;                         /* single-series marks; validated vs --ui-bg */
+  --app-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 4px 16px rgba(15, 23, 42, .04);
+}
+
+/*
+ * Dark mode: the same calm teal on deep slate. Must stay after :root — both selectors
+ * have the same specificity, so the later one wins when <html class="dark">.
+ */
+.dark {
+  --ui-primary: var(--ui-color-primary-400);
+  --ui-bg: #111927;                             /* cards, sidebar, top bar */
+  --ui-bg-muted: #0A1019;                       /* page background */
+  --ui-bg-elevated: #1A2433;                    /* chips, hovers, inset boxes */
+  --ui-bg-accented: #243044;
+  --ui-border: #243145;
+  --ui-border-muted: #1B2637;
+  --ui-border-accented: #31415A;
+  --ui-text: #E2E8F0;
+  --ui-text-muted: #94A3B8;
+  --ui-text-dimmed: #64748B;
+  --ui-text-toned: #CBD5E1;
+  --ui-text-highlighted: #F8FAFC;
+
+  --app-primary-soft: rgba(45, 212, 191, .12);
+  --app-primary-strong: #5EEAD4;
+  --app-chart: #11AB9C;                         /* primary-400 is too light for marks on dark */
+  --app-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+}
+
+/* Numbers stay Latin and tabular in tables and totals. */
+.num {
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Soft card shadow from the mockups (applied through app.config). */
+.app-card {
+  box-shadow: var(--app-shadow);
+}
+
+.app-soft {
+  background: var(--app-primary-soft);
+  color: var(--app-primary-strong);
+}
+
+/*
+ * Printing: only the <PrintSheet> content prints (receipts, labels); the app around it is hidden.
+ * Each sheet sets its own @page size.
+ */
+.print-root {
+  display: none;
+}
+
+@media print {
+  body > *:not(.print-root) {
+    display: none !important;
+  }
+
+  .print-root {
+    display: block;
+    color: #000;
+    background: #fff;
+  }
+}

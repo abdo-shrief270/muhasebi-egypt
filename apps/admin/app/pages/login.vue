@@ -21,7 +21,6 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ public: true, layout: 'admin' })
 
 const config = useRuntimeConfig()
 const { set } = useAdminToken()
@@ -36,7 +35,7 @@ async function submit() {
   try {
     const res = await $fetch<{ token: string }>(`${config.public.apiBase}/admin/auth/login`, { method: 'POST', body: { email: email.value, password: password.value }, headers: { Accept: 'application/json' } })
     set(res.token)
-    await navigateTo('/admin')
+    await navigateTo('/')
   }
   catch (e) {
     error.value = apiErrorMessage(e)

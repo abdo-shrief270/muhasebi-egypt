@@ -3,6 +3,7 @@
 namespace Tests\Feature\Billing;
 
 use App\Modules\Billing\Models\PlatformAdmin;
+use App\Modules\Billing\Models\PlatformAdminAction;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Identity\Models\User;
 use App\Support\Audit\AuditEntry;
@@ -184,5 +185,53 @@ class BillingTest extends TestCase
 
         $this->admin->update(['is_active' => false]);
         $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])->assertUnprocessable();
+    }
+
+    public function test_the_admin_api_lives_only_on_its_domain_and_ips(): void
+    {
+        config(['billing.admin.domain' => 'admin.muhasebi.test']);
+        $this->asAdmin()->getJson('/api/v1/admin/overview')->assertNotFound();
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])->assertNotFound();
+        $this->getJson('http://admin.muhasebi.test/api/v1/admin/overview')->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+
+        config(['billing.admin.allowed_ips' => ['10.0.0.0/8']]);
+        $this->getJson('http://admin.muhasebi.test/api/v1/admin/overview')->assertNotFound();
+        $this->withServerVariables(['REMOTE_ADDR' => '10.1.2.3'])->getJson('http://admin.muhasebi.test/api/v1/admin/overview')->assertOk();
+    }
+
+    public function test_admin_sign_in_is_locked_after_wrong_passwords_and_tokens_expire(): void
+    {
+        $this->app['auth']->forgetGuards();
+        foreach (range(1, 5) as $i) {
+            $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => "wrong-{$i}"])->assertUnprocessable();
+        }
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])
+            ->assertStatus(429)->assertJsonPath('code', 'login_locked');
+
+        $this->travel(16)->minutes();
+        $token = $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])->assertOk()->json('token');
+        $this->withToken($token)->getJson('/api/v1/admin/overview')->assertOk();
+
+        $this->travel(9)->hours();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($token)->getJson('/api/v1/admin/overview')->assertUnauthorized();
+
+        // A token without the admin ability is not enough.
+        $this->app['auth']->forgetGuards();
+        $plain = $this->admin->createToken('other', ['read'])->plainTextToken;
+        $this->withToken($plain)->getJson('/api/v1/admin/overview')->assertForbidden();
+    }
+
+    public function test_admin_actions_are_logged(): void
+    {
+        $request = $this->pay()->json('data');
+        $this->asAdmin()->postJson("/api/v1/admin/payments/{$request['id']}/approve")->assertOk();
+        $this->postJson("/api/v1/admin/shops/{$this->owner->tenant_id}/suspend", ['reason' => 'اختبار'])->assertOk();
+
+        $log = $this->getJson('/api/v1/admin/activity')->assertOk()->json('data');
+        $this->assertSame(['shop_suspended', 'payment_approved'], array_column(array_slice($log, 0, 2), 'action'));
+        $this->assertSame('الإدارة', $log[0]['admin_name']);
+        $this->expectException(\LogicException::class);
+        PlatformAdminAction::query()->first()->delete();
     }
 }

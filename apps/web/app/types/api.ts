@@ -697,29 +697,3 @@ export interface BillingOverview {
   requests: PaymentRequestInfo[]
   invoices: BillingInvoiceInfo[]
 }
-
-export interface AdminShop {
-  id: string
-  name: string
-  code: string
-  phone: string
-  types: string
-  owner_name: string | null
-  owner_phone: string | null
-  users: number
-  branches: number
-  created_at: string
-}
-
-export type AdminPayment = PaymentRequestInfo & { shop: AdminShop | null }
-
-export interface AdminOverview {
-  counts: Record<SubscriptionInfo['status'], number>
-  shops: number
-  pending_payments: number
-  expiring_soon: number
-  mrr: number
-  collected_this_month: number
-  plans: BillingPlan[]
-  extra_modules: { key: string, name: string, monthly: number }[]
-}

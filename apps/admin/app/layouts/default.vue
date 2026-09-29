@@ -26,15 +26,16 @@ const { token, set } = useAdminToken()
 const api = useAdminApi()
 
 const nav = [
-  { to: '/admin', label: 'نظرة عامة', icon: 'i-lucide-layout-dashboard' },
-  { to: '/admin/payments', label: 'المدفوعات', icon: 'i-lucide-banknote' },
-  { to: '/admin/shops', label: 'المحلات', icon: 'i-lucide-store' },
+  { to: '/', label: 'نظرة عامة', icon: 'i-lucide-layout-dashboard' },
+  { to: '/payments', label: 'المدفوعات', icon: 'i-lucide-banknote' },
+  { to: '/shops', label: 'المحلات', icon: 'i-lucide-store' },
+  { to: '/activity', label: 'السجل', icon: 'i-lucide-history' },
 ]
-const isActive = (to: string) => (to === '/admin' ? route.path === '/admin' : route.path.startsWith(to))
+const isActive = (to: string) => (to === '/' ? route.path === '/' : route.path.startsWith(to))
 
 async function logout() {
   await api('/auth/logout', { method: 'POST' }).catch(() => {})
   set(null)
-  await navigateTo('/admin/login')
+  await navigateTo('/login')
 }
 </script>

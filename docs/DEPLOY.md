@@ -150,8 +150,10 @@ ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده 
 | نسخة احتياطية دلوقتي | `./backup.sh` |
 | استرجاع نسخة | `./restore.sh backups/muhasebi-XXXX.dump` |
 | إيقاف كله | `docker compose down` (الداتا بتفضل) |
-| حساب الإدارة (Super Admin) | `docker compose exec api php artisan billing:admin you@example.com "اسمك"` (بيسأل على كلمة السر؛ نفس الأمر بيغيّرها) — وبعدين `https://<الدومين>/admin` |
+| حساب الإدارة (Super Admin) | `docker compose exec api php artisan billing:admin you@example.com "اسمك"` (بيسأل على كلمة السر؛ نفس الأمر بيغيّرها) — وبعدين `https://<ADMIN_DOMAIN>` |
 | مزامنة أقسام المشتركين | `docker compose exec api php artisan billing:sync-modules` (بعد ما قسم «قريباً» يبقى متاح) |
+
+**لوحة الإدارة (دومين لوحدها):** اعمل DNS لدومين تاني (مثلاً `admin.example.com`) على نفس السيرفر، وحطه في `.env` كـ `ADMIN_DOMAIN`، واختياري `ADMIN_ALLOWED_IPS` (IPs أو نطاقات مفصولة بفاصلة) عشان محدش غيرك يوصل لها، وبعدين `./deploy.sh`. Caddy بيطلع لها شهادة HTTPS لوحده (ولو السيرفر عليه nginx: فيه `server` تاني للدومين ده في `nginx-site.conf` + `certbot --nginx -d admin.example.com`). الـ API بتاع الإدارة مش بيرد غير على الدومين ده؛ على دومين المحلات بيرجّع 404. الدخول: 5 محاولات غلط بتقفل 15 دقيقة، والجلسة بتخلص بعد `ADMIN_TOKEN_HOURS` (8 ساعات)، وكل حاجة بتتسجل في «سجل الإدارة».
 
 **الاشتراكات:** الدفع بـ InstaPay. حط في `.env` بتاع السيرفر `BILLING_INSTAPAY_ADDRESS` و`BILLING_INSTAPAY_NAME` و`BILLING_INSTAPAY_PHONE` (بيظهروا لصاحب المحل في صفحة الاشتراك)، وبعدين `./deploy.sh`. الأسعار والباقات في `apps/api/config/billing.php`.
 

@@ -4,6 +4,7 @@ use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
 use App\Modules\Billing\Http\Controllers\BillingController;
+use App\Modules\Billing\Http\Middleware\AdminGate;
 use Illuminate\Support\Facades\Route;
 
 // The shop's subscription.
@@ -23,9 +24,9 @@ Route::middleware(['auth:sanctum', 'tenant'])->prefix('billing')->controller(Bil
     Route::post('requests', 'requestPayment')->middleware('throttle:10,1');
 });
 
-// Platform admins (super admin): a separate sign-in, no shop.
-Route::prefix('admin')->group(function (): void {
-    Route::post('auth/login', [AdminAuthController::class, 'login'])->middleware('throttle:10,1');
+// Platform admins (super admin): a separate sign-in, no shop; only on the admin domain / IPs.
+Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
+    Route::post('auth/login', [AdminAuthController::class, 'login'])->middleware('throttle:20,1');
 
     Route::middleware(['auth:sanctum', 'can:platform-admin'])->group(function (): void {
         Route::pattern('tenant', '[0-9a-fA-F-]{36}');
@@ -33,6 +34,7 @@ Route::prefix('admin')->group(function (): void {
 
         Route::get('auth/me', [AdminAuthController::class, 'me']);
         Route::post('auth/logout', [AdminAuthController::class, 'logout']);
+        Route::get('activity', [AdminAuthController::class, 'activity']);
 
         Route::controller(AdminShopController::class)->group(function (): void {
             Route::get('overview', 'overview');

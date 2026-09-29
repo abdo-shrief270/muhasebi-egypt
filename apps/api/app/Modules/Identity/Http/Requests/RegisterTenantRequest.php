@@ -34,6 +34,7 @@ final class RegisterTenantRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:190', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'branch_name' => ['nullable', 'string', 'max:120'],
+            'device_name' => ['nullable', 'string', 'max:120'],
         ];
     }
 

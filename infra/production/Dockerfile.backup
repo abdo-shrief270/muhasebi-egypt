@@ -1,0 +1,13 @@
+# Daily database backups: pg_dump (same major version as the pgsql service) + rclone for an
+# optional off-site copy. Build context: infra/production.
+FROM postgres:17-alpine
+
+RUN apk add --no-cache rclone tzdata
+
+COPY backup/dump.sh /usr/local/bin/muhasebi-backup
+COPY backup/schedule.sh /usr/local/bin/muhasebi-backup-schedule
+RUN chmod +x /usr/local/bin/muhasebi-backup /usr/local/bin/muhasebi-backup-schedule
+
+VOLUME /backups
+ENTRYPOINT []
+CMD ["muhasebi-backup-schedule"]

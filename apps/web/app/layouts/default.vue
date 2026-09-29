@@ -134,6 +134,7 @@ const userItems = computed<DropdownMenuItem[][]>(() => [
   [
     ...(store.can('users.manage') ? [{ label: 'الموظفين', icon: 'i-lucide-users-round', to: '/settings/users' }] : []),
     ...(store.isOwner ? [{ label: 'الأقسام', icon: 'i-lucide-blocks', to: '/settings/modules' }, { label: 'الاشتراك والفواتير', icon: 'i-lucide-credit-card', to: '/settings/billing' }] : []),
+    { label: 'الأمان وتسجيل الدخول', icon: 'i-lucide-lock-keyhole', to: '/settings/security' },
     { label: 'بحث سريع', icon: 'i-lucide-search', kbds: ['meta', 'K'], onSelect: () => { searchOpen.value = true } },
     ...(store.can('products.view') ? [{ label: 'استعلام عن سعر', icon: 'i-lucide-tag', kbds: ['F8'], onSelect: () => priceCheck.show() }] : []),
     { label: `نسخ كود المحل (${store.session?.tenant.code ?? ''})`, icon: 'i-lucide-hash', onSelect: copyCode },

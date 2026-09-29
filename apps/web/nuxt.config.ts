@@ -45,6 +45,8 @@ export default defineNuxtConfig({
         // Customer privacy (customer page consent line / data menu, /privacy sections).
         'lucide:shield-check', 'lucide:shield-alert', 'lucide:shield-question', 'lucide:user-x', 'lucide:download',
         'lucide:database', 'lucide:target', 'lucide:eye', 'lucide:clock', 'lucide:user-check', 'lucide:phone', 'lucide:lock',
+        // Security page (navigation, device icons, conditional shield icons).
+        'lucide:lock-keyhole', 'lucide:monitor', 'lucide:tablet', 'lucide:shield', 'lucide:shield-check', 'lucide:shield-alert',
       ],
     },
   },

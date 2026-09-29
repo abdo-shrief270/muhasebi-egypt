@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { MenuEntry, Session } from '~/types/api'
+import type { LoginResponse, MenuEntry, Session } from '~/types/api'
 
 export const useSessionStore = defineStore('session', () => {
   const api = useApi()
@@ -38,17 +38,33 @@ export const useSessionStore = defineStore('session', () => {
     return data
   }
 
-  async function login(phone: string, password: string): Promise<void> {
-    const res = await api<{ token: string }>('/auth/login', {
+  /** Signs in, or returns the challenge when the account has two-factor sign-in (then call completeTwoFactor). */
+  async function login(phone: string, password: string): Promise<{ challenge: string } | null> {
+    const res = await api<LoginResponse>('/auth/login', {
       method: 'POST',
-      body: { phone, password, device_name: 'web' },
+      body: { phone, password, device_name: currentDeviceName() },
+    })
+    if ('challenge' in res) {
+      return { challenge: res.challenge }
+    }
+    auth.set(res.token)
+    await load()
+    return null
+  }
+
+  /** Second step: the code from the authenticator app, or a recovery code. */
+  async function completeTwoFactor(challenge: string, code: string): Promise<{ recoveryCodesLeft: number | null }> {
+    const res = await api<{ token: string, recovery_codes_left: number | null }>('/auth/two-factor', {
+      method: 'POST',
+      body: { challenge, code },
     })
     auth.set(res.token)
     await load()
+    return { recoveryCodesLeft: res.recovery_codes_left }
   }
 
   async function register(payload: Record<string, unknown>): Promise<void> {
-    const res = await api<{ token: string }>('/auth/register', { method: 'POST', body: payload })
+    const res = await api<{ token: string }>('/auth/register', { method: 'POST', body: { device_name: currentDeviceName(), ...payload } })
     auth.set(res.token)
     await load()
   }
@@ -65,5 +81,5 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
-  return { session, isLoggedIn, isOwner, menu, currentBranch, hasModule, can, switchBranch, load, login, register, logout }
+  return { session, isLoggedIn, isOwner, menu, currentBranch, hasModule, can, switchBranch, load, login, completeTwoFactor, register, logout }
 })

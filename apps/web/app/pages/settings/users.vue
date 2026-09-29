@@ -47,17 +47,35 @@
               {{ u.is_owner ? 'كل الفروع' : branchNames(u.branch_ids) }}
             </td>
             <td class="p-3">
-              <UBadge :color="u.is_active ? 'success' : 'neutral'" variant="subtle">
-                {{ u.is_active ? 'شغال' : 'موقوف' }}
-              </UBadge>
+              <div class="flex flex-wrap gap-1">
+                <UBadge :color="u.is_active ? 'success' : 'neutral'" variant="subtle">
+                  {{ u.is_active ? 'شغال' : 'موقوف' }}
+                </UBadge>
+                <UBadge v-if="u.two_factor_enabled" color="primary" variant="subtle" icon="i-lucide-shield-check">
+                  تحقق بخطوتين
+                </UBadge>
+              </div>
             </td>
-            <td class="p-3 text-end">
+            <td class="p-3 text-end whitespace-nowrap">
+              <UButton v-if="store.isOwner" size="sm" color="neutral" variant="ghost" icon="i-lucide-monitor-smartphone" label="الأجهزة" @click="openSessions(u)" />
               <UButton v-if="!u.is_owner" size="sm" color="neutral" variant="ghost" icon="i-lucide-pencil" label="تعديل" @click="openForm(u)" />
             </td>
           </tr>
         </tbody>
       </table>
     </UCard>
+
+    <UModal v-model:open="sessionsOpen" :title="sessionsFor ? `أجهزة «${sessionsFor.name}»` : 'الأجهزة'" :ui="{ content: 'sm:max-w-2xl' }">
+      <template #body>
+        <div v-if="sessionsFor" class="space-y-4">
+          <SecuritySessionsList :endpoint="`/users/${sessionsFor.id}/sessions`" />
+          <div v-if="sessionsFor.two_factor_enabled && !sessionsFor.is_owner" class="flex flex-wrap items-center justify-between gap-2 rounded-(--ui-radius) bg-(--ui-bg-elevated) p-3 text-sm">
+            <span>ضاع موبايله ومعهوش أكواد الاسترجاع؟ ألغِ التحقق بخطوتين عشان يدخل بكلمة السر، ويفعّله تاني.</span>
+            <UButton size="sm" color="error" variant="soft" label="إلغاء التحقق بخطوتين" :loading="resetting" @click="resetTwoFactor(sessionsFor)" />
+          </div>
+        </div>
+      </template>
+    </UModal>
 
     <UModal v-model:open="formOpen" :title="editing ? `تعديل «${editing.name}»` : 'موظف جديد'">
       <template #body>
@@ -108,6 +126,7 @@ definePageMeta({ permission: 'users.manage' })
 
 const api = useApi()
 const toast = useToast()
+const store = useSessionStore()
 
 const [{ data: usersData, refresh }, { data: rolesData }, { data: branchesData }] = await Promise.all([
   useAsyncData('users', () => api<{ data: SessionUser[] }>('/users')),
@@ -141,6 +160,31 @@ function openForm(user?: SessionUser) {
     is_active: user?.is_active ?? true,
   })
   formOpen.value = true
+}
+
+const sessionsOpen = ref(false)
+const sessionsFor = ref<SessionUser | null>(null)
+const resetting = ref(false)
+
+function openSessions(user: SessionUser) {
+  sessionsFor.value = user
+  sessionsOpen.value = true
+}
+
+async function resetTwoFactor(user: SessionUser) {
+  resetting.value = true
+  try {
+    await api(`/users/${user.id}/two-factor`, { method: 'DELETE' })
+    toast.add({ color: 'success', title: `اتلغى التحقق بخطوتين لـ «${user.name}» وخرج من كل الأجهزة` })
+    sessionsOpen.value = false
+    await refresh()
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    resetting.value = false
+  }
 }
 
 function toggleBranch(id: string, on: boolean) {

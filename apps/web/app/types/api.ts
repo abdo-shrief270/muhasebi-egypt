@@ -22,6 +22,32 @@ export interface SessionUser {
   is_active: boolean
   role?: { id: number, name: string } | null
   branch_ids?: string[]
+  two_factor_enabled: boolean
+}
+
+/** POST /auth/login: a token, or (two-factor sign-in on) a challenge for POST /auth/two-factor. */
+export type LoginResponse = { token: string, user: SessionUser } | { two_factor: true, challenge: string, expires_in: number }
+
+export interface TwoFactorStatus {
+  enabled: boolean
+  confirmed_at: string | null
+  recovery_codes_left: number
+}
+
+export interface TwoFactorSetup {
+  secret: string
+  otpauth_url: string
+}
+
+/** A signed-in device (an API token). */
+export interface DeviceSession {
+  id: number
+  device_name: string
+  ip_address: string | null
+  user_agent: string | null
+  created_at: string | null
+  last_used_at: string | null
+  current: boolean
 }
 
 export interface Branch {

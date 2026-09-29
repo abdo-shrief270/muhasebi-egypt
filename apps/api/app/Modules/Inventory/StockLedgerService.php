@@ -64,21 +64,21 @@ final class StockLedgerService implements StockLedger
         });
     }
 
-    public function issue(string $branchId, string $variantId, int $qty, StockReference $reference): StockIssue
+    public function issue(string $branchId, string $variantId, int $qty, StockReference $reference, ?string $fromLotId = null): StockIssue
     {
         if ($qty <= 0) {
             throw new InvalidArgumentException('Issue a positive quantity.');
         }
 
-        return DB::transaction(function () use ($branchId, $variantId, $qty, $reference): StockIssue {
+        return DB::transaction(function () use ($branchId, $variantId, $qty, $reference, $fromLotId): StockIssue {
             $level = $this->lockLevel($branchId, $variantId);
 
             $lots = StockLot::query()
                 ->where('branch_id', $branchId)
                 ->where('variant_id', $variantId)
                 ->where('qty_remaining', '>', 0)
-                ->orderBy('received_at')
-                ->orderBy('id')
+                ->when($fromLotId !== null, fn ($q) => $q->orderByRaw('id = ? desc', [$fromLotId]))
+                ->orderBy('seq')
                 ->lockForUpdate()
                 ->get();
 
@@ -112,6 +112,20 @@ final class StockLedgerService implements StockLedger
     public function quantity(string $branchId, string $variantId): int
     {
         return (int) StockLevel::query()->where('branch_id', $branchId)->where('variant_id', $variantId)->value('qty');
+    }
+
+    public function averageCosts(string $branchId, array $variantIds): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        return StockLevel::query()
+            ->where('branch_id', $branchId)
+            ->whereIn('variant_id', $variantIds)
+            ->pluck('avg_cost', 'variant_id')
+            ->map(fn ($cost) => (int) $cost)
+            ->all();
     }
 
     public function variantsWithHistory(array $variantIds, ?string $branchId = null): array

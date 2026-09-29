@@ -240,3 +240,76 @@ export interface StockMovementRow {
   user_name: string | null
   created_at: string
 }
+
+/** Balance > 0: the shop owes the supplier. Money in piasters. */
+export interface Supplier {
+  id: string
+  name: string
+  phone: string | null
+  notes: string | null
+  balance: number
+  is_active: boolean
+  purchases_count?: number
+  last_purchase_at?: string | null
+}
+
+export interface SupplierTransaction {
+  id: string
+  type: 'opening' | 'purchase' | 'payment' | 'purchase_return'
+  type_label: string
+  amount: number
+  balance_after: number
+  payment_method: string | null
+  payment_method_label: string | null
+  ref_type: string | null
+  ref_id: string | null
+  note: string | null
+  user_name: string | null
+  created_at: string
+}
+
+export interface PurchaseItem {
+  id: number
+  variant_id: string
+  name: string | null
+  barcode: string | null
+  qty: number
+  unit_cost: number
+  net_unit_cost: number
+  line_total: number
+  previous_cost: number | null
+  cost_increased: boolean
+  returned_qty: number
+}
+
+export interface Purchase {
+  id: string
+  number: number
+  reference: string
+  supplier: { id: string, name: string } | null
+  supplier_invoice_no: string | null
+  invoice_date: string
+  subtotal: number
+  discount: number
+  total: number
+  paid: number
+  payment_method: string | null
+  payment_method_label: string | null
+  returned: number
+  notes: string | null
+  created_by_name: string | null
+  created_at: string
+  items_count: number | null
+  items: PurchaseItem[]
+  returns: { id: string, reference: string, total: number, notes: string | null, created_by_name: string | null, created_at: string }[]
+}
+
+export interface PurchasableVariant {
+  id: string
+  display_name: string
+  barcode: string | null
+  sku: string | null
+  category: { id: number, name: string }
+  avg_cost: number | null
+  exact_barcode: boolean
+}

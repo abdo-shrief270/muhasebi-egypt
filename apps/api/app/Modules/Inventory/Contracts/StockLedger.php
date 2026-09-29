@@ -18,10 +18,17 @@ interface StockLedger
     public function receive(string $branchId, string $variantId, int $qty, int $unitCost, StockReference $reference): string;
 
     /**
-     * Takes stock out, oldest lots first. Going below zero is allowed (selling before the
-     * purchase is recorded); the missing part is costed at the average cost.
+     * Takes stock out, oldest lots first ($fromLotId first when given, e.g. returning a purchase
+     * to its supplier). Going below zero is allowed (selling before the purchase is recorded);
+     * the missing part is costed at the average cost.
      */
-    public function issue(string $branchId, string $variantId, int $qty, StockReference $reference): StockIssue;
+    public function issue(string $branchId, string $variantId, int $qty, StockReference $reference, ?string $fromLotId = null): StockIssue;
+
+    /**
+     * @param  list<string>  $variantIds
+     * @return array<string, int> variant id => average cost (piasters) in the branch; unknown ones left out
+     */
+    public function averageCosts(string $branchId, array $variantIds): array;
 
     public function quantity(string $branchId, string $variantId): int;
 

@@ -90,8 +90,7 @@ final class InventoryController
         $movements = StockMovement::query()
             ->where('branch_id', $this->branch->idOrFail())
             ->where('variant_id', $variant)
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
+            ->orderByDesc('seq')
             ->limit(200)
             ->get()
             ->map(fn (StockMovement $m): array => [

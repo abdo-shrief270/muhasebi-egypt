@@ -15,6 +15,7 @@ return new ModuleManifest(
         'suppliers.manage' => 'الموردين وفواتير الشراء',
     ],
     menu: [
+        new MenuItem('/purchases', 'فواتير الشراء', 'i-lucide-receipt-text', 'suppliers.view', group: 'stock'),
         new MenuItem('/suppliers', 'الموردين', 'i-lucide-truck', 'suppliers.view', group: 'stock'),
     ],
     sort: 50,

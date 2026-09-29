@@ -42,7 +42,7 @@ final class DeviceSessions
     public function of(User $user): Collection
     {
         /** @var Collection<int, PersonalAccessToken> */
-        return $user->tokens()->orderByDesc('last_used_at')->orderByDesc('id')->get();
+        return $user->tokens()->orderByRaw('last_used_at desc nulls last')->orderByDesc('id')->get();
     }
 
     /** The id of the token this request came with (null for first-party / test sessions). */

@@ -23,6 +23,17 @@
       </div>
     </div>
 
+    <!-- Owners without two-factor sign-in get a nudge (dismissible for a week). -->
+    <UAlert
+      v-if="showTwoFactorNudge"
+      color="warning"
+      variant="subtle"
+      icon="i-lucide-shield-alert"
+      title="احمِ حساب المحل بالتحقق بخطوتين"
+      description="كود من موبايلك مع كلمة السر، عشان محدش يدخل على فلوس المحل لو عرف كلمة السر."
+      :actions="[{ label: 'فعّله دلوقتي', to: '/settings/security', color: 'warning' }, { label: 'بعدين', color: 'neutral', variant: 'ghost', onClick: dismissTwoFactorNudge }]"
+    />
+
     <!-- Quick actions -->
     <div v-if="actions.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       <component
@@ -234,6 +245,19 @@ const store = useSessionStore()
 const actions = useQuickActions()
 const canReports = computed(() => store.can('reports.view'))
 const canStock = computed(() => store.can('inventory.view'))
+
+const NUDGE_KEY = 'muhasebi:2fa-nudge-dismissed'
+const nudgeDismissedAt = ref<number>(0)
+onMounted(() => {
+  nudgeDismissedAt.value = Number(localStorage.getItem(NUDGE_KEY) ?? 0)
+})
+const showTwoFactorNudge = computed(() => store.isOwner
+  && store.session?.user.two_factor_enabled === false
+  && Date.now() - nudgeDismissedAt.value > 7 * 24 * 60 * 60 * 1000)
+function dismissTwoFactorNudge() {
+  nudgeDismissedAt.value = Date.now()
+  localStorage.setItem(NUDGE_KEY, String(nudgeDismissedAt.value))
+}
 
 const today = new Date().toLocaleDateString('ar-EG-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 

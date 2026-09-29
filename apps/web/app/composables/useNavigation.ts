@@ -15,6 +15,7 @@ export function useNavigation() {
     { to: '/settings/branches', label: 'الفروع', icon: 'i-lucide-store', show: store.can('branches.manage') },
     { to: '/settings/modules', label: 'الأقسام', icon: 'i-lucide-blocks', show: store.isOwner },
     { to: '/settings/audit', label: 'سجل العمليات', icon: 'i-lucide-history', show: store.can('audit.view') },
+    { to: '/settings/security', label: 'الأمان وتسجيل الدخول', icon: 'i-lucide-lock-keyhole', show: true },
   ].filter(item => item.show).map(({ to, label, icon }) => ({ to, label, icon })))
 
   const groups = computed<NavGroup[]>(() => (Object.keys(NAV_GROUP_TITLES) as MenuGroup[])

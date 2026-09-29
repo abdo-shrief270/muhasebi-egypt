@@ -41,9 +41,9 @@ final class SessionController
         return response()->json(['data' => ['revoked' => $this->sessions->revokeAll($user, $this->sessions->currentId($user))]]);
     }
 
-    public function staffIndex(User $user): JsonResponse
+    public function staffIndex(Request $request, User $user): JsonResponse
     {
-        return $this->list($user, null);
+        return $this->list($user, $user->is($request->user()) ? $this->sessions->currentId($this->me($request)) : null);
     }
 
     public function staffDestroy(User $user, int $session): Response

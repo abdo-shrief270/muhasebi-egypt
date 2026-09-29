@@ -64,6 +64,8 @@ final class TicketResource extends JsonResource
             'technician_id' => $this->technician_id,
             'technician_name' => $this->technician_name,
             'ready_at' => $this->ready_at?->toIso8601String(),
+            // Set by the controller for ready tickets: when the customer was told on WhatsApp.
+            'ready_notified_at' => $this->resource->getAttributes()['ready_notified_at'] ?? null,
             'delivered_at' => $this->delivered_at?->toIso8601String(),
             'delivered_by_name' => $this->delivered_by_name,
             'estimate' => $this->estimate,

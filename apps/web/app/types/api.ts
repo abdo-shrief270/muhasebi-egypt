@@ -573,6 +573,8 @@ export interface RepairTicket {
   technician_id: string | null
   technician_name: string | null
   ready_at: string | null
+  /** ready tickets: when the customer was told on WhatsApp (null = not yet) */
+  ready_notified_at: string | null
   delivered_at: string | null
   delivered_by_name: string | null
   estimate: number | null
@@ -612,4 +614,4 @@ export interface RepairOptions {
   faults: RepairFaultCategory[]
 }
 
-export interface RepairSummary { open: number, ready: number, overdue: number, abandoned: number, mine: number }
+export interface RepairSummary { open: number, ready: number, unnotified: number, overdue: number, abandoned: number, mine: number }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Repairs\Http\Controllers;
 
 use App\Modules\Identity\Contracts\StaffDirectory;
+use App\Modules\Messaging\Contracts\MessageHistory;
 use App\Modules\Repairs\Actions\AddPartAction;
 use App\Modules\Repairs\Actions\ChangeStatusAction;
 use App\Modules\Repairs\Actions\DeliverTicketAction;
@@ -28,6 +29,7 @@ use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 final class TicketController
@@ -39,6 +41,7 @@ final class TicketController
         private readonly CurrentTenant $tenant,
         private readonly CurrentBranch $branch,
         private readonly StaffDirectory $staff,
+        private readonly MessageHistory $messages,
     ) {}
 
     /**
@@ -54,6 +57,7 @@ final class TicketController
             ->when(TicketStatus::tryFrom($status) !== null, fn ($q) => $q->where('status', $status))
             ->when($status === 'delivered', fn ($q) => $q->orderByDesc('delivered_at'), fn ($q) => $q->orderByRaw('expected_at asc nulls last')->orderByDesc('received_at'))
             ->paginate(30);
+        $this->markNotified($tickets->getCollection());
 
         return response()->json([
             'data' => TicketResource::collection($tickets->getCollection()),
@@ -69,6 +73,7 @@ final class TicketController
         return response()->json(['data' => [
             'open' => $base()->where('status', '!=', TicketStatus::Delivered->value)->count(),
             'ready' => $base()->where('status', TicketStatus::Ready->value)->count(),
+            'unnotified' => $this->unnotified($base()),
             'overdue' => $this->overdue($base())->count(),
             'abandoned' => $this->abandoned($base())->count(),
             'mine' => $base()->where('status', '!=', TicketStatus::Delivered->value)->where('technician_id', $request->user()?->getAuthIdentifier())->count(),
@@ -90,7 +95,33 @@ final class TicketController
     {
         $this->inBranch($ticket);
 
+        $this->markNotified(collect([$ticket]));
+
         return new TicketResource($ticket->load(['parts', 'payments', 'events']));
+    }
+
+    /**
+     * Ready tickets get when the customer was last told on WhatsApp (after it became ready).
+     *
+     * @param  iterable<RepairTicket>  $tickets
+     */
+    private function markNotified(iterable $tickets): void
+    {
+        $ready = collect($tickets)->filter(fn (RepairTicket $t) => $t->status === TicketStatus::Ready);
+        $sent = $this->messages->lastSent('repair_ticket', $ready->pluck('id')->values()->all(), 'repair_ready');
+        foreach ($ready as $ticket) {
+            $at = $sent[$ticket->id] ?? null;
+            $ticket->setAttribute('ready_notified_at', $at !== null && ($ticket->ready_at === null || Carbon::parse($at)->gte($ticket->ready_at)) ? $at : null);
+        }
+    }
+
+    /** Ready devices whose customer wasn't told yet. */
+    private function unnotified(Builder $query): int
+    {
+        $ready = $query->where('status', TicketStatus::Ready->value)->get(['id', 'status', 'ready_at']);
+        $this->markNotified($ready);
+
+        return $ready->filter(fn (RepairTicket $t) => ($t->getAttributes()['ready_notified_at'] ?? null) === null)->count();
     }
 
     public function store(ReceiveDeviceRequest $request, ReceiveDeviceAction $action): JsonResponse

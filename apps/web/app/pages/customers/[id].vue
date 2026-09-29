@@ -19,8 +19,7 @@
         <UButton v-if="canManage" color="neutral" variant="ghost" icon="i-lucide-pencil" label="تعديل" @click="editOpen = true" />
         <UButton
           v-if="customer.phone && customer.balance > 0"
-          :to="whatsappLink(customer.phone, debtReminderText(customer.name, customer.balance, shopName))"
-          target="_blank"
+          @click="messages.sendDebtReminder(customer)"
           color="neutral"
           variant="outline"
           icon="i-lucide-message-circle"
@@ -176,7 +175,7 @@ const store = useSessionStore()
 const canManage = computed(() => store.can('customers.manage'))
 const canCredit = computed(() => store.can('customers.credit'))
 const canSell = computed(() => store.can('sales.sell'))
-const shopName = computed(() => store.session?.tenant.name ?? '')
+const messages = useMessages()
 const id = computed(() => String(route.params.id))
 
 const [{ data: customerData, refresh: refreshCustomer }, { data: statementData, refresh: refreshStatement }, { data: salesData }] = await Promise.all([

@@ -188,7 +188,7 @@
     </div>
 
     <!-- Repairs at a glance -->
-    <div v-if="repairs" class="grid grid-cols-3 gap-3">
+    <div v-if="repairs" class="grid grid-cols-2 gap-3 sm:auto-cols-fr sm:grid-flow-col sm:grid-cols-none">
       <NuxtLink v-for="card in repairCards" :key="card.label" :to="card.to" class="app-card p-4 transition hover:ring-1 hover:ring-primary">
         <p class="flex items-center gap-1.5 text-sm text-(--ui-text-muted)">
           <UIcon :name="card.icon" class="size-4" :class="card.tone" />
@@ -296,6 +296,7 @@ const repairCards = computed(() => repairs.value
   ? [
       { label: 'أجهزة في الصيانة', value: repairs.value.open, to: '/repairs', icon: 'i-lucide-wrench', tone: 'text-(--ui-text-muted)' },
       { label: 'جاهزة للتسليم', value: repairs.value.ready, to: '/repairs?tab=ready', icon: 'i-lucide-check-circle', tone: 'text-success' },
+      ...(repairs.value.unnotified ? [{ label: 'جاهزة والعميل ما اتبلغش', value: repairs.value.unnotified, to: '/repairs?tab=ready', icon: 'i-lucide-message-circle', tone: 'text-warning' }] : []),
       { label: 'متأخرة عن ميعادها', value: repairs.value.overdue, to: '/repairs?tab=overdue', icon: 'i-lucide-alarm-clock', tone: 'text-error' },
     ]
   : [])

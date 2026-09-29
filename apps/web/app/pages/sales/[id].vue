@@ -214,12 +214,13 @@ const returnable = computed(() => sale.value?.items?.some(i => i.qty > i.returne
 const shop = computed(() => store.session ? { name: store.session.tenant.name, phone: store.session.tenant.phone } : null)
 const receipt = computed(() => receiptFromSale(sale.value!, shop.value, store.currentBranch?.name ?? null))
 
+const messages = useMessages()
+
 function share() {
   if (!sale.value) {
     return
   }
-  const text = receiptWhatsappText(sale.value, shop.value?.name ?? '')
-  window.open(sale.value.customer_phone ? whatsappLink(sale.value.customer_phone, text) : `https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+  messages.sendSale(sale.value)
 }
 
 const returnOpen = ref(false)

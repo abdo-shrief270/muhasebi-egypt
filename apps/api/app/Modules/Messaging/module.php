@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Messaging\MessagingServiceProvider;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -14,7 +15,8 @@ return new ModuleManifest(
         'messages.templates' => 'تعديل قوالب الرسائل',
     ],
     menu: [
-        new MenuItem('/settings/templates', 'قوالب الرسائل', 'i-lucide-message-circle', 'messages.templates', group: 'settings', ready: false),
+        new MenuItem('/settings/templates', 'قوالب الرسائل', 'i-lucide-message-circle', 'messages.templates', group: 'settings'),
     ],
+    provider: MessagingServiceProvider::class,
     sort: 95,
 );

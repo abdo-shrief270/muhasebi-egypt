@@ -73,6 +73,9 @@
                 <UBadge :color="ticketStatusColor(t.status)" variant="subtle">
                   {{ t.status_label }}
                 </UBadge>
+                <UBadge v-if="t.status === 'ready' && !t.ready_notified_at" color="warning" variant="outline" size="sm" icon="i-lucide-message-circle" class="ms-1">
+                  العميل ما اتبلغش
+                </UBadge>
                 <p v-if="t.technician_name" class="mt-1 text-xs text-(--ui-text-muted)">
                   {{ t.technician_name }}
                 </p>

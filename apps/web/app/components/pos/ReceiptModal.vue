@@ -38,13 +38,13 @@ const shop = computed(() => store.session ? { name: store.session.tenant.name, p
 const receipt = computed(() => props.sale ? receiptFromSale(props.sale, shop.value, store.currentBranch?.name ?? null) : receiptFromSale({ items: [], payments: [] } as unknown as Sale, null, null))
 const qrUrl = computed(() => props.sale ? receiptUrl(props.sale.public_token) : null)
 
+const messages = useMessages()
+
 function shareWhatsapp() {
   if (!props.sale) {
     return
   }
-  const text = receiptWhatsappText(props.sale, shop.value?.name ?? '')
-  const phone = props.sale.customer_phone
-  window.open(phone ? whatsappLink(phone, text) : `https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
+  messages.sendSale(props.sale)
 }
 
 defineExpose({ print })

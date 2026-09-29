@@ -21,7 +21,14 @@
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <UButton :to="whatsappLink(ticket.customer_phone, ticketMessage(ticket, shopName))" target="_blank" color="neutral" variant="outline" icon="i-lucide-message-circle" label="واتساب" />
+        <UButton
+          v-if="ticket.status === 'ready' && !ticket.ready_notified_at"
+          color="warning"
+          icon="i-lucide-message-circle"
+          label="بلّغ العميل إنه جاهز"
+          @click="notify(ticket)"
+        />
+        <UButton v-else color="neutral" variant="outline" icon="i-lucide-message-circle" label="واتساب" @click="notify(ticket)" />
         <UButton color="neutral" variant="outline" icon="i-lucide-printer" label="الإيصال" @click="print" />
         <UButton v-if="canWork && ticket.next_statuses.length" color="neutral" variant="outline" icon="i-lucide-arrow-left-right" label="تغيير الحالة" @click="openStatus(null)" />
         <UButton v-if="canWork && ticket.next_statuses.some(s => s.value === 'ready')" color="success" variant="soft" icon="i-lucide-check-circle" label="جاهز" @click="openStatus('ready')" />
@@ -337,7 +344,14 @@ const toast = useToast()
 const id = computed(() => String(route.params.id))
 const canWork = computed(() => store.can('repairs.update_status'))
 const canDeliver = computed(() => store.can('repairs.deliver'))
-const shopName = computed(() => store.session?.tenant.name ?? '')
+const messages = useMessages()
+
+function notify(t: RepairTicket) {
+  messages.sendTicket(t)
+  if (t.status === 'ready' && data.value?.data) {
+    data.value.data.ready_notified_at = new Date().toISOString()
+  }
+}
 const shop = computed(() => store.session ? { name: store.session.tenant.name, phone: store.session.tenant.phone ?? null } : null)
 
 const [{ data }, { data: optionsData }] = await Promise.all([
@@ -444,7 +458,7 @@ function onChanged(updated: RepairTicket) {
   toast.add({
     color: 'success',
     title: `بقت «${updated.status_label}»`,
-    actions: [{ label: 'ابعت للعميل واتساب', icon: 'i-lucide-message-circle', onClick: () => { window.open(whatsappLink(updated.customer_phone, ticketMessage(updated, shopName.value)), '_blank') } }],
+    actions: [{ label: 'ابعت للعميل واتساب', icon: 'i-lucide-message-circle', onClick: () => notify(updated) }],
   })
 }
 

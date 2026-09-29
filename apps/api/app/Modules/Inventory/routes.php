@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Inventory\Http\Controllers\InventoryController;
+use App\Modules\Inventory\Http\Controllers\PriceCheckController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'tenant', 'branch'])->prefix('inventory')->controller(InventoryController::class)->group(function (): void {
@@ -15,3 +16,6 @@ Route::middleware(['auth:sanctum', 'tenant', 'branch'])->prefix('inventory')->co
     Route::post('opening', 'opening');
     Route::post('adjustments', 'adjust');
 });
+
+// Quick price check from anywhere in the app (scan or type).
+Route::middleware(['auth:sanctum', 'tenant', 'branch', 'can:products.view'])->get('inventory/price-check', PriceCheckController::class);

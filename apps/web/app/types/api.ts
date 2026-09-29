@@ -78,6 +78,8 @@ export interface ModuleInfo {
   state: ModuleState
   state_label: string
   usable: boolean
+  /** false while the module is still being built («قريباً») */
+  available: boolean
   entitled: boolean
   trial_available: boolean
   trial_ends_at: string | null
@@ -508,4 +510,21 @@ export interface ReportData {
   totals: Record<string, string | number | null> | null
   chart: { kind: 'daily' | 'bars', label: string, type: ReportColumnType, points: { label: string, value: number, date?: string }[] } | null
   notes: string[]
+}
+
+export interface PriceCheckItem {
+  id: string
+  product_id: string
+  display_name: string
+  barcode: string | null
+  category: string
+  quality_label: string | null
+  is_active: boolean
+  exact_barcode: boolean
+  /** wholesale / technician are null for whoever can't sell at them */
+  prices: { retail: number, wholesale: number | null, technician: number | null }
+  /** average cost in this branch; null without products.view_cost */
+  cost: number | null
+  /** per branch the user may see; null without inventory.view */
+  stock: { branch_id: string, name: string, qty: number, current: boolean }[] | null
 }

@@ -18,4 +18,5 @@ return new ModuleManifest(
         new MenuItem('/supplier-returns', 'مرتجعات الموردين', 'i-lucide-undo-2', 'supplier_returns.view', group: 'stock'),
     ],
     sort: 220,
+    available: false,
 );

@@ -8,6 +8,7 @@ use App\Modules\ModuleManager\Actions\GrantModuleAction;
 use App\Modules\ModuleManager\Actions\RevokeModuleAction;
 use App\Modules\ModuleManager\Actions\StartModuleTrialAction;
 use App\Modules\ModuleManager\Contracts\TenantModules;
+use App\Support\Modules\ModuleRegistry;
 
 final class TenantModuleService implements TenantModules
 {
@@ -15,11 +16,16 @@ final class TenantModuleService implements TenantModules
         private readonly StartModuleTrialAction $startTrial,
         private readonly GrantModuleAction $grant,
         private readonly RevokeModuleAction $revoke,
+        private readonly ModuleRegistry $registry,
     ) {}
 
     public function startTrials(string $tenantId, array $keys): void
     {
         foreach ($keys as $key) {
+            // A module still being built keeps its one trial for when it's ready.
+            if (! $this->registry->get($key)->available) {
+                continue;
+            }
             $this->startTrial->handle($tenantId, $key);
         }
     }

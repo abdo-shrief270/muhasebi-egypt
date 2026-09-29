@@ -5,7 +5,10 @@ namespace Tests\Feature\Modules;
 use App\Modules\Identity\Enums\ShopType;
 use App\Modules\Identity\Models\User;
 use App\Modules\ModuleManager\Contracts\TenantModules;
+use App\Modules\ModuleManager\Models\TenantModule;
 use App\Modules\Repairs\Models\FaultCategory;
+use App\Support\Modules\ModuleAccess;
+use App\Support\Modules\ModuleState;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -45,10 +48,10 @@ class ModuleLifecycleTest extends TestCase
     {
         $this->actingAsOwnerOf(ShopType::Accessories);
 
-        $this->postJson('/api/v1/modules/imports/trial')->assertOk();
-        $this->postJson('/api/v1/modules/imports/disable')->assertOk();
+        $this->postJson('/api/v1/modules/multi_branch/trial')->assertOk();
+        $this->postJson('/api/v1/modules/multi_branch/disable')->assertOk();
 
-        $this->postJson('/api/v1/modules/imports/trial')
+        $this->postJson('/api/v1/modules/multi_branch/trial')
             ->assertUnprocessable()
             ->assertJson(['code' => 'module_trial_used']);
     }
@@ -111,9 +114,37 @@ class ModuleLifecycleTest extends TestCase
         $modules = collect($this->getJson('/api/v1/modules')->assertOk()->json('data'))->keyBy('key');
 
         $this->assertSame('trial', $modules['repairs']['state']);
-        $this->assertSame('not_entitled', $modules['imports']['state']);
-        $this->assertTrue($modules['imports']['trial_available']);
+        $this->assertSame('not_entitled', $modules['multi_branch']['state']);
+        $this->assertTrue($modules['multi_branch']['trial_available']);
+        $this->assertSame([false, false], [$modules['imports']['available'], $modules['imports']['trial_available']], 'still being built');
+        $this->assertNotContains('/transfers', array_column($modules['multi_branch']['menu'], 'to'), 'its screen is not built yet');
         $this->assertSame('enabled', $modules['sales']['state']);
         $this->assertFalse($modules->has('identity'), 'platform modules are not shown to shops');
+    }
+
+    public function test_a_module_still_being_built_stays_off(): void
+    {
+        $owner = $this->actingAsOwnerOf(ShopType::Accessories);
+
+        $this->postJson('/api/v1/modules/used_devices/trial')->assertStatus(409)->assertJsonPath('code', 'module_coming_soon');
+
+        // A shop that started a trial before the module was marked «قريباً» doesn't get it either.
+        TenantModule::withoutTenancy()->create(['tenant_id' => $owner->tenant_id, 'module_key' => 'used_devices', 'entitled' => false, 'state' => ModuleState::Trial, 'source' => 'trial', 'trial_started_at' => now(), 'trial_ends_at' => now()->addDays(14), 'enabled_at' => now()]);
+        app(ModuleAccess::class)->forget($owner->tenant_id);
+
+        $me = $this->getJson('/api/v1/auth/me')->assertOk()->json('data');
+        $this->assertNotContains('used_devices', $me['enabled_modules']);
+        $this->assertNotContains('/used-devices', array_column($me['menu'], 'to'));
+        $this->assertNotContains('used_devices.manage', $me['permissions']);
+        $this->assertFalse(collect($me['modules'])->firstWhere('key', 'used_devices')['available']);
+    }
+
+    public function test_only_the_owner_sees_the_modules_page(): void
+    {
+        $owner = $this->registerShop();
+        Sanctum::actingAs(User::factory()->create(['tenant_id' => $owner->tenant_id]));
+
+        $this->getJson('/api/v1/modules')->assertForbidden();
+        $this->getJson('/api/v1/branches')->assertForbidden();
     }
 }

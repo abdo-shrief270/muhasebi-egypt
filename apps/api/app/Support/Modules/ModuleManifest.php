@@ -16,6 +16,8 @@ final readonly class ModuleManifest
      * @param  array<string, string>  $permissions  permission key => Arabic label
      * @param  list<MenuItem>  $menu
      * @param  class-string<ServiceProvider>|null  $provider
+     * @param  bool  $available  false while the module's screens are still being built: it stays
+     *                           off for every shop (no menu, no permissions, no trial) and shows as «قريباً»
      */
     public function __construct(
         public string $key,
@@ -27,6 +29,7 @@ final readonly class ModuleManifest
         public array $menu = [],
         public ?string $provider = null,
         public int $sort = 100,
+        public bool $available = true,
     ) {}
 
     public function isOptional(): bool

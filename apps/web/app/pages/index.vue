@@ -25,11 +25,14 @@
 
     <!-- Quick actions -->
     <div v-if="actions.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      <NuxtLink
+      <component
+        :is="action.to ? NuxtLink : 'button'"
         v-for="action in actions"
-        :key="action.to"
+        :key="action.label"
         :to="action.to"
-        class="app-card group flex items-center gap-3 p-3 transition hover:ring-1 hover:ring-primary"
+        :type="action.to ? undefined : 'button'"
+        class="app-card group flex items-center gap-3 p-3 text-start transition hover:ring-1 hover:ring-primary"
+        @click="action.run?.()"
       >
         <span class="grid size-10 shrink-0 place-items-center rounded-lg bg-(--app-primary-soft) text-(--app-primary-strong)">
           <UIcon :name="action.icon" class="size-5" />
@@ -38,7 +41,8 @@
           <span class="block truncate font-bold">{{ action.label }}</span>
           <span class="block truncate text-xs text-(--ui-text-muted)">{{ action.description }}</span>
         </span>
-      </NuxtLink>
+        <UKbd v-if="action.kbd" :value="action.kbd" class="ms-auto hidden shrink-0 lg:inline-flex" />
+      </component>
     </div>
 
     <template v-if="canReports && stats">
@@ -202,7 +206,7 @@
       color="neutral"
       variant="subtle"
       title="محتاج قسم زيادة؟"
-      description="جرّب الاستيراد أو الصيانة أو غيرهم مجاناً 14 يوم من صفحة الأقسام."
+      description="جرّب الصيانة أو طلبات المحلات مجاناً 14 يوم من صفحة الأقسام."
       :actions="[{ label: 'الأقسام', to: '/settings/modules' }]"
     />
   </div>
@@ -210,6 +214,7 @@
 
 <script setup lang="ts">
 import type { SalesStats, StockSummary } from '~/types/api'
+import { NuxtLink } from '#components'
 
 const api = useApi()
 const store = useSessionStore()

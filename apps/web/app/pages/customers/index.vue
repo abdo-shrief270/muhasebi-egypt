@@ -115,4 +115,10 @@ const { data, status } = await useAsyncData('customers', () => api<{ data: Custo
 const customers = computed(() => data.value?.data ?? [])
 
 const formOpen = ref(false)
+// Quick action «عميل جديد»: /customers?new=1
+onMounted(() => {
+  if (route.query.new === '1' && canManage.value) {
+    formOpen.value = true
+  }
+})
 </script>

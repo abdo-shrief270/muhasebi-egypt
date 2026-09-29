@@ -17,4 +17,5 @@ return new ModuleManifest(
         new MenuItem('/used-devices', 'المستعمل', 'i-lucide-smartphone', 'used_devices.manage', group: 'services'),
     ],
     sort: 230,
+    available: false,
 );

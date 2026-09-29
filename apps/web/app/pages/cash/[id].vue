@@ -20,7 +20,7 @@
                 {{ formatDate(m.created_at, true) }}
               </td>
               <td class="p-3">
-                <NuxtLink v-if="m.ref_type === 'sale' && m.ref_id" :to="`/sales/${m.ref_id}`" class="font-bold hover:text-primary">
+                <NuxtLink v-if="m.ref_type === 'sale' && m.ref_id && store.can('sales.view')" :to="`/sales/${m.ref_id}`" class="font-bold hover:text-primary">
                   {{ m.type_label }}
                 </NuxtLink>
                 <span v-else class="font-bold">{{ m.category_label ? `${m.type_label} · ${m.category_label}` : m.type_label }}</span>

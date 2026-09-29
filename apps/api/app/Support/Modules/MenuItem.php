@@ -15,6 +15,8 @@ final readonly class MenuItem
         public string $icon,
         public ?string $permission = null,
         public string $group = 'sales',
+        /** False while the screen behind this entry isn't built yet: the entry stays out of the menu. */
+        public bool $ready = true,
     ) {
         if (! in_array($group, self::GROUPS, true)) {
             throw new \InvalidArgumentException("Unknown menu group [{$group}] for {$to}.");

@@ -217,6 +217,15 @@ const { data: shiftData, status: shiftStatus, refresh: refreshShift } = await us
 const shiftChecked = computed(() => shiftStatus.value !== 'pending' || shiftData.value !== undefined)
 const hasShift = computed(() => !!shiftData.value?.data)
 
+// Added from the price check: /pos?add=<variant id>
+if (typeof route.query.add === 'string') {
+  const res = await api<{ data: PosItem[] }>('/pos/items', { query: { 'ids[]': [route.query.add] } }).catch(() => ({ data: [] as PosItem[] }))
+  if (res.data[0]) {
+    add(res.data[0])
+  }
+  useRouter().replace({ query: { ...route.query, add: undefined } })
+}
+
 // Opened from a customer's page: /pos?customer=…
 if (typeof route.query.customer === 'string' && canCustomers.value) {
   try {

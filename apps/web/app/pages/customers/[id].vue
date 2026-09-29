@@ -89,7 +89,7 @@
               </td>
               <td class="p-3">
                 <span class="font-bold">{{ t.type_label }}</span>{{ t.reference ? ' ' : '' }}
-                <NuxtLink v-if="t.ref_type === 'sale' && t.ref_id" :to="`/sales/${t.ref_id}`" class="font-bold text-primary num">{{ t.reference }}</NuxtLink>
+                <NuxtLink v-if="t.ref_type === 'sale' && t.ref_id && store.can('sales.view')" :to="`/sales/${t.ref_id}`" class="font-bold text-primary num">{{ t.reference }}</NuxtLink>
                 <span v-else-if="t.reference" class="text-(--ui-text-muted) num">{{ t.reference }}</span>
                 <span v-if="t.payment_method_label" class="text-(--ui-text-muted)"> · {{ t.payment_method_label }}</span>
                 <p v-if="t.note || t.user_name" class="text-xs text-(--ui-text-muted)">

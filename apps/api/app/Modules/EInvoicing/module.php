@@ -17,4 +17,5 @@ return new ModuleManifest(
         new MenuItem('/settings/eta', 'الإيصال الإلكتروني', 'i-lucide-file-check', 'e_invoicing.manage', group: 'settings'),
     ],
     sort: 270,
+    available: false,
 );

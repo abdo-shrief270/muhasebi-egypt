@@ -18,4 +18,5 @@ return new ModuleManifest(
         new MenuItem('/imports', 'الاستيراد', 'i-lucide-ship', 'imports.view', group: 'stock'),
     ],
     sort: 210,
+    available: false,
 );

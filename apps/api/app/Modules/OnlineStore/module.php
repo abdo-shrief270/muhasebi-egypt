@@ -17,4 +17,5 @@ return new ModuleManifest(
         new MenuItem('/online-store', 'المتجر الأونلاين', 'i-lucide-store', 'online_store.manage', group: 'sales'),
     ],
     sort: 290,
+    available: false,
 );

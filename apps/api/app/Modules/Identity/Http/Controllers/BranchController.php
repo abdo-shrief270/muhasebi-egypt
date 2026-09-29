@@ -10,6 +10,7 @@ use App\Modules\Identity\Http\Resources\BranchResource;
 use App\Modules\Identity\Models\Branch;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -17,8 +18,11 @@ final class BranchController
 {
     public function __construct(private readonly CurrentTenant $tenant) {}
 
-    public function index(): AnonymousResourceCollection
+    /** Every branch, for the screens that manage branches or staff (others get theirs from /auth/me). */
+    public function index(Request $request): AnonymousResourceCollection
     {
+        abort_unless($request->user()?->can('branches.manage') || $request->user()?->can('users.manage'), 403);
+
         return BranchResource::collection(Branch::query()->orderByDesc('is_main')->orderBy('created_at')->get());
     }
 

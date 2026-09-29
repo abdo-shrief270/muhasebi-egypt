@@ -143,7 +143,7 @@
                 </template>
                 <template v-else>
                   لسه مفيش أصناف.
-                  <ULink to="/products/import" class="font-bold text-primary">
+                  <ULink v-if="store.can('products.manage')" to="/products/import" class="font-bold text-primary">
                     استوردها من Excel مع الكميات
                   </ULink>
                 </template>

@@ -54,7 +54,9 @@
           </button>
         </div>
         <p v-else-if="term.length >= 2 && !searching" class="mt-1 text-sm text-(--ui-text-muted)">
-          مفيش صنف كده. <ULink to="/products/new" target="_blank" class="font-bold text-primary">ضيفه</ULink> وارجع.
+          مفيش صنف كده.<template v-if="store.can('products.manage')">
+            <ULink to="/products/new" target="_blank" class="font-bold text-primary">ضيفه</ULink> وارجع.
+          </template>
         </p>
       </div>
 

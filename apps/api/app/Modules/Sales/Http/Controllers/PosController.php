@@ -31,7 +31,8 @@ final class PosController
         $page = $this->catalog->search(
             q: $q === '' ? null : $q,
             categoryId: $request->filled('category_id') ? $request->integer('category_id') : null,
-            onlyIds: null,
+            // ?ids[]= fetches given variants (added from the price check).
+            onlyIds: $request->has('ids') ? array_values(array_filter((array) $request->query('ids'), 'is_string')) : null,
             page: max(1, $request->integer('page', 1)),
             perPage: 48,
         );

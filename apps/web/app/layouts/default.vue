@@ -30,6 +30,11 @@
         </button>
 
         <div class="ms-auto flex items-center gap-1 sm:gap-2">
+          <UTooltip v-if="store.can('products.view')" text="استعلام عن سعر (F8)">
+            <UButton color="neutral" variant="outline" icon="i-lucide-tag" aria-label="استعلام عن سعر" @click="priceCheck.show()">
+              <span class="hidden sm:inline">سعر</span>
+            </UButton>
+          </UTooltip>
           <UTooltip text="كود محلك — ادّيه لأي محل عايز يبقى شريكك. دوس عشان تنسخه.">
             <UButton color="neutral" variant="soft" class="hidden font-bold sm:inline-flex" :icon="copied ? 'i-lucide-check' : 'i-lucide-hash'" @click="copyCode">
               <span class="num">{{ store.session?.tenant.code }}</span>
@@ -59,6 +64,7 @@
     </div>
 
     <GlobalSearch v-model:open="searchOpen" />
+    <PriceCheck v-if="store.can('products.view')" />
   </div>
 </template>
 
@@ -71,6 +77,7 @@ const colorMode = useColorMode()
 
 const menuOpen = ref(false)
 const searchOpen = ref(false)
+const priceCheck = usePriceCheck()
 
 defineShortcuts({
   meta_k: () => {
@@ -78,6 +85,16 @@ defineShortcuts({
   },
   '/': () => {
     searchOpen.value = true
+  },
+  // Works while typing too: the POS keeps the cursor in its search box.
+  f8: {
+    usingInput: true,
+    handler: () => {
+      if (store.can('products.view')) {
+        searchOpen.value = false
+        priceCheck.show()
+      }
+    },
   },
 })
 
@@ -115,6 +132,7 @@ const userItems = computed<DropdownMenuItem[][]>(() => [
     ...(store.can('users.manage') ? [{ label: 'الموظفين', icon: 'i-lucide-users-round', to: '/settings/users' }] : []),
     ...(store.isOwner ? [{ label: 'الأقسام والاشتراك', icon: 'i-lucide-blocks', to: '/settings/modules' }] : []),
     { label: 'بحث سريع', icon: 'i-lucide-search', kbds: ['meta', 'K'], onSelect: () => { searchOpen.value = true } },
+    ...(store.can('products.view') ? [{ label: 'استعلام عن سعر', icon: 'i-lucide-tag', kbds: ['F8'], onSelect: () => priceCheck.show() }] : []),
     { label: `نسخ كود المحل (${store.session?.tenant.code ?? ''})`, icon: 'i-lucide-hash', onSelect: copyCode },
   ],
   [{ label: 'تسجيل الخروج', icon: 'i-lucide-log-out', color: 'error' as const, onSelect: () => store.logout() }],

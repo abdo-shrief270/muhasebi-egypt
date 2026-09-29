@@ -66,17 +66,18 @@ final class AuthController
 
         foreach ($registry->all() as $module) {
             $state = $access->state($module->key);
+            $usable = $access->enabled($module->key);
 
             if ($module->isOptional()) {
-                $modules[] = ['key' => $module->key, 'state' => $state->value, 'usable' => $state->isUsable()];
+                $modules[] = ['key' => $module->key, 'state' => $state->value, 'usable' => $usable, 'available' => $module->available];
             }
 
-            if (! $state->isUsable()) {
+            if (! $usable) {
                 continue;
             }
 
             foreach ($module->menu as $item) {
-                if ($item->permission === null || in_array($item->permission, $granted, true)) {
+                if ($item->ready && ($item->permission === null || in_array($item->permission, $granted, true))) {
                     $menu[] = [...$item->toArray(), 'module' => $module->key];
                 }
             }

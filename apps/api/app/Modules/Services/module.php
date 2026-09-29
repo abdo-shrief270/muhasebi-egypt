@@ -17,4 +17,5 @@ return new ModuleManifest(
         new MenuItem('/services', 'الشحن والتحويلات', 'i-lucide-arrow-left-right', 'services.manage', group: 'services'),
     ],
     sort: 240,
+    available: false,
 );

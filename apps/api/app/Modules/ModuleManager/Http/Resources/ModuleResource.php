@@ -31,11 +31,12 @@ final class ModuleResource extends JsonResource
             'depends_on' => $module->dependsOn,
             'state' => $state->value,
             'state_label' => $state->label(),
-            'usable' => $state->isUsable(),
+            'available' => $module->available,
+            'usable' => $module->available && $state->isUsable(),
             'entitled' => $module->isOptional() ? (bool) $row?->entitled : true,
-            'trial_available' => $module->isOptional() && $row?->trial_started_at === null && ! $state->isUsable(),
+            'trial_available' => $module->isOptional() && $module->available && $row?->trial_started_at === null && ! $state->isUsable(),
             'trial_ends_at' => $row?->trial_ends_at?->toIso8601String(),
-            'menu' => array_map(fn (MenuItem $item): array => $item->toArray(), $module->menu),
+            'menu' => array_map(fn (MenuItem $item): array => $item->toArray(), array_values(array_filter($module->menu, fn (MenuItem $item) => $item->ready))),
         ];
     }
 }

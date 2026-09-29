@@ -17,4 +17,5 @@ return new ModuleManifest(
         new MenuItem('/installments', 'التقسيط', 'i-lucide-calendar-clock', 'installments.manage', group: 'sales'),
     ],
     sort: 250,
+    available: false,
 );

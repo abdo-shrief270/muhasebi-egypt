@@ -9,4 +9,5 @@ return new ModuleManifest(
     tier: ModuleTier::Optional,
     description: 'متابعة لحظية وموافقات من الموبايل.',
     sort: 280,
+    available: false,
 );

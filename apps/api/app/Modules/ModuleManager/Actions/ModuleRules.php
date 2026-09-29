@@ -31,6 +31,10 @@ final class ModuleRules
             throw new DomainRuleException("قسم «{$module->name}» أساسي ولا يمكن تغييره.", 'module_not_optional');
         }
 
+        if (! $module->available) {
+            throw new DomainRuleException("قسم «{$module->name}» لسه بيتجهّز، هيبقى متاح قريب.", 'module_coming_soon', 409);
+        }
+
         return $module;
     }
 

@@ -40,7 +40,7 @@
         <p class="font-semibold">
           {{ box === 'incoming' ? 'مفيش طلبات واردة لسه' : 'مطلبتش حاجة من محلات تانية لسه' }}
         </p>
-        <UButton v-if="box === 'outgoing'" to="/shop-orders/new" variant="soft" label="اعمل أول طلب" />
+        <UButton v-if="box === 'outgoing' && store.can('shop_orders.place')" to="/shop-orders/new" variant="soft" label="اعمل أول طلب" />
       </div>
 
       <table v-else class="w-full text-sm">

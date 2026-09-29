@@ -37,9 +37,10 @@ final class ModuleGate implements ModuleAccess
         return $row?->effectiveState() ?? ModuleState::NotEntitled;
     }
 
+    /** Usable right now — and built: a module still «قريباً» is off whatever its row says. */
     public function enabled(string $key, ?string $tenantId = null): bool
     {
-        return $this->state($key, $tenantId)->isUsable();
+        return $this->registry->get($key)->available && $this->state($key, $tenantId)->isUsable();
     }
 
     public function enabledKeys(?string $tenantId = null): array

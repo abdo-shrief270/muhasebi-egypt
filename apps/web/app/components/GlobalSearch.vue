@@ -89,7 +89,21 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => {
   const result: CommandPaletteGroup<CommandPaletteItem>[] = [{
     id: 'actions',
     label: 'إجراءات سريعة',
-    items: actions.value.map(a => ({ label: a.label, suffix: a.description, icon: a.icon, onSelect: () => go(a.to) })),
+    items: actions.value.map(a => ({
+      label: a.label,
+      suffix: a.description,
+      icon: a.icon,
+      kbds: a.kbd ? [a.kbd] : undefined,
+      onSelect: () => {
+        if (a.run) {
+          open.value = false
+          a.run()
+        }
+        else if (a.to) {
+          go(a.to)
+        }
+      },
+    })),
   }, {
     id: 'pages',
     label: 'الصفحات',

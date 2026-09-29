@@ -64,3 +64,23 @@
   background: var(--app-primary-soft);
   color: var(--app-primary-strong);
 }
+
+/*
+ * Printing: only the <PrintSheet> content prints (receipts, labels); the app around it is hidden.
+ * Each sheet sets its own @page size.
+ */
+.print-root {
+  display: none;
+}
+
+@media print {
+  body > *:not(.print-root) {
+    display: none !important;
+  }
+
+  .print-root {
+    display: block;
+    color: #000;
+    background: #fff;
+  }
+}

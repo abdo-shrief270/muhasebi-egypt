@@ -20,6 +20,7 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
         Route::post('/', 'store')->middleware('throttle:10,1');
     });
 
+    Route::get('products/labels', [BarcodeController::class, 'variants'])->middleware('can:products.view');
     Route::post('products/barcodes', [BarcodeController::class, 'generate'])->middleware('can:products.manage');
 
     Route::prefix('products')->group(function (): void {

@@ -313,3 +313,81 @@ export interface PurchasableVariant {
   avg_cost: number | null
   exact_barcode: boolean
 }
+
+export interface PosItem {
+  id: string
+  product_id: string
+  product_name: string
+  variant_name: string | null
+  display_name: string
+  barcode: string | null
+  sku: string | null
+  category: { id: number, name: string }
+  price_retail: number
+  price_wholesale: number | null
+  price_technician: number | null
+  quality_label: string | null
+  min_stock: number
+  is_active: boolean
+  track_serial: boolean
+  qty: number
+  exact_barcode: boolean
+}
+
+export interface SaleLine {
+  id: number
+  variant_id: string
+  name: string
+  barcode: string | null
+  qty: number
+  unit_price: number
+  discount: number
+  line_total: number
+  returned_qty: number
+}
+
+export interface Sale {
+  id: string
+  number: number
+  reference: string
+  status: 'completed' | 'partially_refunded' | 'refunded'
+  status_label: string
+  price_level: string
+  price_level_label: string
+  customer_name: string | null
+  customer_phone: string | null
+  subtotal: number
+  discount: number
+  total: number
+  paid: number
+  change: number
+  refunded: number
+  cost_total?: number
+  profit?: number
+  notes: string | null
+  cashier_name: string | null
+  public_token: string
+  completed_at: string
+  items_count?: number
+  items?: SaleLine[]
+  payments?: { method: string, method_label: string, amount: number, reference: string | null }[]
+  returns?: { id: string, reference: string, total: number, refund_method_label: string, reason: string | null, created_by_name: string | null, created_at: string }[]
+}
+
+/** What a printed / public receipt shows. */
+export interface ReceiptData {
+  shop: { name: string, phone: string | null } | null
+  branch?: string | null
+  reference: string
+  completed_at: string
+  cashier_name?: string | null
+  customer_name: string | null
+  subtotal: number
+  discount: number
+  total: number
+  paid: number
+  change: number
+  refunded: number
+  items: { name: string, qty: number, unit_price: number, discount: number, line_total: number, returned_qty: number }[]
+  payments: { method_label: string, amount: number }[]
+}

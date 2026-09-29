@@ -5,6 +5,11 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   const store = useSessionStore()
 
+  // Customer-facing pages (a receipt behind a QR code) open for anyone, logged in or not.
+  if (to.meta.public) {
+    return
+  }
+
   if (to.meta.guest) {
     return store.isLoggedIn ? navigateTo('/') : undefined
   }

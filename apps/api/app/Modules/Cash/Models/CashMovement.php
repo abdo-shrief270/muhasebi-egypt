@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Cash\Models;
 
-use App\Modules\Cash\Enums\ExpenseCategory;
+use App\Modules\Cash\Contracts\ExpenseCategory;
 use App\Modules\Cash\Enums\Method;
 use App\Modules\Cash\Enums\MovementType;
 use App\Support\Tenancy\BelongsToTenant;

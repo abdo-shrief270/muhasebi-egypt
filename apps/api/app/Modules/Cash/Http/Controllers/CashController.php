@@ -7,7 +7,7 @@ namespace App\Modules\Cash\Http\Controllers;
 use App\Modules\Cash\Actions\CloseShiftAction;
 use App\Modules\Cash\Actions\OpenShiftAction;
 use App\Modules\Cash\Actions\RecordCashMovementAction;
-use App\Modules\Cash\Enums\ExpenseCategory;
+use App\Modules\Cash\Contracts\ExpenseCategory;
 use App\Modules\Cash\Enums\Method;
 use App\Modules\Cash\Enums\MovementType;
 use App\Modules\Cash\Http\Requests\CashMovementRequest;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Cash\Enums;
+namespace App\Modules\Cash\Contracts;
 
 enum ExpenseCategory: string
 {

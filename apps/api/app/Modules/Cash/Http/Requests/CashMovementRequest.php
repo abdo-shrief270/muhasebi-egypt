@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Cash\Http\Requests;
 
-use App\Modules\Cash\Enums\ExpenseCategory;
+use App\Modules\Cash\Contracts\ExpenseCategory;
 use App\Modules\Cash\Enums\MovementType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

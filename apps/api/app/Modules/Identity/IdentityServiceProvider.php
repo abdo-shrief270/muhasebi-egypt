@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity;
 
+use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Identity\Models\User;
 use App\Support\Modules\ModuleRegistry;
@@ -17,6 +18,7 @@ final class IdentityServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         $this->app->bind(ShopDirectory::class, ShopDirectoryService::class);
+        $this->app->bind(BranchDirectory::class, BranchDirectoryService::class);
         $this->app->scoped(PermissionResolver::class);
     }
 

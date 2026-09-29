@@ -30,6 +30,7 @@ const open = defineModel<boolean>('open', { default: false })
 const api = useApi()
 const store = useSessionStore()
 const { allItems } = useNavigation()
+const actions = useQuickActions()
 
 const term = ref('')
 const loading = ref(false)
@@ -86,6 +87,10 @@ function go(to: string) {
 
 const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => {
   const result: CommandPaletteGroup<CommandPaletteItem>[] = [{
+    id: 'actions',
+    label: 'إجراءات سريعة',
+    items: actions.value.map(a => ({ label: a.label, suffix: a.description, icon: a.icon, onSelect: () => go(a.to) })),
+  }, {
     id: 'pages',
     label: 'الصفحات',
     items: allItems.value.map(item => ({ label: item.label, icon: item.icon, onSelect: () => go(item.to) })),

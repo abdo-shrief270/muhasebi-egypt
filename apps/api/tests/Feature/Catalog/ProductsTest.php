@@ -339,6 +339,11 @@ class ProductsTest extends TestCase
         $this->assertSame('2000000000022', GenerateBarcodesAction::ean13('200000000002'));
         $this->getJson('/api/v1/products/barcode/2000000000015')->assertOk()->assertJsonPath('data.variant.name', 'من غير');
 
+        // The label screen looks variants up by id (from a product page) or by search.
+        $this->getJson('/api/v1/products/labels?'.http_build_query(['ids' => [$without]]))->assertOk()
+            ->assertJsonCount(1, 'data')->assertJsonPath('data.0.barcode', '2000000000015');
+        $this->getJson('/api/v1/products/labels?q=999')->assertOk()->assertJsonPath('data.0.id', $with);
+
         Sanctum::actingAs($this->staffWithRole('cashier'));
         $this->postJson('/api/v1/products/barcodes', ['variant_ids' => [$without]])->assertForbidden();
     }

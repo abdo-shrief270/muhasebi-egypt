@@ -1,24 +1,182 @@
 <template>
   <div class="space-y-6">
-    <div>
-      <h1 class="text-2xl font-bold">
-        أهلاً {{ store.session?.user.name }} 👋
-      </h1>
-      <p class="text-(--ui-text-muted)">
-        الأقسام المفعّلة في محلك:
-      </p>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-bold">
+          أهلاً {{ store.session?.user.name }} 👋
+        </h1>
+        <p class="text-(--ui-text-muted)">
+          {{ today }}
+        </p>
+      </div>
+      <div v-if="canReports" class="flex gap-1 rounded-(--ui-radius) bg-(--ui-bg-elevated) p-1" role="group" aria-label="الفترة">
+        <UButton
+          v-for="d in [7, 14, 30]"
+          :key="d"
+          size="sm"
+          :color="days === d ? 'primary' : 'neutral'"
+          :variant="days === d ? 'solid' : 'ghost'"
+          :label="`آخر ${d} يوم`"
+          :aria-pressed="days === d"
+          @click="days = d"
+        />
+      </div>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <NuxtLink v-for="item in store.menu" :key="item.to" :to="item.to">
-        <UCard class="h-full hover:ring-primary transition">
-          <div class="flex items-center gap-3">
-            <div class="size-11 grid place-items-center rounded-lg bg-primary/10 text-primary">
-              <UIcon :name="item.icon" class="size-6" />
-            </div>
-            <span class="font-semibold">{{ item.label }}</span>
+    <!-- Quick actions -->
+    <div v-if="actions.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6">
+      <NuxtLink
+        v-for="action in actions"
+        :key="action.to"
+        :to="action.to"
+        class="app-card group flex items-center gap-3 p-3 transition hover:ring-1 hover:ring-primary"
+      >
+        <span class="grid size-10 shrink-0 place-items-center rounded-lg bg-(--app-primary-soft) text-(--app-primary-strong)">
+          <UIcon :name="action.icon" class="size-5" />
+        </span>
+        <span class="min-w-0">
+          <span class="block truncate font-bold">{{ action.label }}</span>
+          <span class="block truncate text-xs text-(--ui-text-muted)">{{ action.description }}</span>
+        </span>
+      </NuxtLink>
+    </div>
+
+    <template v-if="canReports && stats">
+      <!-- Today -->
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div class="app-card p-4">
+          <p class="text-sm text-(--ui-text-muted)">
+            مبيعات النهارده
+          </p>
+          <p class="mt-1 text-2xl font-extrabold num">
+            {{ formatMoney(stats.today.revenue) }}
+          </p>
+          <p v-if="delta !== null" class="mt-1 flex items-center gap-1 text-xs font-bold" :class="delta >= 0 ? 'text-success' : 'text-error'">
+            <UIcon :name="delta >= 0 ? 'i-lucide-trending-up' : 'i-lucide-trending-down'" class="size-4" />
+            <span class="num">{{ delta >= 0 ? '+' : '' }}{{ delta }}%</span>
+            <span class="font-normal text-(--ui-text-muted)">عن امبارح</span>
+          </p>
+        </div>
+        <div class="app-card p-4">
+          <p class="text-sm text-(--ui-text-muted)">
+            فواتير النهارده
+          </p>
+          <p class="mt-1 text-2xl font-extrabold num">
+            {{ stats.today.sales.toLocaleString('en-US') }}
+          </p>
+        </div>
+        <div class="app-card p-4">
+          <p class="text-sm text-(--ui-text-muted)">
+            متوسط الفاتورة
+          </p>
+          <p class="mt-1 text-2xl font-extrabold num">
+            {{ formatMoney(stats.today.average) }}
+          </p>
+        </div>
+        <div class="app-card p-4">
+          <template v-if="stats.today.profit !== null">
+            <p class="text-sm text-(--ui-text-muted)">
+              مكسب النهارده
+            </p>
+            <p class="mt-1 text-2xl font-extrabold num">
+              {{ formatMoney(stats.today.profit) }}
+            </p>
+            <p v-if="stats.today.revenue > 0" class="mt-1 text-xs text-(--ui-text-muted)">
+              هامش <span class="num">{{ Math.round(stats.today.profit / stats.today.revenue * 100) }}%</span>
+            </p>
+          </template>
+          <template v-else>
+            <p class="text-sm text-(--ui-text-muted)">
+              فواتير آخر {{ stats.days }} يوم
+            </p>
+            <p class="mt-1 text-2xl font-extrabold num">
+              {{ stats.period.sales.toLocaleString('en-US') }}
+            </p>
+          </template>
+        </div>
+      </div>
+
+      <!-- Daily chart -->
+      <UCard>
+        <div class="mb-2 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p class="font-bold">
+              {{ metricInfo.title }} يوم بيوم
+            </p>
+            <p class="text-sm text-(--ui-text-muted)">
+              آخر {{ stats.days }} يوم ·
+              <span class="font-bold text-(--ui-text) num">{{ metricInfo.format(metricInfo.total) }}</span>
+            </p>
           </div>
+          <div class="flex gap-1" role="group" aria-label="المقياس">
+            <UButton
+              v-for="m in metrics"
+              :key="m.key"
+              size="xs"
+              :color="metric === m.key ? 'primary' : 'neutral'"
+              :variant="metric === m.key ? 'soft' : 'ghost'"
+              :label="m.title"
+              :aria-pressed="metric === m.key"
+              @click="metric = m.key"
+            />
+          </div>
+        </div>
+        <DashboardDailyChart :points="points" :label="metricInfo.title" :format="metricInfo.format" :axis-format="metricInfo.axis" />
+      </UCard>
+
+      <div class="grid gap-6 lg:grid-cols-2">
+        <UCard>
+          <p class="mb-4 font-bold">
+            الأكتر مبيعاً
+          </p>
+          <ul v-if="stats.top_items.length" class="space-y-3">
+            <li v-for="item in stats.top_items" :key="item.name">
+              <div class="mb-1 flex justify-between gap-3 text-sm">
+                <span class="truncate font-bold">{{ item.name }}</span>
+                <span class="shrink-0 text-(--ui-text-muted)"><span class="num">{{ item.qty }}</span> قطعة · <span class="num">{{ formatMoney(item.revenue) }}</span></span>
+              </div>
+              <div class="h-2 rounded-full bg-(--ui-bg-elevated)">
+                <div class="h-2 rounded-full bg-(--app-chart)" :style="{ width: `${share(item.revenue, topMax)}%` }" />
+              </div>
+            </li>
+          </ul>
+          <p v-else class="py-8 text-center text-sm text-(--ui-text-muted)">
+            لسه مفيش مبيعات في الفترة دي.
+          </p>
         </UCard>
+
+        <UCard>
+          <p class="mb-4 font-bold">
+            طرق الدفع
+          </p>
+          <ul v-if="stats.payments.length" class="space-y-3">
+            <li v-for="p in stats.payments" :key="p.method">
+              <div class="mb-1 flex justify-between gap-3 text-sm">
+                <span class="font-bold">{{ p.label }}</span>
+                <span class="text-(--ui-text-muted)"><span class="num">{{ formatMoney(p.amount) }}</span> · <span class="num">{{ share(p.amount, paymentsTotal) }}%</span></span>
+              </div>
+              <div class="h-2 rounded-full bg-(--ui-bg-elevated)">
+                <div class="h-2 rounded-full bg-(--app-chart)" :style="{ width: `${share(p.amount, paymentsTotal)}%` }" />
+              </div>
+            </li>
+          </ul>
+          <p v-else class="py-8 text-center text-sm text-(--ui-text-muted)">
+            لسه مفيش مدفوعات في الفترة دي.
+          </p>
+        </UCard>
+      </div>
+    </template>
+
+    <!-- Stock at a glance -->
+    <div v-if="stock" class="grid grid-cols-3 gap-3">
+      <NuxtLink v-for="card in stockCards" :key="card.label" :to="card.to" class="app-card p-4 transition hover:ring-1 hover:ring-primary">
+        <p class="flex items-center gap-1.5 text-sm text-(--ui-text-muted)">
+          <UIcon :name="card.icon" class="size-4" :class="card.tone" />
+          {{ card.label }}
+        </p>
+        <p class="mt-1 text-2xl font-extrabold num">
+          {{ card.value.toLocaleString('en-US') }}
+        </p>
       </NuxtLink>
     </div>
 
@@ -35,5 +193,54 @@
 </template>
 
 <script setup lang="ts">
+import type { SalesStats, StockSummary } from '~/types/api'
+
+const api = useApi()
 const store = useSessionStore()
+const actions = useQuickActions()
+const canReports = computed(() => store.can('reports.view'))
+const canStock = computed(() => store.can('inventory.view'))
+
+const today = new Date().toLocaleDateString('ar-EG-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+const days = ref(14)
+const { data: stats } = await useAsyncData('dashboard-stats', async () => canReports.value
+  ? (await api<{ data: SalesStats }>('/sales/stats', { query: { days: days.value } })).data
+  : null, { watch: [days] })
+
+const branchKey = computed(() => store.session?.current_branch_id ?? '')
+const { data: stock } = await useAsyncData('dashboard-stock', async () => canStock.value
+  ? (await api<{ data: StockSummary }>('/inventory/summary')).data
+  : null, { watch: [branchKey] })
+
+const delta = computed(() => {
+  const t = stats.value?.today
+  return t && t.revenue_yesterday > 0 ? Math.round((t.revenue - t.revenue_yesterday) / t.revenue_yesterday * 100) : null
+})
+
+type Metric = 'revenue' | 'profit' | 'sales'
+const metric = ref<Metric>('revenue')
+const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 })
+const count = (n: number) => n.toLocaleString('en-US')
+const metrics = computed(() => [
+  { key: 'revenue' as const, title: 'المبيعات', total: stats.value?.period.revenue ?? 0, format: formatMoney, axis: (v: number) => compact.format(v / 100) },
+  ...(stats.value?.period.profit !== null && stats.value?.period.profit !== undefined
+    ? [{ key: 'profit' as const, title: 'المكسب', total: stats.value.period.profit, format: formatMoney, axis: (v: number) => compact.format(v / 100) }]
+    : []),
+  { key: 'sales' as const, title: 'عدد الفواتير', total: stats.value?.period.sales ?? 0, format: count, axis: count },
+])
+const metricInfo = computed(() => metrics.value.find(m => m.key === metric.value) ?? metrics.value[0]!)
+const points = computed(() => (stats.value?.series ?? []).map(d => ({ date: d.date, value: d[metricInfo.value.key] ?? 0 })))
+
+const topMax = computed(() => Math.max(1, ...(stats.value?.top_items ?? []).map(i => i.revenue)))
+const paymentsTotal = computed(() => (stats.value?.payments ?? []).reduce((sum, p) => sum + p.amount, 0))
+const share = (value: number, of: number) => (of > 0 ? Math.round(value / of * 100) : 0)
+
+const stockCards = computed(() => stock.value
+  ? [
+      { label: 'أصناف متوفرة', value: stock.value.in_stock, to: '/inventory', icon: 'i-lucide-package', tone: 'text-(--ui-text-muted)' },
+      { label: 'قربت تخلص', value: stock.value.low, to: '/inventory?status=low', icon: 'i-lucide-triangle-alert', tone: 'text-warning' },
+      { label: 'خلصت', value: stock.value.out_of_stock, to: '/inventory?status=out', icon: 'i-lucide-circle-x', tone: 'text-error' },
+    ]
+  : [])
 </script>

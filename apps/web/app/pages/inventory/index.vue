@@ -203,7 +203,7 @@ watch(q, (value) => {
 onBeforeUnmount(() => clearTimeout(searchTimer))
 
 const categoryId = ref<number>(ALL)
-const status = ref<Filter>('all')
+const status = ref<Filter>((['low', 'out'] as const).find(f => f === useRoute().query.status) ?? 'all')
 const page = ref(1)
 const filtered = computed(() => !!debouncedQ.value || categoryId.value !== ALL || status.value !== 'all')
 watch([debouncedQ, categoryId, status], () => {
@@ -277,8 +277,9 @@ function rowActions(row: StockRow): DropdownMenuItem[][] {
   ].filter(group => group.length)
 }
 
-// Stocktake: counted quantities survive paging and filtering until saved.
-const counting = ref(false)
+// Stocktake: counted quantities survive paging and filtering until saved. ?count=1 (a home
+// quick action) opens straight into it.
+const counting = ref(canAdjust.value && useRoute().query.count === '1')
 const counts = reactive<Record<string, number>>({})
 const known = reactive<Record<string, number>>({})
 const countNote = ref('')

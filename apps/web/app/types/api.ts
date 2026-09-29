@@ -391,3 +391,12 @@ export interface ReceiptData {
   items: { name: string, qty: number, unit_price: number, discount: number, line_total: number, returned_qty: number }[]
   payments: { method_label: string, amount: number }[]
 }
+
+export interface SalesStats {
+  days: number
+  today: { sales: number, revenue: number, profit: number | null, average: number, revenue_yesterday: number }
+  period: { sales: number, revenue: number, profit: number | null }
+  series: { date: string, sales: number, revenue: number, profit: number | null }[]
+  top_items: { name: string, qty: number, revenue: number }[]
+  payments: { method: string, label: string, amount: number }[]
+}

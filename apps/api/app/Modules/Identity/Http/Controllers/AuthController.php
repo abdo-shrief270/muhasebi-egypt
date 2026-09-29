@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Http\Controllers;
 
 use App\Modules\Identity\Actions\RegisterTenantAction;
+use App\Modules\Identity\Auth\DeviceSessions;
+use App\Modules\Identity\Auth\LoginChallenges;
+use App\Modules\Identity\Auth\TwoFactor;
 use App\Modules\Identity\BranchAccess;
 use App\Modules\Identity\Http\Requests\LoginRequest;
 use App\Modules\Identity\Http\Requests\RegisterTenantRequest;
@@ -19,22 +22,28 @@ use App\Support\Modules\ModuleRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 final class AuthController
 {
-    public function register(RegisterTenantRequest $request, RegisterTenantAction $action): JsonResponse
+    public function register(RegisterTenantRequest $request, RegisterTenantAction $action, DeviceSessions $sessions): JsonResponse
     {
         $owner = $action->handle($request->toData());
 
         return response()->json([
-            'token' => $owner->createToken('web')->plainTextToken,
+            'token' => $sessions->issue($owner, $request->string('device_name', 'web')->toString() ?: 'web'),
             'user' => new UserResource($owner),
         ], Response::HTTP_CREATED);
     }
 
-    public function login(LoginRequest $request): JsonResponse
+    /**
+     * Phone + password. With two-factor sign-in on, no token yet: a short-lived `challenge`
+     * to send with the authenticator (or recovery) code to POST /auth/two-factor.
+     */
+    public function login(LoginRequest $request, DeviceSessions $sessions, LoginChallenges $challenges): JsonResponse
     {
         $user = User::query()->where('phone', $request->normalizedPhone())->first();
 
@@ -46,9 +55,56 @@ final class AuthController
             throw ValidationException::withMessages(['phone' => 'الحساب ده اتوقف. كلّم صاحب المحل.']);
         }
 
+        $deviceName = $request->string('device_name')->toString();
+
+        if ($user->hasTwoFactor()) {
+            return response()->json([
+                'two_factor' => true,
+                'challenge' => $challenges->issue($user->id, $deviceName),
+                'expires_in' => LoginChallenges::TTL_SECONDS,
+            ]);
+        }
+
         return response()->json([
-            'token' => $user->createToken($request->string('device_name')->toString())->plainTextToken,
+            'token' => $sessions->issue($user, $deviceName),
             'user' => new UserResource($user),
+        ]);
+    }
+
+    /** Second step of a two-factor sign-in: the challenge from /auth/login + a code. */
+    public function twoFactor(Request $request, LoginChallenges $challenges, TwoFactor $twoFactor, DeviceSessions $sessions): JsonResponse
+    {
+        $data = $request->validate([
+            'challenge' => ['required', 'string', 'max:128'],
+            'code' => ['required', 'string', 'max:32'],
+        ]);
+
+        $challenge = $challenges->find($data['challenge']);
+        $user = $challenge ? User::query()->find($challenge['user_id']) : null;
+
+        if ($challenge === null || $user === null || ! $user->is_active || ! $user->hasTwoFactor()) {
+            throw ValidationException::withMessages(['challenge' => 'انتهى وقت تسجيل الدخول. ادخل برقمك وكلمة السر تاني.']);
+        }
+
+        // Audit entries written while checking the code belong to this user.
+        Auth::guard('sanctum')->setUser($user);
+
+        $method = DB::transaction(fn (): ?string => $twoFactor->consume($twoFactor->locked($user), $data['code']));
+
+        if ($method === null) {
+            $left = $challenges->fail($data['challenge']);
+
+            throw ValidationException::withMessages(['code' => $left > 0
+                ? "الكود غلط. فاضل لك {$left} محاولات."
+                : 'الكود غلط كذا مرة. ادخل برقمك وكلمة السر تاني.']);
+        }
+
+        $challenges->forget($data['challenge']);
+
+        return response()->json([
+            'token' => $sessions->issue($user, $challenge['device_name']),
+            'user' => new UserResource($user->refresh()),
+            'recovery_codes_left' => $method === 'recovery' ? $twoFactor->remainingRecoveryCodes($user) : null,
         ]);
     }
 

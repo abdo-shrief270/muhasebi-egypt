@@ -25,6 +25,7 @@ final class UserResource extends JsonResource
             'email' => $this->email,
             'is_owner' => $this->is_owner,
             'is_active' => $this->is_active,
+            'two_factor_enabled' => $this->hasTwoFactor(),
             'role' => $this->whenLoaded('role', fn () => $this->role ? ['id' => $this->role->id, 'name' => $this->role->name] : null),
             'branch_ids' => $this->whenLoaded('branches', fn () => $this->branches->pluck('id')->all()),
         ];

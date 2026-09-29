@@ -19,6 +19,12 @@ class RouteAuthorizationTest extends TestCase
     private const OPEN = [
         'api/v1/auth/me' => 'your own session',
         'api/v1/auth/logout' => 'your own session',
+        'api/v1/account/two-factor' => 'your own two-factor sign-in (changes need your password or a code)',
+        'api/v1/account/two-factor/setup' => 'your own two-factor sign-in, needs your password',
+        'api/v1/account/two-factor/confirm' => 'your own two-factor sign-in, needs a code from your app',
+        'api/v1/account/two-factor/recovery-codes' => 'your own recovery codes, needs your password',
+        'api/v1/account/sessions' => 'your own signed-in devices',
+        'api/v1/account/sessions/{session}' => 'one of your own signed-in devices',
         'api/v1/messages/templates' => 'the shop\'s message wording, used by every WhatsApp button',
     ];
 

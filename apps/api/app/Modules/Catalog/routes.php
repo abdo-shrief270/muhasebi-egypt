@@ -2,6 +2,7 @@
 
 use App\Modules\Catalog\Http\Controllers\CatalogListsController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
+use App\Modules\Catalog\Http\Controllers\ProductImportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
@@ -9,6 +10,13 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
     Route::pattern('category', '[0-9]+');
     Route::pattern('brand', '[0-9]+');
     Route::pattern('deviceModel', '[0-9]+');
+
+    Route::prefix('products/import')->controller(ProductImportController::class)->group(function (): void {
+        Route::get('template', 'template')->middleware('can:products.manage');
+        // products.manage is checked by ImportProductsRequest.
+        Route::post('preview', 'preview')->middleware('throttle:30,1');
+        Route::post('/', 'store')->middleware('throttle:10,1');
+    });
 
     Route::prefix('products')->group(function (): void {
         Route::middleware('can:products.view')->group(function (): void {

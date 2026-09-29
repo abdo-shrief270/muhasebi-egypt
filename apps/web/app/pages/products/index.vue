@@ -2,6 +2,7 @@
   <div class="space-y-6">
     <PageHeader title="الأصناف" description="كل صنف بأنواعه وأسعاره والموديلات اللي بيركب عليها.">
       <UButton v-if="canManage" to="/products/setup" color="neutral" variant="outline" icon="i-lucide-tags" label="التصنيفات والماركات" />
+      <UButton v-if="canManage" to="/products/import" color="neutral" variant="outline" icon="i-lucide-file-spreadsheet" label="استيراد من Excel" />
       <UButton v-if="canManage" to="/products/new" icon="i-lucide-plus" label="صنف جديد" />
     </PageHeader>
 
@@ -82,9 +83,15 @@
                 </template>
                 <template v-else>
                   لسه مفيش أصناف.
-                  <ULink v-if="canManage" to="/products/new" class="font-bold text-primary">
-                    ضيف أول صنف
-                  </ULink>
+                  <template v-if="canManage">
+                    <ULink to="/products/new" class="font-bold text-primary">
+                      ضيف أول صنف
+                    </ULink>
+                    أو
+                    <ULink to="/products/import" class="font-bold text-primary">
+                      استوردهم من Excel
+                    </ULink>
+                  </template>
                 </template>
               </td>
             </tr>

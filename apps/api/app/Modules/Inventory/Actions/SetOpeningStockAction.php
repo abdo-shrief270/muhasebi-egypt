@@ -6,6 +6,8 @@ namespace App\Modules\Inventory\Actions;
 
 use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Inventory\Contracts\MovementType;
+use App\Modules\Inventory\Contracts\SerialCount;
+use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Support\Audit\Auditor;
@@ -14,18 +16,21 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * The stock a branch starts with. Only for variants that never moved in that branch —
- * after that, differences are counted and adjusted (AdjustStockAction).
+ * after that, differences are counted and adjusted (AdjustStockAction). Serials of products that
+ * track them are optional here (old stock is often uncounted; it is registered as it leaves), but
+ * when given there is one per unit.
  */
 final class SetOpeningStockAction
 {
     public function __construct(
         private readonly StockLedger $ledger,
         private readonly VariantCatalog $catalog,
+        private readonly SerialRegistry $serials,
         private readonly Auditor $audit,
     ) {}
 
     /**
-     * @param  list<array{variant_id: string, qty: int, unit_cost: int}>  $items
+     * @param  list<array{variant_id: string, qty: int, unit_cost: int, serials?: list<string>|null}>  $items
      */
     public function handle(string $tenantId, string $branchId, array $items): int
     {
@@ -41,12 +46,19 @@ final class SetOpeningStockAction
                     context: ['index' => $i],
                 );
             }
+            $given = array_filter($item['serials'] ?? [], fn (string $s): bool => trim($s) !== '');
+            $serials = $given === [] ? null : SerialCount::check($variant->displayName(), $variant->trackSerial, $item['qty'], $given, $variant->id);
+            $items[$i]['serials'] = $serials === null ? null : $this->serials->normalize($serials);
         }
 
         return DB::transaction(function () use ($tenantId, $branchId, $items, $variants): int {
             $units = 0;
             foreach ($items as $item) {
-                $this->ledger->receive($branchId, $item['variant_id'], $item['qty'], $item['unit_cost'], new StockReference(MovementType::Opening));
+                $reference = new StockReference(MovementType::Opening);
+                $this->ledger->receive($branchId, $item['variant_id'], $item['qty'], $item['unit_cost'], $reference);
+                if ($item['serials'] !== null) {
+                    $this->serials->receive($branchId, $item['variant_id'], $item['serials'], $reference);
+                }
                 $units += $item['qty'];
             }
 

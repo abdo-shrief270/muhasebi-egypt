@@ -19,14 +19,15 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $unit_price
  * @property int $unit_cost
  * @property string|null $added_by_name
+ * @property list<string>|null $serials
  */
-#[Fillable(['tenant_id', 'ticket_id', 'variant_id', 'name', 'qty', 'unit_price', 'unit_cost', 'added_by', 'added_by_name'])]
+#[Fillable(['tenant_id', 'ticket_id', 'variant_id', 'name', 'qty', 'unit_price', 'unit_cost', 'added_by', 'added_by_name', 'serials'])]
 final class RepairTicketPart extends Model
 {
     use BelongsToTenant;
 
     protected function casts(): array
     {
-        return ['qty' => 'integer', 'unit_price' => 'integer', 'unit_cost' => 'integer'];
+        return ['qty' => 'integer', 'unit_price' => 'integer', 'unit_cost' => 'integer', 'serials' => 'array'];
     }
 }

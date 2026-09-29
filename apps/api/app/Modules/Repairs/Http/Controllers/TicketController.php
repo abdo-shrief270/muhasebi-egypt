@@ -180,8 +180,16 @@ final class TicketController
             'variant_id' => ['required', 'uuid'],
             'qty' => ['required', 'integer', 'min:1', 'max:1000'],
             'unit_price' => ['nullable', 'integer', 'min:0', 'max:100000000000'],
-        ]);
-        $action->handle($ticket, $data['variant_id'], (int) $data['qty'], isset($data['unit_price']) ? (int) $data['unit_price'] : null);
+            'serials' => ['nullable', 'array', 'max:1000'],
+            'serials.*' => ['string', 'regex:/^[A-Za-z0-9 \-\/]{4,48}$/'],
+        ], [], ['serials.*' => 'السيريال']);
+        $action->handle(
+            $ticket,
+            $data['variant_id'],
+            (int) $data['qty'],
+            isset($data['unit_price']) ? (int) $data['unit_price'] : null,
+            isset($data['serials']) ? array_values(array_map('strval', $data['serials'])) : null,
+        );
 
         return $this->show($ticket->refresh());
     }

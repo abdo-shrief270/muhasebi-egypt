@@ -28,6 +28,8 @@ final class AdjustStockRequest extends FormRequest
             'items.*.counted' => ['nullable', 'required_without:items.*.delta', 'prohibits:items.*.delta', 'integer', 'min:0', 'max:1000000'],
             'items.*.delta' => ['nullable', 'integer', 'min:-1000000', 'max:1000000', 'not_in:0'],
             'items.*.unit_cost' => ['nullable', 'integer', 'min:0', 'max:100000000000'],
+            'items.*.serials' => ['nullable', 'array', 'max:5000'],
+            'items.*.serials.*' => ['string', 'regex:/^[A-Za-z0-9 \-\/]{4,48}$/'],
         ];
     }
 
@@ -38,11 +40,12 @@ final class AdjustStockRequest extends FormRequest
             'items.*.counted' => 'الكمية الفعلية',
             'items.*.delta' => 'الفرق',
             'items.*.unit_cost' => 'سعر التكلفة',
+            'items.*.serials.*' => 'السيريال',
         ];
     }
 
     /**
-     * @return list<array{variant_id: string, counted: int|null, delta: int|null, unit_cost: int|null}>
+     * @return list<array{variant_id: string, counted: int|null, delta: int|null, unit_cost: int|null, serials: list<string>|null}>
      */
     public function items(): array
     {
@@ -53,6 +56,7 @@ final class AdjustStockRequest extends FormRequest
             'counted' => isset($i['counted']) ? (int) $i['counted'] : null,
             'delta' => isset($i['delta']) ? (int) $i['delta'] : null,
             'unit_cost' => $canCost && isset($i['unit_cost']) ? (int) $i['unit_cost'] : null,
+            'serials' => isset($i['serials']) ? array_values(array_map('strval', $i['serials'])) : null,
         ], $this->validated('items')));
     }
 }

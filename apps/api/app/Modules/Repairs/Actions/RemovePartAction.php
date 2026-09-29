@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Repairs\Actions;
 
 use App\Modules\Inventory\Contracts\MovementType;
+use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Modules\Repairs\Enums\EventType;
@@ -15,11 +16,12 @@ use App\Support\Audit\Auditor;
 use App\Support\Exceptions\DomainRuleException;
 use Illuminate\Support\Facades\DB;
 
-/** A part taken back off the device: it returns to stock at the cost it left with. */
+/** A part taken back off the device: it returns to stock at the cost it left with, its serials in stock again. */
 final class RemovePartAction
 {
     public function __construct(
         private readonly StockLedger $stock,
+        private readonly SerialRegistry $serials,
         private readonly Timeline $timeline,
         private readonly Auditor $audit,
     ) {}
@@ -32,12 +34,16 @@ final class RemovePartAction
 
         return DB::transaction(function () use ($ticket, $part): RepairTicket {
             $ticket = RepairTicket::query()->lockForUpdate()->findOrFail($ticket->id);
-            $this->stock->receive($ticket->branch_id, $part->variant_id, $part->qty, $part->unit_cost, new StockReference(
+            $reference = new StockReference(
                 MovementType::RepairReturn,
                 refType: 'repair_ticket',
                 refId: $ticket->id,
                 note: $ticket->reference(),
-            ));
+            );
+            $this->stock->receive($ticket->branch_id, $part->variant_id, $part->qty, $part->unit_cost, $reference);
+            if ($part->serials !== null && $part->serials !== []) {
+                $this->serials->takeBack($ticket->branch_id, $part->variant_id, $part->serials, $reference, restock: true);
+            }
             $part->delete();
             $ticket->recalculate();
             $ticket->save();

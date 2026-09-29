@@ -6,6 +6,7 @@ namespace App\Modules\Identity;
 
 use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Identity\Contracts\ShopDirectory;
+use App\Modules\Identity\Contracts\StaffDirectory;
 use App\Modules\Identity\Models\User;
 use App\Support\Modules\ModuleRegistry;
 use App\Support\Modules\ModuleServiceProvider;
@@ -19,6 +20,7 @@ final class IdentityServiceProvider extends ModuleServiceProvider
     {
         $this->app->bind(ShopDirectory::class, ShopDirectoryService::class);
         $this->app->bind(BranchDirectory::class, BranchDirectoryService::class);
+        $this->app->bind(StaffDirectory::class, StaffDirectoryService::class);
         $this->app->scoped(PermissionResolver::class);
     }
 

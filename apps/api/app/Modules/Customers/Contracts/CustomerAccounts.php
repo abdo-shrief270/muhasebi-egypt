@@ -21,6 +21,19 @@ interface CustomerAccounts
      */
     public function chargeSale(string $customerId, int $amount, string $saleId, string $reference, string $branchId): void;
 
+    /**
+     * A repair bill (or what's left of it) on the customer's account.
+     *
+     * @throws DomainRuleException customer_not_found (404), customer_inactive, credit_limit_exceeded
+     */
+    public function chargeRepair(string $customerId, int $amount, string $ticketId, string $reference, string $branchId): void;
+
+    /**
+     * The customer with this phone (E.164 or 01…), or a new one — for intake screens where
+     * the customer is typed in rather than picked.
+     */
+    public function findOrCreate(string $name, string $phone): CustomerSummary;
+
     /** A return settled against the account instead of in cash. May take the balance below zero (store credit). */
     public function creditReturn(string $customerId, int $amount, string $returnId, string $reference, string $branchId): void;
 

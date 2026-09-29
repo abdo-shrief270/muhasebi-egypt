@@ -10,4 +10,6 @@ enum DrawerEntry: string
     case Sale = 'sale';
     case SaleRefund = 'sale_refund';
     case CustomerPayment = 'customer_payment';
+    /** A repair deposit, the final bill, or a deposit refunded (negative). */
+    case Repair = 'repair';
 }

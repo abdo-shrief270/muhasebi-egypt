@@ -14,7 +14,8 @@ return new ModuleManifest(
     permissions: [
         'repairs.view' => 'عرض تذاكر الصيانة',
         'repairs.create' => 'استلام أجهزة',
-        'repairs.update_status' => 'تغيير حالة التذكرة',
+        'repairs.update_status' => 'الفحص والإصلاح (الحالة، القطع، المصنعية)',
+        'repairs.deliver' => 'تسليم الأجهزة وتحصيل الحساب',
         'repairs.settings' => 'تعديل قوايم الأعطال',
     ],
     menu: [new MenuItem('/repairs', 'الصيانة', 'i-lucide-wrench', 'repairs.view', group: 'services')],

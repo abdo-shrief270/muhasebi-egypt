@@ -10,10 +10,15 @@ use App\Modules\Customers\Enums\CustomerTransactionType;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Support\CustomerLedger;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Tenancy\CurrentTenant;
+use Propaganistas\LaravelPhone\PhoneNumber;
 
 final class CustomerAccountsService implements CustomerAccounts
 {
-    public function __construct(private readonly CustomerLedger $ledger) {}
+    public function __construct(
+        private readonly CustomerLedger $ledger,
+        private readonly CurrentTenant $tenant,
+    ) {}
 
     public function find(string $customerId): ?CustomerSummary
     {
@@ -21,6 +26,28 @@ final class CustomerAccountsService implements CustomerAccounts
     }
 
     public function chargeSale(string $customerId, int $amount, string $saleId, string $reference, string $branchId): void
+    {
+        $this->charge($customerId, $amount, CustomerTransactionType::Sale, 'sale', $saleId, $reference, $branchId);
+    }
+
+    public function chargeRepair(string $customerId, int $amount, string $ticketId, string $reference, string $branchId): void
+    {
+        $this->charge($customerId, $amount, CustomerTransactionType::Repair, 'repair_ticket', $ticketId, $reference, $branchId);
+    }
+
+    public function findOrCreate(string $name, string $phone): CustomerSummary
+    {
+        try {
+            $e164 = (new PhoneNumber($phone, 'EG'))->formatE164();
+        } catch (\Throwable) {
+            throw new DomainRuleException('رقم موبايل العميل مش صحيح.', 'customer_phone_invalid');
+        }
+
+        return (Customer::query()->where('phone', $e164)->first()
+            ?? Customer::create(['tenant_id' => $this->tenant->idOrFail(), 'name' => trim($name) !== '' ? trim($name) : $e164, 'phone' => $e164]))->summary();
+    }
+
+    private function charge(string $customerId, int $amount, CustomerTransactionType $type, string $refType, string $refId, string $reference, string $branchId): void
     {
         $customer = $this->ledger->lock($customerId) ?? throw new DomainRuleException('العميل مش موجود.', 'customer_not_found', 404);
         if (! $customer->is_active) {
@@ -35,7 +62,7 @@ final class CustomerAccountsService implements CustomerAccounts
             );
         }
 
-        $this->ledger->post($customer, CustomerTransactionType::Sale, $amount, $branchId, 'sale', $saleId, $reference);
+        $this->ledger->post($customer, $type, $amount, $branchId, $refType, $refId, $reference);
     }
 
     public function creditReturn(string $customerId, int $amount, string $returnId, string $reference, string $branchId): void

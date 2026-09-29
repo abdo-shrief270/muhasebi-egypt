@@ -14,6 +14,7 @@ enum MovementType: string
     case TransferIn = 'transfer_in';
     case TransferOut = 'transfer_out';
     case RepairUse = 'repair_use';
+    case RepairReturn = 'repair_return';
     case SupplierReturn = 'supplier_return';
 
     public function label(): string
@@ -27,6 +28,7 @@ enum MovementType: string
             self::TransferIn => 'تحويل وارد',
             self::TransferOut => 'تحويل صادر',
             self::RepairUse => 'صرف لصيانة',
+            self::RepairReturn => 'رجوع من صيانة',
             self::SupplierReturn => 'مرتجع لمورد',
         };
     }

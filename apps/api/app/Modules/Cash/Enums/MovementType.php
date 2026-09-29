@@ -9,6 +9,7 @@ enum MovementType: string
     case Sale = 'sale';
     case SaleRefund = 'sale_refund';
     case CustomerPayment = 'customer_payment';
+    case Repair = 'repair';
     case Expense = 'expense';
     case Deposit = 'deposit';
     case Withdrawal = 'withdrawal';
@@ -19,6 +20,7 @@ enum MovementType: string
             self::Sale => 'مبيعات',
             self::SaleRefund => 'مرتجع مبيعات',
             self::CustomerPayment => 'تحصيل من عميل',
+            self::Repair => 'صيانة',
             self::Expense => 'مصروف',
             self::Deposit => 'إيداع',
             self::Withdrawal => 'سحب',

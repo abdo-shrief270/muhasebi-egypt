@@ -20,10 +20,9 @@ final class EnsureModuleEnabled
 
     public function handle(Request $request, Closure $next, string $key): Response
     {
-        $state = $this->access->state($key);
-
-        if (! $state->isUsable()) {
-            throw new ModuleNotEnabledException($this->registry->get($key), $state);
+        // enabled(), not the raw state: a module still «قريباً» stays closed whatever the shop's row says.
+        if (! $this->access->enabled($key)) {
+            throw new ModuleNotEnabledException($this->registry->get($key), $this->access->state($key));
         }
 
         return $next($request);

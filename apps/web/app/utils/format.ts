@@ -21,3 +21,8 @@ export function whatsappLink(phone: string, text: string): string {
   const digits = phone.replace(/\D/g, '').replace(/^0/, '20')
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
 }
+
+/** +201012345678 → 01012345678, the way people read and type it. */
+export function localPhone(phone: string | null | undefined): string {
+  return phone ? phone.replace(/^\+20/, '0') : ''
+}

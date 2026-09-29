@@ -1,5 +1,10 @@
 <template>
-  <div class="-m-4 flex min-h-[calc(100dvh-4rem)] flex-col gap-4 p-4 lg:-m-8 lg:flex-row lg:p-6">
+  <!-- Selling goes into the cashier's drawer: no open shift, no sale. -->
+  <div v-if="shiftChecked && !hasShift" class="grid min-h-[60dvh] place-items-center">
+    <CashOpenShiftCard v-if="canShift" hint="لازم وردية مفتوحة عشان تبيع. اكتب الكاش اللي في الدرج وابدأ." @opened="() => refreshShift()" />
+    <UAlert v-else color="warning" variant="subtle" icon="i-lucide-lock" title="مفيش وردية مفتوحة" description="البيع محتاج وردية، ومعندكش صلاحية فتح وردية. كلّم المدير." class="max-w-md" />
+  </div>
+  <div v-else class="-m-4 flex min-h-[calc(100dvh-4rem)] flex-col gap-4 p-4 lg:-m-8 lg:flex-row lg:p-6">
     <!-- Items -->
     <section class="flex min-w-0 flex-1 flex-col gap-3">
       <div class="flex gap-2">
@@ -83,7 +88,10 @@
         </div>
       </div>
 
-      <div v-if="showCustomer" class="grid grid-cols-2 gap-2 border-b border-(--ui-border) p-3">
+      <div v-if="canCustomers" class="border-b border-(--ui-border) p-3">
+        <PosCustomerPicker v-model="cart.customer" />
+      </div>
+      <div v-else-if="showCustomer" class="grid grid-cols-2 gap-2 border-b border-(--ui-border) p-3">
         <UInput v-model="cart.customer_name" size="sm" placeholder="اسم العميل" />
         <UInput v-model="cart.customer_phone" size="sm" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx" />
       </div>
@@ -168,14 +176,14 @@
       </div>
     </aside>
 
-    <PosPaymentModal v-model:open="payOpen" :total="total" :methods="methods" :loading="paying" :error="payError" @pay="checkout" />
+    <PosPaymentModal v-model:open="payOpen" :total="total" :methods="payMethods" :credit-available="creditAvailable" :customer-name="cart.customer?.name ?? null" :loading="paying" :error="payError" @pay="checkout" />
     <PosReceiptModal ref="receiptRef" v-model:open="receiptOpen" :sale="lastSale" />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { Category, PosItem, Sale } from '~/types/api'
+import type { CashShift, Category, Customer, PosItem, Sale } from '~/types/api'
 
 definePageMeta({ permission: 'sales.sell' })
 
@@ -183,6 +191,10 @@ const api = useApi()
 const store = useSessionStore()
 const toast = useToast()
 const canDiscount = computed(() => store.can('sales.discount'))
+const canCustomers = computed(() => store.can('customers.view'))
+const canCredit = computed(() => store.can('customers.credit'))
+const canShift = computed(() => store.can('cash.shift'))
+const route = useRoute()
 
 const branchId = computed(() => store.session?.current_branch_id)
 const { cart, held, subtotal, total, count, unitPrice, lineTotal, add, setQty, remove, clear, hold, resume, dropHeld } = usePosCart(branchId)
@@ -193,6 +205,28 @@ const [{ data: optionsData }, { data: categoriesData }] = await Promise.all([
   useAsyncData('catalog-categories', () => api<{ data: Category[] }>('/catalog/categories')),
 ])
 const methods = computed(() => optionsData.value?.data.payment_methods ?? [])
+// آجل only for a customer with an account, and only for whoever may give credit.
+const payMethods = computed(() => methods.value.filter(m => m.value !== 'credit' || (cart.value.customer && canCredit.value)))
+const creditAvailable = computed(() => {
+  const c = cart.value.customer
+  return c && c.credit_limit !== null ? Math.max(0, c.credit_limit - c.balance) : null
+})
+
+// The cashier's shift in this branch.
+const { data: shiftData, status: shiftStatus, refresh: refreshShift } = await useAsyncData('pos-shift', () => api<{ data: CashShift | null }>('/cash/current'), { watch: [branchId] })
+const shiftChecked = computed(() => shiftStatus.value !== 'pending' || shiftData.value !== undefined)
+const hasShift = computed(() => !!shiftData.value?.data)
+
+// Opened from a customer's page: /pos?customer=…
+if (typeof route.query.customer === 'string' && canCustomers.value) {
+  try {
+    const c = (await api<{ data: Customer }>(`/customers/${route.query.customer}`)).data
+    cart.value.customer = { id: c.id, name: c.name, phone: c.phone, balance: c.balance, credit_limit: c.credit_limit }
+  }
+  catch {
+    // Not found / not allowed: sell without a customer.
+  }
+}
 const priceLevels = computed(() => optionsData.value?.data.price_levels ?? [])
 const ALL = 0
 const categoryId = ref(ALL)
@@ -249,7 +283,7 @@ async function onEnter() {
 
 // Held invoices
 const heldItems = computed<DropdownMenuItem[][]>(() => [held.value.map(c => ({
-  label: `${c.customer_name || 'فاتورة'} · ${c.lines.length} صنف`,
+  label: `${c.customer?.name || c.customer_name || 'فاتورة'} · ${c.lines.length} صنف`,
   description: c.held_at ? formatDate(c.held_at, true) : undefined,
   icon: 'i-lucide-play',
   onSelect: () => resume(c),
@@ -257,7 +291,7 @@ const heldItems = computed<DropdownMenuItem[][]>(() => [held.value.map(c => ({
 
 const showCustomer = ref(!!cart.value.customer_name || !!cart.value.customer_phone)
 const cartMenu = computed<DropdownMenuItem[][]>(() => [[
-  { label: showCustomer.value ? 'إخفاء بيانات العميل' : 'بيانات العميل', icon: 'i-lucide-user', onSelect: () => { showCustomer.value = !showCustomer.value } },
+  ...(canCustomers.value ? [] : [{ label: showCustomer.value ? 'إخفاء بيانات العميل' : 'بيانات العميل', icon: 'i-lucide-user', onSelect: () => { showCustomer.value = !showCustomer.value } }]),
   { label: 'فاتورة جديدة (تفريغ)', icon: 'i-lucide-rotate-ccw', color: 'error' as const, disabled: !cart.value.lines.length, onSelect: () => { clear(); focusSearch() } },
 ]])
 
@@ -293,8 +327,9 @@ async function checkout(payments: { method: string, amount: number }[]) {
         id: cart.value.id,
         price_level: cart.value.price_level,
         discount: cart.value.discount,
-        customer_name: cart.value.customer_name || null,
-        customer_phone: cart.value.customer_phone || null,
+        customer_id: cart.value.customer?.id ?? null,
+        customer_name: cart.value.customer ? null : cart.value.customer_name || null,
+        customer_phone: cart.value.customer ? null : cart.value.customer_phone || null,
         items: cart.value.lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, discount: l.discount })),
         payments,
       },
@@ -308,6 +343,10 @@ async function checkout(payments: { method: string, amount: number }[]) {
   }
   catch (e) {
     payError.value = apiErrorMessage(e)
+    if (apiErrorCode(e) === 'shift_not_open') {
+      payOpen.value = false
+      await refreshShift()
+    }
   }
   finally {
     paying.value = false

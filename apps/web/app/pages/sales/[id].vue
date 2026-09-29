@@ -12,7 +12,7 @@
         <p class="text-(--ui-text-muted)">
           {{ formatDate(sale.completed_at, true) }} · {{ sale.cashier_name }}
           <span v-if="sale.price_level !== 'retail'"> · سعر {{ sale.price_level_label }}</span>
-          <span v-if="sale.customer_name"> · {{ sale.customer_name }}</span>
+          <span v-if="sale.customer_name"> · <NuxtLink v-if="sale.customer_id && store.can('customers.view')" :to="`/customers/${sale.customer_id}`" class="font-bold hover:text-primary">{{ sale.customer_name }}</NuxtLink><template v-else>{{ sale.customer_name }}</template></span>
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -194,7 +194,10 @@ const [{ data, refresh }, { data: optionsData }] = await Promise.all([
   useAsyncData('pos-options', () => api<{ data: { payment_methods: { value: string, label: string }[] } }>('/pos/options').catch(() => ({ data: { payment_methods: [] } }))),
 ])
 const sale = computed(() => data.value?.data)
-const methods = computed(() => (optionsData.value?.data.payment_methods ?? []).map(m => ({ label: m.label, value: m.value })))
+// Back onto the customer's account (خصم من الآجل) only for a sale made to a customer.
+const methods = computed(() => (optionsData.value?.data.payment_methods ?? [])
+  .filter(m => m.value !== 'credit' || !!sale.value?.customer_id)
+  .map(m => ({ label: m.value === 'credit' ? 'يتخصم من حساب العميل' : m.label, value: m.value })))
 const returnable = computed(() => sale.value?.items?.some(i => i.qty > i.returned_qty) ?? false)
 
 const shop = computed(() => store.session ? { name: store.session.tenant.name, phone: store.session.tenant.phone } : null)
@@ -219,7 +222,7 @@ function openReturn() {
   for (const item of sale.value?.items ?? []) {
     lines[item.id] = { qty: '', restock: true }
   }
-  refundMethod.value = 'cash'
+  refundMethod.value = sale.value?.credit ? 'credit' : 'cash'
   reason.value = ''
   returnError.value = null
   returnOpen.value = true

@@ -77,3 +77,8 @@ export function apiErrorMessage(error: unknown): string {
 
   return data?.message ?? 'حصلت مشكلة، حاول تاني.'
 }
+
+/** The API's machine-readable error code (`{message, code}`), if any. */
+export function apiErrorCode(error: unknown): string | null {
+  return (error as { data?: ApiError })?.data?.code ?? null
+}

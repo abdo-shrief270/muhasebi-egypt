@@ -11,7 +11,7 @@
           </p>
         </div>
 
-        <div class="grid grid-cols-4 gap-2">
+        <div class="grid gap-2" :style="{ gridTemplateColumns: `repeat(${methods.length}, minmax(0, 1fr))` }">
           <button
             v-for="m in methods"
             :key="m.value"
@@ -42,6 +42,11 @@
           <UButton v-if="payments.length > 1" color="neutral" variant="ghost" icon="i-lucide-x" square :aria-label="`شيل ${labelOf(p.method)}`" @click="payments.splice(i, 1)" />
         </div>
 
+        <p v-if="creditLine" class="text-xs" :class="creditTooHigh ? 'font-bold text-error' : 'text-(--ui-text-muted)'">
+          آجل على حساب {{ customerName }}<template v-if="creditAvailable !== null">
+            · المتاح <span class="num">{{ formatMoney(creditAvailable) }}</span>
+          </template>
+        </p>
         <p class="text-xs text-(--ui-text-muted)">
           للدفع بأكتر من طريقة: عدّل المبلغ الأول واختار الطريقة التانية، هتاخد الباقي.
         </p>
@@ -70,11 +75,19 @@
 
 <script setup lang="ts">
 /** Splits the total over payment methods; change only comes out of cash. Amounts typed in pounds. */
-const props = defineProps<{ total: number, methods: { value: string, label: string }[], loading?: boolean, error?: string | null }>()
+const props = defineProps<{
+  total: number
+  methods: { value: string, label: string }[]
+  /** For credit (آجل): what the customer can still owe; null = no limit. */
+  creditAvailable?: number | null
+  customerName?: string | null
+  loading?: boolean
+  error?: string | null
+}>()
 const open = defineModel<boolean>('open', { default: false })
 const emit = defineEmits<{ pay: [payments: { method: string, amount: number }[]] }>()
 
-const icons: Record<string, string> = { cash: 'i-lucide-banknote', card: 'i-lucide-credit-card', wallet: 'i-lucide-smartphone', instapay: 'i-lucide-arrow-left-right' }
+const icons: Record<string, string> = { cash: 'i-lucide-banknote', card: 'i-lucide-credit-card', wallet: 'i-lucide-smartphone', instapay: 'i-lucide-arrow-left-right', credit: 'i-lucide-notebook-pen' }
 
 const payments = ref<{ method: string, amount: string }[]>([])
 const active = ref('cash')
@@ -94,6 +107,8 @@ watch(open, (isOpen) => {
 
 const labelOf = (method: string) => props.methods.find(m => m.value === method)?.label ?? method
 const cashLine = computed(() => payments.value.find(p => p.method === 'cash'))
+const creditLine = computed(() => payments.value.find(p => p.method === 'credit'))
+const creditTooHigh = computed(() => props.creditAvailable != null && (toPiasters(creditLine.value?.amount) ?? 0) > props.creditAvailable)
 const paid = computed(() => payments.value.reduce((sum, p) => sum + (toPiasters(p.amount) ?? 0), 0))
 const remaining = computed(() => props.total - paid.value)
 const change = computed(() => Math.max(0, -remaining.value))

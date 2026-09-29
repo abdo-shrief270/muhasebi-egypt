@@ -10,6 +10,8 @@ export interface QuickAction {
 // `can()` already folds in whether the shop can use the permission's module.
 const ACTIONS: QuickAction[] = [
   { to: '/pos', label: 'بيع جديد', description: 'افتح الكاشير', icon: 'i-lucide-shopping-cart', permission: 'sales.sell' },
+  { to: '/customers?owing=1', label: 'تحصيل آجل', description: 'اللي عليهم فلوس', icon: 'i-lucide-hand-coins', permission: 'customers.credit' },
+  { to: '/cash', label: 'الوردية والمصروفات', description: 'الدرج وقفل اليوم', icon: 'i-lucide-wallet', permission: 'cash.shift' },
   { to: '/purchases/new', label: 'فاتورة شراء', description: 'استلم بضاعة من مورد', icon: 'i-lucide-receipt-text', permission: 'suppliers.manage' },
   { to: '/products/new', label: 'صنف جديد', description: 'ضيف صنف للكتالوج', icon: 'i-lucide-package-plus', permission: 'products.manage' },
   { to: '/inventory?count=1', label: 'جرد', description: 'اعد البضاعة اللي على الرف', icon: 'i-lucide-clipboard-check', permission: 'inventory.adjust' },

@@ -354,12 +354,14 @@ export interface Sale {
   status_label: string
   price_level: string
   price_level_label: string
+  customer_id: string | null
   customer_name: string | null
   customer_phone: string | null
   subtotal: number
   discount: number
   total: number
   paid: number
+  credit: number
   change: number
   refunded: number
   cost_total?: number
@@ -399,4 +401,85 @@ export interface SalesStats {
   series: { date: string, sales: number, revenue: number, profit: number | null }[]
   top_items: { name: string, qty: number, revenue: number }[]
   payments: { method: string, label: string, amount: number }[]
+}
+
+export interface Customer {
+  id: string
+  name: string
+  phone: string | null
+  notes: string | null
+  /** piasters; > 0 = owes the shop, < 0 = store credit */
+  balance: number
+  credit_limit: number | null
+  is_active: boolean
+  last_activity_at: string | null
+  created_at: string | null
+}
+
+export interface CustomerTransaction {
+  id: string
+  type: 'opening' | 'sale' | 'payment' | 'sale_return'
+  type_label: string
+  amount: number
+  balance_after: number
+  payment_method: string | null
+  payment_method_label: string | null
+  ref_type: string | null
+  ref_id: string | null
+  reference: string | null
+  note: string | null
+  user_name: string | null
+  created_at: string
+}
+
+export type CashMethod = 'cash' | 'card' | 'wallet' | 'instapay'
+
+export interface CashMovement {
+  id: string
+  type: 'sale' | 'sale_refund' | 'customer_payment' | 'expense' | 'deposit' | 'withdrawal'
+  type_label: string
+  method: CashMethod
+  method_label: string
+  amount: number
+  category: string | null
+  category_label: string | null
+  ref_type: string | null
+  ref_id: string | null
+  note: string | null
+  user_name: string | null
+  created_at: string
+}
+
+export interface CashShift {
+  id: string
+  number: number
+  reference: string
+  branch_id: string
+  user_id: string
+  user_name: string
+  opening_cash: number
+  opened_at: string
+  closed_at: string | null
+  closed_by_name: string | null
+  is_open: boolean
+  expected: Record<CashMethod, number> | null
+  counted: Record<CashMethod, number> | null
+  cash_difference: number | null
+  note: string | null
+  by_type?: { type: string, label: string, method: CashMethod, amount: number, count: number }[]
+  movements?: CashMovement[]
+}
+
+export interface CashOptions {
+  methods: { value: CashMethod, label: string }[]
+  expense_categories: { value: string, label: string }[]
+}
+
+/** The customer attached to a POS cart (kept with the cart in the browser). */
+export interface PosCustomer {
+  id: string
+  name: string
+  phone: string | null
+  balance: number
+  credit_limit: number | null
 }

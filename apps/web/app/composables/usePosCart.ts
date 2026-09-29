@@ -1,4 +1,4 @@
-import type { PosItem } from '~/types/api'
+import type { PosCustomer, PosItem } from '~/types/api'
 
 export type PriceLevel = 'retail' | 'wholesale' | 'technician'
 
@@ -18,12 +18,14 @@ export interface Cart {
   lines: CartLine[]
   discount: number
   price_level: PriceLevel
+  /** A customer with an account (for credit); otherwise just a name / phone for the receipt. */
+  customer?: PosCustomer | null
   customer_name: string
   customer_phone: string
   held_at?: string
 }
 
-const emptyCart = (): Cart => ({ id: crypto.randomUUID(), lines: [], discount: 0, price_level: 'retail', customer_name: '', customer_phone: '' })
+const emptyCart = (): Cart => ({ id: crypto.randomUUID(), lines: [], discount: 0, price_level: 'retail', customer: null, customer_name: '', customer_phone: '' })
 
 function read<T>(key: string, fallback: T): T {
   try {

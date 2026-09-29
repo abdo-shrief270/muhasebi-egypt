@@ -24,7 +24,7 @@
     </div>
 
     <!-- Quick actions -->
-    <div v-if="actions.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6">
+    <div v-if="actions.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       <NuxtLink
         v-for="action in actions"
         :key="action.to"
@@ -167,6 +167,22 @@
       </div>
     </template>
 
+    <!-- Money outside the tills' sales: drawers, expenses, credit -->
+    <div v-if="moneyCards.length" class="grid grid-cols-2 gap-3 lg:grid-cols-3">
+      <NuxtLink v-for="card in moneyCards" :key="card.label" :to="card.to" class="app-card p-4 transition hover:ring-1 hover:ring-primary">
+        <p class="flex items-center gap-1.5 text-sm text-(--ui-text-muted)">
+          <UIcon :name="card.icon" class="size-4" />
+          {{ card.label }}
+        </p>
+        <p class="mt-1 text-2xl font-extrabold num">
+          {{ formatMoney(card.value) }}
+        </p>
+        <p v-if="card.hint" class="mt-1 text-xs text-(--ui-text-muted)">
+          {{ card.hint }}
+        </p>
+      </NuxtLink>
+    </div>
+
     <!-- Stock at a glance -->
     <div v-if="stock" class="grid grid-cols-3 gap-3">
       <NuxtLink v-for="card in stockCards" :key="card.label" :to="card.to" class="app-card p-4 transition hover:ring-1 hover:ring-primary">
@@ -212,6 +228,24 @@ const branchKey = computed(() => store.session?.current_branch_id ?? '')
 const { data: stock } = await useAsyncData('dashboard-stock', async () => canStock.value
   ? (await api<{ data: StockSummary }>('/inventory/summary')).data
   : null, { watch: [branchKey] })
+
+const { data: cash } = await useAsyncData('dashboard-cash', async () => store.can('cash.manage')
+  ? (await api<{ data: { in_drawers: number, open_shifts: unknown[], expenses_today: number } }>('/cash/summary')).data
+  : null)
+const { data: receivable } = await useAsyncData('dashboard-receivable', async () => store.can('customers.view')
+  ? (await api<{ meta: { receivable: number, owing_count: number } }>('/customers', { query: { owing: 1, per_page: 5 } })).meta
+  : null)
+const moneyCards = computed(() => [
+  ...(cash.value
+    ? [
+        { label: 'الكاش في الأدراج', value: cash.value.in_drawers, to: '/cash', icon: 'i-lucide-wallet', hint: `${cash.value.open_shifts.length} وردية مفتوحة` },
+        { label: 'مصروفات النهارده', value: cash.value.expenses_today, to: '/cash', icon: 'i-lucide-receipt', hint: null },
+      ]
+    : []),
+  ...(receivable.value
+    ? [{ label: 'الآجل عند العملاء', value: receivable.value.receivable, to: '/customers?owing=1', icon: 'i-lucide-hand-coins', hint: `${receivable.value.owing_count} عميل` }]
+    : []),
+])
 
 const delta = computed(() => {
   const t = stats.value?.today

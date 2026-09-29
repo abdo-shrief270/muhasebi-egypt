@@ -75,6 +75,10 @@ final class XlsxReport
             return Cell::fromValue('', $text);
         }
         if (is_string($value) && ! is_numeric($value)) {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}/', $value) !== 1) {
+                return Cell::fromValue($value, $text); // a label, e.g. the totals row's "الإجمالي"
+            }
+
             return Cell::fromValue(match ($type) {
                 'date', 'month' => substr($value, 0, $type === 'month' ? 7 : 10),
                 'datetime' => str_replace('T', ' ', substr($value, 0, 16)),

@@ -173,6 +173,7 @@ class ReportsTest extends TestCase
         $this->assertStringContainsString('مبيعات وأرباح الأصناف', (string) $cells[0][0]);
         $charger = collect($cells)->first(fn ($r) => ($r[0] ?? null) === 'شاحن 20W');
         $this->assertEquals(862.5, $charger[5], 'money in pounds');
+        $this->assertNotNull(collect($cells)->first(fn ($r) => ($r[0] ?? null) === 'الإجمالي'), 'the totals label is kept whole');
     }
 
     public function test_another_shop_sees_nothing_of_mine(): void

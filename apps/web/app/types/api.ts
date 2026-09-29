@@ -483,3 +483,29 @@ export interface PosCustomer {
   balance: number
   credit_limit: number | null
 }
+
+export type ReportColumnType = 'text' | 'int' | 'money' | 'percent' | 'date' | 'month' | 'datetime'
+
+export interface ReportDefinition {
+  key: string
+  title: string
+  description: string
+  group: 'sales' | 'stock' | 'money'
+  uses_dates: boolean
+  uses_branches: boolean
+  options: { key: string, label: string, choices: { value: string, label: string }[] }[]
+}
+
+export interface ReportData {
+  key: string
+  title: string
+  from: string | null
+  to: string | null
+  branches: string[] | null
+  summary: { label: string, value: number | string | null, type: ReportColumnType, hint?: string }[]
+  columns: { key: string, label: string, type: ReportColumnType }[]
+  rows: Record<string, string | number | null>[]
+  totals: Record<string, string | number | null> | null
+  chart: { kind: 'daily' | 'bars', label: string, type: ReportColumnType, points: { label: string, value: number, date?: string }[] } | null
+  notes: string[]
+}

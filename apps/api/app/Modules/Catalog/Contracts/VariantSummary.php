@@ -22,7 +22,20 @@ final readonly class VariantSummary
         public int $minStock,
         public bool $isActive,
         public bool $trackSerial,
+        public ?int $priceWholesale = null,
+        public ?int $priceTechnician = null,
+        public ?string $qualityLabel = null,
     ) {}
+
+    /** Price for a price level; falls back to retail when the level has none. */
+    public function priceFor(string $level): int
+    {
+        return match ($level) {
+            'wholesale' => $this->priceWholesale ?? $this->priceRetail,
+            'technician' => $this->priceTechnician ?? $this->priceRetail,
+            default => $this->priceRetail,
+        };
+    }
 
     /** "جراب سيليكون — أسود" */
     public function displayName(): string
@@ -45,6 +58,9 @@ final readonly class VariantSummary
             'sku' => $this->sku,
             'category' => ['id' => $this->categoryId, 'name' => $this->categoryName],
             'price_retail' => $this->priceRetail,
+            'price_wholesale' => $this->priceWholesale,
+            'price_technician' => $this->priceTechnician,
+            'quality_label' => $this->qualityLabel,
             'min_stock' => $this->minStock,
             'is_active' => $this->isActive,
             'track_serial' => $this->trackSerial,

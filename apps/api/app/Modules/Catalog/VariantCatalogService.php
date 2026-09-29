@@ -80,6 +80,9 @@ final class VariantCatalogService implements VariantCatalog
             minStock: $v->min_stock,
             isActive: $v->is_active && $v->product->is_active,
             trackSerial: $v->product->track_serial,
+            priceWholesale: $v->price_wholesale,
+            priceTechnician: $v->price_technician,
+            qualityLabel: $v->quality_grade?->label(),
         );
     }
 }

@@ -34,6 +34,12 @@ interface StockLedger
 
     /**
      * @param  list<string>  $variantIds
+     * @return array<string, int> variant id => quantity in the branch (0 when it never moved)
+     */
+    public function quantities(string $branchId, array $variantIds): array;
+
+    /**
+     * @param  list<string>  $variantIds
      * @return list<string> the ones that have ever moved (in $branchId, or in any branch when null)
      */
     public function variantsWithHistory(array $variantIds, ?string $branchId = null): array;

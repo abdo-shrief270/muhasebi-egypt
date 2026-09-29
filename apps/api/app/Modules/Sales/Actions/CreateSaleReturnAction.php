@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Sales\Actions;
+
+use App\Modules\Inventory\Contracts\MovementType;
+use App\Modules\Inventory\Contracts\StockLedger;
+use App\Modules\Inventory\Contracts\StockReference;
+use App\Modules\Sales\Enums\PaymentMethod;
+use App\Modules\Sales\Enums\SaleStatus;
+use App\Modules\Sales\Events\SaleRefunded;
+use App\Modules\Sales\Models\Sale;
+use App\Modules\Sales\Models\SaleItem;
+use App\Modules\Sales\Models\SaleReturn;
+use App\Support\Audit\Auditor;
+use App\Support\Events\EventRecorder;
+use App\Support\Exceptions\DomainRuleException;
+use App\Support\Numbering\DocumentNumbers;
+use Illuminate\Contracts\Auth\Factory as Auth;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Takes items back from a customer. Each unit is refunded at what it was really paid (its line
+ * after the invoice discount's share). Sound units go back into stock at their original cost;
+ * damaged ones don't (they're a loss, or later a return to the supplier).
+ */
+final class CreateSaleReturnAction
+{
+    public function __construct(
+        private readonly StockLedger $stock,
+        private readonly DocumentNumbers $numbers,
+        private readonly EventRecorder $events,
+        private readonly Auditor $audit,
+        private readonly Auth $auth,
+    ) {}
+
+    /**
+     * @param  list<array{sale_item_id: int, qty: int, restock: bool}>  $lines
+     */
+    public function handle(string $tenantId, Sale $sale, array $lines, PaymentMethod $refundMethod, ?string $reason): SaleReturn
+    {
+        return DB::transaction(function () use ($tenantId, $sale, $lines, $refundMethod, $reason): SaleReturn {
+            $sale = Sale::query()->lockForUpdate()->findOrFail($sale->id);
+            /** @var Collection<int, SaleItem> $items */
+            $items = $sale->items()->get()->keyBy('id');
+
+            foreach ($lines as $line) {
+                $item = $items->get($line['sale_item_id']) ?? throw new DomainRuleException('فيه سطر مش تبع الفاتورة دي.', 'sale_item_not_found', 404);
+                $left = $item->qty - $item->returned_qty;
+                if ($line['qty'] > $left) {
+                    throw new DomainRuleException("مينفعش ترجّع أكتر من {$left} من «{$item->name}».", 'return_exceeds_sale', context: ['sale_item_id' => $item->id, 'max' => $left]);
+                }
+            }
+
+            $user = $this->auth->guard('sanctum')->user();
+            $return = SaleReturn::create([
+                'tenant_id' => $tenantId,
+                'branch_id' => $sale->branch_id,
+                'sale_id' => $sale->id,
+                'number' => $this->numbers->next($tenantId, 'sale_return'),
+                'total' => 0,
+                'cost' => 0,
+                'refund_method' => $refundMethod,
+                'reason' => $reason,
+                'created_by' => $user?->getAuthIdentifier(),
+                'created_by_name' => $user?->getAttribute('name'),
+            ]);
+
+            $total = 0;
+            $cost = 0;
+            foreach ($lines as $line) {
+                /** @var SaleItem $item */
+                $item = $items->get($line['sale_item_id']);
+                // What one unit was really paid: its line, less its share of the invoice discount.
+                $unitRefund = $sale->subtotal > 0
+                    ? intdiv($item->line_total * $sale->total + intdiv($sale->subtotal * $item->qty, 2), $sale->subtotal * $item->qty)
+                    : 0;
+
+                if ($line['restock']) {
+                    $this->stock->receive($sale->branch_id, $item->variant_id, $line['qty'], $item->unit_cost, new StockReference(
+                        MovementType::SaleReturn,
+                        refType: 'sale_return',
+                        refId: $return->id,
+                        note: "{$return->reference()} من {$sale->reference()}",
+                    ));
+                }
+
+                $return->items()->create([
+                    'tenant_id' => $tenantId,
+                    'sale_item_id' => $item->id,
+                    'variant_id' => $item->variant_id,
+                    'qty' => $line['qty'],
+                    'unit_refund' => $unitRefund,
+                    'line_total' => $unitRefund * $line['qty'],
+                    'restocked' => $line['restock'],
+                ]);
+                $item->increment('returned_qty', $line['qty']);
+                $total += $unitRefund * $line['qty'];
+                // Restocked units stop counting as sold cost; damaged ones stay a cost (a loss).
+                $cost += $line['restock'] ? $item->unit_cost * $line['qty'] : 0;
+            }
+
+            $return->update(['total' => $total, 'cost' => $cost]);
+
+            $allBack = $items->every(fn (SaleItem $i) => $i->fresh()?->returned_qty === $i->qty);
+            $sale->update([
+                'refunded' => $sale->refunded + $total,
+                'refunded_cost' => $sale->refunded_cost + $cost,
+                'status' => $allBack ? SaleStatus::Refunded : SaleStatus::PartiallyRefunded,
+            ]);
+
+            $this->events->record(new SaleRefunded($tenantId, $sale->id, $return->id, $sale->branch_id, $total, $refundMethod->value));
+            $this->audit->record(
+                'sales.refunded',
+                "عمل مرتجع {$return->reference()} بـ ".number_format($total / 100, 2)." ج من الفاتورة {$sale->reference()}",
+                $return,
+                ['sale_id' => $sale->id, 'total' => $total, 'refund_method' => $refundMethod->value],
+            );
+
+            return $return;
+        });
+    }
+}

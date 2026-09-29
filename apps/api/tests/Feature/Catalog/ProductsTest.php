@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Catalog;
 
+use App\Modules\Catalog\Actions\GenerateBarcodesAction;
 use App\Modules\Catalog\Models\Brand;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\DeviceModel;
@@ -324,5 +325,21 @@ class ProductsTest extends TestCase
         $this->deleteJson('/api/v1/catalog/brands/'.$this->inShop($this->owner, fn () => Brand::query()->where('name', 'Apple')->value('id')))->assertUnprocessable();
         // Samsung: set as a product's brand.
         $this->deleteJson('/api/v1/catalog/brands/'.$this->inShop($this->owner, fn () => Brand::query()->where('name', 'Samsung')->value('id')))->assertUnprocessable();
+    }
+
+    public function test_generating_in_store_barcodes_for_labels(): void
+    {
+        $product = $this->createProduct(['variants' => [['name' => 'بباركود', 'barcode' => '999', 'price_retail' => 1], ['name' => 'من غير', 'price_retail' => 1]]]);
+        [$with, $without] = array_column($product['variants'], 'id');
+
+        $codes = $this->postJson('/api/v1/products/barcodes', ['variant_ids' => [$with, $without]])->assertOk()->json('data');
+
+        $this->assertSame([$without], array_keys($codes), 'variants that have one keep it');
+        $this->assertSame('2000000000015', $codes[$without], 'EAN-13, in-store prefix 2, with its check digit');
+        $this->assertSame('2000000000022', GenerateBarcodesAction::ean13('200000000002'));
+        $this->getJson('/api/v1/products/barcode/2000000000015')->assertOk()->assertJsonPath('data.variant.name', 'من غير');
+
+        Sanctum::actingAs($this->staffWithRole('cashier'));
+        $this->postJson('/api/v1/products/barcodes', ['variant_ids' => [$without]])->assertForbidden();
     }
 }

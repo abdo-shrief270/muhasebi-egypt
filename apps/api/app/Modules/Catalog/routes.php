@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Catalog\Http\Controllers\BarcodeController;
 use App\Modules\Catalog\Http\Controllers\CatalogListsController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
 use App\Modules\Catalog\Http\Controllers\ProductImportController;
@@ -18,6 +19,8 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
         Route::post('preview', 'preview')->middleware('throttle:30,1');
         Route::post('/', 'store')->middleware('throttle:10,1');
     });
+
+    Route::post('products/barcodes', [BarcodeController::class, 'generate'])->middleware('can:products.manage');
 
     Route::prefix('products')->group(function (): void {
         Route::middleware('can:products.view')->group(function (): void {

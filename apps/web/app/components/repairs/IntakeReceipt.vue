@@ -48,7 +48,21 @@
       </p>
     </div>
 
-    <div v-if="ticket.estimate || ticket.paid" class="mt-2 space-y-0.5 border-t border-dashed border-black pt-1 text-xs">
+    <div v-if="ticket.parts?.length" class="mt-2 space-y-0.5 border-t border-dashed border-black pt-1 text-xs">
+      <p class="font-bold">
+        قطع الغيار
+      </p>
+      <div v-for="p in ticket.parts" :key="p.id">
+        <div class="flex justify-between gap-2">
+          <span><span class="num">{{ p.qty }}</span> × {{ p.name }}</span><span class="num">{{ formatMoney(p.line_total) }}</span>
+        </div>
+        <p v-if="p.serials?.length" class="num" dir="ltr">
+          {{ p.serials.join(' · ') }}
+        </p>
+      </div>
+    </div>
+
+    <div v-if="ticket.estimate || ticket.paid"class="mt-2 space-y-0.5 border-t border-dashed border-black pt-1 text-xs">
       <div v-if="ticket.estimate" class="flex justify-between">
         <span>التكلفة المبدئية</span><span class="num">{{ formatMoney(ticket.estimate) }}</span>
       </div>

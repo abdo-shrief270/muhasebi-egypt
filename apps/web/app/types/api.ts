@@ -524,6 +524,7 @@ export interface PriceCheckItem {
   category: string
   quality_label: string | null
   is_active: boolean
+  track_serial: boolean
   exact_barcode: boolean
   /** wholesale / technician are null for whoever can't sell at them */
   prices: { retail: number, wholesale: number | null, technician: number | null }
@@ -598,7 +599,7 @@ export interface RepairTicket {
   under_warranty: boolean
   warranty_of_id: string | null
   public_token: string
-  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, added_by_name: string | null }[]
+  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, serials: string[] | null, added_by_name: string | null }[]
   payments?: { kind: 'deposit' | 'payment' | 'refund', method: string, amount: number, user_name: string | null, created_at: string }[]
   events?: { type: string, type_label: string, from_status_label: string | null, to_status: TicketStatus | null, to_status_label: string | null, note: string | null, user_name: string | null, created_at: string }[]
 }
@@ -696,4 +697,17 @@ export interface BillingOverview {
   instapay: { address: string, name: string, phone: string }
   requests: PaymentRequestInfo[]
   invoices: BillingInvoiceInfo[]
+}
+
+/** The bell: what partner shops did, as far as this user may see. */
+export interface AppNotification {
+  id: string
+  type: string
+  title: string
+  body: string | null
+  icon: string | null
+  /** web route to open */
+  to: string | null
+  read: boolean
+  created_at: string
 }

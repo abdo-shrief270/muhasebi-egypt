@@ -146,6 +146,76 @@ class SerialNumbersTest extends TestCase
         $this->inShop(fn () => SerialEvent::query()->first()->delete());
     }
 
+    private function adjust(array $item, string $reason = 'count')
+    {
+        return $this->postJson('/api/v1/inventory/adjustments', ['reason' => $reason, 'items' => [['variant_id' => $this->phone, ...$item]]]);
+    }
+
+    public function test_adjustments_and_counts_name_the_units_that_come_in_or_leave(): void
+    {
+        $this->buy(['350000000000011', '350000000000022'])->assertCreated();
+
+        // Found one more on the shelf: which one?
+        $this->adjust(['delta' => 1], 'correction')->assertStatus(422)->assertJsonPath('code', 'serials_required');
+        $this->adjust(['delta' => 1, 'serials' => ['350000000000011']], 'correction')->assertStatus(422)->assertJsonPath('code', 'serial_in_stock');
+        $this->adjust(['delta' => 1, 'serials' => ['3500-0000-0000-033']], 'correction')->assertOk()->assertJsonPath('data.changes.0.serials', ['350000000000033']);
+        $this->assertSame(['in_stock', ['adjustment']], [$this->lookup('350000000000033')[0]['status'], array_column($this->lookup('350000000000033')[0]['events'], 'type')]);
+
+        // One broke: which one leaves. A sold one can't leave again.
+        $this->sellPhone(['350000000000022'])->assertCreated();
+        $this->adjust(['delta' => -1], 'damaged')->assertStatus(422)->assertJsonPath('code', 'serials_required');
+        $this->adjust(['delta' => -1, 'serials' => ['350000000000022']], 'damaged')->assertStatus(422)->assertJsonPath('code', 'serial_not_in_stock');
+        $this->adjust(['delta' => -1, 'serials' => ['350000000000011']], 'damaged')->assertOk();
+        $this->assertSame(['out', ['purchase', 'adjustment']], [$this->lookup('350000000000011')[0]['status'], array_column($this->lookup('350000000000011')[0]['events'], 'type')]);
+
+        // A stocktake: one on the books (…033) is missing.
+        $this->adjust(['counted' => 0, 'serials' => []])->assertStatus(422)->assertJsonPath('code', 'serials_required');
+        $this->adjust(['counted' => 0, 'serials' => ['350000000000033']])->assertOk()->assertJsonPath('data.changes.0.delta', -1);
+        $this->assertSame([], $this->lookup('350000000000033', true));
+        $this->adjust(['counted' => 0])->assertOk()->assertJsonPath('data.changes', []);
+    }
+
+    public function test_opening_stock_records_serials_when_given(): void
+    {
+        $this->postJson('/api/v1/inventory/opening', ['items' => [['variant_id' => $this->phone, 'qty' => 2, 'unit_cost' => 600000, 'serials' => ['360000000000011']]]])
+            ->assertStatus(422)->assertJsonPath('code', 'serials_required');
+        $this->postJson('/api/v1/inventory/opening', ['items' => [['variant_id' => $this->phone, 'qty' => 2, 'unit_cost' => 600000, 'serials' => ['360000000000011', '360000000000022']]]])
+            ->assertCreated();
+        $this->assertSame([['360000000000011'], ['360000000000022']], [array_column($this->lookup('360000000000011', true), 'serial'), array_column($this->lookup('360000000000022', true), 'serial')]);
+        $this->assertSame(['opening'], array_column($this->lookup('360000000000011')[0]['events'], 'type'));
+
+        // Products that don't track serials ignore them.
+        $other = $this->variant('كابل', 'شواحن', ['price_retail' => 5000]);
+        $this->postJson('/api/v1/inventory/opening', ['items' => [['variant_id' => $other, 'qty' => 1, 'unit_cost' => 1000, 'serials' => ['ABCD1234']]]])->assertCreated();
+        $this->assertSame([], $this->lookup('ABCD1234'));
+    }
+
+    public function test_a_repair_part_is_fitted_and_taken_back_by_its_serial(): void
+    {
+        $this->buy(['370000000000011', '370000000000022'])->assertCreated();
+        $this->sellPhone(['370000000000022'])->assertCreated();
+        $ticket = $this->postJson('/api/v1/repairs/tickets', [
+            'customer_name' => 'محمود', 'customer_phone' => '01234567890', 'device_name' => 'Samsung A15', 'reported_note' => 'بدل الجهاز',
+        ])->assertCreated()->json('data');
+        $url = "/api/v1/repairs/tickets/{$ticket['id']}/parts";
+
+        $this->postJson($url, ['variant_id' => $this->phone, 'qty' => 1])->assertStatus(422)->assertJsonPath('code', 'serials_required');
+        $this->postJson($url, ['variant_id' => $this->phone, 'qty' => 1, 'serials' => ['370000000000022']])->assertStatus(422)->assertJsonPath('code', 'serial_not_in_stock');
+        $part = $this->postJson($url, ['variant_id' => $this->phone, 'qty' => 1, 'serials' => ['3700 0000 0000 011']])->assertOk()->json('data.parts.0');
+        $this->assertSame(['370000000000011'], $part['serials']);
+        [$found] = $this->lookup('370000000000011');
+        $this->assertSame(['out', ['purchase', 'repair_use'], $ticket['id']], [$found['status'], array_column($found['events'], 'type'), $found['events'][1]['ref_id']]);
+
+        // Taken back off the device: in stock again, sellable again.
+        $this->deleteJson("{$url}/{$part['id']}")->assertOk()->assertJsonPath('data.parts', []);
+        [$found] = $this->lookup('370000000000011');
+        $this->assertSame(['in_stock', ['purchase', 'repair_use', 'repair_return']], [$found['status'], array_column($found['events'], 'type')]);
+        $this->sellPhone(['370000000000011'])->assertCreated();
+
+        // Parts that don't track serials carry none.
+        $this->postJson($url, ['variant_id' => $this->v[1], 'qty' => 1, 'serials' => ['ABCD1234']])->assertOk()->assertJsonPath('data.parts.0.serials', null);
+    }
+
     public function test_who_may_look_up(): void
     {
         $this->getJson('/api/v1/inventory/serials?q=12')->assertOk()->assertJsonPath('data', []);

@@ -41,6 +41,8 @@
             </UButton>
           </UTooltip>
 
+          <NotificationBell />
+
           <UDropdownMenu :items="colorModeItems" :content="{ align: 'end' }">
             <UButton color="neutral" variant="ghost" :icon="colorModeIcon" square aria-label="شكل الألوان" />
           </UDropdownMenu>

@@ -123,9 +123,22 @@
               </button>
             </div>
           </div>
+          <div v-if="serialPart" class="mb-3 space-y-2 rounded-(--ui-radius) border border-(--ui-border) p-3">
+            <p class="text-sm font-bold">
+              IMEI / سيريال «{{ serialPart.display_name }}»
+            </p>
+            <InventorySerialsInput v-model="partSerials" :required="1" size="sm" />
+            <div class="flex justify-end gap-2">
+              <UButton size="sm" color="neutral" variant="ghost" label="إلغاء" @click="serialPart = null" />
+              <UButton size="sm" icon="i-lucide-plus" label="إضافة القطعة" :disabled="partSerials.length !== 1" @click="addPart(serialPart, partSerials)" />
+            </div>
+          </div>
           <ul class="divide-y divide-(--ui-border)">
             <li v-for="p in ticket.parts" :key="p.id" class="flex items-center justify-between gap-3 py-2 text-sm">
-              <span><span class="num">{{ p.qty }}</span> × {{ p.name }}</span>
+              <span>
+                <span class="num">{{ p.qty }}</span> × {{ p.name }}
+                <span v-if="p.serials?.length" class="block text-xs text-(--ui-text-muted) num" dir="ltr">{{ p.serials.join(' · ') }}</span>
+              </span>
               <span class="flex items-center gap-2">
                 <span class="font-bold num">{{ formatMoney(p.line_total) }}</span>
                 <UButton v-if="canWork && ticket.status !== 'delivered'" size="xs" color="neutral" variant="ghost" icon="i-lucide-trash-2" square :aria-label="`شيل ${p.name}`" @click="removePart(p.id)" />
@@ -442,11 +455,21 @@ watch(partTerm, (value) => {
 })
 onBeforeUnmount(() => clearTimeout(partTimer))
 
-async function addPart(item: PriceCheckItem) {
+// A part whose product tracks serials asks which unit first.
+const serialPart = ref<PriceCheckItem | null>(null)
+const partSerials = ref<string[]>([])
+
+async function addPart(item: PriceCheckItem, serials?: string[]) {
   partTerm.value = ''
   partResults.value = []
+  if (item.track_serial && !serials?.length) {
+    serialPart.value = item
+    partSerials.value = []
+    return
+  }
   try {
-    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/parts`, { method: 'POST', body: { variant_id: item.id, qty: 1 } })
+    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/parts`, { method: 'POST', body: { variant_id: item.id, qty: 1, serials } })
+    serialPart.value = null
   }
   catch (e) {
     toast.add({ color: 'error', title: apiErrorMessage(e) })

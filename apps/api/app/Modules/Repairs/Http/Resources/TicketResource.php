@@ -104,6 +104,7 @@ final class TicketResource extends JsonResource
                 'qty' => $p->qty,
                 'unit_price' => $p->unit_price,
                 'line_total' => $p->qty * $p->unit_price,
+                'serials' => $p->serials,
                 'added_by_name' => $p->added_by_name,
             ])->all()),
             'payments' => $this->whenLoaded('payments', fn () => $this->payments->map(fn (RepairTicketPayment $p) => [

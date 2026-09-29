@@ -40,6 +40,8 @@ export default defineNuxtConfig({
         // Icons named in .ts files / script blocks, which the scan doesn't see.
         'lucide:package-plus', 'lucide:clipboard-check', 'lucide:file-spreadsheet', 'lucide:triangle-alert', 'lucide:circle-x',
         'lucide:layout-dashboard', 'lucide:notebook-pen', 'lucide:hand-coins', 'lucide:trending-up', 'lucide:scan-barcode', 'lucide:user-plus', 'lucide:check-circle', 'lucide:alarm-clock', 'lucide:banknote', 'lucide:credit-card', 'lucide:smartphone', 'lucide:circle-dot', 'lucide:headphones', 'lucide:boxes', 'lucide:ship', 'lucide:store', 'lucide:hourglass', 'lucide:calendar-clock', 'lucide:lock', 'lucide:ban', 'lucide:shield', 'lucide:sun', 'lucide:moon', 'lucide:log-out', 'lucide:banknote',
+        // Notification icons come from the API (Notifications\Listeners).
+        'lucide:inbox', 'lucide:circle-check', 'lucide:hammer', 'lucide:package-check', 'lucide:check-check', 'lucide:ban', 'lucide:bell',
       ],
     },
   },

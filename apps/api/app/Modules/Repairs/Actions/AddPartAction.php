@@ -6,6 +6,8 @@ namespace App\Modules\Repairs\Actions;
 
 use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Inventory\Contracts\MovementType;
+use App\Modules\Inventory\Contracts\SerialCount;
+use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Modules\Repairs\Enums\EventType;
@@ -18,32 +20,43 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * A part fitted: it leaves the ticket branch's stock now (FIFO, like a sale) and is billed at
- * its retail price unless the technician sets another.
+ * its retail price unless the technician sets another. A part whose product tracks serials names
+ * the units fitted (they must be in the branch's stock, or unknown — registered as they leave).
  */
 final class AddPartAction
 {
     public function __construct(
         private readonly VariantCatalog $catalog,
         private readonly StockLedger $stock,
+        private readonly SerialRegistry $serials,
         private readonly Timeline $timeline,
         private readonly Auth $auth,
     ) {}
 
-    public function handle(RepairTicket $ticket, string $variantId, int $qty, ?int $unitPrice): RepairTicketPart
+    /**
+     * @param  list<string>|null  $serials
+     */
+    public function handle(RepairTicket $ticket, string $variantId, int $qty, ?int $unitPrice, ?array $serials = null): RepairTicketPart
     {
         if (! $ticket->status->isOpen()) {
             throw new DomainRuleException('الجهاز اتسلّم خلاص؛ مينفعش تضيف قطع.', 'ticket_closed');
         }
         $variant = $this->catalog->find([$variantId])[$variantId] ?? throw new DomainRuleException('الصنف مش موجود.', 'variant_not_found', 404);
+        $serials = SerialCount::check($variant->displayName(), $variant->trackSerial, $qty, $serials, $variant->id);
+        $serials = $serials === null ? null : $this->serials->normalize($serials);
 
-        return DB::transaction(function () use ($ticket, $variant, $qty, $unitPrice): RepairTicketPart {
+        return DB::transaction(function () use ($ticket, $variant, $qty, $unitPrice, $serials): RepairTicketPart {
             $ticket = RepairTicket::query()->lockForUpdate()->findOrFail($ticket->id);
-            $issue = $this->stock->issue($ticket->branch_id, $variant->id, $qty, new StockReference(
+            $reference = new StockReference(
                 MovementType::RepairUse,
                 refType: 'repair_ticket',
                 refId: $ticket->id,
                 note: $ticket->reference(),
-            ));
+            );
+            $issue = $this->stock->issue($ticket->branch_id, $variant->id, $qty, $reference);
+            if ($serials !== null) {
+                $this->serials->issue($ticket->branch_id, $variant->id, $serials, $reference);
+            }
 
             $user = $this->auth->guard('sanctum')->user();
             $part = RepairTicketPart::create([
@@ -56,10 +69,11 @@ final class AddPartAction
                 'unit_cost' => $issue->unitCost(),
                 'added_by' => $user?->getAuthIdentifier(),
                 'added_by_name' => $user?->getAttribute('name'),
+                'serials' => $serials,
             ]);
             $ticket->recalculate();
             $ticket->save();
-            $this->timeline->add($ticket, EventType::PartAdded, "{$qty} × {$part->name}");
+            $this->timeline->add($ticket, EventType::PartAdded, "{$qty} × {$part->name}".($serials === null ? '' : ' ('.implode('، ', $serials).')'));
 
             return $part;
         });

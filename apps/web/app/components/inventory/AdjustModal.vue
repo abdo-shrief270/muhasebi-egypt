@@ -11,6 +11,9 @@
               <UInput v-model="form.cost" type="number" min="0" step="any" inputmode="decimal" dir="ltr" class="w-full" />
             </UFormField>
           </div>
+          <UFormField v-if="row?.track_serial" label="الـ IMEI / السيريالات" hint="اختياري — لو سجلتها هتقدر تدوّر عليها">
+            <InventorySerialsInput v-model="form.serials" :required="Number(form.qty) || undefined" />
+          </UFormField>
           <p class="text-sm text-(--ui-text-muted)">
             الرصيد الافتتاحي بيتسجّل مرة واحدة لكل صنف في الفرع. بعد كده أي فرق يتسجّل بالجرد.
           </p>
@@ -39,6 +42,13 @@
           </div>
           <UFormField v-if="canCost && form.direction === 'in'" label="سعر التكلفة للقطعة" hint="اختياري — لو فاضي هيتحسب بمتوسط التكلفة">
             <UInput v-model="form.cost" type="number" min="0" step="any" inputmode="decimal" dir="ltr" class="w-full" />
+          </UFormField>
+          <UFormField
+            v-if="row?.track_serial"
+            :label="form.direction === 'in' ? 'IMEI / سيريال القطع اللي دخلت' : 'IMEI / سيريال القطع اللي خرجت'"
+            required
+          >
+            <InventorySerialsInput v-model="form.serials" :required="Number(form.qty) || 0" />
           </UFormField>
           <UFormField label="ملاحظة">
             <UInput v-model="form.note" placeholder="مثلاً: 2 شاشة وقعت واتكسرت" class="w-full" />
@@ -76,15 +86,19 @@ const directions = [
   { value: 'out', label: 'خصم', icon: 'i-lucide-minus' },
 ] as const
 
-const form = reactive({ direction: 'out' as 'in' | 'out', qty: '', reason: 'damaged', cost: '', note: '' })
+const form = reactive({ direction: 'out' as 'in' | 'out', qty: '', reason: 'damaged', cost: '', note: '', serials: [] as string[] })
 const saving = ref(false)
 const error = ref<string | null>(null)
 
 watch(open, (isOpen) => {
   if (isOpen) {
-    Object.assign(form, { direction: 'out', qty: '', reason: 'damaged', cost: '', note: '' })
+    Object.assign(form, { direction: 'out', qty: '', reason: 'damaged', cost: '', note: '', serials: [] })
     error.value = null
   }
+})
+
+watch(() => form.direction, () => {
+  form.serials = []
 })
 
 const after = computed(() => (props.row?.qty ?? 0) + (form.direction === 'in' ? 1 : -1) * (Number(form.qty) || 0))
@@ -96,11 +110,18 @@ async function save() {
   saving.value = true
   error.value = null
   const qty = Number(form.qty)
+  const tracked = !!props.row.track_serial
+  if (tracked && (props.mode === 'adjust' || form.serials.length) && form.serials.length !== qty) {
+    error.value = `اكتب IMEI / سيريال لكل قطعة (${qty}).`
+    saving.value = false
+    return
+  }
+  const serials = tracked && form.serials.length ? [...form.serials] : undefined
   try {
     if (props.mode === 'opening') {
       await api('/inventory/opening', {
         method: 'POST',
-        body: { items: [{ variant_id: props.row.id, qty, unit_cost: toPiasters(form.cost) ?? 0 }] },
+        body: { items: [{ variant_id: props.row.id, qty, unit_cost: toPiasters(form.cost) ?? 0, serials }] },
       })
     }
     else {
@@ -109,7 +130,7 @@ async function save() {
         body: {
           reason: form.reason,
           note: form.note || null,
-          items: [{ variant_id: props.row.id, delta: form.direction === 'in' ? qty : -qty, unit_cost: form.direction === 'in' ? toPiasters(form.cost) : null }],
+          items: [{ variant_id: props.row.id, delta: form.direction === 'in' ? qty : -qty, unit_cost: form.direction === 'in' ? toPiasters(form.cost) : null, serials }],
         },
       })
     }

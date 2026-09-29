@@ -123,6 +123,12 @@
                     {{ diffLabel(row) }}
                   </span>
                 </div>
+                <div v-if="row.track_serial && serialsNeeded(row.id)" class="mt-2 max-w-sm">
+                  <p class="mb-1 text-xs text-(--ui-text-muted)">
+                    {{ (counts[row.id] ?? 0) > (known[row.id] ?? 0) ? 'IMEI / سيريال القطع الزيادة' : 'IMEI / سيريال القطع الناقصة' }}
+                  </p>
+                  <InventorySerialsInput v-model="countSerials[row.id]!" :required="serialsNeeded(row.id)" size="sm" />
+                </div>
               </td>
               <td v-if="canCost && !counting" class="hidden p-3 num lg:table-cell">
                 {{ formatMoney(row.avg_cost) }}
@@ -282,6 +288,9 @@ function rowActions(row: StockRow): DropdownMenuItem[][] {
 const counting = ref(canAdjust.value && useRoute().query.count === '1')
 const counts = reactive<Record<string, number>>({})
 const known = reactive<Record<string, number>>({})
+// Products that track serials: which units the difference is (the extra ones, or the missing ones).
+const tracked = reactive<Record<string, string>>({})
+const countSerials = reactive<Record<string, string[]>>({})
 const countNote = ref('')
 const savingCount = ref(false)
 
@@ -293,7 +302,17 @@ function toggleCounting() {
     return
   }
   counting.value = !counting.value
-  Object.keys(counts).forEach(id => delete counts[id])
+  clearCounts()
+}
+
+function clearCounts() {
+  for (const bag of [counts, countSerials, tracked]) {
+    Object.keys(bag).forEach(id => delete bag[id])
+  }
+}
+
+function serialsNeeded(id: string): number {
+  return counts[id] === undefined ? 0 : Math.abs(counts[id] - (known[id] ?? 0))
 }
 
 function setCount(row: StockRow, value: string | number | null | undefined) {
@@ -301,9 +320,15 @@ function setCount(row: StockRow, value: string | number | null | undefined) {
   if (Number.isInteger(n) && n >= 0) {
     counts[row.id] = n
     known[row.id] = row.qty
+    if (row.track_serial) {
+      tracked[row.id] = row.display_name
+      countSerials[row.id] ??= []
+    }
   }
   else {
     delete counts[row.id]
+    delete tracked[row.id]
+    delete countSerials[row.id]
   }
 }
 
@@ -318,6 +343,11 @@ function diffClass(row: StockRow): string {
 }
 
 async function saveCount() {
+  const missing = Object.keys(tracked).find(id => serialsNeeded(id) !== (countSerials[id]?.length ?? 0))
+  if (missing) {
+    toast.add({ color: 'warning', title: `«${tracked[missing]}» محتاج IMEI / سيريال لكل قطعة فرق (${serialsNeeded(missing)}).` })
+    return
+  }
   savingCount.value = true
   try {
     const res = await api<{ data: { changes: unknown[] } }>('/inventory/adjustments', {
@@ -325,11 +355,11 @@ async function saveCount() {
       body: {
         reason: 'count',
         note: countNote.value || null,
-        items: countedIds.value.map(id => ({ variant_id: id, counted: counts[id] })),
+        items: countedIds.value.map(id => ({ variant_id: id, counted: counts[id], serials: tracked[id] && serialsNeeded(id) ? countSerials[id] : undefined })),
       },
     })
     toast.add({ color: 'success', title: 'اتحفظ الجرد', description: `${res.data.changes.length} صنف اتعدّل رصيده` })
-    Object.keys(counts).forEach(id => delete counts[id])
+    clearCounts()
     countNote.value = ''
     counting.value = false
     await reload()

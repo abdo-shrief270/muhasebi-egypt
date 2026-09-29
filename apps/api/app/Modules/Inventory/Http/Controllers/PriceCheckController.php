@@ -56,6 +56,7 @@ final class PriceCheckController
             'category' => $v->categoryName,
             'quality_label' => $v->qualityLabel,
             'is_active' => $v->isActive,
+            'track_serial' => $v->trackSerial,
             'exact_barcode' => $v->barcode === $q,
             'prices' => [
                 'retail' => $v->priceRetail,

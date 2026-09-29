@@ -57,6 +57,16 @@ final class CashDrawerService implements CashDrawer
         ]);
     }
 
+    public function redactNotes(string $refType, array $refIds, string $note): void
+    {
+        if ($refIds === []) {
+            return;
+        }
+
+        // A query update: movements are append-only for the app (the model refuses updates); only the note changes.
+        CashMovement::query()->where('ref_type', $refType)->whereIn('ref_id', $refIds)->whereNotNull('note')->update(['note' => $note]);
+    }
+
     public function hasOpenShift(string $branchId): bool
     {
         return $this->openShift($branchId) !== null;

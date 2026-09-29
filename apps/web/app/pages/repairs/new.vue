@@ -20,6 +20,7 @@
             <UFormField label="الاسم" required>
               <UInput v-model="form.customer_name" class="w-full" />
             </UFormField>
+            <CustomersConsentCheckbox v-model="form.consent" class="sm:col-span-2" />
           </div>
         </UCard>
 
@@ -159,6 +160,7 @@ const customer = ref<PosCustomer | null>(null)
 const form = reactive({
   customer_name: '',
   customer_phone: '',
+  consent: true,
   device_model_id: undefined as number | undefined,
   device_name: '',
   imei: '',
@@ -226,7 +228,7 @@ async function save() {
     const res = await api<{ data: RepairTicket }>('/repairs/tickets', {
       method: 'POST',
       body: {
-        ...(customer.value ? { customer_id: customer.value.id } : { customer_name: form.customer_name, customer_phone: form.customer_phone }),
+        ...(customer.value ? { customer_id: customer.value.id } : { customer_name: form.customer_name, customer_phone: form.customer_phone, consent: form.consent }),
         device_model_id: form.device_model_id ?? null,
         device_name: form.device_name,
         imei: form.imei || null,

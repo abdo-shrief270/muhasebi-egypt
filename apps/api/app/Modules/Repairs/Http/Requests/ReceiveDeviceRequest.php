@@ -29,6 +29,8 @@ final class ReceiveDeviceRequest extends FormRequest
             'customer_id' => ['nullable', 'uuid'],
             'customer_name' => ['required_without:customer_id', 'nullable', 'string', 'max:120'],
             'customer_phone' => ['required_without:customer_id', 'nullable', 'string', 'max:20'],
+            // A typed-in customer agreed to having their data kept (Personal Data Protection Law 151/2020).
+            'consent' => ['nullable', 'boolean'],
             'device_model_id' => ['nullable', 'integer', Rule::exists('device_models', 'id')->where($tenant)],
             'device_name' => ['required', 'string', 'max:160'],
             'imei' => ['nullable', 'string', 'max:40'],

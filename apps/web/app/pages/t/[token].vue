@@ -83,6 +83,9 @@
     <p v-else class="py-24 text-center text-(--ui-text-muted)">
       التذكرة دي مش موجودة.
     </p>
+    <p class="text-center text-xs text-(--ui-text-muted)">
+      <NuxtLink to="/privacy" class="hover:text-primary hover:underline">الخصوصية وبياناتك</NuxtLink>
+    </p>
   </div>
 </template>
 

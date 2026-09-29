@@ -35,6 +35,15 @@ abstract class ModuleListener implements ShouldQueue
         return true;
     }
 
+    /**
+     * Also react for shops that have since turned the module off — for duties the module's data
+     * still owes (e.g. anonymising an erased customer's copies).
+     */
+    protected function evenWhenModuleDisabled(): bool
+    {
+        return false;
+    }
+
     public function handle(DomainEvent $event): void
     {
         app(CurrentTenant::class)->runAs($event->tenantId(), function () use ($event): void {
@@ -42,7 +51,7 @@ abstract class ModuleListener implements ShouldQueue
                 return;
             }
 
-            if ($event->tenantId() !== null && ! app(ModuleAccess::class)->enabled($this->module(), $event->tenantId())) {
+            if ($event->tenantId() !== null && ! $this->evenWhenModuleDisabled() && ! app(ModuleAccess::class)->enabled($this->module(), $event->tenantId())) {
                 return;
             }
 

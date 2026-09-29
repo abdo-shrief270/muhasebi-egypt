@@ -40,7 +40,11 @@ final class ReceiveDeviceAction
         return DB::transaction(function () use ($tenantId, $branchId, $data, $deposits): RepairTicket {
             $customer = isset($data['customer_id'])
                 ? ($this->customers->find((string) $data['customer_id']) ?? throw new DomainRuleException('العميل مش موجود.', 'customer_not_found', 404))
-                : $this->customers->findOrCreate((string) ($data['customer_name'] ?? ''), (string) ($data['customer_phone'] ?? ''));
+                : $this->customers->findOrCreate(
+                    (string) ($data['customer_name'] ?? ''),
+                    (string) ($data['customer_phone'] ?? ''),
+                    isset($data['consent']) ? (bool) $data['consent'] : null,
+                );
             if ($customer->phone === null) {
                 throw new DomainRuleException('العميل ده ملوش موبايل؛ ضيفه عشان نقدر نبلّغه.', 'customer_phone_missing');
             }

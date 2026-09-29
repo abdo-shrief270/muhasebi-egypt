@@ -38,4 +38,22 @@ final class Auditor
             'created_at' => now(),
         ]);
     }
+
+    /**
+     * Replaces $text with $replacement in the descriptions of $subject's entries — for erasing a
+     * person's name while keeping the record of what was done.
+     */
+    public function redact(Model $subject, string $text, string $replacement): void
+    {
+        if ($text === '' || $text === $replacement) {
+            return;
+        }
+
+        AuditEntry::query()
+            ->where('subject_type', class_basename($subject))
+            ->where('subject_id', (string) $subject->getKey())
+            ->get()
+            ->filter(fn (AuditEntry $entry) => str_contains($entry->description, $text))
+            ->each(fn (AuditEntry $entry) => $entry->forceFill(['description' => str_replace($text, $replacement, $entry->description)])->save());
+    }
 }

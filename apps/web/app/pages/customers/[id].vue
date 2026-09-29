@@ -5,7 +5,10 @@
       <div class="min-w-0 flex-1">
         <h1 class="text-2xl font-extrabold">
           {{ customer.name }}
-          <UBadge v-if="!customer.is_active" color="neutral" variant="subtle" class="ms-2 align-middle">
+          <UBadge v-if="customer.erased_at" color="neutral" variant="subtle" class="ms-2 align-middle">
+            بياناته اتمسحت
+          </UBadge>
+          <UBadge v-else-if="!customer.is_active" color="neutral" variant="subtle" class="ms-2 align-middle">
             موقوف
           </UBadge>
         </h1>
@@ -14,9 +17,16 @@
           <span v-if="customer.phone && customer.notes"> · </span>
           {{ customer.notes }}
         </p>
+        <p class="mt-1 flex items-center gap-1.5 text-xs" :class="consent.class">
+          <UIcon :name="consent.icon" class="size-4 shrink-0" />
+          <span>{{ consent.text }}</span>
+        </p>
       </div>
       <div class="flex flex-wrap gap-2">
-        <UButton v-if="canManage" color="neutral" variant="ghost" icon="i-lucide-pencil" label="تعديل" @click="editOpen = true" />
+        <UButton v-if="canManage && !customer.erased_at" color="neutral" variant="ghost" icon="i-lucide-pencil" label="تعديل" @click="editOpen = true" />
+        <UDropdownMenu v-if="privacyItems.length" :items="privacyItems" :content="{ align: 'end' }">
+          <UButton color="neutral" variant="ghost" icon="i-lucide-shield" label="البيانات" trailing-icon="i-lucide-chevron-down" :loading="exporting" />
+        </UDropdownMenu>
         <UButton
           v-if="customer.phone && customer.balance > 0"
           @click="messages.sendDebtReminder(customer)"
@@ -161,10 +171,31 @@
 
     <CustomersCustomerFormModal v-model:open="editOpen" :customer="customer" @saved="reload" />
     <CustomersPaymentModal v-model:open="payOpen" :customer="customer" @saved="reload" />
+
+    <UModal v-model:open="eraseOpen" title="مسح بيانات العميل">
+      <template #body>
+        <div class="space-y-3 text-sm">
+          <p>
+            هيتمسح اسم «<span class="font-bold">{{ customer.name }}</span>» وموبايله وملاحظاته من كل مكان: ملفه، الفواتير، تذاكر الصيانة (ومعاها كود الفتح والـ IMEI) وسجل الرسائل. الاسم هيبقى «عميل محذوف».
+          </p>
+          <p class="text-(--ui-text-muted)">
+            الفلوس والفواتير وكشف الحساب بيفضلوا زي ما هما عشان الحسابات. الخطوة دي مينفعش ترجع فيها.
+          </p>
+          <UAlert v-if="eraseError" color="error" variant="subtle" :title="eraseError" />
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton color="neutral" variant="ghost" label="إلغاء" @click="eraseOpen = false" />
+          <UButton color="error" icon="i-lucide-user-x" label="امسح البيانات" :loading="erasing" @click="erase" />
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { DropdownMenuItem } from '@nuxt/ui'
 import type { Customer, CustomerTransaction, Paginated, Sale } from '~/types/api'
 
 definePageMeta({ permission: 'customers.view' })
@@ -197,6 +228,71 @@ const tabs = computed(() => [
 
 const editOpen = ref(false)
 const payOpen = ref(false)
+
+/** Consent to keeping their data (Personal Data Protection Law 151/2020). */
+const consent = computed(() => {
+  const c = customer.value
+  if (c?.erased_at) {
+    return { icon: 'i-lucide-user-x', class: 'text-(--ui-text-muted)', text: `بياناته الشخصية اتمسحت ${formatDate(c.erased_at, true)}` }
+  }
+  const by = [c?.data_consent_at ? formatDate(c.data_consent_at, true) : null, c?.data_consent_by_name].filter(Boolean).join(' · ')
+  if (c?.data_consent === true) {
+    return { icon: 'i-lucide-shield-check', class: 'text-success', text: `موافق على حفظ بياناته${by ? ` (${by})` : ''}` }
+  }
+  if (c?.data_consent === false) {
+    return { icon: 'i-lucide-shield-alert', class: 'text-warning', text: `مش موافق على حفظ بياناته${by ? ` (${by})` : ''}` }
+  }
+  return { icon: 'i-lucide-shield-question', class: 'text-(--ui-text-muted)', text: 'موافقته على حفظ بياناته مش متسجلة — سجّلها من «تعديل»' }
+})
+
+const exporting = ref(false)
+const eraseOpen = ref(false)
+const erasing = ref(false)
+const eraseError = ref<string | null>(null)
+const toast = useToast()
+
+const privacyItems = computed<DropdownMenuItem[]>(() => [
+  ...(canManage.value ? [{ label: 'نزّل بياناته (JSON)', icon: 'i-lucide-download', onSelect: exportData }] : []),
+  ...(store.isOwner && !customer.value?.erased_at
+    ? [{ label: 'مسح بيانات العميل', icon: 'i-lucide-user-x', color: 'error' as const, onSelect: openErase }]
+    : []),
+])
+
+function openErase() {
+  eraseError.value = null
+  eraseOpen.value = true
+}
+
+async function exportData() {
+  exporting.value = true
+  try {
+    const blob = await api<Blob>(`/customers/${id.value}/export`, { responseType: 'blob' })
+    saveBlob(blob, `بيانات ${customer.value?.name ?? 'عميل'}.json`)
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    exporting.value = false
+  }
+}
+
+async function erase() {
+  erasing.value = true
+  eraseError.value = null
+  try {
+    await api(`/customers/${id.value}/erase`, { method: 'POST' })
+    eraseOpen.value = false
+    toast.add({ color: 'success', title: 'بيانات العميل اتمسحت' })
+    await reload()
+  }
+  catch (e) {
+    eraseError.value = apiErrorMessage(e)
+  }
+  finally {
+    erasing.value = false
+  }
+}
 
 async function reload() {
   await Promise.all([refreshCustomer(), refreshStatement()])

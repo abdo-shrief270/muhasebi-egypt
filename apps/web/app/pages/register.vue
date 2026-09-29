@@ -45,6 +45,10 @@
           سجّل دخول
         </NuxtLink>
       </p>
+      <p class="mt-2 text-xs text-center text-(--ui-text-muted)">
+        بياناتك وبيانات عملائك في أمان —
+        <NuxtLink to="/privacy" target="_blank" class="text-primary hover:underline">سياسة الخصوصية</NuxtLink>
+      </p>
     </template>
   </UCard>
 </template>

@@ -9,7 +9,8 @@
         فيه مرتجع من الفاتورة دي بـ <span class="num">{{ formatMoney(data.refunded) }}</span>.
       </p>
       <p class="text-center text-xs text-(--ui-text-muted)">
-        إيصال إلكتروني من محاسبي
+        إيصال إلكتروني من محاسبي ·
+        <NuxtLink to="/privacy" class="hover:text-primary hover:underline">الخصوصية وبياناتك</NuxtLink>
       </p>
     </template>
   </div>

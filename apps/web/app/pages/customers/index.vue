@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-6">
     <PageHeader title="العملاء" description="حسابات الآجل، واللي عليه فلوس لمحلك.">
+      <UButton v-if="store.isOwner" color="neutral" variant="ghost" icon="i-lucide-shield" label="الخصوصية" @click="privacyOpen = true" />
       <UButton v-if="canManage" icon="i-lucide-plus" label="عميل جديد" @click="formOpen = true" />
     </PageHeader>
 
@@ -79,6 +80,7 @@
       <UPagination v-model:page="page" :total="data?.meta.total ?? 0" :items-per-page="30" />
     </div>
 
+    <CustomersPrivacySettingsModal v-if="store.isOwner" v-model:open="privacyOpen" />
     <CustomersCustomerFormModal v-model:open="formOpen" :initial-name="q" @saved="c => navigateTo(`/customers/${c.id}`)" />
   </div>
 </template>
@@ -115,6 +117,7 @@ const { data, status } = await useAsyncData('customers', () => api<{ data: Custo
 const customers = computed(() => data.value?.data ?? [])
 
 const formOpen = ref(false)
+const privacyOpen = ref(false)
 // Quick action «عميل جديد»: /customers?new=1
 onMounted(() => {
   if (route.query.new === '1' && canManage.value) {

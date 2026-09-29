@@ -27,6 +27,8 @@ final class SaleReturnRequest extends FormRequest
             'items.*.sale_item_id' => ['required', 'integer', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1'],
             'items.*.restock' => ['required', 'boolean'],
+            'items.*.serials' => ['nullable', 'array'],
+            'items.*.serials.*' => ['string', 'max:48'],
         ];
     }
 
@@ -36,7 +38,7 @@ final class SaleReturnRequest extends FormRequest
     }
 
     /**
-     * @return list<array{sale_item_id: int, qty: int, restock: bool}>
+     * @return list<array{sale_item_id: int, qty: int, restock: bool, serials: list<string>|null}>
      */
     public function lines(): array
     {
@@ -44,6 +46,7 @@ final class SaleReturnRequest extends FormRequest
             'sale_item_id' => (int) $l['sale_item_id'],
             'qty' => (int) $l['qty'],
             'restock' => (bool) $l['restock'],
+            'serials' => isset($l['serials']) ? array_values(array_map('strval', $l['serials'])) : null,
         ], $this->validated('items')));
     }
 }

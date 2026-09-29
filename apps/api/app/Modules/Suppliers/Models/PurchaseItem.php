@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
+ * @property list<string>|null $serials
  * @property string $purchase_id
  * @property string $variant_id
  * @property string|null $lot_id
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $returned_qty
  * @property-read Purchase $purchase
  */
-#[Fillable(['tenant_id', 'purchase_id', 'variant_id', 'lot_id', 'qty', 'unit_cost', 'net_unit_cost', 'line_total', 'previous_cost', 'returned_qty'])]
+#[Fillable(['tenant_id', 'purchase_id', 'variant_id', 'lot_id', 'qty', 'unit_cost', 'net_unit_cost', 'line_total', 'previous_cost', 'returned_qty', 'serials'])]
 final class PurchaseItem extends Model
 {
     use BelongsToTenant;
@@ -32,6 +33,7 @@ final class PurchaseItem extends Model
     protected function casts(): array
     {
         return [
+            'serials' => 'array',
             'qty' => 'integer',
             'unit_cost' => 'integer',
             'net_unit_cost' => 'integer',

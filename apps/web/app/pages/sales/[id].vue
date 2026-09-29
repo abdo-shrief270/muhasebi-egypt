@@ -47,6 +47,9 @@
                 <p class="font-bold">
                   {{ item.name }}
                 </p>
+                <p v-if="item.serials?.length" class="num text-xs text-(--ui-text-muted)" dir="ltr">
+                  IMEI {{ item.serials.join(' · ') }}
+                </p>
                 <p v-if="item.returned_qty" class="text-xs text-warning">
                   اترجّع <span class="num">{{ item.returned_qty }}</span>
                 </p>
@@ -146,8 +149,16 @@
                 متاح <span class="num">{{ item.qty - item.returned_qty }}</span>
               </p>
             </div>
-            <UInput v-model="lines[item.id]!.qty" type="number" min="0" :max="item.qty - item.returned_qty" step="1" dir="ltr" :aria-label="`كمية مرتجع ${item.name}`" />
+            <UInput v-if="!item.serials" v-model="lines[item.id]!.qty" type="number" min="0" :max="item.qty - item.returned_qty" step="1" dir="ltr" :aria-label="`كمية مرتجع ${item.name}`" />
+            <span v-else class="num text-center font-bold">{{ lines[item.id]!.serials.length }}</span>
             <USwitch v-model="lines[item.id]!.restock" size="sm" :label="lines[item.id]!.restock ? 'سليم' : 'تالف'" />
+            <UCheckboxGroup
+              v-if="item.serials"
+              v-model="lines[item.id]!.serials"
+              :items="item.serials.filter(s => !(item.returned_serials ?? []).includes(s)).map(s => ({ label: `IMEI ${s}`, value: s }))"
+              class="col-span-3 num"
+              dir="ltr"
+            />
           </div>
           <div class="grid gap-3 sm:grid-cols-2">
             <UFormField label="رد الفلوس">
@@ -212,7 +223,7 @@ function share() {
 }
 
 const returnOpen = ref(false)
-const lines = reactive<Record<number, { qty: string, restock: boolean }>>({})
+const lines = reactive<Record<number, { qty: string, restock: boolean, serials: string[] }>>({})
 const refundMethod = ref('cash')
 const reason = ref('')
 const returning = ref(false)
@@ -220,7 +231,7 @@ const returnError = ref<string | null>(null)
 
 function openReturn() {
   for (const item of sale.value?.items ?? []) {
-    lines[item.id] = { qty: '', restock: true }
+    lines[item.id] = { qty: '', restock: true, serials: [] }
   }
   refundMethod.value = sale.value?.credit ? 'credit' : 'cash'
   reason.value = ''
@@ -237,7 +248,11 @@ async function saveReturn() {
       body: {
         refund_method: refundMethod.value,
         reason: reason.value || null,
-        items: Object.entries(lines).filter(([, l]) => Number(l.qty) > 0).map(([id, l]) => ({ sale_item_id: Number(id), qty: Number(l.qty), restock: l.restock })),
+        items: Object.entries(lines)
+          .map(([id, l]) => l.serials.length
+            ? { sale_item_id: Number(id), qty: l.serials.length, restock: l.restock, serials: l.serials }
+            : { sale_item_id: Number(id), qty: Number(l.qty), restock: l.restock })
+          .filter(l => l.qty > 0),
       },
     })
     toast.add({ color: 'success', title: 'اتسجّل المرتجع' })

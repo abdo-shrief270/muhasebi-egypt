@@ -282,6 +282,7 @@ export interface PurchaseItem {
   previous_cost: number | null
   cost_increased: boolean
   returned_qty: number
+  serials: string[] | null
 }
 
 export interface Purchase {
@@ -314,6 +315,7 @@ export interface PurchasableVariant {
   category: { id: number, name: string }
   avg_cost: number | null
   exact_barcode: boolean
+  track_serial: boolean
 }
 
 export interface PosItem {
@@ -346,6 +348,8 @@ export interface SaleLine {
   discount: number
   line_total: number
   returned_qty: number
+  serials: string[] | null
+  returned_serials?: string[]
 }
 
 export interface Sale {
@@ -392,7 +396,7 @@ export interface ReceiptData {
   paid: number
   change: number
   refunded: number
-  items: { name: string, qty: number, unit_price: number, discount: number, line_total: number, returned_qty: number }[]
+  items: { name: string, qty: number, unit_price: number, discount: number, line_total: number, returned_qty: number, serials?: string[] | null }[]
   payments: { method_label: string, amount: number }[]
 }
 

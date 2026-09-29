@@ -8,6 +8,7 @@ use App\Modules\Cash\Contracts\CashDrawer;
 use App\Modules\Cash\Contracts\DrawerEntry;
 use App\Modules\Customers\Contracts\CustomerAccounts;
 use App\Modules\Inventory\Contracts\MovementType;
+use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Modules\Sales\Enums\PaymentMethod;
@@ -16,6 +17,7 @@ use App\Modules\Sales\Events\SaleRefunded;
 use App\Modules\Sales\Models\Sale;
 use App\Modules\Sales\Models\SaleItem;
 use App\Modules\Sales\Models\SaleReturn;
+use App\Modules\Sales\Models\SaleReturnItem;
 use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
@@ -34,6 +36,7 @@ final class CreateSaleReturnAction
 {
     public function __construct(
         private readonly StockLedger $stock,
+        private readonly SerialRegistry $serials,
         private readonly CashDrawer $drawer,
         private readonly CustomerAccounts $customers,
         private readonly DocumentNumbers $numbers,
@@ -43,7 +46,7 @@ final class CreateSaleReturnAction
     ) {}
 
     /**
-     * @param  list<array{sale_item_id: int, qty: int, restock: bool}>  $lines
+     * @param  list<array{sale_item_id: int, qty: int, restock: bool, serials?: list<string>|null}>  $lines  serials: which units, for lines sold with serials
      */
     public function handle(string $tenantId, string $branchId, Sale $sale, array $lines, PaymentMethod $refundMethod, ?string $reason): SaleReturn
     {
@@ -62,6 +65,24 @@ final class CreateSaleReturnAction
                 if ($line['qty'] > $left) {
                     throw new DomainRuleException("مينفعش ترجّع أكتر من {$left} من «{$item->name}».", 'return_exceeds_sale', context: ['sale_item_id' => $item->id, 'max' => $left]);
                 }
+            }
+
+            // Lines sold with serials: which units come back (all that are left when not said).
+            $serialsOf = [];
+            foreach ($lines as $line) {
+                $item = $items->get($line['sale_item_id']);
+                if ($item->serials === null) {
+                    continue;
+                }
+                $alreadyBack = SaleReturnItem::query()->where('sale_item_id', $item->id)->pluck('serials')->flatten()->all();
+                $remaining = array_values(array_diff($item->serials, $alreadyBack));
+                $chosen = $line['serials'] !== null && $line['serials'] !== []
+                    ? $this->serials->normalize($line['serials'])
+                    : (count($remaining) === $line['qty'] ? $remaining : []);
+                if (count($chosen) !== $line['qty'] || array_diff($chosen, $remaining) !== []) {
+                    throw new DomainRuleException("اختار سيريالات «{$item->name}» اللي راجعة ({$line['qty']}).", 'serials_required', context: ['sale_item_id' => $item->id, 'serials' => $remaining]);
+                }
+                $serialsOf[$item->id] = $chosen;
             }
 
             $user = $this->auth->guard('sanctum')->user();
@@ -88,13 +109,12 @@ final class CreateSaleReturnAction
                     ? intdiv($item->line_total * $sale->total + intdiv($sale->subtotal * $item->qty, 2), $sale->subtotal * $item->qty)
                     : 0;
 
+                $reference = new StockReference(MovementType::SaleReturn, refType: 'sale_return', refId: $return->id, note: "{$return->reference()} من {$sale->reference()}");
                 if ($line['restock']) {
-                    $this->stock->receive($sale->branch_id, $item->variant_id, $line['qty'], $item->unit_cost, new StockReference(
-                        MovementType::SaleReturn,
-                        refType: 'sale_return',
-                        refId: $return->id,
-                        note: "{$return->reference()} من {$sale->reference()}",
-                    ));
+                    $this->stock->receive($sale->branch_id, $item->variant_id, $line['qty'], $item->unit_cost, $reference);
+                }
+                if (isset($serialsOf[$item->id])) {
+                    $this->serials->takeBack($sale->branch_id, $item->variant_id, $serialsOf[$item->id], $reference, $line['restock']);
                 }
 
                 $return->items()->create([
@@ -105,6 +125,7 @@ final class CreateSaleReturnAction
                     'unit_refund' => $unitRefund,
                     'line_total' => $unitRefund * $line['qty'],
                     'restocked' => $line['restock'],
+                    'serials' => $serialsOf[$item->id] ?? null,
                 ]);
                 $item->increment('returned_qty', $line['qty']);
                 $total += $unitRefund * $line['qty'];

@@ -1,0 +1,42 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Inventory\Contracts;
+
+/**
+ * IMEIs / serial numbers of the units of products that track them. Called next to StockLedger,
+ * inside the caller's transaction, with the same reference. Serials are normalised (spaces and
+ * dashes dropped, upper case) and unique per shop.
+ */
+interface SerialRegistry
+{
+    /**
+     * New units come in (purchase, opening). A serial already in stock anywhere in the shop is refused;
+     * one that left before (sold, returned) comes back.
+     *
+     * @param  list<string>  $serials
+     */
+    public function receive(string $branchId, string $variantId, array $serials, StockReference $reference): void;
+
+    /**
+     * Units leave (sale, return to the supplier). Each must be in stock in the branch as that variant,
+     * or unknown (stock from before serials were recorded: registered as it leaves).
+     *
+     * @param  list<string>  $serials
+     */
+    public function issue(string $branchId, string $variantId, array $serials, StockReference $reference): void;
+
+    /**
+     * A customer brings units back: in stock again, or kept aside as damaged.
+     *
+     * @param  list<string>  $serials  each must have left as that variant
+     */
+    public function takeBack(string $branchId, string $variantId, array $serials, StockReference $reference, bool $restock): void;
+
+    /**
+     * @param  list<string>  $serials
+     * @return list<string> normalised, in the same order
+     */
+    public function normalize(array $serials): array;
+}

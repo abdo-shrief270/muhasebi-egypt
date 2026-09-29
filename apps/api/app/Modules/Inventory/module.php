@@ -17,6 +17,7 @@ return new ModuleManifest(
     ],
     menu: [
         new MenuItem('/inventory', 'المخزون', 'i-lucide-warehouse', 'inventory.view', group: 'stock'),
+        new MenuItem('/inventory/serials', 'بحث بالـ IMEI', 'i-lucide-scan-line', 'inventory.view', group: 'stock'),
     ],
     provider: InventoryServiceProvider::class,
     sort: 30,

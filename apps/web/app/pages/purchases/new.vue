@@ -89,9 +89,23 @@
                   آخر تكلفة <span class="num">{{ formatMoney(line.variant.avg_cost) }}</span>
                   <span v-if="costUp(line)"> · التكلفة زادت</span>
                 </p>
+                <InventorySerialsInput v-if="line.variant.track_serial" v-model="line.serials" class="mt-2" />
               </td>
-              <td class="p-2">
-                <UInput v-model="line.qty" type="number" min="1" step="1" inputmode="numeric" dir="ltr" class="w-full" :aria-label="`كمية ${line.variant.display_name}`" />
+              <td class="p-2 align-top">
+                <UInput
+                  v-if="!line.variant.track_serial"
+                  v-model="line.qty"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  dir="ltr"
+                  class="w-full"
+                  :aria-label="`كمية ${line.variant.display_name}`"
+                />
+                <p v-else class="num p-2 font-bold" title="الكمية = عدد السيريالات">
+                  {{ line.serials.length }}
+                </p>
               </td>
               <td class="p-2">
                 <UInput v-model="line.cost" type="number" min="0" step="any" inputmode="decimal" dir="ltr" class="w-full" :aria-label="`سعر شراء ${line.variant.display_name}`" />
@@ -184,7 +198,7 @@ import type { PurchasableVariant, Purchase, Supplier } from '~/types/api'
 
 definePageMeta({ permission: 'suppliers.manage' })
 
-interface Line { variant: PurchasableVariant, qty: string, cost: string }
+interface Line { variant: PurchasableVariant, qty: string, cost: string, serials: string[] }
 
 const api = useApi()
 const route = useRoute()
@@ -261,16 +275,19 @@ function addFirst() {
 function add(variant: PurchasableVariant) {
   const existing = form.items.find(l => l.variant.id === variant.id)
   if (existing) {
-    existing.qty = String((Number(existing.qty) || 0) + 1)
+    if (!variant.track_serial) {
+      existing.qty = String((Number(existing.qty) || 0) + 1)
+    }
   }
   else {
-    form.items.push({ variant, qty: '1', cost: variant.avg_cost !== null ? String(variant.avg_cost / 100) : '' })
+    form.items.push({ variant, qty: variant.track_serial ? '0' : '1', cost: variant.avg_cost !== null ? String(variant.avg_cost / 100) : '', serials: [] })
   }
   term.value = ''
   results.value = []
 }
 
-const lineTotal = (l: Line) => (Number(l.qty) || 0) * (toPiasters(l.cost) ?? 0)
+const lineQty = (l: Line) => l.variant.track_serial ? l.serials.length : (Number(l.qty) || 0)
+const lineTotal = (l: Line) => lineQty(l) * (toPiasters(l.cost) ?? 0)
 const costUp = (l: Line) => l.variant.avg_cost !== null && l.variant.avg_cost > 0 && (toPiasters(l.cost) ?? 0) > l.variant.avg_cost
 const subtotal = computed(() => form.items.reduce((sum, l) => sum + lineTotal(l), 0))
 const discountPiasters = computed(() => toPiasters(form.discount) ?? 0)
@@ -282,6 +299,11 @@ const error = ref<string | null>(null)
 const needsShift = ref(false)
 
 async function save() {
+  const missing = form.items.find(l => l.variant.track_serial && !l.serials.length)
+  if (missing) {
+    error.value = `امسح IMEI / سيريال كل قطعة من «${missing.variant.display_name}».`
+    return
+  }
   saving.value = true
   error.value = null
   try {
@@ -296,7 +318,7 @@ async function save() {
         payment_method: paidPiasters.value > 0 ? form.payment_method : null,
         from_drawer: form.from_drawer,
         notes: form.notes || null,
-        items: form.items.map(l => ({ variant_id: l.variant.id, qty: Number(l.qty), unit_cost: toPiasters(l.cost) ?? 0 })),
+        items: form.items.map(l => ({ variant_id: l.variant.id, qty: lineQty(l), unit_cost: toPiasters(l.cost) ?? 0, serials: l.variant.track_serial ? l.serials : undefined })),
       },
     })
     const increases = res.data.items.filter(i => i.cost_increased).length

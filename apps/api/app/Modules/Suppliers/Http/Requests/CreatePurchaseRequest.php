@@ -36,6 +36,8 @@ final class CreatePurchaseRequest extends FormRequest
             'items.*.variant_id' => ['required', 'uuid', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:1000000'],
             'items.*.unit_cost' => ['required', 'integer', 'min:0', 'max:'.self::MAX_MONEY],
+            'items.*.serials' => ['nullable', 'array', 'max:5000'],
+            'items.*.serials.*' => ['string', 'regex:/^[A-Za-z0-9 \-\/]{4,48}$/'],
         ];
     }
 
@@ -47,6 +49,7 @@ final class CreatePurchaseRequest extends FormRequest
             'items' => 'الأصناف',
             'items.*.qty' => 'الكمية',
             'items.*.unit_cost' => 'سعر الشراء',
+            'items.*.serials.*' => 'السيريال',
             'items.*.variant_id' => 'الصنف',
             'paid' => 'المدفوع',
             'payment_method' => 'طريقة الدفع',
@@ -59,7 +62,7 @@ final class CreatePurchaseRequest extends FormRequest
     }
 
     /**
-     * @return list<array{variant_id: string, qty: int, unit_cost: int}>
+     * @return list<array{variant_id: string, qty: int, unit_cost: int, serials: list<string>|null}>
      */
     public function items(): array
     {
@@ -67,6 +70,7 @@ final class CreatePurchaseRequest extends FormRequest
             'variant_id' => (string) $i['variant_id'],
             'qty' => (int) $i['qty'],
             'unit_cost' => (int) $i['unit_cost'],
+            'serials' => isset($i['serials']) ? array_values(array_map('strval', $i['serials'])) : null,
         ], $this->validated('items')));
     }
 }

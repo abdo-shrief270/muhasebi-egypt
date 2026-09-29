@@ -42,7 +42,7 @@ final class PublicReceiptController
                 'refunded' => $sale->refunded,
                 'items' => $sale->items->map(fn (SaleItem $i): array => [
                     'name' => $i->name, 'qty' => $i->qty, 'unit_price' => $i->unit_price, 'discount' => $i->discount,
-                    'line_total' => $i->line_total, 'returned_qty' => $i->returned_qty,
+                    'line_total' => $i->line_total, 'returned_qty' => $i->returned_qty, 'serials' => $i->serials,
                 ])->all(),
                 'payments' => $sale->payments->map(fn (SalePayment $p): array => ['method_label' => $p->method->label(), 'amount' => $p->amount])->all(),
             ]]);

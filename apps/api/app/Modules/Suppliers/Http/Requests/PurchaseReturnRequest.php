@@ -23,6 +23,8 @@ final class PurchaseReturnRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.purchase_item_id' => ['required', 'integer', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1'],
+            'items.*.serials' => ['nullable', 'array'],
+            'items.*.serials.*' => ['string', 'max:48'],
         ];
     }
 
@@ -32,13 +34,14 @@ final class PurchaseReturnRequest extends FormRequest
     }
 
     /**
-     * @return list<array{purchase_item_id: int, qty: int}>
+     * @return list<array{purchase_item_id: int, qty: int, serials: list<string>|null}>
      */
     public function lines(): array
     {
         return array_values(array_map(fn (array $l): array => [
             'purchase_item_id' => (int) $l['purchase_item_id'],
             'qty' => (int) $l['qty'],
+            'serials' => isset($l['serials']) ? array_values(array_map('strval', $l['serials'])) : null,
         ], $this->validated('items')));
     }
 }

@@ -60,6 +60,10 @@ final class SaleResource extends JsonResource
                 'discount' => $i->discount,
                 'line_total' => $i->line_total,
                 'returned_qty' => $i->returned_qty,
+                'serials' => $i->serials,
+                'returned_serials' => $i->serials !== null && $i->relationLoaded('returnItems')
+                    ? $i->returnItems->pluck('serials')->flatten()->filter()->values()->all()
+                    : [],
             ])->all()),
             'payments' => $this->whenLoaded('payments', fn () => $this->payments->map(fn (SalePayment $p): array => [
                 'method' => $p->method->value,

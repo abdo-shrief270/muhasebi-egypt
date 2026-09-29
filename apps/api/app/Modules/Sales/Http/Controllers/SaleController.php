@@ -58,7 +58,7 @@ final class SaleController
 
     public function show(Request $request, string $sale): SaleResource
     {
-        return (new SaleResource(Sale::query()->with(['items', 'payments', 'returns'])->findOrFail($sale)))
+        return (new SaleResource(Sale::query()->with(['items.returnItems', 'payments', 'returns'])->findOrFail($sale)))
             ->withCost((bool) $request->user()?->can('reports.profit'));
     }
 

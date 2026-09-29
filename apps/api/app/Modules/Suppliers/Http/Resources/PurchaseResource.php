@@ -56,6 +56,7 @@ final class PurchaseResource extends JsonResource
                 'previous_cost' => $i->previous_cost,
                 'cost_increased' => $i->costIncreased(),
                 'returned_qty' => $i->returned_qty,
+                'serials' => $i->serials,
             ])->all() : [],
             'returns' => $p->relationLoaded('returns') ? $p->returns->map(fn (PurchaseReturn $r): array => [
                 'id' => $r->id,

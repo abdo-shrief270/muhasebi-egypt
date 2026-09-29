@@ -111,8 +111,16 @@
             </div>
             <span class="font-extrabold num">{{ formatMoney(lineTotal(line)) }}</span>
           </div>
+          <InventorySerialsInput
+            v-if="line.track_serial"
+            v-model="line.serials!"
+            size="sm"
+            class="mt-2"
+            placeholder="امسح IMEI القطعة…"
+            @change="s => { line.qty = s.length; line.discount = Math.min(line.discount, unitPrice(line) * s.length) }"
+          />
           <div class="mt-2 flex items-center gap-2">
-            <UFieldGroup size="sm">
+            <UFieldGroup v-if="!line.track_serial" size="sm">
               <UButton color="neutral" variant="outline" icon="i-lucide-minus" :aria-label="`قلّل ${line.name}`" @click="setQty(line, line.qty - 1)" />
               <UInput :model-value="String(line.qty)" class="w-14" dir="ltr" inputmode="numeric" :ui="{ base: 'text-center' }" :aria-label="`كمية ${line.name}`" @update:model-value="v => setQty(line, Number(v) || 0)" />
               <UButton color="neutral" variant="outline" icon="i-lucide-plus" :aria-label="`زوّد ${line.name}`" @click="setQty(line, line.qty + 1)" />
@@ -171,8 +179,11 @@
         </div>
         <div class="grid grid-cols-[auto_1fr] gap-2 pt-1">
           <UButton size="xl" color="neutral" variant="outline" icon="i-lucide-pause" label="تعليق" :disabled="!cart.lines.length" @click="hold" />
-          <UButton size="xl" icon="i-lucide-check" class="justify-center" :label="`دفع ${formatMoney(total)} (F9)`" :disabled="!cart.lines.length" @click="payOpen = true" />
+          <UButton size="xl" icon="i-lucide-check" class="justify-center" :label="`دفع ${formatMoney(total)} (F9)`" :disabled="!cart.lines.length || missingSerials.length > 0" @click="payOpen = true" />
         </div>
+        <p v-if="missingSerials.length" class="text-sm text-(--ui-warning)">
+          امسح IMEI / سيريال «{{ missingSerials[0]?.name }}» الأول.
+        </p>
       </div>
     </aside>
 
@@ -197,7 +208,7 @@ const canShift = computed(() => store.can('cash.shift'))
 const route = useRoute()
 
 const branchId = computed(() => store.session?.current_branch_id)
-const { cart, held, subtotal, total, count, unitPrice, lineTotal, add, setQty, remove, clear, hold, resume, dropHeld } = usePosCart(branchId)
+const { cart, held, subtotal, total, count, missingSerials, unitPrice, lineTotal, add, setQty, remove, clear, hold, resume, dropHeld } = usePosCart(branchId)
 
 // Options
 const [{ data: optionsData }, { data: categoriesData }] = await Promise.all([
@@ -285,9 +296,31 @@ async function onEnter() {
     addItem(hit)
   }
   else if (!res.data.length) {
+    // An IMEI / serial of a unit in stock here adds that phone with its serial.
+    if (/^[\dA-Za-z\s-]{6,}$/.test(q) && await addBySerial(q)) {
+      return
+    }
     toast.add({ color: 'warning', title: `مفيش صنف بـ «${q}»` })
     term.value = ''
   }
+}
+
+async function addBySerial(q: string): Promise<boolean> {
+  const serial = q.replace(/[\s-]+/g, '').toUpperCase()
+  const found = await api<{ data: { serial: string, variant: { id: string } | null }[] }>('/inventory/serials', { query: { q: serial, in_stock: 1 } })
+    .then(r => r.data.find(s => s.serial === serial))
+    .catch(() => undefined)
+  if (!found?.variant) {
+    return false
+  }
+  const res = await api<{ data: PosItem[] }>('/pos/items', { query: { 'ids[]': [found.variant.id] } }).catch(() => ({ data: [] as PosItem[] }))
+  if (!res.data[0]) {
+    return false
+  }
+  add(res.data[0], 1, found.serial)
+  term.value = ''
+  focusSearch()
+  return true
 }
 
 // Held invoices
@@ -339,7 +372,7 @@ async function checkout(payments: { method: string, amount: number }[]) {
         customer_id: cart.value.customer?.id ?? null,
         customer_name: cart.value.customer ? null : cart.value.customer_name || null,
         customer_phone: cart.value.customer ? null : cart.value.customer_phone || null,
-        items: cart.value.lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, discount: l.discount })),
+        items: cart.value.lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, discount: l.discount, serials: l.track_serial ? l.serials : undefined })),
         payments,
       },
     })
@@ -368,7 +401,7 @@ defineShortcuts({
   f9: {
     usingInput: true,
     handler: () => {
-      if (cart.value.lines.length && !payOpen.value && !receiptOpen.value) {
+      if (cart.value.lines.length && !missingSerials.value.length && !payOpen.value && !receiptOpen.value) {
         payOpen.value = true
       }
     },

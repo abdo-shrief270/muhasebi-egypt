@@ -11,6 +11,9 @@ export interface CartLine {
   qty: number
   /** piasters off the whole line */
   discount: number
+  /** phones and other products that track IMEI / serials: one per unit, qty follows */
+  track_serial?: boolean
+  serials?: string[]
 }
 
 export interface Cart {
@@ -73,12 +76,38 @@ export function usePosCart(branchId: Ref<string | null | undefined>) {
   const subtotal = computed(() => cart.value.lines.reduce((sum, l) => sum + lineTotal(l), 0))
   const total = computed(() => Math.max(0, subtotal.value - cart.value.discount))
   const count = computed(() => cart.value.lines.reduce((sum, l) => sum + l.qty, 0))
+  /** Lines still waiting for their IMEI / serial. */
+  const missingSerials = computed(() => cart.value.lines.filter(l => l.track_serial && !l.qty))
 
-  function add(item: PosItem, qty = 1) {
+  /** A product that tracks serials is added with the scanned serial (or none yet, to be scanned on the line). */
+  function add(item: PosItem, qty = 1, serial?: string) {
     const existing = cart.value.lines.find(l => l.variant_id === item.id)
     if (existing) {
-      existing.qty += qty
+      if (existing.track_serial) {
+        if (serial && !existing.serials?.includes(serial)) {
+          existing.serials = [...(existing.serials ?? []), serial]
+        }
+        existing.qty = existing.serials?.length ?? 0
+      }
+      else {
+        existing.qty += qty
+      }
       existing.stock = item.qty
+      return
+    }
+    if (item.track_serial) {
+      const serials = serial ? [serial] : []
+      cart.value.lines.unshift({
+        variant_id: item.id,
+        name: item.display_name,
+        barcode: item.barcode,
+        prices: { retail: item.price_retail, wholesale: item.price_wholesale, technician: item.price_technician },
+        stock: item.qty,
+        qty: serials.length,
+        discount: 0,
+        track_serial: true,
+        serials,
+      })
       return
     }
     cart.value.lines.unshift({
@@ -129,5 +158,5 @@ export function usePosCart(branchId: Ref<string | null | undefined>) {
     held.value = held.value.filter(c => c.id !== heldCart.id)
   }
 
-  return { cart, held, subtotal, total, count, unitPrice, lineTotal, add, setQty, remove, clear, hold, resume, dropHeld }
+  return { cart, held, subtotal, total, count, missingSerials, unitPrice, lineTotal, add, setQty, remove, clear, hold, resume, dropHeld }
 }

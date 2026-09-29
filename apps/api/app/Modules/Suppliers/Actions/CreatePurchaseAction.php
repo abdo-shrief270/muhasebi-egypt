@@ -8,6 +8,8 @@ use App\Modules\Cash\Contracts\CashDrawer;
 use App\Modules\Cash\Contracts\DrawerEntry;
 use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Inventory\Contracts\MovementType;
+use App\Modules\Inventory\Contracts\SerialCount;
+use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Modules\Suppliers\Enums\PaymentMethod;
@@ -31,6 +33,7 @@ final class CreatePurchaseAction
 {
     public function __construct(
         private readonly StockLedger $stock,
+        private readonly SerialRegistry $serials,
         private readonly VariantCatalog $catalog,
         private readonly SupplierAccount $account,
         private readonly CashDrawer $drawer,
@@ -41,7 +44,7 @@ final class CreatePurchaseAction
     ) {}
 
     /**
-     * @param  list<array{variant_id: string, qty: int, unit_cost: int}>  $items  costs in piasters
+     * @param  list<array{variant_id: string, qty: int, unit_cost: int, serials?: list<string>|null}>  $items  costs in piasters; serials for products that track them
      */
     public function handle(
         string $tenantId,
@@ -65,6 +68,12 @@ final class CreatePurchaseAction
         $variants = $this->catalog->find($variantIds);
         if ($missing = array_diff($variantIds, array_keys($variants))) {
             throw new DomainRuleException('فيه صنف في الفاتورة مش موجود.', 'variant_not_found', 404, ['variant_ids' => array_values($missing)]);
+        }
+
+        foreach ($items as $i => $item) {
+            $variant = $variants[$item['variant_id']];
+            $serials = SerialCount::check($variant->displayName(), $variant->trackSerial, $item['qty'], $item['serials'] ?? null, $variant->id);
+            $items[$i]['serials'] = $serials === null ? null : $this->serials->normalize($serials);
         }
 
         $subtotal = array_sum(array_map(fn (array $i): int => $i['qty'] * $i['unit_cost'], $items));
@@ -104,12 +113,11 @@ final class CreatePurchaseAction
             foreach ($items as $item) {
                 // The invoice discount lowers what each unit really cost, in proportion.
                 $net = $subtotal > 0 ? intdiv($item['unit_cost'] * $total + intdiv($subtotal, 2), $subtotal) : 0;
-                $lotId = $this->stock->receive($branchId, $item['variant_id'], $item['qty'], $net, new StockReference(
-                    MovementType::Purchase,
-                    refType: 'purchase',
-                    refId: $purchase->id,
-                    note: "فاتورة شراء {$purchase->reference()} من {$supplier->name}",
-                ));
+                $reference = new StockReference(MovementType::Purchase, refType: 'purchase', refId: $purchase->id, note: "فاتورة شراء {$purchase->reference()} من {$supplier->name}");
+                $lotId = $this->stock->receive($branchId, $item['variant_id'], $item['qty'], $net, $reference);
+                if ($item['serials'] !== null) {
+                    $this->serials->receive($branchId, $item['variant_id'], $item['serials'], $reference);
+                }
 
                 $line = $purchase->items()->create([
                     'tenant_id' => $tenantId,
@@ -120,6 +128,7 @@ final class CreatePurchaseAction
                     'net_unit_cost' => $net,
                     'line_total' => $item['qty'] * $item['unit_cost'],
                     'previous_cost' => $previousCosts[$item['variant_id']] ?? null,
+                    'serials' => $item['serials'],
                 ]);
 
                 if ($line->costIncreased()) {

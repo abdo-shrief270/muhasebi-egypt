@@ -1,0 +1,122 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Inventory;
+
+use App\Modules\Inventory\Contracts\SerialRegistry;
+use App\Modules\Inventory\Contracts\StockReference;
+use App\Modules\Inventory\Models\SerialEvent;
+use App\Modules\Inventory\Models\SerialNumber;
+use App\Support\Exceptions\DomainRuleException;
+use App\Support\Tenancy\CurrentTenant;
+use Illuminate\Contracts\Auth\Factory as Auth;
+use Illuminate\Support\Collection;
+
+final class SerialRegistryService implements SerialRegistry
+{
+    public function __construct(
+        private readonly Auth $auth,
+        private readonly CurrentTenant $tenant,
+    ) {}
+
+    public function receive(string $branchId, string $variantId, array $serials, StockReference $reference): void
+    {
+        $serials = $this->distinct($serials);
+        $existing = $this->rows($serials);
+
+        foreach ($serials as $serial) {
+            $row = $existing->get($serial);
+            if ($row?->status === SerialNumber::IN_STOCK) {
+                throw new DomainRuleException("السيريال {$serial} موجود في المخزن فعلاً.", 'serial_in_stock', context: ['serial' => $serial]);
+            }
+            $row ??= new SerialNumber(['tenant_id' => $this->tenant->idOrFail(), 'serial' => $serial]);
+            $row->fill(['variant_id' => $variantId, 'branch_id' => $branchId, 'status' => SerialNumber::IN_STOCK])->save();
+            $this->event($row, $branchId, $reference);
+        }
+    }
+
+    public function issue(string $branchId, string $variantId, array $serials, StockReference $reference): void
+    {
+        $serials = $this->distinct($serials);
+        $existing = $this->rows($serials);
+
+        foreach ($serials as $serial) {
+            $row = $existing->get($serial);
+            if ($row === null) {
+                // Never recorded coming in (opening stock, stock from before serials were tracked): recorded as it leaves.
+                $row = SerialNumber::create(['tenant_id' => $this->tenant->idOrFail(), 'serial' => $serial, 'variant_id' => $variantId, 'branch_id' => $branchId, 'status' => SerialNumber::OUT]);
+                $this->event($row, $branchId, $reference);
+
+                continue;
+            }
+            if ($row->status !== SerialNumber::IN_STOCK || $row->branch_id !== $branchId || $row->variant_id !== $variantId) {
+                throw new DomainRuleException(
+                    $row->status === SerialNumber::IN_STOCK ? "السيريال {$serial} مسجّل على صنف أو فرع تاني." : "السيريال {$serial} خرج قبل كده.",
+                    'serial_not_in_stock',
+                    context: ['serial' => $serial],
+                );
+            }
+            $row->update(['status' => SerialNumber::OUT]);
+            $this->event($row, $branchId, $reference);
+        }
+    }
+
+    public function takeBack(string $branchId, string $variantId, array $serials, StockReference $reference, bool $restock): void
+    {
+        $serials = $this->distinct($serials);
+        $existing = $this->rows($serials);
+
+        foreach ($serials as $serial) {
+            $row = $existing->get($serial);
+            if ($row === null || $row->status !== SerialNumber::OUT || $row->variant_id !== $variantId) {
+                throw new DomainRuleException("السيريال {$serial} مش من القطع اللي خرجت.", 'serial_not_sold', context: ['serial' => $serial]);
+            }
+            $row->update(['status' => $restock ? SerialNumber::IN_STOCK : SerialNumber::DAMAGED, 'branch_id' => $branchId]);
+            $this->event($row, $branchId, $reference);
+        }
+    }
+
+    public function normalize(array $serials): array
+    {
+        return array_values(array_map(fn (string $s): string => strtoupper((string) preg_replace('/[\s\-\/]+/u', '', $s)), $serials));
+    }
+
+    /**
+     * @param  list<string>  $serials
+     * @return list<string>
+     */
+    private function distinct(array $serials): array
+    {
+        $normalized = $this->normalize($serials);
+        if (count($normalized) !== count(array_unique($normalized))) {
+            throw new DomainRuleException('فيه سيريال متكرر.', 'serial_duplicate');
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param  list<string>  $serials
+     * @return Collection<string, SerialNumber>
+     */
+    private function rows(array $serials): Collection
+    {
+        return SerialNumber::query()->whereIn('serial', $serials)->lockForUpdate()->get()->keyBy('serial');
+    }
+
+    private function event(SerialNumber $row, string $branchId, StockReference $reference): void
+    {
+        SerialEvent::create([
+            'tenant_id' => $row->getAttribute('tenant_id'),
+            'serial_id' => $row->id,
+            'branch_id' => $branchId,
+            'type' => $reference->type,
+            'ref_type' => $reference->refType,
+            'ref_id' => $reference->refId,
+            'note' => $reference->note,
+            'user_name' => $this->auth->guard('sanctum')->user()?->getAttribute('name'),
+            'created_at' => now(),
+        ]);
+    }
+}

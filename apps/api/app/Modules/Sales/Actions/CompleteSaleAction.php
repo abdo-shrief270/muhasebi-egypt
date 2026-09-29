@@ -11,6 +11,8 @@ use App\Modules\Catalog\Contracts\VariantSummary;
 use App\Modules\Customers\Contracts\CustomerAccounts;
 use App\Modules\Customers\Contracts\CustomerSummary;
 use App\Modules\Inventory\Contracts\MovementType;
+use App\Modules\Inventory\Contracts\SerialCount;
+use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Modules\Sales\Enums\PaymentMethod;
@@ -37,6 +39,7 @@ final class CompleteSaleAction
     public function __construct(
         private readonly VariantCatalog $catalog,
         private readonly StockLedger $stock,
+        private readonly SerialRegistry $serials,
         private readonly CashDrawer $drawer,
         private readonly CustomerAccounts $customers,
         private readonly DocumentNumbers $numbers,
@@ -46,7 +49,7 @@ final class CompleteSaleAction
     ) {}
 
     /**
-     * @param  list<array{variant_id: string, qty: int, discount: int}>  $items  discount = piasters off the line
+     * @param  list<array{variant_id: string, qty: int, discount: int, serials?: list<string>|null}>  $items  discount = piasters off the line; serials for products that track them
      * @param  list<array{method: PaymentMethod, amount: int, reference: string|null}>  $payments
      * @param  bool  $canDiscount  sales.discount: line / invoice discounts and non-retail price levels
      * @param  bool  $canCredit  customers.credit: part or all of the total on the customer's account
@@ -88,7 +91,8 @@ final class CompleteSaleAction
             if ($item['discount'] > $gross) {
                 throw new DomainRuleException("خصم «{$variant->displayName()}» أكبر من سعره.", 'line_discount_too_large');
             }
-            $lines[] = ['variant' => $variant, 'qty' => $item['qty'], 'unit_price' => $unitPrice, 'discount' => $item['discount'], 'line_total' => $gross - $item['discount']];
+            $serials = SerialCount::check($variant->displayName(), $variant->trackSerial, $item['qty'], $item['serials'] ?? null, $variant->id);
+            $lines[] = ['variant' => $variant, 'qty' => $item['qty'], 'unit_price' => $unitPrice, 'discount' => $item['discount'], 'line_total' => $gross - $item['discount'], 'serials' => $serials === null ? null : $this->serials->normalize($serials)];
         }
 
         $subtotal = array_sum(array_column($lines, 'line_total'));
@@ -131,7 +135,7 @@ final class CompleteSaleAction
     }
 
     /**
-     * @param  list<array{variant: VariantSummary, qty: int, unit_price: int, discount: int, line_total: int}>  $lines
+     * @param  list<array{variant: VariantSummary, qty: int, unit_price: int, discount: int, line_total: int, serials: list<string>|null}>  $lines
      * @param  list<array{method: PaymentMethod, amount: int, reference: string|null}>  $payments
      */
     private function save(
@@ -184,12 +188,11 @@ final class CompleteSaleAction
 
             $cost = 0;
             foreach ($lines as $line) {
-                $issue = $this->stock->issue($branchId, $line['variant']->id, $line['qty'], new StockReference(
-                    MovementType::Sale,
-                    refType: 'sale',
-                    refId: $sale->id,
-                    note: $sale->reference(),
-                ));
+                $reference = new StockReference(MovementType::Sale, refType: 'sale', refId: $sale->id, note: $sale->reference());
+                $issue = $this->stock->issue($branchId, $line['variant']->id, $line['qty'], $reference);
+                if ($line['serials'] !== null) {
+                    $this->serials->issue($branchId, $line['variant']->id, $line['serials'], $reference);
+                }
                 $sale->items()->create([
                     'tenant_id' => $tenantId,
                     'variant_id' => $line['variant']->id,
@@ -200,6 +203,7 @@ final class CompleteSaleAction
                     'discount' => $line['discount'],
                     'line_total' => $line['line_total'],
                     'unit_cost' => $issue->unitCost(),
+                    'serials' => $line['serials'],
                 ]);
                 $cost += $issue->totalCost();
             }

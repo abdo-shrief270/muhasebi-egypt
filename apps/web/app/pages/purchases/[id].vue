@@ -51,6 +51,9 @@
                 <p class="font-bold">
                   {{ item.name ?? '—' }}
                 </p>
+                <p v-if="item.serials?.length" class="num text-xs text-(--ui-text-muted)" dir="ltr">
+                  IMEI {{ item.serials.join(' · ') }}
+                </p>
                 <p v-if="item.returned_qty" class="text-xs text-warning">
                   اترجّع منه <span class="num">{{ item.returned_qty }}</span>
                 </p>
@@ -126,7 +129,7 @@
     <UModal v-model:open="returnOpen" title="مرتجع للمورد" :description="`من ${purchase.reference} — البضاعة هتخرج من المخزون وقيمتها هتتخصم من حساب المورد.`">
       <template #body>
         <form id="return-form" class="space-y-3" @submit.prevent="saveReturn">
-          <div v-for="item in purchase.items.filter(i => i.qty > i.returned_qty)" :key="item.id" class="flex items-center justify-between gap-3">
+          <div v-for="item in purchase.items.filter(i => i.qty > i.returned_qty)" :key="item.id" class="flex flex-wrap items-center justify-between gap-3">
             <div class="min-w-0">
               <p class="truncate font-bold">
                 {{ item.name }}
@@ -135,7 +138,15 @@
                 متاح يرجع <span class="num">{{ item.qty - item.returned_qty }}</span> · <span class="num">{{ formatMoney(item.net_unit_cost) }}</span> للقطعة
               </p>
             </div>
-            <UInput v-model="returnQty[item.id]" type="number" min="0" :max="item.qty - item.returned_qty" step="1" inputmode="numeric" dir="ltr" class="w-24" :aria-label="`كمية مرتجع ${item.name}`" />
+            <UInput v-if="!item.serials" v-model="returnQty[item.id]" type="number" min="0" :max="item.qty - item.returned_qty" step="1" inputmode="numeric" dir="ltr" class="w-24" :aria-label="`كمية مرتجع ${item.name}`" />
+            <UCheckboxGroup
+              v-else
+              :model-value="returnSerials[item.id] ?? []"
+              :items="item.serials.map(s => ({ label: `IMEI ${s}`, value: s }))"
+              class="num w-full"
+              dir="ltr"
+              @update:model-value="v => { returnSerials[item.id] = v as string[]; returnQty[item.id] = String((v as string[]).length) }"
+            />
           </div>
           <UFormField label="السبب / ملاحظات">
             <UInput v-model="returnNotes" placeholder="مثلاً: شاشات فيها عيب" class="w-full" />
@@ -174,6 +185,7 @@ const returnable = computed(() => purchase.value?.items.some(i => i.qty > i.retu
 
 const returnOpen = ref(false)
 const returnQty = reactive<Record<number, string>>({})
+const returnSerials = reactive<Record<number, string[]>>({})
 const returnNotes = ref('')
 const returning = ref(false)
 const returnError = ref<string | null>(null)
@@ -182,6 +194,7 @@ const returnTotal = computed(() => (purchase.value?.items ?? []).reduce((sum, i)
 
 function openReturn() {
   Object.keys(returnQty).forEach(k => delete returnQty[Number(k)])
+  Object.keys(returnSerials).forEach(k => delete returnSerials[Number(k)])
   returnNotes.value = ''
   returnError.value = null
   returnOpen.value = true
@@ -195,7 +208,7 @@ async function saveReturn() {
       method: 'POST',
       body: {
         notes: returnNotes.value || null,
-        items: Object.entries(returnQty).filter(([, qty]) => Number(qty) > 0).map(([id, qty]) => ({ purchase_item_id: Number(id), qty: Number(qty) })),
+        items: Object.entries(returnQty).filter(([, qty]) => Number(qty) > 0).map(([id, qty]) => ({ purchase_item_id: Number(id), qty: Number(qty), serials: returnSerials[Number(id)] })),
       },
     })
     toast.add({ color: 'success', title: 'اتسجّل المرتجع' })

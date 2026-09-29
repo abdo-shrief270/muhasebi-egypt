@@ -32,6 +32,9 @@
         <p class="font-bold">
           {{ item.name }}
         </p>
+        <p v-for="s in item.serials ?? []" :key="s" class="num" dir="ltr">
+          IMEI {{ s }}
+        </p>
         <div class="flex items-baseline justify-between gap-2">
           <span class="num">{{ item.qty }} × {{ money(item.unit_price) }}<template v-if="item.discount"> − {{ money(item.discount) }}</template></span>
           <span class="font-bold num">{{ money(item.line_total) }}</span>

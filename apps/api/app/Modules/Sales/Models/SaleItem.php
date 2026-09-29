@@ -7,9 +7,11 @@ namespace App\Modules\Sales\Models;
 use App\Support\Tenancy\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
+ * @property list<string>|null $serials
  * @property string $sale_id
  * @property string $variant_id
  * @property string $name
@@ -21,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $unit_cost
  * @property int $returned_qty
  */
-#[Fillable(['tenant_id', 'sale_id', 'variant_id', 'name', 'barcode', 'qty', 'unit_price', 'discount', 'line_total', 'unit_cost', 'returned_qty'])]
+#[Fillable(['tenant_id', 'sale_id', 'variant_id', 'name', 'barcode', 'qty', 'unit_price', 'discount', 'line_total', 'unit_cost', 'returned_qty', 'serials'])]
 final class SaleItem extends Model
 {
     use BelongsToTenant;
@@ -31,6 +33,7 @@ final class SaleItem extends Model
     protected function casts(): array
     {
         return [
+            'serials' => 'array',
             'qty' => 'integer',
             'unit_price' => 'integer',
             'discount' => 'integer',
@@ -38,5 +41,13 @@ final class SaleItem extends Model
             'unit_cost' => 'integer',
             'returned_qty' => 'integer',
         ];
+    }
+
+    /**
+     * @return HasMany<SaleReturnItem, $this>
+     */
+    public function returnItems(): HasMany
+    {
+        return $this->hasMany(SaleReturnItem::class);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Suppliers\Actions;
 
 use App\Modules\Inventory\Contracts\MovementType;
+use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Modules\Suppliers\Enums\SupplierTransactionType;
@@ -27,6 +28,7 @@ final class CreatePurchaseReturnAction
 {
     public function __construct(
         private readonly StockLedger $stock,
+        private readonly SerialRegistry $serials,
         private readonly SupplierAccount $account,
         private readonly DocumentNumbers $numbers,
         private readonly Auditor $audit,
@@ -34,7 +36,7 @@ final class CreatePurchaseReturnAction
     ) {}
 
     /**
-     * @param  list<array{purchase_item_id: int, qty: int}>  $lines
+     * @param  list<array{purchase_item_id: int, qty: int, serials?: list<string>|null}>  $lines  serials: which units, for lines bought with serials
      */
     public function handle(string $tenantId, Purchase $purchase, array $lines, ?string $notes): PurchaseReturn
     {
@@ -48,6 +50,20 @@ final class CreatePurchaseReturnAction
                 if ($line['qty'] > $left) {
                     throw new DomainRuleException("مينفعش ترجّع أكتر من {$left} من السطر ده.", 'return_exceeds_purchase', context: ['purchase_item_id' => $item->id, 'max' => $left]);
                 }
+            }
+
+            // Lines bought with serials: which units go back (they must still be here — checked by the registry).
+            $serialsOf = [];
+            foreach ($lines as $line) {
+                $item = $items->get($line['purchase_item_id']);
+                if ($item->serials === null) {
+                    continue;
+                }
+                $chosen = $this->serials->normalize($line['serials'] ?? []);
+                if (count($chosen) !== $line['qty'] || array_diff($chosen, $item->serials) !== []) {
+                    throw new DomainRuleException("اختار سيريالات القطع اللي راجعة للمورد ({$line['qty']}).", 'serials_required', context: ['purchase_item_id' => $item->id]);
+                }
+                $serialsOf[$item->id] = $chosen;
             }
 
             $user = $this->auth->guard('sanctum')->user();
@@ -68,12 +84,11 @@ final class CreatePurchaseReturnAction
                 /** @var PurchaseItem $item */
                 $item = $items->get($line['purchase_item_id']);
 
-                $this->stock->issue($purchase->branch_id, $item->variant_id, $line['qty'], new StockReference(
-                    MovementType::SupplierReturn,
-                    refType: 'purchase_return',
-                    refId: $return->id,
-                    note: "مرتجع {$return->reference()} من فاتورة {$purchase->reference()}",
-                ), fromLotId: $item->lot_id);
+                $reference = new StockReference(MovementType::SupplierReturn, refType: 'purchase_return', refId: $return->id, note: "مرتجع {$return->reference()} من فاتورة {$purchase->reference()}");
+                $this->stock->issue($purchase->branch_id, $item->variant_id, $line['qty'], $reference, fromLotId: $item->lot_id);
+                if (isset($serialsOf[$item->id])) {
+                    $this->serials->issue($purchase->branch_id, $item->variant_id, $serialsOf[$item->id], $reference);
+                }
 
                 $lineTotal = $line['qty'] * $item->net_unit_cost;
                 $return->items()->create([
@@ -83,6 +98,7 @@ final class CreatePurchaseReturnAction
                     'qty' => $line['qty'],
                     'unit_cost' => $item->net_unit_cost,
                     'line_total' => $lineTotal,
+                    'serials' => $serialsOf[$item->id] ?? null,
                 ]);
                 $item->increment('returned_qty', $line['qty']);
                 $total += $lineTotal;

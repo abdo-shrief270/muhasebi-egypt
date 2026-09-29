@@ -31,6 +31,7 @@ export function useQuickActions() {
     { to: '/products/new', label: 'صنف جديد', description: 'ضيف صنف للكتالوج', icon: 'i-lucide-package-plus', permission: 'products.manage' },
     { to: '/inventory?count=1', label: 'جرد', description: 'اعد البضاعة اللي على الرف', icon: 'i-lucide-clipboard-check', permission: 'inventory.adjust' },
     { to: '/products/prices', label: 'تعديل الأسعار', description: 'زوّد أو خفّض أسعار كتير مرة واحدة', icon: 'i-lucide-percent', permission: 'products.manage' },
+    { to: '/inventory/serials', label: 'بحث IMEI', description: 'الجهاز ده اتشرى واتباع إمتى', icon: 'i-lucide-scan-line', permission: 'inventory.view' },
     { to: '/products/labels', label: 'ليبلات باركود', description: 'اطبع باركود أو QR', icon: 'i-lucide-tag', permission: 'products.view' },
     { to: '/reports/sales?period=today', label: 'تقرير النهارده', description: 'مبيعات وأرباح اليوم', icon: 'i-lucide-chart-column', permission: 'reports.view' },
     { to: '/products/import', label: 'استيراد إكسل', description: 'ارفع أصناف كتير مرة واحدة', icon: 'i-lucide-file-spreadsheet', permission: 'products.manage' },

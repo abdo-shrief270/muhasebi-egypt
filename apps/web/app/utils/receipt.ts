@@ -19,7 +19,7 @@ export function receiptFromSale(sale: Sale, shop: { name: string, phone: string 
     paid: sale.paid,
     change: sale.change,
     refunded: sale.refunded,
-    items: (sale.items ?? []).map(i => ({ name: i.name, qty: i.qty, unit_price: i.unit_price, discount: i.discount, line_total: i.line_total, returned_qty: i.returned_qty })),
+    items: (sale.items ?? []).map(i => ({ name: i.name, qty: i.qty, unit_price: i.unit_price, discount: i.discount, line_total: i.line_total, returned_qty: i.returned_qty, serials: i.serials })),
     payments: (sale.payments ?? []).map(p => ({ method_label: p.method_label, amount: p.amount })),
   }
 }

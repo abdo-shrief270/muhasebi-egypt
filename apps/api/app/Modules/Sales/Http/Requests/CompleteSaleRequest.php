@@ -35,6 +35,8 @@ final class CompleteSaleRequest extends FormRequest
             'items.*.variant_id' => ['required', 'uuid', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:100000'],
             'items.*.discount' => ['nullable', 'integer', 'min:0', 'max:'.self::MAX_MONEY],
+            'items.*.serials' => ['nullable', 'array', 'max:1000'],
+            'items.*.serials.*' => ['string', 'regex:/^[A-Za-z0-9 \-\/]{4,48}$/'],
             'payments' => ['required', 'array', 'min:1', 'max:5'],
             'payments.*.method' => ['required', Rule::enum(PaymentMethod::class)],
             'payments.*.amount' => ['required', 'integer', 'min:1', 'max:'.self::MAX_MONEY],
@@ -48,6 +50,7 @@ final class CompleteSaleRequest extends FormRequest
             'items' => 'الأصناف',
             'items.*.qty' => 'الكمية',
             'items.*.discount' => 'خصم الصنف',
+            'items.*.serials.*' => 'السيريال',
             'payments' => 'الدفع',
             'payments.*.amount' => 'المبلغ',
             'payments.*.method' => 'طريقة الدفع',
@@ -55,7 +58,7 @@ final class CompleteSaleRequest extends FormRequest
     }
 
     /**
-     * @return list<array{variant_id: string, qty: int, discount: int}>
+     * @return list<array{variant_id: string, qty: int, discount: int, serials: list<string>|null}>
      */
     public function items(): array
     {
@@ -63,6 +66,7 @@ final class CompleteSaleRequest extends FormRequest
             'variant_id' => (string) $i['variant_id'],
             'qty' => (int) $i['qty'],
             'discount' => (int) ($i['discount'] ?? 0),
+            'serials' => isset($i['serials']) ? array_values(array_map('strval', $i['serials'])) : null,
         ], $this->validated('items')));
     }
 

@@ -11,6 +11,7 @@ use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Support\CustomerLedger;
 use App\Support\Exceptions\DomainRuleException;
 use App\Support\Tenancy\CurrentTenant;
+use Illuminate\Contracts\Auth\Factory as Auth;
 use Propaganistas\LaravelPhone\PhoneNumber;
 
 final class CustomerAccountsService implements CustomerAccounts
@@ -18,6 +19,7 @@ final class CustomerAccountsService implements CustomerAccounts
     public function __construct(
         private readonly CustomerLedger $ledger,
         private readonly CurrentTenant $tenant,
+        private readonly Auth $auth,
     ) {}
 
     public function find(string $customerId): ?CustomerSummary
@@ -35,7 +37,7 @@ final class CustomerAccountsService implements CustomerAccounts
         $this->charge($customerId, $amount, CustomerTransactionType::Repair, 'repair_ticket', $ticketId, $reference, $branchId);
     }
 
-    public function findOrCreate(string $name, string $phone): CustomerSummary
+    public function findOrCreate(string $name, string $phone, ?bool $consent = null): CustomerSummary
     {
         try {
             $e164 = (new PhoneNumber($phone, 'EG'))->formatE164();
@@ -43,8 +45,14 @@ final class CustomerAccountsService implements CustomerAccounts
             throw new DomainRuleException('رقم موبايل العميل مش صحيح.', 'customer_phone_invalid');
         }
 
-        return (Customer::query()->where('phone', $e164)->first()
-            ?? Customer::create(['tenant_id' => $this->tenant->idOrFail(), 'name' => trim($name) !== '' ? trim($name) : $e164, 'phone' => $e164]))->summary();
+        $customer = Customer::query()->where('phone', $e164)->first()
+            ?? new Customer(['tenant_id' => $this->tenant->idOrFail(), 'name' => trim($name) !== '' ? trim($name) : $e164, 'phone' => $e164]);
+        if ($consent !== null && ($customer->data_consent === null || ! $customer->exists)) {
+            $customer->recordConsent($consent, $this->auth->guard('sanctum')->user());
+        }
+        $customer->save();
+
+        return $customer->summary();
     }
 
     private function charge(string $customerId, int $amount, CustomerTransactionType $type, string $refType, string $refId, string $reference, string $branchId): void

@@ -7,6 +7,7 @@ namespace App\Modules\Customers\Models;
 use App\Modules\Customers\Contracts\CustomerSummary;
 use App\Support\Tenancy\BelongsToTenant;
 use App\Support\Text\SearchText;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -25,8 +26,17 @@ use Illuminate\Support\Carbon;
  * @property int $balance piasters; > 0 = owes the shop
  * @property bool $is_active
  * @property Carbon|null $last_activity_at
+ * @property bool|null $data_consent null = not asked (added before consent was recorded)
+ * @property Carbon|null $data_consent_at
+ * @property string|null $data_consent_by
+ * @property string|null $data_consent_by_name
+ * @property Carbon|null $erased_at personal data anonymised (financial records kept)
+ * @property Carbon|null $created_at
  */
-#[Fillable(['tenant_id', 'name', 'phone', 'notes', 'credit_limit', 'is_active', 'last_activity_at'])]
+#[Fillable([
+    'tenant_id', 'name', 'phone', 'notes', 'credit_limit', 'is_active', 'last_activity_at',
+    'data_consent', 'data_consent_at', 'data_consent_by', 'data_consent_by_name', 'erased_at',
+])]
 final class Customer extends Model
 {
     use BelongsToTenant, HasUuids;
@@ -50,6 +60,9 @@ final class Customer extends Model
             'credit_limit' => 'integer',
             'is_active' => 'boolean',
             'last_activity_at' => 'datetime',
+            'data_consent' => 'boolean',
+            'data_consent_at' => 'datetime',
+            'erased_at' => 'datetime',
         ];
     }
 
@@ -74,6 +87,20 @@ final class Customer extends Model
                 $w->orWhere('phone', 'like', SearchText::like(ltrim($digits, '0')));
             }
         });
+    }
+
+    public function isErased(): bool
+    {
+        return $this->erased_at !== null;
+    }
+
+    /** Records whether the customer agreed to having their data kept, and who asked. */
+    public function recordConsent(bool $consent, ?Authenticatable $by): void
+    {
+        $this->data_consent = $consent;
+        $this->data_consent_at = now();
+        $this->data_consent_by = $by?->getAuthIdentifier();
+        $this->data_consent_by_name = $by?->getAttribute('name');
     }
 
     public function summary(): CustomerSummary

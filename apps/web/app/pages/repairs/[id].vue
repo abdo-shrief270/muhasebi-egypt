@@ -227,7 +227,7 @@
           <p v-else class="font-bold">
             {{ ticket.customer_name }}
           </p>
-          <a :href="`tel:${ticket.customer_phone}`" class="block text-sm text-(--ui-text-muted) num hover:text-primary" dir="ltr">{{ localPhone(ticket.customer_phone) }}</a>
+          <a v-if="ticket.customer_phone" :href="`tel:${ticket.customer_phone}`" class="block text-sm text-(--ui-text-muted) num hover:text-primary" dir="ltr">{{ localPhone(ticket.customer_phone) }}</a>
 
           <USeparator class="my-3" />
           <div class="space-y-3">

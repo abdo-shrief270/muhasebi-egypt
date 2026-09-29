@@ -22,6 +22,7 @@
           <UTextarea v-model="form.notes" :rows="2" class="w-full" />
         </UFormField>
         <USwitch v-if="customer" v-model="form.is_active" label="الحساب شغال" description="الموقوف مينفعش يشتري آجل." />
+        <CustomersConsentCheckbox v-if="askConsent" v-model="form.consent" />
         <UAlert v-if="error" color="error" variant="subtle" :title="error" />
       </form>
     </template>
@@ -44,7 +45,9 @@ const emit = defineEmits<{ saved: [customer: Customer] }>()
 const api = useApi()
 const store = useSessionStore()
 const canCredit = computed(() => store.can('customers.credit'))
-const form = reactive({ name: '', phone: '', notes: '', limit: '', opening: '', is_active: true })
+const form = reactive({ name: '', phone: '', notes: '', limit: '', opening: '', is_active: true, consent: true })
+// New customers are asked (pre-ticked); existing ones only while their consent isn't recorded.
+const askConsent = computed(() => !props.customer || props.customer.data_consent !== true)
 const saving = ref(false)
 const error = ref<string | null>(null)
 
@@ -60,6 +63,7 @@ watch(open, (isOpen) => {
       limit: props.customer?.credit_limit != null ? String(props.customer.credit_limit / 100) : '',
       opening: '',
       is_active: props.customer?.is_active ?? true,
+      consent: !props.customer,
     })
     error.value = null
   }
@@ -78,6 +82,9 @@ async function save() {
     }
     if (props.customer) {
       body.is_active = form.is_active
+    }
+    if (!props.customer || (askConsent.value && form.consent)) {
+      body.consent = form.consent
     }
     const res = props.customer
       ? await api<{ data: Customer }>(`/customers/${props.customer.id}`, { method: 'PATCH', body })

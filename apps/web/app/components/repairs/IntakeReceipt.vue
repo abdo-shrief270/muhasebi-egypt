@@ -25,7 +25,7 @@
       <div class="flex justify-between">
         <span>العميل</span><span>{{ ticket.customer_name }}</span>
       </div>
-      <div class="flex justify-between">
+      <div v-if="ticket.customer_phone" class="flex justify-between">
         <span>الموبايل</span><span class="num" dir="ltr">{{ localPhone(ticket.customer_phone) }}</span>
       </div>
     </div>

@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
  * @property TicketStatus $status
  * @property string $customer_id
  * @property string $customer_name
- * @property string $customer_phone
+ * @property string|null $customer_phone null once the customer's data was erased
  * @property int|null $device_model_id
  * @property string $device_name
  * @property string|null $imei

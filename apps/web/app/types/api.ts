@@ -420,6 +420,21 @@ export interface Customer {
   is_active: boolean
   last_activity_at: string | null
   created_at: string | null
+  /** Agreed to having their data kept (Law 151/2020); null = never asked */
+  data_consent: boolean | null
+  data_consent_at: string | null
+  data_consent_by_name: string | null
+  /** Personal data erased: name «عميل محذوف», no phone */
+  erased_at: string | null
+}
+
+export interface CustomerPrivacySettings {
+  /** Erase customers with no activity for this many years; null = off */
+  retention_years: number | null
+  updated_by_name: string | null
+  updated_at: string | null
+  min_years: number
+  max_years: number
 }
 
 export interface CustomerTransaction {
@@ -549,7 +564,8 @@ export interface RepairTicket {
   is_overdue: boolean
   customer_id: string
   customer_name: string
-  customer_phone: string
+  /** null once the customer's data was erased */
+  customer_phone: string | null
   device_model_id: number | null
   device_name: string
   imei: string | null

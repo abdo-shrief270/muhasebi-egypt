@@ -33,6 +33,14 @@ interface CashDrawer
         bool $requireShift = false,
     ): void;
 
+    /**
+     * Rewrites the note of the movements recorded for these references (e.g. a customer's name
+     * erased). The amounts never change.
+     *
+     * @param  list<string>  $refIds
+     */
+    public function redactNotes(string $refType, array $refIds, string $note): void;
+
     /** Whether the signed-in user has an open shift in the branch. */
     public function hasOpenShift(string $branchId): bool;
 }

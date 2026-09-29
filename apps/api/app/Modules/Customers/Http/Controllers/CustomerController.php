@@ -55,14 +55,19 @@ final class CustomerController
 
     public function store(SaveCustomerRequest $request, SaveCustomerAction $action): JsonResponse
     {
-        $customer = $action->handle($this->tenant->idOrFail(), $request->customerData(), openingBalance: (int) $request->validated('opening_balance', 0));
+        $customer = $action->handle(
+            $this->tenant->idOrFail(),
+            $request->customerData(),
+            openingBalance: (int) $request->validated('opening_balance', 0),
+            consent: $request->consent(),
+        );
 
         return (new CustomerResource($customer))->response()->setStatusCode(201);
     }
 
     public function update(SaveCustomerRequest $request, Customer $customer, SaveCustomerAction $action): CustomerResource
     {
-        return new CustomerResource($action->handle($this->tenant->idOrFail(), $request->customerData(), $customer));
+        return new CustomerResource($action->handle($this->tenant->idOrFail(), $request->customerData(), $customer, consent: $request->consent()));
     }
 
     /** The account statement, newest first. */

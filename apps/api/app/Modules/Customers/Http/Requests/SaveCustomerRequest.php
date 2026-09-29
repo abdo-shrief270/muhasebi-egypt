@@ -52,6 +52,8 @@ final class SaveCustomerRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:1000'],
             'credit_limit' => ['nullable', 'integer', 'min:0', 'max:100000000000'],
             'is_active' => ['sometimes', 'boolean'],
+            // The customer agreed to having their data kept (Personal Data Protection Law 151/2020).
+            'consent' => ['sometimes', 'nullable', 'boolean'],
             // Only when adding: what the customer already owed (negative = the shop owes them).
             'opening_balance' => [$creating ? 'nullable' : 'prohibited', 'integer', 'min:-100000000000', 'max:100000000000'],
         ];
@@ -65,6 +67,14 @@ final class SaveCustomerRequest extends FormRequest
     public function messages(): array
     {
         return ['phone.unique' => 'فيه عميل بالموبايل ده بالفعل.', 'phone.phone' => 'رقم الموبايل مش صحيح.'];
+    }
+
+    /** Whether the customer agreed to having their data kept; null when not asked on this form. */
+    public function consent(): ?bool
+    {
+        $consent = $this->validated('consent');
+
+        return $consent === null ? null : (bool) $consent;
     }
 
     /**

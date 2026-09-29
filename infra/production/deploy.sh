@@ -11,6 +11,12 @@ fi
 
 docker compose build --pull
 docker compose up -d pgsql redis
+
+# A backup right before the migrations (SKIP_BACKUP=1 to skip). A failure only warns.
+if [[ "${SKIP_BACKUP:-0}" != "1" ]]; then
+  docker compose run --rm -T backup muhasebi-backup || echo "WARNING: pre-deploy backup failed, continuing." >&2
+fi
+
 docker compose run --rm --no-deps api php artisan migrate --force
 docker compose up -d --remove-orphans
 

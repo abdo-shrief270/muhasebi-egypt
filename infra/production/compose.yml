@@ -78,6 +78,34 @@ services:
       interval: 5s
       retries: 20
 
+  # Daily pg_dump into ./backups (kept BACKUP_KEEP_DAYS), optionally copied off-site with rclone.
+  # See docs/DEPLOY.md; ./backup.sh takes one now, ./restore.sh puts one back.
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    image: muhasebi-backup:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PGHOST: pgsql
+      PGPORT: "5432"
+      PGUSER: ${DB_USERNAME}
+      PGPASSWORD: ${DB_PASSWORD}
+      PGDATABASE: ${DB_DATABASE}
+      TZ: ${BACKUP_TZ:-Africa/Cairo}
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      pgsql:
+        condition: service_healthy
+    healthcheck:
+      # Unhealthy when the last good backup is more than 25 hours old.
+      test: ["CMD-SHELL", "test -n \"$$(find /backups -maxdepth 1 -name .last-success -mmin -1500)\""]
+      interval: 5m
+      timeout: 10s
+      start_period: 30m
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped

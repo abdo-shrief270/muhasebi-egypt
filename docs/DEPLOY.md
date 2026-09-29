@@ -49,14 +49,45 @@ cd infra/production
 - أول مرة بياخد 5–10 دقايق (بناء الصور).
 - افتح `https://app.muhasebi.com/up` لازم يطلع صفحة خضرا، وبعدين `https://app.muhasebi.com/register` وسجّل أول محل.
 
-**5) نسخة احتياطية يومية**
+**5) النسخ الاحتياطي اليومي: شغال لوحده**
+مفيش حاجة تعملها: خدمة `backup` في الـ stack بتاخد نسخة من الداتابيز **كل يوم الساعة 3 الفجر** (بتوقيت القاهرة)، وأول ما تشتغل لو مفيش نسخة من آخر 24 ساعة. بس **لازم تظبط النسخة برا السيرفر** (تحت) — نسخة على نفس الهارد مش كفاية.
+
+## النسخ الاحتياطي
+- **فين:** `infra/production/backups/muhasebi-YYYYmmdd-HHMMSS.dump` (صيغة `pg_dump -Fc`، مضغوطة، وبتتأكد إنها بتتقري قبل ما تتحفظ).
+- **إمتى:** كل يوم في `BACKUP_TIME` (افتراضي `03:00`) بتوقيت `BACKUP_TZ` (افتراضي `Africa/Cairo`)، وكمان **قبل كل نشر** (`deploy.sh` قبل الـ migrations؛ `SKIP_BACKUP=1 ./deploy.sh` يتخطاها).
+- **قد إيه:** آخر `BACKUP_KEEP_DAYS` يوم (افتراضي 14)، والأقدم بيتمسح لوحده.
+- **هل شغال؟** `docker compose ps backup` لازم يبقى `healthy` (بيبقى `unhealthy` لو آخر نسخة ناجحة أقدم من 25 ساعة)، واللوج: `docker compose logs backup --tail 20`.
+- الإعدادات في `.env` (موجودة في `.env.example`)، وبعد أي تغيير: `docker compose up -d backup`.
+- لو كنت حاطط سطر `crontab` قديم لـ `backup.sh`، امسحه: مبقاش لازم (لو فضل، هيعمل نسخة زيادة بس).
+
+### نسخة برا السيرفر (مهم)
+الخدمة فيها [rclone](https://rclone.org)، فتقدر تبعت كل نسخة لأي تخزين: **Cloudflare R2** (10GB ببلاش)، Backblaze B2، AWS S3، Google Drive… الإعداد كله متغيرات في `.env`. مثال R2:
+1. من Cloudflare: R2 ← Create bucket (مثلاً `muhasebi-backups`)، وبعدين Manage R2 API Tokens ← Create token بصلاحية **Object Read & Write** على الـ bucket ده بس.
+2. زوّد في `.env`:
 ```bash
-crontab -e
-# زوّد السطر ده (كل يوم الساعة 3 الفجر):
-0 3 * * * /opt/muhasebi/infra/production/backup.sh >> /var/log/muhasebi-backup.log 2>&1
+BACKUP_RCLONE_REMOTE=offsite:muhasebi-backups
+BACKUP_REMOTE_KEEP_DAYS=30          # اختياري (0 = متمسحش حاجة من برا)
+RCLONE_CONFIG_OFFSITE_TYPE=s3
+RCLONE_CONFIG_OFFSITE_PROVIDER=Cloudflare
+RCLONE_CONFIG_OFFSITE_ACCESS_KEY_ID=...
+RCLONE_CONFIG_OFFSITE_SECRET_ACCESS_KEY=...
+RCLONE_CONFIG_OFFSITE_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+RCLONE_CONFIG_OFFSITE_NO_CHECK_BUCKET=true
 ```
-- النسخ بتتحفظ في `infra/production/backups/` لمدة 14 يوم.
-- **مهم:** انسخها برا السيرفر كمان (Cloudflare R2 / Google Drive بـ `rclone`)؛ نسخة على نفس الهارد مش كفاية.
+3. `docker compose up -d backup && ./backup.sh` — لازم تشوف `copied off-site: ...`.
+
+أي تخزين تاني: اسم الـ remote هو اللي بعد `RCLONE_CONFIG_` (هنا `OFFSITE`)، والإعدادات نفس اللي في [توثيق rclone](https://rclone.org/docs/#config-file) بس بحروف كبيرة. المفاتيح دي خليها بصلاحية على الـ bucket بس، وخد نسخة من `.env` في مكان آمن زي ما قلنا.
+
+### الاسترجاع
+```bash
+./restore.sh backups/muhasebi-20261005-030000.dump
+```
+بيوقف التطبيق، ويرجّع الداتابيز كلها للنسخة دي، ويشغّل كل حاجة تاني. **أي حاجة اتسجلت بعد النسخة دي بتضيع.**
+لو السيرفر نفسه ضاع: جهّز سيرفر جديد بالخطوات فوق **بنفس ملف `.env` القديم** (عشان `APP_KEY`: من غيره أكواد التحقق بخطوتين وأكواد فتح الأجهزة المشفّرة مش هتتقري)، وبعدين نزّل النسخة من برا وارجّعها:
+```bash
+docker compose run --rm -T backup rclone copy offsite:muhasebi-backups/muhasebi-20261005-030000.dump /backups/
+./restore.sh backups/muhasebi-20261005-030000.dump
+```
 
 ## لو السيرفر عليه nginx ومواقع تانية
 الإعداد الافتراضي بيخلّي Caddy بتاع محاسبي ياخد البورتات 80 و443. لو nginx شغال بالفعل على البورتات دي لمواقع تانية، فيه وضع مخصوص: **nginx يفضل ماسك 80 و443 وشهادات HTTPS**، وبيحوّل دومين محاسبي بس لـ Caddy على `127.0.0.1:8088`، اللي مش مكشوف على الإنترنت.
@@ -148,6 +179,7 @@ ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده 
 | اللوجز | `docker compose logs -f api` (أو `worker` / `caddy`) |
 | أمر artisan | `docker compose exec api php artisan <command>` |
 | نسخة احتياطية دلوقتي | `./backup.sh` |
+| النسخ الموجودة | `ls -lh backups/` |
 | استرجاع نسخة | `./restore.sh backups/muhasebi-XXXX.dump` |
 | إيقاف كله | `docker compose down` (الداتا بتفضل) |
 
@@ -159,3 +191,5 @@ ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده 
 ## اللي اتجرّب قبل التسليم
 الـ stack ده اتشغّل كامل بـ `DOMAIN=localhost`: HTTPS، تحويل HTTP → HTTPS، تسجيل محل من المتصفح، الـ Queue worker نفّذ الأحداث، الـ migrations، والنسخ الاحتياطي والاسترجاع.
 **ما اتجرّبش:** خطوة تثبيت إضافات PHP جوه `Dockerfile.api` (بيئة الاختبار كانت ممنوعة من Debian mirrors) — دي خطوة قياسية وبتشتغل عادي على أي سيرفر عليه إنترنت، وبتتأكد منها كمان في الـ CI على GitHub.
+
+**خدمة `backup`:** السكريبتات (`backup/dump.sh` و`backup/schedule.sh`) اتجرّبت على PostgreSQL محلي: النسخ، التأكد منها، مسح القديم، الـ rclone (بأمر وهمي)، ووقف الخدمة. صورة `Dockerfile.backup` نفسها بتتبني في الـ CI (job `docker`) مع `shellcheck` لكل السكريبتات.

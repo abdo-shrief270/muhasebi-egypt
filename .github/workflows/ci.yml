@@ -71,6 +71,10 @@ jobs:
         run: docker build -f infra/production/Dockerfile.web -t muhasebi-web:ci .
       - name: Validate Caddyfile
         run: docker run --rm -e SITE_ADDRESS=app.example.com -e ACME_EMAIL=ci@example.com --entrypoint caddy muhasebi-web:ci validate --config /etc/caddy/Caddyfile --adapter caddyfile
+      - name: Build backup image
+        run: docker build -f infra/production/Dockerfile.backup -t muhasebi-backup:ci infra/production && docker run --rm muhasebi-backup:ci sh -c 'pg_dump --version && rclone version | head -n 1'
+      - name: Shellcheck deploy scripts
+        run: shellcheck infra/production/*.sh infra/production/backup/*.sh
 
   deploy:
     # Every push to main that passes all checks goes live (see docs/DEPLOY.md, "النشر التلقائي").

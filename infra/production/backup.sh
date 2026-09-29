@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
-# Daily database backup (keep 14 days). Cron example (as root, 3am):
-#   0 3 * * * /opt/muhasebi/infra/production/backup.sh >> /var/log/muhasebi-backup.log 2>&1
+# Take a database backup now. Daily backups run by themselves in the `backup` service
+# (compose.yml, docs/DEPLOY.md): same script, same folder (backups/), same retention and off-site copy.
 set -euo pipefail
 cd "$(dirname "$0")"
-set -a; source .env; set +a
 
-mkdir -p backups
-file="backups/muhasebi-$(date +%Y%m%d-%H%M%S).dump"
+[[ -f .env ]] || { echo "No .env — run ./init.sh <domain> <email> first." >&2; exit 1; }
 
-docker compose exec -T pgsql pg_dump -U "$DB_USERNAME" -d "$DB_DATABASE" -Fc > "$file"
-find backups -name 'muhasebi-*.dump' -mtime +14 -delete
-
-echo "$(date -Is) backup ok: $file ($(du -h "$file" | cut -f1))"
-# Copy it off the server too (e.g. rclone to Cloudflare R2 / Google Drive) — a backup on the same disk isn't enough.
+if [[ -n "$(docker compose ps --status running -q backup 2>/dev/null)" ]]; then
+  docker compose exec -T backup muhasebi-backup
+else
+  docker compose run --rm -T backup muhasebi-backup
+fi

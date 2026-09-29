@@ -6,6 +6,7 @@ namespace App\Support\Tenancy;
 
 use App\Support\Exceptions\DomainRuleException;
 use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -19,15 +20,22 @@ final class ResolveTenant
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        $tenantId = $user?->getAttribute('tenant_id');
+        // Read raw: a platform admin's token is a different model, with no shop.
+        $attributes = $user instanceof Model ? $user->getAttributes() : [];
+        $tenantId = $attributes['tenant_id'] ?? null;
 
         abort_if($tenantId === null, Response::HTTP_FORBIDDEN, 'لا يوجد محل مرتبط بالحساب.');
 
-        if ($user?->getAttribute('is_active') === false) {
+        if (($attributes['is_active'] ?? true) === false) {
             throw new DomainRuleException('الحساب ده اتوقف. كلّم صاحب المحل.', 'user_inactive', Response::HTTP_FORBIDDEN);
         }
 
         $this->tenant->set($tenantId);
+
+        foreach (app()->tagged(TenantRequestGuard::TAG) as $guard) {
+            /** @var TenantRequestGuard $guard */
+            $guard->check($request, (string) $tenantId);
+        }
 
         return $next($request);
     }

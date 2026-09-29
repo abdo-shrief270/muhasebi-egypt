@@ -46,6 +46,8 @@ final class SaleController
             ->when($request->filled('from'), fn ($q) => $q->where('completed_at', '>=', $request->date('from', null, 'Africa/Cairo')?->startOfDay()))
             ->when($request->filled('to'), fn ($q) => $q->where('completed_at', '<=', $request->date('to', null, 'Africa/Cairo')?->endOfDay()))
             ->orderByDesc('completed_at')
+            // Two sales in the same second still list newest first.
+            ->orderByDesc('number')
             ->paginate(30);
 
         $withCost = (bool) $request->user()?->can('reports.profit');

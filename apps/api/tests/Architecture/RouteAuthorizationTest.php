@@ -19,6 +19,7 @@ class RouteAuthorizationTest extends TestCase
     private const OPEN = [
         'api/v1/auth/me' => 'your own session',
         'api/v1/auth/logout' => 'your own session',
+        'api/v1/billing/status' => 'the subscription banner every screen shows',
         'api/v1/messages/templates' => 'the shop\'s message wording, used by every WhatsApp button',
     ];
 

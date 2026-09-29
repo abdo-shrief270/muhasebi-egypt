@@ -116,7 +116,7 @@ class PartnerRepairsTest extends TestCase
         $this->as($this->shop)->postJson('/api/v1/cash/shifts', ['opening_cash' => 0])->assertCreated();
         $this->as($this->shop)->postJson("/api/v1/repairs/tickets/{$mine['id']}/deliver", ['payments' => [['method' => 'cash', 'amount' => 60000]]])->assertOk();
 
-        $report = $this->as($this->shop)->getJson('/api/v1/reports/repairs?'.http_build_query(['from' => now()->toDateString(), 'to' => now()->toDateString()]))->assertOk()->json('data');
+        $report = $this->as($this->shop)->getJson('/api/v1/reports/repairs?'.http_build_query(['from' => now('Africa/Cairo')->toDateString(), 'to' => now('Africa/Cairo')->toDateString()]))->assertOk()->json('data');
         $profit = collect($report['summary'])->firstWhere('label', 'المكسب (بعد القطع)');
         $this->assertSame(20000, $profit['value']);
     }

@@ -2,6 +2,7 @@
 
 namespace Tests\Architecture;
 
+use App\Modules\Billing\Models\PlatformAdmin;
 use App\Modules\Identity\Models\Tenant;
 use App\Modules\Identity\Models\User;
 use App\Support\Modules\ModuleRegistry;
@@ -22,6 +23,7 @@ class ModuleBoundariesTest extends TestCase
     private const UNSCOPED_MODELS = [
         Tenant::class,
         User::class,
+        PlatformAdmin::class,
     ];
 
     public function test_modules_only_use_other_modules_contracts_and_events(): void

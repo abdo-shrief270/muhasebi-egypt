@@ -100,12 +100,24 @@ final class Product extends Model
             $like = SearchText::like($token);
 
             $query->where(function (Builder $q) use ($like): void {
-                $q->where('products.search_name', 'like', $like)
-                    ->orWhereRaw('lower(products.sku) like ?', [$like])
-                    ->orWhereHas('variants', fn (Builder $v) => $v->whereRaw('lower(barcode) like ?', [$like])->orWhereRaw('lower(name) like ?', [$like]))
-                    ->orWhereHas('brand', fn (Builder $b) => $b->whereRaw('lower(name) like ?', [$like]))
-                    ->orWhereHas('deviceModels', fn (Builder $m) => $m->where('device_models.search_name', 'like', $like));
+                $q->matchesProductFields($like)
+                    ->orWhereHas('variants', fn (Builder $v) => $v->whereRaw('lower(barcode) like ?', [$like])->orWhereRaw('lower(name) like ?', [$like]));
             });
         }
+    }
+
+    /**
+     * One word against what belongs to the product itself (not its variants). Used by variant
+     * searches, where a variant's own name and barcode are matched separately.
+     *
+     * @param  Builder<Product>  $query
+     */
+    public function scopeMatchesProductFields(Builder $query, string $like): void
+    {
+        $query->where(fn (Builder $q) => $q
+            ->where('products.search_name', 'like', $like)
+            ->orWhereRaw('lower(products.sku) like ?', [$like])
+            ->orWhereHas('brand', fn (Builder $b) => $b->whereRaw('lower(name) like ?', [$like]))
+            ->orWhereHas('deviceModels', fn (Builder $m) => $m->where('device_models.search_name', 'like', $like)));
     }
 }

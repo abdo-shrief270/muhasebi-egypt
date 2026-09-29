@@ -60,6 +60,7 @@ final class ImportTemplate
             'الأعمدة اللي عليها * لازم تتملى. الأسعار بالجنيه.',
             'لو الباركود موجود عندك قبل كده، الصف بيحدّث أسعار النوع ده بدل ما يعمل صنف جديد.',
             'التصنيف أو الماركة اللي مش موجودين بيتعملوا لوحدهم.',
+            'الكمية وسعر التكلفة = الرصيد الافتتاحي في الفرع اللي بتستورد منه (للأنواع اللي ملهاش رصيد هناك لسه).',
             'الموديلات تتكتب مفصولة بفاصلة، ويُفضّل بالماركة: Apple iPhone 13، Samsung Galaxy A54.',
         ] as $note) {
             $writer->addRow(Row::fromValues([$note]));
@@ -73,12 +74,12 @@ final class ImportTemplate
      */
     private function examples(): array
     {
-        // name, category, brand, sku, variant, quality, barcode, retail, wholesale, technician, online, min stock, models
+        // name, category, brand, sku, variant, quality, barcode, retail, wholesale, technician, online, min stock, models, qty, cost
         return [
-            ['سكرينة 9D', 'سكرينات حماية', '', 'SCR-9D', 'شفاف', '', '6221234567890', 150, 90, '', '', 5, 'Apple iPhone 13, Apple iPhone 14'],
-            ['سكرينة 9D', 'سكرينات حماية', '', '', 'مطفي', '', '6221234567891', 175, 110, '', '', 5, 'Apple iPhone 13, Apple iPhone 14'],
-            ['شاشة iPhone 11', 'شاشات', 'Apple', '', '', 'سيرفس باك', '', 2850, 2500, 2650, '', 2, 'Apple iPhone 11'],
-            ['شاحن Anker 20W Type-C', 'شواحن', '', '', '', '', 'ANK-20W', 450, 380, '', 480, 3, ''],
+            ['سكرينة 9D', 'سكرينات حماية', '', 'SCR-9D', 'شفاف', '', '6221234567890', 150, 90, '', '', 5, 'Apple iPhone 13, Apple iPhone 14', 20, 45],
+            ['سكرينة 9D', 'سكرينات حماية', '', '', 'مطفي', '', '6221234567891', 175, 110, '', '', 5, 'Apple iPhone 13, Apple iPhone 14', 12, 60],
+            ['شاشة iPhone 11', 'شاشات', 'Apple', '', '', 'سيرفس باك', '', 2850, 2500, 2650, '', 2, 'Apple iPhone 11', 3, 2200],
+            ['شاحن Anker 20W Type-C', 'شواحن', '', '', '', '', 'ANK-20W', 450, 380, '', 480, 3, '', '', ''],
         ];
     }
 }

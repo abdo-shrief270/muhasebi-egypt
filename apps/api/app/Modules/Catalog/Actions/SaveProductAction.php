@@ -6,6 +6,7 @@ namespace App\Modules\Catalog\Actions;
 
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
+use App\Modules\Inventory\Contracts\StockLedger;
 use App\Support\Audit\Auditor;
 use App\Support\Exceptions\DomainRuleException;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class SaveProductAction
 {
-    public function __construct(private readonly Auditor $audit) {}
+    public function __construct(
+        private readonly Auditor $audit,
+        private readonly StockLedger $stock,
+    ) {}
 
     /**
      * @param  array{category_id?: int, brand_id?: int|null, name?: string, sku?: string|null, track_serial?: bool, is_active?: bool, notes?: string|null}  $data
@@ -59,6 +63,16 @@ final class SaveProductAction
 
         if (array_diff($kept, $existing->keys()->all()) !== []) {
             throw new DomainRuleException('فيه متغير مش تبع الصنف ده.', 'variant_not_found', 404);
+        }
+
+        // A variant with stock history can't disappear (its movements point at it): deactivate it instead.
+        $removedIds = array_values(array_diff($existing->keys()->all(), $kept));
+        if ($used = $this->stock->variantsWithHistory($removedIds)) {
+            $names = collect($used)->map(fn (string $id) => $existing->get($id)?->name ?? $product->name)->implode('، ');
+            throw new DomainRuleException(
+                "مينفعش تمسح «{$names}» لأن عليه حركات مخزون. وقّفه بدل ما تمسحه.",
+                'variant_has_stock_history',
+            );
         }
 
         // Removed first, so a barcode can move from a removed variant to a new one.

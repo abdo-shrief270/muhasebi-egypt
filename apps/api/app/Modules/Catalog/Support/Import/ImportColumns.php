@@ -34,6 +34,9 @@ final class ImportColumns
             'price_online' => ['سعر الأونلاين', false, ['الأونلاين', 'online']],
             'min_stock' => ['حد النواقص', false, ['الحد الأدنى', 'min stock']],
             'models' => ['الموديلات', false, ['بيركب على', 'التوافق', 'models']],
+            // Opening stock in the branch the import runs in.
+            'opening_qty' => ['الكمية', false, ['الرصيد', 'الكمية الافتتاحية', 'المخزون', 'qty', 'quantity']],
+            'unit_cost' => ['سعر التكلفة', false, ['التكلفة', 'سعر الشراء', 'cost']],
         ];
     }
 

@@ -195,3 +195,48 @@ export interface Paginated<T> {
   data: T[]
   meta: { current_page: number, last_page: number, per_page: number, total: number }
 }
+
+export type StockStatus = 'ok' | 'low' | 'out'
+
+/** A variant with its stock in the current branch. Costs are null without products.view_cost. */
+export interface StockRow {
+  id: string
+  product_id: string
+  product_name: string
+  variant_name: string | null
+  display_name: string
+  barcode: string | null
+  sku: string | null
+  category: { id: number, name: string }
+  price_retail: number
+  min_stock: number
+  is_active: boolean
+  track_serial: boolean
+  qty: number
+  status: StockStatus
+  avg_cost: number | null
+  value: number | null
+}
+
+export interface StockSummary {
+  variants: number
+  in_stock: number
+  out_of_stock: number
+  low: number
+  units: number
+  value: number | null
+}
+
+export interface StockMovementRow {
+  id: string
+  type: string
+  type_label: string
+  qty: number
+  balance_after: number
+  unit_cost: number | null
+  reason: string | null
+  reason_label: string | null
+  note: string | null
+  user_name: string | null
+  created_at: string
+}

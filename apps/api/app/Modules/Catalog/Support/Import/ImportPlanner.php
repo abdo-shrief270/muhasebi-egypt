@@ -46,8 +46,19 @@ final class ImportPlanner
     /** @var array<string, string> "product id|normalised variant name" => variant id */
     private array $variantsByName = [];
 
-    public function __construct()
-    {
+    /** @var array<string, true> existing variants already given opening stock in this file */
+    private array $stockPlanned = [];
+
+    /**
+     * @param  list<string>  $variantsWithStock  variants that already moved in the import's branch
+     * @param  bool  $canSetStock  may record opening stock (inventory.adjust)
+     * @param  bool  $canSetCost  may enter costs (products.view_cost)
+     */
+    public function __construct(
+        private readonly array $variantsWithStock = [],
+        private readonly bool $canSetStock = false,
+        private readonly bool $canSetCost = false,
+    ) {
         foreach (Category::query()->get(['id', 'name']) as $c) {
             $this->categories[SearchText::normalize($c->name)] = $c->id;
         }
@@ -140,6 +151,29 @@ final class ImportPlanner
                 }
             }
 
+            $openingQty = 0;
+            if (($raw = trim($cells['opening_qty'] ?? '')) !== '') {
+                $value = self::number($raw);
+                if ($value === null || $value < 0 || $value > 1_000_000 || floor($value) != $value) {
+                    $errors[] = "الكمية لازم تبقى رقم صحيح ({$raw})";
+                } elseif (! $this->canSetStock) {
+                    $warnings[] = 'الكمية اتجاهلت: مش معاك صلاحية «الجرد وتسوية المخزون»';
+                } else {
+                    $openingQty = (int) $value;
+                }
+            }
+
+            $unitCost = 0;
+            if (($raw = trim($cells['unit_cost'] ?? '')) !== '' && $this->canSetCost) {
+                $pounds = self::number($raw);
+                if ($pounds === null || $pounds < 0 || $pounds > self::MAX_PRICE_POUNDS) {
+                    $errors[] = "سعر التكلفة مش رقم صحيح ({$raw})";
+                } else {
+                    $unitCost = (int) round($pounds * 100);
+                }
+            }
+            $stock = $openingQty > 0 ? ['qty' => $openingQty, 'unit_cost' => $unitCost] : null;
+
             $quality = null;
             if (($raw = trim($cells['quality'] ?? '')) !== '') {
                 $quality = self::quality($raw);
@@ -194,7 +228,8 @@ final class ImportPlanner
 
             // 1) Existing barcode: that variant gets the new prices.
             if ($barcode !== null && isset($this->barcodes[$barcode])) {
-                $plan->updateVariant($line, $this->barcodes[$barcode]['variant_id'], $this->barcodes[$barcode]['product_id'], $variant, $modelIds);
+                $variantId = $this->barcodes[$barcode]['variant_id'];
+                $plan->updateVariant($line, $variantId, $this->barcodes[$barcode]['product_id'], $variant, $modelIds, $this->openingFor($variantId, $stock, $warnings));
                 $plan->rowOk($line, $warnings);
 
                 continue;
@@ -209,9 +244,9 @@ final class ImportPlanner
             if ($existingProductId !== null) {
                 $existingVariantId = $this->variantsByName[$existingProductId.'|'.SearchText::normalize((string) $variantName)] ?? null;
                 if ($existingVariantId !== null) {
-                    $plan->updateVariant($line, $existingVariantId, $existingProductId, $variant, $modelIds);
+                    $plan->updateVariant($line, $existingVariantId, $existingProductId, $variant, $modelIds, $this->openingFor($existingVariantId, $stock, $warnings));
                 } else {
-                    $plan->addVariant($line, $existingProductId, $variant, $modelIds);
+                    $plan->addVariant($line, $existingProductId, $variant, $modelIds, $stock);
                 }
                 $plan->rowOk($line, $warnings);
 
@@ -237,11 +272,33 @@ final class ImportPlanner
                 ]);
             }
 
-            $plan->newProductVariant($line, $groupKey, $variant, $modelIds);
+            $plan->newProductVariant($line, $groupKey, $variant, $modelIds, $stock);
             $plan->rowOk($line, $warnings);
         }
 
         return $plan;
+    }
+
+    /**
+     * Opening stock only for a variant that never moved here, and only once per import.
+     *
+     * @param  array{qty: int, unit_cost: int}|null  $stock
+     * @param  list<string>  $warnings
+     * @return array{qty: int, unit_cost: int}|null
+     */
+    private function openingFor(string $variantId, ?array $stock, array &$warnings): ?array
+    {
+        if ($stock === null) {
+            return null;
+        }
+        if (in_array($variantId, $this->variantsWithStock, true) || isset($this->stockPlanned[$variantId])) {
+            $warnings[] = 'الكمية اتجاهلت لأن النوع ده ليه رصيد في الفرع بالفعل — عدّلها من «المخزون» بالجرد';
+
+            return null;
+        }
+        $this->stockPlanned[$variantId] = true;
+
+        return $stock;
     }
 
     /** Numbers as shops type them: Arabic digits, thousands separators, "150 ج". */

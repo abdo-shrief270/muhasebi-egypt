@@ -36,6 +36,17 @@ final class ImportProductsRequest extends FormRequest
         return ['file.mimes' => 'الملف لازم يبقى Excel (xlsx) أو CSV.', 'file.extensions' => 'الملف لازم يبقى Excel (xlsx) أو CSV.'];
     }
 
+    /** The quantity column becomes opening stock only for users who may adjust stock. */
+    public function canSetStock(): bool
+    {
+        return (bool) $this->user()?->can('inventory.adjust');
+    }
+
+    public function canSetCost(): bool
+    {
+        return (bool) $this->user()?->can('products.view_cost');
+    }
+
     public function sheet(): UploadedFile
     {
         /** @var UploadedFile */

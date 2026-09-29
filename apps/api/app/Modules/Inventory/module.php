@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Inventory\InventoryServiceProvider;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -17,5 +18,6 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/inventory', 'المخزون', 'i-lucide-warehouse', 'inventory.view', group: 'stock'),
     ],
+    provider: InventoryServiceProvider::class,
     sort: 30,
 );

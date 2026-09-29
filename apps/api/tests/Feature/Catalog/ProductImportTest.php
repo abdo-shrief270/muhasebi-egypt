@@ -7,8 +7,10 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Identity\Enums\ShopType;
+use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\Role;
 use App\Modules\Identity\Models\User;
+use App\Modules\Inventory\Contracts\StockLedger;
 use App\Support\Audit\AuditEntry;
 use App\Support\Events\EventRelay;
 use App\Support\Tenancy\CurrentTenant;
@@ -26,6 +28,8 @@ class ProductImportTest extends TestCase
     use CreatesShops, RefreshDatabase;
 
     private const HEADER = ['اسم الصنف *', 'التصنيف *', 'الماركة', 'كود الصنف', 'النوع', 'الجودة', 'الباركود', 'سعر القطاعي *', 'سعر الجملة', 'سعر الفني', 'سعر الأونلاين', 'حد النواقص', 'الموديلات'];
+
+    private const STOCK_HEADER = ['اسم الصنف', 'التصنيف', 'الباركود', 'سعر القطاعي', 'الكمية', 'سعر التكلفة'];
 
     private User $owner;
 
@@ -269,5 +273,58 @@ class ProductImportTest extends TestCase
             ->assertOk()->assertJsonPath('data.new_categories', []);
         $this->assertTrue($this->inShop(fn () => Category::query()->where('name', 'سكرينات حماية')->exists()));
         $this->assertSame(0, $this->inShop(fn () => ProductVariant::query()->count()));
+    }
+
+    private function stockOf(string $productName): int
+    {
+        return $this->inShop(fn () => app(StockLedger::class)->quantity(
+            Branch::query()->value('id'),
+            $this->productNamed($productName)->variants->sole()->id,
+        ));
+    }
+
+    public function test_quantity_and_cost_become_opening_stock(): void
+    {
+        $summary = $this->import($this->xlsx([
+            ['جراب', 'جرابات', 'B-1', '100', '12', '40'],
+            ['كابل', 'كابلات', '', '60', '', ''],
+        ], header: self::STOCK_HEADER))->assertOk()->json('data');
+
+        $this->assertSame(12, $summary['stock_units']);
+        $this->assertSame(12, $this->stockOf('جراب'));
+        $this->assertSame(0, $this->stockOf('كابل'));
+
+        $variantId = $this->productNamed('جراب')->variants->sole()->id;
+        $this->getJson("/api/v1/inventory/variants/{$variantId}/movements")
+            ->assertJsonPath('data.item.avg_cost', 4000)
+            ->assertJsonPath('data.movements.0.type', 'opening');
+    }
+
+    public function test_quantity_is_not_recorded_twice(): void
+    {
+        $this->import($this->xlsx([['جراب', 'جرابات', 'B-1', '100', '12', '40']], header: self::STOCK_HEADER))->assertOk();
+
+        $summary = $this->import($this->xlsx([['جراب', 'جرابات', 'B-1', '110', '50', '40']], header: self::STOCK_HEADER))->assertOk()->json('data');
+
+        $this->assertSame(0, $summary['stock_units']);
+        $this->assertStringContainsString('ليه رصيد في الفرع بالفعل', $summary['warnings'][0]['messages'][0]);
+        $this->assertSame(12, $this->stockOf('جراب'));
+        $this->assertSame(11000, $this->productNamed('جراب')->variants->sole()->price_retail, 'prices still update');
+    }
+
+    public function test_quantity_needs_the_stock_permission(): void
+    {
+        $roleId = $this->inShop(fn () => Role::create(['key' => 'catalog_only', 'name' => 'أصناف بس', 'permissions' => ['products.view', 'products.manage']])->id);
+        $userId = $this->postJson('/api/v1/users', [
+            'name' => 'مدخل بيانات', 'phone' => '01133334444', 'password' => 'password',
+            'role_id' => $roleId, 'branch_ids' => [$this->inShop(fn () => Branch::query()->value('id'))],
+        ])->assertCreated()->json('data.id');
+        Sanctum::actingAs(User::query()->findOrFail($userId));
+
+        $summary = $this->import($this->xlsx([['جراب', 'جرابات', 'B-1', '100', '12', '40']], header: self::STOCK_HEADER))->assertOk()->json('data');
+
+        $this->assertSame(0, $summary['stock_units']);
+        $this->assertStringContainsString('مش معاك صلاحية', $summary['warnings'][0]['messages'][0]);
+        $this->assertSame(0, $this->stockOf('جراب'));
     }
 }

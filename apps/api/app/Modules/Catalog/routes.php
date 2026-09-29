@@ -11,7 +11,8 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
     Route::pattern('brand', '[0-9]+');
     Route::pattern('deviceModel', '[0-9]+');
 
-    Route::prefix('products/import')->controller(ProductImportController::class)->group(function (): void {
+    // The quantity column is opening stock for the branch in X-Branch-Id.
+    Route::prefix('products/import')->middleware('branch')->controller(ProductImportController::class)->group(function (): void {
         Route::get('template', 'template')->middleware('can:products.manage');
         // products.manage is checked by ImportProductsRequest.
         Route::post('preview', 'preview')->middleware('throttle:30,1');

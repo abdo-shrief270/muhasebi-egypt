@@ -34,6 +34,8 @@ const props = withDefaults(defineProps<{
 }>(), { multiple: false, known: () => [], placeholder: 'الموديلات' })
 
 const model = defineModel<number[] | number | undefined>()
+/** The picked model itself (single mode), for screens that also want its name. */
+const emit = defineEmits<{ pick: [model: DeviceModel | null] }>()
 
 const api = useApi()
 const searchTerm = ref('')
@@ -74,6 +76,12 @@ async function search(q: string) {
 watch(searchTerm, (q) => {
   clearTimeout(timer)
   timer = setTimeout(() => search(q), 250)
+})
+
+watch(model, (value) => {
+  if (!props.multiple) {
+    emit('pick', typeof value === 'number' ? remembered.get(value) ?? null : null)
+  }
 })
 
 onMounted(() => search(''))

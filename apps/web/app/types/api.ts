@@ -528,3 +528,81 @@ export interface PriceCheckItem {
   /** per branch the user may see; null without inventory.view */
   stock: { branch_id: string, name: string, qty: number, current: boolean }[] | null
 }
+
+export type TicketStatus = 'received' | 'diagnosing' | 'awaiting_approval' | 'repairing' | 'awaiting_part' | 'ready' | 'rejected' | 'delivered'
+
+export interface TicketFault { id: number, category: string, name: string }
+
+export interface RepairTicket {
+  id: string
+  number: number
+  reference: string
+  branch_id: string
+  status: TicketStatus
+  status_label: string
+  next_statuses: { value: TicketStatus, label: string }[]
+  can_deliver: boolean
+  is_overdue: boolean
+  customer_id: string
+  customer_name: string
+  customer_phone: string
+  device_model_id: number | null
+  device_name: string
+  imei: string | null
+  color: string | null
+  unlock_type: 'none' | 'pin' | 'pattern' | 'password'
+  /** null for whoever doesn't work on devices */
+  unlock_code: string | null
+  accessories: string[]
+  accessories_labels: string[]
+  condition: string[]
+  condition_labels: string[]
+  checks: Record<string, 'yes' | 'no' | 'unknown'>
+  reported_faults: TicketFault[]
+  reported_note: string | null
+  diagnosed_faults: TicketFault[] | null
+  diagnosis_note: string | null
+  suggested_labor?: number
+  received_by_name: string | null
+  received_at: string
+  expected_at: string | null
+  technician_id: string | null
+  technician_name: string | null
+  ready_at: string | null
+  delivered_at: string | null
+  delivered_by_name: string | null
+  estimate: number | null
+  labor: number
+  parts_total: number
+  parts_cost: number | null
+  discount: number
+  total: number
+  paid: number
+  credit: number
+  due: number
+  warranty_days: number
+  warranty_until: string | null
+  under_warranty: boolean
+  warranty_of_id: string | null
+  public_token: string
+  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, added_by_name: string | null }[]
+  payments?: { kind: 'deposit' | 'payment' | 'refund', method: string, amount: number, user_name: string | null, created_at: string }[]
+  events?: { type: string, type_label: string, from_status_label: string | null, to_status: TicketStatus | null, to_status_label: string | null, note: string | null, user_name: string | null, created_at: string }[]
+}
+
+export interface RepairFaultCategory {
+  id: number
+  name: string
+  types: { id: number, name: string, default_labor_price: number | null, is_active: boolean }[]
+}
+
+export interface RepairOptions {
+  accessories: { value: string, label: string }[]
+  condition: { value: string, label: string }[]
+  checks: { value: string, label: string }[]
+  statuses: { value: TicketStatus, label: string }[]
+  technicians: { id: string, name: string }[]
+  faults: RepairFaultCategory[]
+}
+
+export interface RepairSummary { open: number, ready: number, overdue: number, abandoned: number, mine: number }

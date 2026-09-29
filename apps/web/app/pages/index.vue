@@ -187,6 +187,19 @@
       </NuxtLink>
     </div>
 
+    <!-- Repairs at a glance -->
+    <div v-if="repairs" class="grid grid-cols-3 gap-3">
+      <NuxtLink v-for="card in repairCards" :key="card.label" :to="card.to" class="app-card p-4 transition hover:ring-1 hover:ring-primary">
+        <p class="flex items-center gap-1.5 text-sm text-(--ui-text-muted)">
+          <UIcon :name="card.icon" class="size-4" :class="card.tone" />
+          {{ card.label }}
+        </p>
+        <p class="mt-1 text-2xl font-extrabold num">
+          {{ card.value }}
+        </p>
+      </NuxtLink>
+    </div>
+
     <!-- Stock at a glance -->
     <div v-if="stock" class="grid grid-cols-3 gap-3">
       <NuxtLink v-for="card in stockCards" :key="card.label" :to="card.to" class="app-card p-4 transition hover:ring-1 hover:ring-primary">
@@ -213,7 +226,7 @@
 </template>
 
 <script setup lang="ts">
-import type { SalesStats, StockSummary } from '~/types/api'
+import type { RepairSummary, SalesStats, StockSummary } from '~/types/api'
 import { NuxtLink } from '#components'
 
 const api = useApi()
@@ -240,6 +253,10 @@ const { data: cash } = await useAsyncData('dashboard-cash', async () => store.ca
 const { data: receivable } = await useAsyncData('dashboard-receivable', async () => store.can('customers.view')
   ? (await api<{ meta: { receivable: number, owing_count: number } }>('/customers', { query: { owing: 1, per_page: 5 } })).meta
   : null)
+const { data: repairs } = await useAsyncData('dashboard-repairs', async () => store.can('repairs.view')
+  ? (await api<{ data: RepairSummary }>('/repairs/summary')).data
+  : null, { watch: [branchKey] })
+
 const moneyCards = computed(() => [
   ...(cash.value
     ? [
@@ -274,6 +291,14 @@ const points = computed(() => (stats.value?.series ?? []).map(d => ({ date: d.da
 const topMax = computed(() => Math.max(1, ...(stats.value?.top_items ?? []).map(i => i.revenue)))
 const paymentsTotal = computed(() => (stats.value?.payments ?? []).reduce((sum, p) => sum + p.amount, 0))
 const share = (value: number, of: number) => (of > 0 ? Math.round(value / of * 100) : 0)
+
+const repairCards = computed(() => repairs.value
+  ? [
+      { label: 'أجهزة في الصيانة', value: repairs.value.open, to: '/repairs', icon: 'i-lucide-wrench', tone: 'text-(--ui-text-muted)' },
+      { label: 'جاهزة للتسليم', value: repairs.value.ready, to: '/repairs?tab=ready', icon: 'i-lucide-check-circle', tone: 'text-success' },
+      { label: 'متأخرة عن ميعادها', value: repairs.value.overdue, to: '/repairs?tab=overdue', icon: 'i-lucide-alarm-clock', tone: 'text-error' },
+    ]
+  : [])
 
 const stockCards = computed(() => stock.value
   ? [

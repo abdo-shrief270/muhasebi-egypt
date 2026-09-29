@@ -87,6 +87,8 @@ final class TransitionOrderAction
                     toStatus: $to->value,
                     counterpartyTenantId: $order->counterpartyOf($partyTenant),
                     total: $order->total,
+                    actorTenantId: $tenantId,
+                    orderType: $order->type->value,
                 ));
             }
 

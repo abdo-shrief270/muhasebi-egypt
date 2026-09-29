@@ -20,6 +20,10 @@ class RouteAuthorizationTest extends TestCase
         'api/v1/auth/me' => 'your own session',
         'api/v1/auth/logout' => 'your own session',
         'api/v1/messages/templates' => 'the shop\'s message wording, used by every WhatsApp button',
+        'api/v1/notifications' => 'your own bell: only notifications whose permission you have',
+        'api/v1/notifications/unread' => 'your own bell: only notifications whose permission you have',
+        'api/v1/notifications/read-all' => 'your own read marks, on notifications you may see',
+        'api/v1/notifications/{notification}/read' => 'your own read marks, on notifications you may see',
     ];
 
     public function test_every_signed_in_route_checks_a_permission(): void

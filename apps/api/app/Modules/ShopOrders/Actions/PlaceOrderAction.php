@@ -84,6 +84,8 @@ final class PlaceOrderAction
                     toStatus: OrderStatus::Placed->value,
                     counterpartyTenantId: $order->counterpartyOf($tenantId),
                     total: null,
+                    actorTenantId: $buyerTenantId,
+                    orderType: $order->type->value,
                 ));
             }
 

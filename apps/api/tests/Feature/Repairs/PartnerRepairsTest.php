@@ -95,6 +95,15 @@ class PartnerRepairsTest extends TestCase
         $this->relay();
         $this->assertSame('ready', $this->ticket($this->shop, $mine['id'])['outsourced']['status']);
 
+        // The shop hears of each step in its bell, linked to the order; the partner only of the new job.
+        $bell = $this->as($this->shop)->getJson('/api/v1/notifications')->json('data');
+        $this->assertSame("شغل الصيانة {$order['reference']} جاهز عند «محل 2»", $bell[0]['title']);
+        $this->assertSame(["/shop-orders/{$sent['order_id']}"], array_values(array_unique(array_column($bell, 'to'))));
+        $this->assertSame(['شغل صيانة جديد من «محل 1»'], array_values(array_filter(
+            array_column($this->as($this->partner)->getJson('/api/v1/notifications')->json('data'), 'title'),
+            fn (string $t) => ! str_starts_with($t, 'طلب شراكة'),
+        )));
+
         // The shop can't hand the phone to its customer while the partner still has it.
         $this->as($this->shop)->postJson("/api/v1/repairs/tickets/{$mine['id']}/status", ['status' => 'diagnosing'])->assertOk();
         $this->as($this->shop)->postJson("/api/v1/repairs/tickets/{$mine['id']}/status", ['status' => 'repairing'])->assertOk();

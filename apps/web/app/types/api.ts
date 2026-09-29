@@ -620,3 +620,16 @@ export interface RepairOptions {
 }
 
 export interface RepairSummary { open: number, ready: number, unnotified: number, overdue: number, abandoned: number, mine: number }
+
+/** The bell: what partner shops did, as far as this user may see. */
+export interface AppNotification {
+  id: string
+  type: string
+  title: string
+  body: string | null
+  icon: string | null
+  /** web route to open */
+  to: string | null
+  read: boolean
+  created_at: string
+}

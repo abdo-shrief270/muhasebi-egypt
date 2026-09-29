@@ -20,5 +20,6 @@ return new ModuleManifest(
     ],
     menu: [new MenuItem('/repairs', 'الصيانة', 'i-lucide-wrench', 'repairs.view', group: 'services')],
     provider: RepairsServiceProvider::class,
+    shopTypes: ['repair'],
     sort: 200,
 );

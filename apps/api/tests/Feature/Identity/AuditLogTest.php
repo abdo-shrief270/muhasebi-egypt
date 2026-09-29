@@ -32,6 +32,8 @@ class AuditLogTest extends TestCase
         $this->registerShop();
         $this->actingAsOwnerOf();
 
-        $this->assertCount(1, $this->getJson('/api/v1/audit-log')->json('data'));
+        $registered = collect($this->getJson('/api/v1/audit-log')->json('data'))->where('action', 'shop.registered');
+        $this->assertCount(1, $registered);
+        $this->assertStringContainsString('محل 2', $registered->first()['description']);
     }
 }

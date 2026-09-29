@@ -18,6 +18,9 @@ final readonly class ModuleManifest
      * @param  class-string<ServiceProvider>|null  $provider
      * @param  bool  $available  false while the module's screens are still being built: it stays
      *                           off for every shop (no menu, no permissions, no trial) and shows as «قريباً»
+     * @param  list<string>  $shopTypes  optional modules: the shop types it is for (ShopType values). A shop sees
+     *                                   the ones matching its types, and they start on trial when it registers.
+     *                                   Empty = every shop sees it, none gets it on trial by default.
      */
     public function __construct(
         public string $key,
@@ -30,10 +33,31 @@ final readonly class ModuleManifest
         public ?string $provider = null,
         public int $sort = 100,
         public bool $available = true,
+        public array $shopTypes = [],
     ) {}
 
     public function isOptional(): bool
     {
         return $this->tier === ModuleTier::Optional;
+    }
+
+    /**
+     * Whether a shop of these types should see this module (core modules: always).
+     *
+     * @param  list<string>  $types
+     */
+    public function isFor(array $types): bool
+    {
+        return ! $this->isOptional() || $this->shopTypes === [] || array_intersect($this->shopTypes, $types) !== [];
+    }
+
+    /**
+     * Whether a shop of these types gets it on trial when it registers.
+     *
+     * @param  list<string>  $types
+     */
+    public function isSuggestedFor(array $types): bool
+    {
+        return $this->isOptional() && $this->available && array_intersect($this->shopTypes, $types) !== [];
     }
 }

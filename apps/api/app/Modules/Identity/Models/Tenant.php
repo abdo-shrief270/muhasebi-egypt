@@ -20,10 +20,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $code short public code other shops use to find this shop
  * @property string $phone
- * @property ShopType $shop_type
+ * @property ShopType $shop_type the first of shop_types
+ * @property list<string>|null $shop_types
  * @property array<string, mixed>|null $settings
  */
-#[Fillable(['name', 'code', 'phone', 'shop_type', 'settings'])]
+#[Fillable(['name', 'code', 'phone', 'shop_type', 'shop_types', 'settings'])]
 #[UseFactory(TenantFactory::class)]
 final class Tenant extends Model
 {
@@ -56,8 +57,30 @@ final class Tenant extends Model
     {
         return [
             'shop_type' => ShopType::class,
+            'shop_types' => 'array',
             'settings' => 'array',
         ];
+    }
+
+    /**
+     * What the shop does (one or more).
+     *
+     * @return list<ShopType>
+     */
+    public function types(): array
+    {
+        $stored = array_values(array_filter(array_map(fn ($v) => ShopType::tryFrom((string) $v), $this->shop_types ?? [])));
+
+        return $stored !== [] ? $stored : $this->shop_type->parts();
+    }
+
+    /**
+     * @param  list<ShopType>  $types
+     */
+    public function setTypes(array $types): void
+    {
+        $this->shop_types = array_values(array_unique(array_map(fn (ShopType $t) => $t->value, $types)));
+        $this->shop_type = $types[0];
     }
 
     /**

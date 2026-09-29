@@ -16,6 +16,7 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/services', 'الشحن والتحويلات', 'i-lucide-arrow-left-right', 'services.manage', group: 'services'),
     ],
+    shopTypes: ['accessories', 'phones'],
     sort: 240,
     available: false,
 );

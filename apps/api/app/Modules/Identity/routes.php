@@ -5,8 +5,12 @@ use App\Modules\Identity\Http\Controllers\AuthController;
 use App\Modules\Identity\Http\Controllers\BranchController;
 use App\Modules\Identity\Http\Controllers\PermissionController;
 use App\Modules\Identity\Http\Controllers\RoleController;
+use App\Modules\Identity\Http\Controllers\ShopTypeController;
 use App\Modules\Identity\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+// The kinds of shop, for the registration form.
+Route::get('shop-types', [ShopTypeController::class, 'index'])->middleware('throttle:60,1');
 
 Route::prefix('auth')->group(function (): void {
     Route::middleware('throttle:10,1')->group(function (): void {
@@ -24,6 +28,8 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
     Route::pattern('user', '[0-9a-fA-F-]{36}');
     Route::pattern('branch', '[0-9a-fA-F-]{36}');
     Route::pattern('role', '[0-9]+');
+
+    Route::put('shop/types', [ShopTypeController::class, 'update'])->middleware('can:owner');
 
     Route::middleware('can:users.manage')->group(function (): void {
         Route::get('users', [UserController::class, 'index']);

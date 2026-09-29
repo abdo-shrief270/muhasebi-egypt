@@ -16,6 +16,7 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/installments', 'التقسيط', 'i-lucide-calendar-clock', 'installments.manage', group: 'sales'),
     ],
+    shopTypes: ['phones', 'wholesale'],
     sort: 250,
     available: false,
 );

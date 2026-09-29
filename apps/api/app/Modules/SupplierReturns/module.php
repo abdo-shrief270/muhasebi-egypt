@@ -17,6 +17,7 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/supplier-returns', 'مرتجعات الموردين', 'i-lucide-undo-2', 'supplier_returns.view', group: 'stock'),
     ],
+    shopTypes: ['repair', 'wholesale', 'importer'],
     sort: 220,
     available: false,
 );

@@ -47,7 +47,7 @@ export const useSessionStore = defineStore('session', () => {
     await load()
   }
 
-  async function register(payload: Record<string, string>): Promise<void> {
+  async function register(payload: Record<string, unknown>): Promise<void> {
     const res = await api<{ token: string }>('/auth/register', { method: 'POST', body: payload })
     auth.set(res.token)
     await load()

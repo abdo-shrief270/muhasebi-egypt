@@ -16,6 +16,7 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/used-devices', 'المستعمل', 'i-lucide-smartphone', 'used_devices.manage', group: 'services'),
     ],
+    shopTypes: ['repair', 'phones'],
     sort: 230,
     available: false,
 );

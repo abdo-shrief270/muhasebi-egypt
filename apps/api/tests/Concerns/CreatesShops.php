@@ -18,7 +18,7 @@ trait CreatesShops
 
         return app(RegisterTenantAction::class)->handle(new RegisterTenantData(
             shopName: "محل {$this->shopCounter}",
-            shopType: $type,
+            shopTypes: $type->parts(),
             ownerName: 'المالك',
             phone: $phone ?? sprintf('+20100000%04d', $this->shopCounter + random_int(0, 9000)),
             email: null,

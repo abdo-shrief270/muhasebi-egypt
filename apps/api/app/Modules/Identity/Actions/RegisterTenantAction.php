@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Actions;
 
 use App\Modules\Identity\Data\RegisterTenantData;
+use App\Modules\Identity\Enums\ShopType;
 use App\Modules\Identity\Events\TenantRegistered;
 use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\Role;
@@ -14,6 +15,7 @@ use App\Modules\Identity\Support\DefaultRoles;
 use App\Modules\ModuleManager\Contracts\TenantModules;
 use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
+use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleRegistry;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Support\Facades\DB;
@@ -35,13 +37,12 @@ final class RegisterTenantAction
     public function handle(RegisterTenantData $data): User
     {
         return DB::transaction(function () use ($data): User {
-            $tenant = Tenant::create([
-                'name' => $data->shopName,
-                'phone' => $data->phone,
-                'shop_type' => $data->shopType,
-            ]);
+            $tenant = new Tenant(['name' => $data->shopName, 'phone' => $data->phone]);
+            $tenant->setTypes($data->shopTypes);
+            $tenant->save();
+            $types = array_map(fn (ShopType $t) => $t->value, $tenant->types());
 
-            return $this->currentTenant->runAs($tenant->id, function () use ($tenant, $data): User {
+            return $this->currentTenant->runAs($tenant->id, function () use ($tenant, $data, $types): User {
                 Branch::create([
                     'name' => $data->branchName,
                     'phone' => $data->phone,
@@ -63,9 +64,11 @@ final class RegisterTenantAction
                 }
 
                 // Must succeed together with the registration, so it's a contract call, not an event.
-                $this->modules->startTrials($tenant->id, $data->shopType->recommendedModules());
+                // The optional modules made for this kind of shop start on trial.
+                $suggested = array_keys(array_filter($this->registry->all(), fn (ModuleManifest $m) => $m->isSuggestedFor($types)));
+                $this->modules->startTrials($tenant->id, $suggested);
 
-                $this->events->record(new TenantRegistered($tenant->id, $data->shopType->value, $owner->id));
+                $this->events->record(new TenantRegistered($tenant->id, $types[0], $owner->id, $types));
                 $this->audit->record('shop.registered', "سجّل المحل «{$tenant->name}»", $tenant, tenantId: $tenant->id);
 
                 return $owner;

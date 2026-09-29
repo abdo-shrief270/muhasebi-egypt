@@ -60,7 +60,7 @@ export interface AuditEntry {
 
 export interface Session {
   user: SessionUser
-  tenant: { id: string, name: string, code: string, phone: string, shop_type: string, shop_type_label: string }
+  tenant: { id: string, name: string, code: string, phone: string, shop_type: string, shop_types: string[], shop_type_label: string }
   branches: Branch[]
   current_branch_id: string | null
   enabled_modules: string[]

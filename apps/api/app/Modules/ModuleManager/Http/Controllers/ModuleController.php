@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\ModuleManager\Http\Controllers;
 
+use App\Modules\Identity\Contracts\ShopProfile;
 use App\Modules\ModuleManager\Actions\DisableModuleAction;
 use App\Modules\ModuleManager\Actions\EnableModuleAction;
 use App\Modules\ModuleManager\Actions\StartModuleTrialAction;
@@ -24,15 +25,20 @@ final class ModuleController
         private readonly CurrentTenant $tenant,
     ) {}
 
-    public function index(): AnonymousResourceCollection
+    /** The modules made for the shop's types, plus any it already uses. */
+    public function index(ShopProfile $shop): AnonymousResourceCollection
     {
         $rows = TenantModule::query()->get()->keyBy('module_key');
+        $types = $shop->types();
 
         $items = array_map(fn (ModuleManifest $module): array => [
             'module' => $module,
             'state' => $this->access->state($module->key),
             'row' => $rows->get($module->key),
-        ], array_values($this->registry->visible()));
+        ], array_values(array_filter(
+            $this->registry->visible(),
+            fn (ModuleManifest $m) => $m->isFor($types) || $this->access->state($m->key)->isUsable(),
+        )));
 
         return ModuleResource::collection($items);
     }

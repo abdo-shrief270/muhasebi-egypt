@@ -9,6 +9,12 @@
       </p>
     </div>
 
+    <div class="flex flex-wrap items-center gap-2 rounded-lg bg-(--ui-bg-elevated) px-4 py-3 text-sm">
+      <UIcon name="i-lucide-store" class="size-5 text-(--ui-text-muted)" />
+      <span>بنعرضلك الأقسام اللي تناسب نوع محلك: <b>{{ store.session?.tenant.shop_type_label }}</b></span>
+      <UButton size="xs" color="neutral" variant="outline" icon="i-lucide-pencil" label="تغيير نوع المحل" class="ms-auto" @click="openTypes" />
+    </div>
+
     <UAlert
       v-if="needed"
       color="warning"
@@ -63,6 +69,19 @@
         </UCard>
       </div>
     </section>
+
+    <UModal v-model:open="typesOpen" title="نوع المحل" description="اختار كل اللي محلك بيعمله. الأقسام اللي بتستخدمها فعلاً مش هتختفي.">
+      <template #body>
+        <ShopTypePicker v-model="shopTypes" modules-title="الأقسام الإضافية اللي هتظهرلك:" />
+        <UAlert v-if="typesError" color="error" variant="subtle" :title="typesError" class="mt-3" />
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton color="neutral" variant="ghost" label="إلغاء" @click="typesOpen = false" />
+          <UButton icon="i-lucide-check" label="حفظ" :disabled="!shopTypes.length" :loading="savingTypes" @click="saveTypes" />
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -87,6 +106,34 @@ const groups = computed(() => [
 ].filter(g => g.items.length))
 
 const busy = ref<string | null>(null)
+
+const typesOpen = ref(false)
+const shopTypes = ref<string[]>([])
+const savingTypes = ref(false)
+const typesError = ref<string | null>(null)
+
+function openTypes() {
+  shopTypes.value = [...(store.session?.tenant.shop_types ?? [])]
+  typesError.value = null
+  typesOpen.value = true
+}
+
+async function saveTypes() {
+  savingTypes.value = true
+  typesError.value = null
+  try {
+    await api('/shop/types', { method: 'PUT', body: { shop_types: shopTypes.value } })
+    await Promise.all([refresh(), store.load()])
+    typesOpen.value = false
+    toast.add({ color: 'success', title: 'اتغيّر نوع المحل' })
+  }
+  catch (e) {
+    typesError.value = apiErrorMessage(e)
+  }
+  finally {
+    savingTypes.value = false
+  }
+}
 
 function badgeColor(mod: ModuleInfo) {
   return ({ enabled: 'success', trial: 'info', disabled: 'neutral', read_only: 'warning', not_entitled: 'neutral' } as const)[mod.state]

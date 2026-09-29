@@ -18,5 +18,6 @@ return new ModuleManifest(
     ],
     menu: [new MenuItem('/shop-orders', 'الطلبات بين المحلات', 'i-lucide-handshake', 'shop_orders.view', group: 'services')],
     provider: ShopOrdersServiceProvider::class,
+    shopTypes: ['accessories', 'repair', 'phones', 'wholesale', 'importer'],
     sort: 300,
 );

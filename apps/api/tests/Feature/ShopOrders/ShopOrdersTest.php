@@ -93,8 +93,8 @@ class ShopOrdersTest extends TestCase
         $this->as($this->buyer)->postJson('/api/v1/shop-connections', ['code' => 'ZZZZZZ'])->assertNotFound()->assertJson(['code' => 'shop_not_found']);
         $this->postJson('/api/v1/shop-connections', ['code' => $this->codeOf($this->buyer)])->assertUnprocessable()->assertJson(['code' => 'cannot_connect_to_self']);
 
-        $accessories = $this->registerShop(ShopType::Accessories);
-        $this->postJson('/api/v1/shop-connections', ['code' => $this->codeOf($accessories)])
+        $accessories = $this->shopWithoutOrders();
+        $this->as($this->buyer)->postJson('/api/v1/shop-connections', ['code' => $this->codeOf($accessories)])
             ->assertUnprocessable()
             ->assertJson(['code' => 'partner_module_disabled']);
     }
@@ -185,8 +185,17 @@ class ShopOrdersTest extends TestCase
 
     public function test_the_module_must_be_enabled(): void
     {
-        $accessories = $this->registerShop(ShopType::Accessories);
+        $accessories = $this->shopWithoutOrders();
 
         $this->as($accessories)->getJson('/api/v1/shop-orders')->assertForbidden()->assertJson(['code' => 'module_not_enabled']);
+    }
+
+    /** A shop that hid the inter-shop orders module (every shop type gets it on trial). */
+    private function shopWithoutOrders(): User
+    {
+        $shop = $this->registerShop(ShopType::Accessories);
+        $this->as($shop)->postJson('/api/v1/modules/shop_orders/disable')->assertOk();
+
+        return $shop;
     }
 }

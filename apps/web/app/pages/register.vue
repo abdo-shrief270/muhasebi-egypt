@@ -14,19 +14,8 @@
         <UInput v-model="form.shop_name" class="w-full" />
       </UFormField>
 
-      <UFormField label="نوع المحل" description="بنفعّلك الأقسام المناسبة، وتقدر تغيّرها بعدين.">
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            v-for="type in shopTypes"
-            :key="type.value"
-            type="button"
-            class="rounded-lg border px-3 py-2 text-sm text-start transition"
-            :class="form.shop_type === type.value ? 'border-primary bg-primary/10 text-primary font-semibold' : 'border-(--ui-border) hover:bg-(--ui-bg-elevated)'"
-            @click="form.shop_type = type.value"
-          >
-            {{ type.label }}
-          </button>
-        </div>
+      <UFormField label="محلك بيعمل إيه؟" description="اختار كل اللي ينطبق. هتشوف الأقسام اللي تناسبك بس، وتقدر تغيّر ده بعدين.">
+        <ShopTypePicker v-model="form.shop_types" />
       </UFormField>
 
       <UFormField label="اسمك">
@@ -64,17 +53,10 @@
 definePageMeta({ layout: 'auth', guest: true })
 
 const store = useSessionStore()
-const shopTypes = [
-  { value: 'accessories', label: 'إكسسوارات' },
-  { value: 'repair', label: 'صيانة' },
-  { value: 'accessories_repair', label: 'إكسسوارات + صيانة' },
-  { value: 'importer', label: 'مستورد' },
-  { value: 'wholesale', label: 'جملة' },
-]
 
 const form = reactive({
   shop_name: '',
-  shop_type: 'accessories_repair',
+  shop_types: ['accessories'] as string[],
   owner_name: '',
   phone: '',
   password: '',
@@ -84,6 +66,10 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 
 async function submit() {
+  if (!form.shop_types.length) {
+    error.value = 'اختار نوع المحل (نوع واحد على الأقل).'
+    return
+  }
   loading.value = true
   error.value = null
   try {

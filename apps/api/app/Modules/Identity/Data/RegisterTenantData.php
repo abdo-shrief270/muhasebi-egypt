@@ -10,7 +10,8 @@ final readonly class RegisterTenantData
 {
     public function __construct(
         public string $shopName,
-        public ShopType $shopType,
+        /** @var list<ShopType> one or more */
+        public array $shopTypes,
         public string $ownerName,
         public string $phone,
         public ?string $email,

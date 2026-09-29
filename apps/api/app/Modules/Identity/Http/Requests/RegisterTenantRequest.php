@@ -25,7 +25,10 @@ final class RegisterTenantRequest extends FormRequest
     {
         return [
             'shop_name' => ['required', 'string', 'max:120'],
-            'shop_type' => ['required', Rule::enum(ShopType::class)],
+            // One or more types; shop_type (a single one) is still accepted from older clients.
+            'shop_types' => ['required_without:shop_type', 'array', 'min:1', 'max:5'],
+            'shop_types.*' => ['distinct', Rule::in(array_map(fn (ShopType $t) => $t->value, ShopType::selectable()))],
+            'shop_type' => ['nullable', Rule::enum(ShopType::class)],
             'owner_name' => ['required', 'string', 'max:120'],
             'phone' => ['required', 'phone:EG', 'unique:users,phone'],
             'email' => ['nullable', 'email', 'max:190', 'unique:users,email'],
@@ -47,11 +50,31 @@ final class RegisterTenantRequest extends FormRequest
         }
     }
 
+    public function attributes(): array
+    {
+        return ['shop_types' => 'نوع المحل', 'shop_types.*' => 'نوع المحل'];
+    }
+
+    public function messages(): array
+    {
+        return ['shop_types.required_without' => 'اختار نوع المحل (نوع واحد على الأقل).'];
+    }
+
+    /** @return list<ShopType> */
+    private function shopTypes(): array
+    {
+        if ($this->filled('shop_types')) {
+            return array_values(array_map(fn ($v) => ShopType::from((string) $v), (array) $this->input('shop_types')));
+        }
+
+        return ($this->enum('shop_type', ShopType::class) ?? ShopType::Accessories)->parts();
+    }
+
     public function toData(): RegisterTenantData
     {
         return new RegisterTenantData(
             shopName: $this->string('shop_name')->toString(),
-            shopType: $this->enum('shop_type', ShopType::class) ?? ShopType::Accessories,
+            shopTypes: $this->shopTypes(),
             ownerName: $this->string('owner_name')->toString(),
             phone: $this->string('phone')->toString(),
             email: $this->filled('email') ? $this->string('email')->toString() : null,

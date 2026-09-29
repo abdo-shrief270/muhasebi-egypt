@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Sales\Actions;
 
+use App\Modules\Cash\Contracts\CashDrawer;
+use App\Modules\Cash\Contracts\DrawerEntry;
 use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Catalog\Contracts\VariantSummary;
+use App\Modules\Customers\Contracts\CustomerAccounts;
+use App\Modules\Customers\Contracts\CustomerSummary;
 use App\Modules\Inventory\Contracts\MovementType;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
@@ -25,13 +29,16 @@ use Illuminate\Support\Str;
 
 /**
  * Checks out a POS cart: prices come from the catalog (never the client), stock leaves FIFO,
- * and the sale, its lines and payments are saved together — or not at all.
+ * money goes into the cashier's open shift, any credit (آجل) onto the customer's account — and
+ * the sale, its lines and payments are saved together, or not at all.
  */
 final class CompleteSaleAction
 {
     public function __construct(
         private readonly VariantCatalog $catalog,
         private readonly StockLedger $stock,
+        private readonly CashDrawer $drawer,
+        private readonly CustomerAccounts $customers,
         private readonly DocumentNumbers $numbers,
         private readonly EventRecorder $events,
         private readonly Auditor $audit,
@@ -42,6 +49,7 @@ final class CompleteSaleAction
      * @param  list<array{variant_id: string, qty: int, discount: int}>  $items  discount = piasters off the line
      * @param  list<array{method: PaymentMethod, amount: int, reference: string|null}>  $payments
      * @param  bool  $canDiscount  sales.discount: line / invoice discounts and non-retail price levels
+     * @param  bool  $canCredit  customers.credit: part or all of the total on the customer's account
      */
     public function handle(
         string $tenantId,
@@ -55,6 +63,8 @@ final class CompleteSaleAction
         ?string $customerName = null,
         ?string $customerPhone = null,
         ?string $notes = null,
+        ?string $customerId = null,
+        bool $canCredit = false,
     ): Sale {
         // The same sale sent twice (a retry after a timeout) is saved once.
         if ($saleId !== null && ($existing = Sale::query()->find($saleId)) !== null) {
@@ -87,19 +97,33 @@ final class CompleteSaleAction
         }
         $total = $subtotal - $discount;
 
+        $customer = null;
+        if ($customerId !== null) {
+            $customer = $this->customers->find($customerId) ?? throw new DomainRuleException('العميل مش موجود.', 'customer_not_found', 404);
+            $customerName = $customer->name;
+            $customerPhone = $customer->phone;
+        }
+        $credit = array_sum(array_map(fn (array $p) => $p['method'] === PaymentMethod::Credit ? $p['amount'] : 0, $payments));
+        if ($credit > 0 && $customer === null) {
+            throw new DomainRuleException('اختار العميل الأول عشان تبيع آجل.', 'credit_needs_customer');
+        }
+        if ($credit > 0 && ! $canCredit) {
+            throw new DomainRuleException('مش معاك صلاحية البيع الآجل.', 'credit_not_allowed', 403);
+        }
+
         $paid = array_sum(array_column($payments, 'amount'));
         $cash = array_sum(array_map(fn (array $p) => $p['method'] === PaymentMethod::Cash ? $p['amount'] : 0, $payments));
         if ($paid < $total) {
-            throw new DomainRuleException('المدفوع أقل من المطلوب. البيع الآجل بييجي مع قسم العملاء.', 'underpaid', context: ['missing' => $total - $paid]);
+            throw new DomainRuleException('المدفوع أقل من المطلوب. الباقي ممكن يتحط آجل على العميل.', 'underpaid', context: ['missing' => $total - $paid]);
         }
         // Change can only come out of cash: a card or wallet payment above the total is a typo.
         $change = $paid - $total;
         if ($change > $cash) {
-            throw new DomainRuleException('الفيزا والمحافظ مينفعش يزيدوا عن المطلوب؛ الباقي بيرجع من الكاش بس.', 'overpaid_non_cash');
+            throw new DomainRuleException('الفيزا والمحافظ والآجل مينفعش يزيدوا عن المطلوب؛ الباقي بيرجع من الكاش بس.', 'overpaid_non_cash');
         }
 
         try {
-            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change);
+            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit);
         } catch (UniqueConstraintViolationException $e) {
             // The same id arrived twice at once: the other request saved it.
             return ($saleId !== null ? Sale::query()->find($saleId) : null) ?? throw $e;
@@ -118,6 +142,7 @@ final class CompleteSaleAction
         array $payments,
         int $discount,
         PriceLevel $priceLevel,
+        ?CustomerSummary $customer,
         ?string $customerName,
         ?string $customerPhone,
         ?string $notes,
@@ -125,8 +150,9 @@ final class CompleteSaleAction
         int $total,
         int $paid,
         int $change,
+        int $credit,
     ): Sale {
-        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change): Sale {
+        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit): Sale {
             $user = $this->auth->guard('sanctum')->user();
 
             $sale = new Sale([
@@ -135,12 +161,14 @@ final class CompleteSaleAction
                 'number' => $this->numbers->next($tenantId, 'sale'),
                 'status' => SaleStatus::Completed,
                 'price_level' => $priceLevel,
+                'customer_id' => $customer?->id,
                 'customer_name' => $customerName,
                 'customer_phone' => $customerPhone,
                 'subtotal' => $subtotal,
                 'discount' => $discount,
                 'total' => $total,
                 'paid' => $paid,
+                'credit' => $credit,
                 'change' => $change,
                 'cost_total' => 0,
                 'notes' => $notes,
@@ -181,10 +209,32 @@ final class CompleteSaleAction
                 $sale->payments()->create(['tenant_id' => $tenantId, 'method' => $payment['method'], 'amount' => $payment['amount'], 'reference' => $payment['reference']]);
             }
 
+            // Into the cashier's drawer (cash net of the change handed back); selling needs an open shift.
             $byMethod = [];
             foreach ($payments as $payment) {
                 $byMethod[$payment['method']->value] = ($byMethod[$payment['method']->value] ?? 0) + $payment['amount'];
             }
+            $taken = $byMethod;
+            unset($taken[PaymentMethod::Credit->value]);
+            if (isset($taken[PaymentMethod::Cash->value])) {
+                $taken[PaymentMethod::Cash->value] -= $change;
+            }
+            if ($taken === [] || array_sum($taken) === 0) {
+                // All on credit: nothing reaches the drawer, but the sale still belongs to a shift.
+                if (! $this->drawer->hasOpenShift($branchId)) {
+                    throw new DomainRuleException('افتح وردية الأول عشان الفلوس تتسجل في درجك.', 'shift_not_open', 409);
+                }
+            }
+            foreach ($taken as $method => $amount) {
+                $this->drawer->record($branchId, DrawerEntry::Sale, $method, $amount, 'sale', $sale->id, $sale->reference(), requireShift: true);
+            }
+
+            if ($customer !== null) {
+                $credit > 0
+                    ? $this->customers->chargeSale($customer->id, $credit, $sale->id, $sale->reference(), $branchId)
+                    : $this->customers->touch($customer->id);
+            }
+
             $this->events->record(new SaleCompleted(
                 tenantId: $tenantId,
                 saleId: $sale->id,

@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Customers\Http\Requests;
+
+use App\Modules\Customers\Enums\PaymentMethod;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+final class CustomerPaymentRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return (bool) $this->user()?->can('customers.credit');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        return [
+            'amount' => ['required', 'integer', 'min:1', 'max:100000000000'],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
+            'note' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return ['amount' => 'المبلغ', 'payment_method' => 'طريقة الدفع'];
+    }
+}

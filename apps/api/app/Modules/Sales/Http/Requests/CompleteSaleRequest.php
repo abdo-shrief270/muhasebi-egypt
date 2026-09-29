@@ -27,6 +27,7 @@ final class CompleteSaleRequest extends FormRequest
             'id' => ['nullable', 'uuid'],
             'price_level' => ['nullable', Rule::enum(PriceLevel::class)],
             'discount' => ['nullable', 'integer', 'min:0', 'max:'.self::MAX_MONEY],
+            'customer_id' => ['nullable', 'uuid'],
             'customer_name' => ['nullable', 'string', 'max:120'],
             'customer_phone' => ['nullable', 'string', 'max:20'],
             'notes' => ['nullable', 'string', 'max:500'],

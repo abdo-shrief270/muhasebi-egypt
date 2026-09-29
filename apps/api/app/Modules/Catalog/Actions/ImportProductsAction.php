@@ -12,12 +12,12 @@ use App\Modules\Catalog\Models\ProductVariant;
 use App\Modules\Catalog\Support\Import\ImportPlan;
 use App\Modules\Catalog\Support\Import\ImportPlanner;
 use App\Modules\Catalog\Support\Import\SheetReader;
-use App\Modules\Catalog\Support\SearchText;
 use App\Modules\Inventory\Contracts\MovementType;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Support\Audit\Auditor;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Text\SearchText;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 

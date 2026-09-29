@@ -10,7 +10,7 @@ use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\DeviceModel;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
-use App\Modules\Catalog\Support\SearchText;
+use App\Support\Text\SearchText;
 
 /**
  * Turns sheet rows into a plan without touching the database: which rows are invalid and why,

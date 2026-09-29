@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Support\Import;
 
-use App\Modules\Catalog\Support\SearchText;
+use App\Support\Text\SearchText;
 
 /**
  * The product sheet's columns: the template's header, the other headers shops tend to use,

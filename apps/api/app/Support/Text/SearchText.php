@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Catalog\Support;
+namespace App\Support\Text;
 
 /**
  * Normalises text for search so that spelling variants match: أ/إ/آ → ا, ة → ه, ى → ي,

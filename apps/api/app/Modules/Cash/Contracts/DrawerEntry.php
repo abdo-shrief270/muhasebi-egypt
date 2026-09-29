@@ -1,0 +1,13 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Cash\Contracts;
+
+/** Why money moved through a drawer, for the modules that record it via CashDrawer. */
+enum DrawerEntry: string
+{
+    case Sale = 'sale';
+    case SaleRefund = 'sale_refund';
+    case CustomerPayment = 'customer_payment';
+}

@@ -10,6 +10,8 @@ enum PaymentMethod: string
     case Card = 'card';
     case Wallet = 'wallet';
     case InstaPay = 'instapay';
+    /** On the customer's account (آجل): no money changes hands now. */
+    case Credit = 'credit';
 
     public function label(): string
     {
@@ -18,6 +20,7 @@ enum PaymentMethod: string
             self::Card => 'فيزا',
             self::Wallet => 'محفظة',
             self::InstaPay => 'InstaPay',
+            self::Credit => 'آجل',
         };
     }
 }

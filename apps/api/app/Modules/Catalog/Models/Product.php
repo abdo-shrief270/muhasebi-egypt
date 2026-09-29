@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog\Models;
 
-use App\Modules\Catalog\Support\SearchText;
 use App\Support\Tenancy\BelongsToTenant;
+use App\Support\Text\SearchText;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;

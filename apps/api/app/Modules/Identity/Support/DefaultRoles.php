@@ -24,7 +24,7 @@ final class DefaultRoles
                 'name' => 'كاشير',
                 'permissions' => [
                     'sales.sell', 'sales.view', 'products.view', 'inventory.view',
-                    'customers.view', 'customers.manage', 'cash.shift', 'messages.send',
+                    'customers.view', 'customers.manage', 'cash.shift', 'cash.expenses', 'messages.send',
                     'repairs.view', 'repairs.create', 'services.manage', 'shop_orders.view',
                 ],
             ],

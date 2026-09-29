@@ -12,7 +12,7 @@ use App\Modules\Catalog\Http\Resources\DeviceModelResource;
 use App\Modules\Catalog\Models\Brand;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Catalog\Models\DeviceModel;
-use App\Modules\Catalog\Support\SearchText;
+use App\Support\Text\SearchText;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

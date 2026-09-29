@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Sales\Actions;
 
+use App\Modules\Cash\Contracts\CashDrawer;
+use App\Modules\Cash\Contracts\DrawerEntry;
+use App\Modules\Customers\Contracts\CustomerAccounts;
 use App\Modules\Inventory\Contracts\MovementType;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
@@ -24,12 +27,15 @@ use Illuminate\Support\Facades\DB;
 /**
  * Takes items back from a customer. Each unit is refunded at what it was really paid (its line
  * after the invoice discount's share). Sound units go back into stock at their original cost;
- * damaged ones don't (they're a loss, or later a return to the supplier).
+ * damaged ones don't (they're a loss, or later a return to the supplier). The money leaves the
+ * refunding cashier's drawer, or — refunded as credit (آجل) — comes off the customer's account.
  */
 final class CreateSaleReturnAction
 {
     public function __construct(
         private readonly StockLedger $stock,
+        private readonly CashDrawer $drawer,
+        private readonly CustomerAccounts $customers,
         private readonly DocumentNumbers $numbers,
         private readonly EventRecorder $events,
         private readonly Auditor $audit,
@@ -39,9 +45,13 @@ final class CreateSaleReturnAction
     /**
      * @param  list<array{sale_item_id: int, qty: int, restock: bool}>  $lines
      */
-    public function handle(string $tenantId, Sale $sale, array $lines, PaymentMethod $refundMethod, ?string $reason): SaleReturn
+    public function handle(string $tenantId, string $branchId, Sale $sale, array $lines, PaymentMethod $refundMethod, ?string $reason): SaleReturn
     {
-        return DB::transaction(function () use ($tenantId, $sale, $lines, $refundMethod, $reason): SaleReturn {
+        if ($refundMethod === PaymentMethod::Credit && $sale->customer_id === null) {
+            throw new DomainRuleException('الفاتورة دي مش على عميل، فمينفعش المرتجع يتخصم من حسابه.', 'credit_needs_customer');
+        }
+
+        return DB::transaction(function () use ($tenantId, $branchId, $sale, $lines, $refundMethod, $reason): SaleReturn {
             $sale = Sale::query()->lockForUpdate()->findOrFail($sale->id);
             /** @var Collection<int, SaleItem> $items */
             $items = $sale->items()->get()->keyBy('id');
@@ -103,6 +113,12 @@ final class CreateSaleReturnAction
             }
 
             $return->update(['total' => $total, 'cost' => $cost]);
+
+            if ($refundMethod === PaymentMethod::Credit) {
+                $this->customers->creditReturn((string) $sale->customer_id, $total, $return->id, $return->reference(), $branchId);
+            } else {
+                $this->drawer->record($branchId, DrawerEntry::SaleRefund, $refundMethod->value, -$total, 'sale_return', $return->id, "{$return->reference()} من {$sale->reference()}");
+            }
 
             $allBack = $items->every(fn (SaleItem $i) => $i->fresh()?->returned_qty === $i->qty);
             $sale->update([

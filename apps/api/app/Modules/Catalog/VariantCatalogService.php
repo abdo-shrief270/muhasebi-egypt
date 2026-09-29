@@ -7,7 +7,7 @@ namespace App\Modules\Catalog;
 use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Catalog\Contracts\VariantSummary;
 use App\Modules\Catalog\Models\ProductVariant;
-use App\Modules\Catalog\Support\SearchText;
+use App\Support\Text\SearchText;
 use Illuminate\Database\Eloquent\Builder;
 
 final class VariantCatalogService implements VariantCatalog

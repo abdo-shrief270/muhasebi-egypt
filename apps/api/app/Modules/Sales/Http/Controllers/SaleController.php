@@ -24,12 +24,17 @@ final class SaleController
         private readonly CurrentBranch $branch,
     ) {}
 
-    /** Sales of the current branch. ?q= invoice number or customer &from=&to= (dates) */
+    /** Sales of the current branch (or of ?customer_id= anywhere). ?q= invoice number or customer &from=&to= (dates) */
     public function index(Request $request): JsonResponse
     {
         $sales = Sale::query()
             ->withCount('items')
-            ->where('branch_id', $this->branch->idOrFail())
+            // A customer's sales come from every branch; otherwise this branch's.
+            ->when(
+                $request->filled('customer_id'),
+                fn ($q) => $q->where('customer_id', (string) $request->query('customer_id')),
+                fn ($q) => $q->where('branch_id', $this->branch->idOrFail()),
+            )
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $term = trim((string) $request->query('q'));
                 $number = (int) preg_replace('/\D/', '', $term);
@@ -71,6 +76,8 @@ final class SaleController
             customerName: $request->validated('customer_name'),
             customerPhone: $request->validated('customer_phone'),
             notes: $request->validated('notes'),
+            customerId: $request->validated('customer_id'),
+            canCredit: (bool) $request->user()?->can('customers.credit'),
         );
 
         return $this->show($request, $sale->id)->response()->setStatusCode(201);
@@ -80,6 +87,7 @@ final class SaleController
     {
         $action->handle(
             $this->tenant->idOrFail(),
+            $this->branch->idOrFail(),
             Sale::query()->findOrFail($sale),
             $request->lines(),
             $request->enum('refund_method', PaymentMethod::class) ?? PaymentMethod::Cash,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Catalog\Support;
 
 use App\Modules\Catalog\Enums\CategoryType;
+use App\Support\Text\SearchText;
 use Illuminate\Support\Facades\DB;
 
 /**

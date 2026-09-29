@@ -48,6 +48,13 @@ class SalesTest extends TestCase
             ['variant_id' => $this->v[0], 'qty' => 10, 'unit_cost' => 4000],
             ['variant_id' => $this->v[1], 'qty' => 5, 'unit_cost' => 30000],
         ]])->assertCreated();
+        $this->openShift();
+    }
+
+    /** Selling needs an open shift for whoever is signed in. */
+    private function openShift(int $openingCash = 0): void
+    {
+        $this->postJson('/api/v1/cash/shifts', ['opening_cash' => $openingCash])->assertCreated();
     }
 
     private function inShop(callable $callback): mixed
@@ -148,6 +155,7 @@ class SalesTest extends TestCase
         $this->sell(['discount' => 100000])->assertUnprocessable()->assertJsonPath('code', 'discount_too_large');
 
         Sanctum::actingAs($this->staff('cashier'));
+        $this->openShift();
         $this->sell()->assertCreated();
         $this->sell(['discount' => 1000])->assertForbidden()->assertJsonPath('code', 'discount_not_allowed');
         $this->sell(['price_level' => 'wholesale'])->assertForbidden();

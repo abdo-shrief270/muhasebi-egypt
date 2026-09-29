@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Customers\CustomersServiceProvider;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -17,5 +18,6 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/customers', 'العملاء', 'i-lucide-users', 'customers.view', group: 'sales'),
     ],
+    provider: CustomersServiceProvider::class,
     sort: 40,
 );

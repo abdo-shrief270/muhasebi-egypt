@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Cash\CashServiceProvider;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -17,5 +18,6 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/cash', 'الخزنة', 'i-lucide-wallet', 'cash.shift', group: 'sales'),
     ],
+    provider: CashServiceProvider::class,
     sort: 60,
 );

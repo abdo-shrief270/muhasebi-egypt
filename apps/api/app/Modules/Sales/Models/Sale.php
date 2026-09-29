@@ -23,6 +23,8 @@ use Illuminate\Support\Carbon;
  * @property int $number
  * @property SaleStatus $status
  * @property PriceLevel $price_level
+ * @property string|null $customer_id
+ * @property int $credit piasters put on the customer's account
  * @property string|null $customer_name
  * @property string|null $customer_phone
  * @property int $subtotal
@@ -42,7 +44,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, SaleReturn> $returns
  */
 #[Fillable([
-    'id', 'tenant_id', 'branch_id', 'number', 'status', 'price_level', 'customer_name', 'customer_phone',
+    'id', 'tenant_id', 'branch_id', 'number', 'status', 'price_level', 'customer_id', 'customer_name', 'customer_phone', 'credit',
     'subtotal', 'discount', 'total', 'paid', 'change', 'cost_total', 'refunded', 'refunded_cost', 'notes',
     'cashier_id', 'cashier_name', 'public_token', 'completed_at',
 ])]
@@ -60,6 +62,7 @@ final class Sale extends Model
             'discount' => 'integer',
             'total' => 'integer',
             'paid' => 'integer',
+            'credit' => 'integer',
             'change' => 'integer',
             'cost_total' => 'integer',
             'refunded' => 'integer',

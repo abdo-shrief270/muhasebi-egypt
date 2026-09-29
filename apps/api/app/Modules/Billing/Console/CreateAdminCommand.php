@@ -23,6 +23,9 @@ final class CreateAdminCommand extends Command
             ['name' => (string) $this->argument('name'), 'password' => $password, 'is_active' => true],
         );
         $this->info("Admin {$admin->email} is ready.");
+        if (! $admin->hasTwoFactor()) {
+            $this->warn("Signing in needs an authenticator app: php artisan billing:admin-2fa {$admin->email}");
+        }
 
         return self::SUCCESS;
     }

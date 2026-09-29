@@ -24,7 +24,7 @@ final class AdminAuthController
 
     public function login(Request $request): JsonResponse
     {
-        $data = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
+        $data = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string'], 'code' => ['required', 'string', 'max:10']], attributes: ['code' => 'كود التطبيق']);
         $email = mb_strtolower($data['email']);
         $key = 'admin-login:'.sha1($email.'|'.$request->ip());
 
@@ -37,7 +37,17 @@ final class AdminAuthController
         if ($admin === null || ! $admin->is_active || ! Hash::check($data['password'], $admin->getAuthPassword())) {
             RateLimiter::hit($key, (int) config('billing.admin.lockout_minutes') * 60);
             $this->log->record('login_failed', details: ['email' => $email]);
-            throw new DomainRuleException('الإيميل أو كلمة السر غلط.', 'invalid_credentials', Response::HTTP_UNPROCESSABLE_ENTITY);
+            throw new DomainRuleException('الإيميل أو كلمة السر أو الكود غلط.', 'invalid_credentials', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        // The authenticator code is required for every admin (set up from the server: billing:admin-2fa).
+        if (! $admin->hasTwoFactor()) {
+            $this->log->record('login_failed', details: ['email' => $email, 'reason' => 'no two-factor']);
+            throw new DomainRuleException('التحقق بخطوتين مش متفعّل للحساب ده. فعّله من السيرفر: php artisan billing:admin-2fa', 'two_factor_required', Response::HTTP_FORBIDDEN);
+        }
+        if (! $admin->verifyCode($data['code'])) {
+            RateLimiter::hit($key, (int) config('billing.admin.lockout_minutes') * 60);
+            $this->log->record('login_failed', details: ['email' => $email, 'reason' => 'code']);
+            throw new DomainRuleException('الإيميل أو كلمة السر أو الكود غلط.', 'invalid_credentials', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         RateLimiter::clear($key);

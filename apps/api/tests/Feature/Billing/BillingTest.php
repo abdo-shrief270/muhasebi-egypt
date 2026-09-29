@@ -7,6 +7,7 @@ use App\Modules\Billing\Models\PlatformAdminAction;
 use App\Modules\Catalog\Models\Category;
 use App\Modules\Identity\Models\User;
 use App\Support\Audit\AuditEntry;
+use App\Support\Security\Totp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -20,6 +21,14 @@ class BillingTest extends TestCase
 
     private PlatformAdmin $admin;
 
+    private const SECRET = 'JBSWY3DPEHPK3PXP';
+
+    /** A fresh authenticator code (each step is accepted once). */
+    private function code(int $offset = 0): string
+    {
+        return Totp::code(self::SECRET, Totp::step() + $offset);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -27,6 +36,7 @@ class BillingTest extends TestCase
         $this->openShopWithStock();
         $this->openShift(10000);
         $this->admin = PlatformAdmin::create(['name' => 'الإدارة', 'email' => 'admin@muhasebi.test', 'password' => 'secret-password']);
+        $this->admin->forceFill(['two_factor_secret' => self::SECRET, 'two_factor_confirmed_at' => now()])->save();
     }
 
     private function asOwner(): static
@@ -177,21 +187,30 @@ class BillingTest extends TestCase
     public function test_admin_sign_in(): void
     {
         $this->app['auth']->forgetGuards(); // real tokens below, not the owner set up by actingAs
-        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'wrong'])->assertUnprocessable()->assertJsonPath('code', 'invalid_credentials');
-        $token = $this->postJson('/api/v1/admin/auth/login', ['email' => 'ADMIN@muhasebi.test', 'password' => 'secret-password'])->assertOk()->json('token');
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'wrong', 'code' => $this->code()])->assertUnprocessable()->assertJsonPath('code', 'invalid_credentials');
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])->assertUnprocessable()->assertJsonValidationErrors('code');
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password', 'code' => '000000'])->assertUnprocessable();
+        $code = $this->code();
+        $token = $this->postJson('/api/v1/admin/auth/login', ['email' => 'ADMIN@muhasebi.test', 'password' => 'secret-password', 'code' => $code])->assertOk()->json('token');
+        // The same code can't be used twice.
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password', 'code' => $code])->assertUnprocessable();
         $this->withToken($token)->getJson('/api/v1/admin/auth/me')->assertOk()->assertJsonPath('data.email', 'admin@muhasebi.test');
         // An admin token is not a shop session.
         $this->withToken($token)->getJson('/api/v1/auth/me')->assertForbidden();
 
+        // No authenticator set up: no way in.
+        $this->admin->forceFill(['two_factor_secret' => null, 'two_factor_confirmed_at' => null])->save();
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password', 'code' => $this->code(1)])->assertForbidden()->assertJsonPath('code', 'two_factor_required');
+
         $this->admin->update(['is_active' => false]);
-        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])->assertUnprocessable();
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password', 'code' => $this->code(1)])->assertUnprocessable();
     }
 
     public function test_the_admin_api_lives_only_on_its_domain_and_ips(): void
     {
         config(['billing.admin.domain' => 'admin.muhasebi.test']);
         $this->asAdmin()->getJson('/api/v1/admin/overview')->assertNotFound();
-        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])->assertNotFound();
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password', 'code' => $this->code()])->assertNotFound();
         $this->getJson('http://admin.muhasebi.test/api/v1/admin/overview')->assertOk()->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 
         config(['billing.admin.allowed_ips' => ['10.0.0.0/8']]);
@@ -203,13 +222,13 @@ class BillingTest extends TestCase
     {
         $this->app['auth']->forgetGuards();
         foreach (range(1, 5) as $i) {
-            $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => "wrong-{$i}"])->assertUnprocessable();
+            $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => "wrong-{$i}", 'code' => '123456'])->assertUnprocessable();
         }
-        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])
+        $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password', 'code' => $this->code()])
             ->assertStatus(429)->assertJsonPath('code', 'login_locked');
 
         $this->travel(16)->minutes();
-        $token = $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password'])->assertOk()->json('token');
+        $token = $this->postJson('/api/v1/admin/auth/login', ['email' => 'admin@muhasebi.test', 'password' => 'secret-password', 'code' => $this->code()])->assertOk()->json('token');
         $this->withToken($token)->getJson('/api/v1/admin/overview')->assertOk();
 
         $this->travel(9)->hours();

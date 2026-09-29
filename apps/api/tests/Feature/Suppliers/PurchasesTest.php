@@ -142,7 +142,10 @@ class PurchasesTest extends TestCase
         $this->assertTrue($second['items'][0]['cost_increased']);
         $this->assertSame(10000, $second['items'][0]['previous_cost']);
 
-        $event = StoredEvent::query()->where('name', PurchaseReceived::NAME)->latest('occurred_at')->firstOrFail()->toDomainEvent();
+        // Both purchases can land in the same second, so pick the event by its purchase, not by time.
+        $event = StoredEvent::query()->where('name', PurchaseReceived::NAME)->get()
+            ->map(fn (StoredEvent $e) => $e->toDomainEvent())
+            ->firstOrFail(fn (PurchaseReceived $e) => $e->purchaseId === $second['id']);
         $this->assertSame([['variant_id' => $black, 'previous_cost' => 10000, 'new_cost' => 12000]], $event->costIncreases);
     }
 

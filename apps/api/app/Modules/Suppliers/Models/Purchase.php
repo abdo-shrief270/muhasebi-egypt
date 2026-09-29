@@ -85,6 +85,6 @@ final class Purchase extends Model
      */
     public function returns(): HasMany
     {
-        return $this->hasMany(PurchaseReturn::class)->orderBy('created_at');
+        return $this->hasMany(PurchaseReturn::class)->orderBy('created_at')->orderBy('id');
     }
 }

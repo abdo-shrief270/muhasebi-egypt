@@ -94,6 +94,6 @@ final class Sale extends Model
      */
     public function returns(): HasMany
     {
-        return $this->hasMany(SaleReturn::class)->orderBy('created_at');
+        return $this->hasMany(SaleReturn::class)->orderBy('created_at')->orderBy('id');
     }
 }

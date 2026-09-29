@@ -36,7 +36,7 @@ export default defineNuxtConfig({
         'lucide:file-check', 'lucide:git-compare-arrows', 'lucide:message-circle', 'lucide:package',
         'lucide:receipt', 'lucide:ship', 'lucide:shopping-cart', 'lucide:smartphone', 'lucide:store',
         'lucide:truck', 'lucide:undo-2', 'lucide:users', 'lucide:wallet', 'lucide:warehouse', 'lucide:wrench',
-        'lucide:box', 'lucide:handshake', 'lucide:receipt-text', 'lucide:tag',
+        'lucide:box', 'lucide:handshake', 'lucide:receipt-text', 'lucide:tag', 'lucide:tags', 'lucide:percent',
         // Icons named in .ts files / script blocks, which the scan doesn't see.
         'lucide:package-plus', 'lucide:clipboard-check', 'lucide:file-spreadsheet', 'lucide:triangle-alert', 'lucide:circle-x',
         'lucide:layout-dashboard', 'lucide:notebook-pen', 'lucide:hand-coins', 'lucide:trending-up', 'lucide:scan-barcode', 'lucide:user-plus', 'lucide:check-circle', 'lucide:alarm-clock', 'lucide:banknote', 'lucide:credit-card', 'lucide:smartphone',

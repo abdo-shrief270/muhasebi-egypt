@@ -30,6 +30,7 @@ export function useQuickActions() {
     { to: '/purchases/new', label: 'فاتورة شراء', description: 'استلم بضاعة من مورد', icon: 'i-lucide-receipt-text', permission: 'suppliers.manage' },
     { to: '/products/new', label: 'صنف جديد', description: 'ضيف صنف للكتالوج', icon: 'i-lucide-package-plus', permission: 'products.manage' },
     { to: '/inventory?count=1', label: 'جرد', description: 'اعد البضاعة اللي على الرف', icon: 'i-lucide-clipboard-check', permission: 'inventory.adjust' },
+    { to: '/products/prices', label: 'تعديل الأسعار', description: 'زوّد أو خفّض أسعار كتير مرة واحدة', icon: 'i-lucide-percent', permission: 'products.manage' },
     { to: '/products/labels', label: 'ليبلات باركود', description: 'اطبع باركود أو QR', icon: 'i-lucide-tag', permission: 'products.view' },
     { to: '/reports/sales?period=today', label: 'تقرير النهارده', description: 'مبيعات وأرباح اليوم', icon: 'i-lucide-chart-column', permission: 'reports.view' },
     { to: '/products/import', label: 'استيراد إكسل', description: 'ارفع أصناف كتير مرة واحدة', icon: 'i-lucide-file-spreadsheet', permission: 'products.manage' },

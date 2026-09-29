@@ -6,6 +6,7 @@ namespace App\Modules\Catalog\Actions;
 
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
+use App\Modules\Catalog\Support\PriceHistory;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Support\Audit\Auditor;
 use App\Support\Exceptions\DomainRuleException;
@@ -20,6 +21,7 @@ final class SaveProductAction
     public function __construct(
         private readonly Auditor $audit,
         private readonly StockLedger $stock,
+        private readonly PriceHistory $history,
     ) {}
 
     /**
@@ -87,6 +89,7 @@ final class SaveProductAction
             $variant->fill([...array_diff_key($row, ['id' => true]), 'sort' => $sort]);
             $variant->product()->associate($product);
 
+            $changed = [];
             if ($variant->exists) {
                 foreach (ProductVariant::PRICE_FIELDS as $field) {
                     if ($variant->isDirty($field)) {
@@ -96,11 +99,16 @@ final class SaveProductAction
                             'from' => $variant->getOriginal($field),
                             'to' => $variant->getAttribute($field),
                         ];
+                        $changed[$field] = $variant->getOriginal($field);
                     }
                 }
             }
 
             $variant->save();
+
+            foreach ($changed as $field => $from) {
+                $this->history->record($variant, $field, $from, $variant->getAttribute($field), 'edit');
+            }
         }
 
         return $priceChanges;

@@ -3,6 +3,7 @@
     <PageHeader title="الأصناف" description="كل صنف بأنواعه وأسعاره والموديلات اللي بيركب عليها.">
       <UButton v-if="canManage" to="/products/setup" color="neutral" variant="outline" icon="i-lucide-tags" label="التصنيفات والماركات" />
       <UButton v-if="canManage" to="/products/import" color="neutral" variant="outline" icon="i-lucide-file-spreadsheet" label="استيراد من Excel" />
+      <UButton v-if="canManage" to="/products/prices" color="neutral" variant="outline" icon="i-lucide-percent" label="تعديل الأسعار" />
       <UButton to="/products/labels" color="neutral" variant="outline" icon="i-lucide-tag" label="ليبلات باركود" />
       <UButton v-if="canManage" to="/products/new" icon="i-lucide-plus" label="صنف جديد" />
     </PageHeader>

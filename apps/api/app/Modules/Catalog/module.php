@@ -17,6 +17,7 @@ return new ModuleManifest(
     ],
     menu: [
         new MenuItem('/products', 'الأصناف', 'i-lucide-package', 'products.view', group: 'stock'),
+        new MenuItem('/products/prices', 'تعديل الأسعار', 'i-lucide-tags', 'products.manage', group: 'stock'),
     ],
     provider: CatalogServiceProvider::class,
     sort: 20,

@@ -29,7 +29,7 @@ final class Commission
 
         $amount = match (true) {
             $rule->type === 'fixed' => $rule->value,
-            $rule->base === 'profit' => intdiv(max(0, $ticket->total - $ticket->parts_cost) * $rule->value + 5000, 10000),
+            $rule->base === 'profit' => intdiv(max(0, $ticket->total - $ticket->cost()) * $rule->value + 5000, 10000),
             default => intdiv(max(0, $ticket->labor - $ticket->discount) * $rule->value + 5000, 10000),
         };
 

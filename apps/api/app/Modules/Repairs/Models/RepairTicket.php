@@ -58,6 +58,14 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $warranty_until
  * @property string|null $warranty_of_id
  * @property string $public_token
+ * @property string|null $outsourced_order_id sent to a partner shop for repair (its shop order)
+ * @property string|null $outsourced_reference
+ * @property string|null $outsourced_shop
+ * @property string|null $outsourced_status the shop order's status
+ * @property int $outsource_cost the partner's price, a cost of this ticket
+ * @property string|null $partner_order_id taken in from a partner shop's repair order
+ * @property int|null $partner_item_id
+ * @property string|null $partner_reference
  */
 #[Fillable([
     'id', 'tenant_id', 'branch_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone',
@@ -67,6 +75,8 @@ use Illuminate\Support\Carbon;
     'ready_at', 'delivered_at', 'delivered_by', 'delivered_by_name',
     'estimate', 'labor', 'parts_total', 'parts_cost', 'discount', 'total', 'paid', 'credit', 'commission', 'commission_rule',
     'warranty_days', 'warranty_until', 'warranty_of_id', 'public_token',
+    'outsourced_order_id', 'outsourced_reference', 'outsourced_shop', 'outsourced_status', 'outsource_cost',
+    'partner_order_id', 'partner_item_id', 'partner_reference',
 ])]
 final class RepairTicket extends Model
 {
@@ -81,6 +91,7 @@ final class RepairTicket extends Model
         'paid' => 0,
         'credit' => 0,
         'commission' => 0,
+        'outsource_cost' => 0,
         'warranty_days' => 0,
         'unlock_type' => 'none',
     ];
@@ -106,6 +117,8 @@ final class RepairTicket extends Model
             'labor' => 'integer',
             'parts_total' => 'integer',
             'parts_cost' => 'integer',
+            'outsource_cost' => 'integer',
+            'partner_item_id' => 'integer',
             'discount' => 'integer',
             'total' => 'integer',
             'paid' => 'integer',
@@ -168,5 +181,17 @@ final class RepairTicket extends Model
     public function events(): HasMany
     {
         return $this->hasMany(RepairTicketEvent::class, 'ticket_id')->orderBy('seq');
+    }
+
+    /** What the repair cost the shop: parts from stock and a partner shop's price. */
+    public function cost(): int
+    {
+        return $this->parts_cost + $this->outsource_cost;
+    }
+
+    /** Sent to a partner and not back or called off yet. */
+    public function isOutsourced(): bool
+    {
+        return $this->outsourced_order_id !== null && ! in_array($this->outsourced_status, ['completed', 'rejected', 'cancelled'], true);
     }
 }

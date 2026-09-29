@@ -73,6 +73,12 @@
                 <UBadge :color="ticketStatusColor(t.status)" variant="subtle">
                   {{ t.status_label }}
                 </UBadge>
+                <UBadge v-if="t.outsourced?.active" color="info" variant="outline" size="sm" icon="i-lucide-send" class="ms-1">
+                  عند {{ t.outsourced.shop }}
+                </UBadge>
+                <UBadge v-if="t.partner" color="neutral" variant="outline" size="sm" icon="i-lucide-handshake" class="ms-1">
+                  من محل شريك
+                </UBadge>
                 <UBadge v-if="t.status === 'ready' && !t.ready_notified_at" color="warning" variant="outline" size="sm" icon="i-lucide-message-circle" class="ms-1">
                   العميل ما اتبلغش
                 </UBadge>

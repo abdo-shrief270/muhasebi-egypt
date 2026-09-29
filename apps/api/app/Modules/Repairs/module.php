@@ -20,6 +20,8 @@ return new ModuleManifest(
     ],
     menu: [new MenuItem('/repairs', 'الصيانة', 'i-lucide-wrench', 'repairs.view', group: 'services')],
     provider: RepairsServiceProvider::class,
-    shopTypes: ['repair'],
+    // Accessories and phone shops take devices in too and send them to a partner repair shop.
+    shopTypes: ['repair', 'accessories', 'phones'],
+    trialFor: ['repair'],
     sort: 200,
 );

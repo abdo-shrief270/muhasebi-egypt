@@ -40,8 +40,10 @@ class ShopTypesTest extends TestCase
         $types = collect($this->getJson('/api/v1/shop-types')->assertOk()->json('data'))->keyBy('value');
 
         $this->assertSame(['accessories', 'repair', 'phones', 'wholesale', 'importer'], $types->keys()->all());
-        $this->assertContains('repairs', array_column($types['repair']['modules'], 'key'));
-        $this->assertNotContains('repairs', array_column($types['accessories']['modules'], 'key'));
+        $repairs = fn (string $type) => collect($types[$type]['modules'])->firstWhere('key', 'repairs');
+        $this->assertTrue($repairs('repair')['trial']);
+        $this->assertFalse($repairs('accessories')['trial'], 'accessories shops see repairs (to send devices to a partner) but don\'t start on it');
+        $this->assertNull($repairs('wholesale'));
     }
 
     public function test_a_shop_of_several_types_sees_and_tries_the_modules_made_for_them(): void
@@ -60,21 +62,28 @@ class ShopTypesTest extends TestCase
         $this->assertArrayNotHasKey('installments', $modules, 'for phone and wholesale shops');
     }
 
-    public function test_an_accessories_shop_does_not_see_repairs_until_it_says_it_repairs(): void
+    public function test_a_wholesaler_does_not_see_repairs_until_it_says_it_repairs(): void
     {
-        $this->signIn(['accessories']);
+        $this->signIn(['wholesale']);
         $this->assertArrayNotHasKey('repairs', $this->modules());
 
-        $this->putJson('/api/v1/shop/types', ['shop_types' => ['accessories', 'repair']])
-            ->assertOk()->assertJsonPath('data.shop_types', ['accessories', 'repair']);
+        $this->putJson('/api/v1/shop/types', ['shop_types' => ['wholesale', 'repair']])
+            ->assertOk()->assertJsonPath('data.shop_types', ['wholesale', 'repair']);
 
         $repairs = $this->modules()['repairs'];
         $this->assertSame([false, true], [$repairs['usable'], $repairs['trial_available']], 'shown, to try when the owner wants');
 
         // Dropping the type again keeps a module the shop already uses.
         $this->postJson('/api/v1/modules/repairs/trial')->assertOk();
-        $this->putJson('/api/v1/shop/types', ['shop_types' => ['accessories']])->assertOk();
+        $this->putJson('/api/v1/shop/types', ['shop_types' => ['wholesale']])->assertOk();
         $this->assertArrayHasKey('repairs', $this->modules());
+    }
+
+    public function test_an_accessories_shop_sees_repairs_without_starting_its_trial(): void
+    {
+        $this->signIn(['accessories']);
+        $repairs = $this->modules()['repairs'];
+        $this->assertSame([false, true], [$repairs['usable'], $repairs['trial_available']]);
     }
 
     public function test_types_are_validated_and_the_old_single_type_still_works(): void

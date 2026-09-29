@@ -32,10 +32,30 @@
         <UButton color="neutral" variant="outline" icon="i-lucide-printer" label="الإيصال" @click="print" />
         <UButton v-if="canWork && ticket.next_statuses.length" color="neutral" variant="outline" icon="i-lucide-arrow-left-right" label="تغيير الحالة" @click="openStatus(null)" />
         <UButton v-if="canWork && ticket.next_statuses.some(s => s.value === 'ready')" color="success" variant="soft" icon="i-lucide-check-circle" label="جاهز" @click="openStatus('ready')" />
+        <UButton v-if="canOutsource && !['delivered', 'rejected'].includes(ticket.status) && !ticket.outsourced?.active" color="neutral" variant="outline" icon="i-lucide-send" label="ابعته لمحل شريك" @click="outsourceOpen = true" />
         <UButton v-if="canDeliver && ticket.can_deliver" icon="i-lucide-hand-helping" label="تسليم للعميل" @click="deliverOpen = true" />
         <UButton v-if="ticket.under_warranty && store.can('repairs.create')" color="warning" variant="soft" icon="i-lucide-shield-alert" label="رجوع في الضمان" :loading="returning" @click="warrantyReturn" />
       </div>
     </div>
+
+    <UAlert
+      v-if="ticket.outsourced"
+      :color="ticket.outsourced.active && ticket.outsourced.status !== 'delivered' ? 'info' : 'neutral'"
+      variant="subtle"
+      icon="i-lucide-send"
+      :title="`${ticket.outsourced.active ? 'الجهاز عند' : 'اتبعت لـ'} «${ticket.outsourced.shop}» — ${partnerStatusLabel(ticket.outsourced.status)}`"
+      :description="ticket.outsourced.cost ? `حساب المحل: ${formatMoney(ticket.outsourced.cost)} (بيتحسب تكلفة على التذكرة)` : undefined"
+      :actions="store.can('shop_orders.view') ? [{ label: `طلب ${ticket.outsourced.reference}`, to: `/shop-orders/${ticket.outsourced.order_id}`, color: 'neutral', variant: 'outline' }] : []"
+    />
+    <UAlert
+      v-if="ticket.partner"
+      color="info"
+      variant="subtle"
+      icon="i-lucide-handshake"
+      title="جاي من محل شريك"
+      :description="`العميل هنا هو المحل. لما تغيّر الحالة أو تسلّمه، طلبه ${ticket.partner.reference} بيتحدّث لوحده.`"
+      :actions="store.can('shop_orders.view') ? [{ label: `طلب ${ticket.partner.reference}`, to: `/shop-orders/${ticket.partner.order_id}`, color: 'neutral', variant: 'outline' }] : []"
+    />
 
     <div class="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div class="space-y-6">
@@ -326,6 +346,7 @@
 
     <RepairsStatusModal v-model:open="statusOpen" :ticket="ticket" :preset="statusPreset" @changed="onChanged" />
     <RepairsDeliverModal v-model:open="deliverOpen" :ticket="ticket" @delivered="onChanged" />
+    <RepairsOutsourceModal v-model:open="outsourceOpen" :ticket="ticket" @saved="onOutsourced" />
     <PrintSheet v-if="printing" page-size="80mm auto">
       <RepairsIntakeReceipt :ticket="ticket" :shop="shop" />
     </PrintSheet>
@@ -345,6 +366,8 @@ const id = computed(() => String(route.params.id))
 const canWork = computed(() => store.can('repairs.update_status'))
 const canDeliver = computed(() => store.can('repairs.deliver'))
 const messages = useMessages()
+const canOutsource = computed(() => store.can('repairs.update_status') && store.can('shop_orders.place'))
+const outsourceOpen = ref(false)
 
 function notify(t: RepairTicket) {
   messages.sendTicket(t)
@@ -452,6 +475,10 @@ function openStatus(preset: TicketStatus | null) {
   statusPreset.value = preset
   statusOpen.value = true
 }
+function onOutsourced(updated: RepairTicket) {
+  data.value = { data: updated }
+}
+
 function onChanged(updated: RepairTicket) {
   data.value = { data: updated }
   // Offer the matching WhatsApp message right away.

@@ -36,7 +36,8 @@ final class TicketResource extends JsonResource
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'next_statuses' => array_map(fn (TicketStatus $s) => ['value' => $s->value, 'label' => $s->label()], $this->status->next()),
-            'can_deliver' => $this->status->canDeliver(),
+            // Not while the device is still at a partner shop.
+            'can_deliver' => $this->status->canDeliver() && ! ($this->resource->isOutsourced() && $this->outsourced_status !== 'delivered'),
             'is_overdue' => $this->isOverdue(),
             'customer_id' => $this->customer_id,
             'customer_name' => $this->customer_name,
@@ -72,6 +73,17 @@ final class TicketResource extends JsonResource
             'labor' => $this->labor,
             'parts_total' => $this->parts_total,
             'parts_cost' => $user?->can('products.view_cost') ? $this->parts_cost : null,
+            // Sent to a partner shop for repair: where it is, and the partner's price for whoever sees costs.
+            'outsourced' => $this->outsourced_order_id === null ? null : [
+                'order_id' => $this->outsourced_order_id,
+                'reference' => $this->outsourced_reference,
+                'shop' => $this->outsourced_shop,
+                'status' => $this->outsourced_status,
+                'active' => $this->resource->isOutsourced(),
+                'cost' => $user?->can('products.view_cost') || $user?->can('reports.profit') ? $this->outsource_cost : null,
+            ],
+            // Taken in from a partner shop's repair order.
+            'partner' => $this->partner_order_id === null ? null : ['order_id' => $this->partner_order_id, 'reference' => $this->partner_reference],
             'discount' => $this->discount,
             'total' => $this->total,
             'paid' => $this->paid,

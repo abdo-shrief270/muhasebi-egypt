@@ -21,6 +21,8 @@ final readonly class ModuleManifest
      * @param  list<string>  $shopTypes  optional modules: the shop types it is for (ShopType values). A shop sees
      *                                   the ones matching its types, and they start on trial when it registers.
      *                                   Empty = every shop sees it, none gets it on trial by default.
+     * @param  list<string>|null  $trialFor  the shop types that get it on trial at registration, when only some of
+     *                                       $shopTypes should (null = all of them)
      */
     public function __construct(
         public string $key,
@@ -34,6 +36,7 @@ final readonly class ModuleManifest
         public int $sort = 100,
         public bool $available = true,
         public array $shopTypes = [],
+        public ?array $trialFor = null,
     ) {}
 
     public function isOptional(): bool
@@ -58,6 +61,6 @@ final readonly class ModuleManifest
      */
     public function isSuggestedFor(array $types): bool
     {
-        return $this->isOptional() && $this->available && array_intersect($this->shopTypes, $types) !== [];
+        return $this->isOptional() && $this->available && array_intersect($this->trialFor ?? $this->shopTypes, $types) !== [];
     }
 }

@@ -74,7 +74,7 @@ final class RepairsReport implements Report
             ->whereIn('branch_id', $query->branchIds());
 
         $totals = $delivered()->selectRaw('count(*) as tickets, count(*) filter (where ready_at is not null) as repaired,
-            coalesce(sum(total), 0) as revenue, coalesce(sum(total - parts_cost), 0) as profit, coalesce(sum(commission), 0) as commission,
+            coalesce(sum(total), 0) as revenue, coalesce(sum(total - parts_cost - outsource_cost), 0) as profit, coalesce(sum(commission), 0) as commission,
             avg(extract(epoch from delivered_at - received_at)) / 86400 as days')->first();
         $summary = [
             ['label' => 'أجهزة دخلت', 'value' => $received()->count(), 'type' => 'int'],
@@ -115,7 +115,7 @@ final class RepairsReport implements Report
     {
         $rows = $delivered->groupBy('technician_id')
             ->selectRaw('max(technician_name) as name, count(*) as tickets, count(*) filter (where ready_at is not null) as repaired,
-                sum(labor) as labor, sum(parts_total) as parts, sum(total) as revenue, sum(total - parts_cost) as profit, sum(commission) as commission,
+                sum(labor) as labor, sum(parts_total) as parts, sum(total) as revenue, sum(total - parts_cost - outsource_cost) as profit, sum(commission) as commission,
                 avg(extract(epoch from delivered_at - received_at)) / 86400 as days')
             ->orderByDesc('revenue')
             ->get();

@@ -10,6 +10,7 @@ use App\Modules\Repairs\Enums\TicketStatus;
 use App\Modules\Repairs\Events\TicketDelivered;
 use App\Modules\Repairs\Models\RepairTicket;
 use App\Modules\Repairs\Support\Commission;
+use App\Modules\Repairs\Support\PartnerSync;
 use App\Modules\Repairs\Support\TicketMoney;
 use App\Modules\Repairs\Support\Timeline;
 use App\Support\Audit\Auditor;
@@ -29,6 +30,7 @@ final class DeliverTicketAction
         private readonly TicketMoney $money,
         private readonly CustomerAccounts $customers,
         private readonly Timeline $timeline,
+        private readonly PartnerSync $partnerSync,
         private readonly EventRecorder $events,
         private readonly Auditor $audit,
         private readonly Auth $auth,
@@ -43,6 +45,9 @@ final class DeliverTicketAction
             $ticket = RepairTicket::query()->lockForUpdate()->findOrFail($ticket->id);
             if (! $ticket->status->canDeliver()) {
                 throw new DomainRuleException('الجهاز لسه مش جاهز للتسليم.', 'ticket_not_ready', context: ['status' => $ticket->status->value]);
+            }
+            if ($ticket->isOutsourced() && $ticket->outsourced_status !== 'delivered') {
+                throw new DomainRuleException("الجهاز لسه عند «{$ticket->outsourced_shop}».", 'ticket_outsourced');
             }
 
             $due = $ticket->due();
@@ -93,6 +98,7 @@ final class DeliverTicketAction
             $ticket->save();
 
             $this->timeline->add($ticket, EventType::Delivered, $note, $from, TicketStatus::Delivered);
+            $this->partnerSync->ticketMoved($ticket);
             $this->audit->record(
                 'repairs.delivered',
                 "سلّم الجهاز في التذكرة {$ticket->reference()} ({$ticket->device_name}) بحساب ".number_format($ticket->total / 100, 2).' ج',

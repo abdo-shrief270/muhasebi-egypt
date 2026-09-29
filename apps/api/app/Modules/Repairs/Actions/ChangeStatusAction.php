@@ -7,6 +7,7 @@ namespace App\Modules\Repairs\Actions;
 use App\Modules\Repairs\Enums\EventType;
 use App\Modules\Repairs\Enums\TicketStatus;
 use App\Modules\Repairs\Models\RepairTicket;
+use App\Modules\Repairs\Support\PartnerSync;
 use App\Modules\Repairs\Support\Timeline;
 use App\Support\Audit\Auditor;
 use App\Support\Exceptions\DomainRuleException;
@@ -16,6 +17,7 @@ final class ChangeStatusAction
 {
     public function __construct(
         private readonly Timeline $timeline,
+        private readonly PartnerSync $partnerSync,
         private readonly Auditor $audit,
     ) {}
 
@@ -33,6 +35,7 @@ final class ChangeStatusAction
             $ticket->save();
 
             $this->timeline->add($ticket, EventType::Status, $note, $from, $to);
+            $this->partnerSync->ticketMoved($ticket);
             if ($to === TicketStatus::Rejected) {
                 $this->audit->record('repairs.rejected', "التذكرة {$ticket->reference()} اتقفلت من غير إصلاح".($note ? " — {$note}" : ''), $ticket);
             }

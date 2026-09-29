@@ -573,6 +573,10 @@ export interface RepairTicket {
   technician_id: string | null
   technician_name: string | null
   ready_at: string | null
+  /** sent to a partner shop for repair */
+  outsourced: { order_id: string, reference: string, shop: string, status: string, active: boolean, cost: number | null } | null
+  /** taken in from a partner shop's repair order */
+  partner: { order_id: string, reference: string } | null
   /** ready tickets: when the customer was told on WhatsApp (null = not yet) */
   ready_notified_at: string | null
   delivered_at: string | null

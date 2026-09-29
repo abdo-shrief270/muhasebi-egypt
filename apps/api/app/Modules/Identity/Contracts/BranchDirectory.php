@@ -15,4 +15,7 @@ interface BranchDirectory
      * @return array<string, string> id => name
      */
     public function accessibleBranches(Authenticatable $user): array;
+
+    /** The current shop's main branch (where work that isn't tied to a branch lands). */
+    public function mainBranchId(): ?string;
 }

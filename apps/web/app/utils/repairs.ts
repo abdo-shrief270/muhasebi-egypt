@@ -40,3 +40,17 @@ export function ticketMessage(ticket: RepairTicket, shopName: string): string {
   }
   return lines[ticket.status].filter(Boolean).join('\n')
 }
+
+/** Where a device sent to a partner shop is (the shop order's status). */
+export function partnerStatusLabel(status: string): string {
+  return ({
+    placed: 'مستني المحل يقبل',
+    accepted: 'المحل قبل',
+    preparing: 'بيشتغل عليه',
+    ready: 'جاهز عند المحل',
+    delivered: 'رجع من المحل',
+    completed: 'رجع من المحل',
+    rejected: 'المحل رفض',
+    cancelled: 'اتلغى',
+  } as Record<string, string>)[status] ?? status
+}

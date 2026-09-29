@@ -24,9 +24,11 @@
         {{ modulesTitle }}
       </p>
       <div class="flex flex-wrap gap-1.5">
-        <UBadge v-for="m in modules" :key="m.key" :color="m.available ? 'primary' : 'neutral'" variant="subtle">
+        <UBadge v-for="m in modules" :key="m.key" :color="m.available && m.trial ? 'primary' : 'neutral'" :variant="m.trial || !m.available ? 'subtle' : 'outline'">
           {{ m.name }}<template v-if="!m.available">
             · قريباً
+          </template><template v-else-if="!m.trial">
+            · تجربه وقت ما تحب
           </template>
         </UBadge>
       </div>
@@ -39,7 +41,7 @@ export interface ShopTypeOption {
   value: string
   label: string
   description: string
-  modules: { key: string, name: string, available: boolean }[]
+  modules: { key: string, name: string, available: boolean, trial: boolean }[]
 }
 
 /** One or more kinds of shop; shows the extra modules that come with them. */
@@ -64,10 +66,12 @@ const modules = computed(() => {
   const seen = new Map<string, ShopTypeOption['modules'][number]>()
   for (const type of types.value.filter(t => model.value.includes(t.value))) {
     for (const m of type.modules) {
-      seen.set(m.key, m)
+      // Trial if any picked type starts it.
+      seen.set(m.key, { ...m, trial: m.trial || !!seen.get(m.key)?.trial })
     }
   }
-  return [...seen.values()].sort((a, b) => Number(b.available) - Number(a.available))
+  const rank = (m: { available: boolean, trial: boolean }) => (m.available ? 2 : 0) + (m.trial ? 1 : 0)
+  return [...seen.values()].sort((a, b) => rank(b) - rank(a))
 })
 
 function toggle(value: string) {

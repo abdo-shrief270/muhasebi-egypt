@@ -28,4 +28,9 @@ final class BranchDirectoryService implements BranchDirectory
 
         return $branches;
     }
+
+    public function mainBranchId(): ?string
+    {
+        return Branch::query()->where('is_main', true)->value('id');
+    }
 }

@@ -31,7 +31,7 @@ final class ShopTypeController
             'label' => $type->label(),
             'description' => $type->description(),
             'modules' => array_values(array_map(
-                fn (ModuleManifest $m): array => ['key' => $m->key, 'name' => $m->name, 'available' => $m->available],
+                fn (ModuleManifest $m): array => ['key' => $m->key, 'name' => $m->name, 'available' => $m->available, 'trial' => $m->isSuggestedFor([$type->value])],
                 array_filter($this->registry->all(), fn (ModuleManifest $m) => $m->isOptional() && in_array($type->value, $m->shopTypes, true)),
             )),
         ], ShopType::selectable())]);

@@ -6,11 +6,14 @@ namespace App\Modules\Repairs;
 
 use App\Modules\ModuleManager\Events\ModuleEnabled;
 use App\Modules\Repairs\Listeners\SeedDefaultFaults;
+use App\Modules\Repairs\Listeners\SyncPartnerRepairs;
+use App\Modules\ShopOrders\Events\ShopOrderUpdated;
 use App\Support\Modules\ModuleServiceProvider;
 
 final class RepairsServiceProvider extends ModuleServiceProvider
 {
     protected array $listen = [
         ModuleEnabled::class => [SeedDefaultFaults::class],
+        ShopOrderUpdated::class => [SyncPartnerRepairs::class],
     ];
 }

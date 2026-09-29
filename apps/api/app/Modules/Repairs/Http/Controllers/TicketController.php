@@ -9,6 +9,7 @@ use App\Modules\Messaging\Contracts\MessageHistory;
 use App\Modules\Repairs\Actions\AddPartAction;
 use App\Modules\Repairs\Actions\ChangeStatusAction;
 use App\Modules\Repairs\Actions\DeliverTicketAction;
+use App\Modules\Repairs\Actions\OutsourceTicketAction;
 use App\Modules\Repairs\Actions\ReceiveDeviceAction;
 use App\Modules\Repairs\Actions\RemovePartAction;
 use App\Modules\Repairs\Actions\UpdateTicketAction;
@@ -142,6 +143,21 @@ final class TicketController
         }
 
         return $this->show($action->handle($ticket, $data));
+    }
+
+    /** Send the device to a partner shop for repair. */
+    public function outsource(Request $request, RepairTicket $ticket, OutsourceTicketAction $action): TicketResource
+    {
+        $this->inBranch($ticket);
+        $user = $request->user();
+        abort_unless($user !== null && $user->can('repairs.update_status') && $user->can('shop_orders.place'), 403);
+        $data = $request->validate([
+            'partner_tenant_id' => ['required', 'uuid'],
+            'note' => ['nullable', 'string', 'max:190'],
+            'needed_by' => ['nullable', 'date', 'after_or_equal:today'],
+        ]);
+
+        return $this->show($action->handle($ticket, $data['partner_tenant_id'], (string) $user->getAuthIdentifier(), $data['note'] ?? null, $data['needed_by'] ?? null));
     }
 
     public function status(Request $request, RepairTicket $ticket, ChangeStatusAction $action): TicketResource

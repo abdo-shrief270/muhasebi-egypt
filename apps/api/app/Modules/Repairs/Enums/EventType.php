@@ -15,6 +15,8 @@ enum EventType: string
     case PartRemoved = 'part_removed';
     case Payment = 'payment';
     case Delivered = 'delivered';
+    case Outsourced = 'outsourced';
+    case Partner = 'partner';
 
     public function label(): string
     {
@@ -28,6 +30,8 @@ enum EventType: string
             self::PartRemoved => 'قطعة اتشالت',
             self::Payment => 'فلوس',
             self::Delivered => 'تسليم الجهاز',
+            self::Outsourced => 'اتبعت لمحل شريك',
+            self::Partner => 'المحل الشريك',
         };
     }
 }

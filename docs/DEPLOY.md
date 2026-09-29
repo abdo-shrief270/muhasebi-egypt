@@ -150,6 +150,10 @@ ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده 
 | نسخة احتياطية دلوقتي | `./backup.sh` |
 | استرجاع نسخة | `./restore.sh backups/muhasebi-XXXX.dump` |
 | إيقاف كله | `docker compose down` (الداتا بتفضل) |
+| حساب الإدارة (Super Admin) | `docker compose exec api php artisan billing:admin you@example.com "اسمك"` (بيسأل على كلمة السر؛ نفس الأمر بيغيّرها) — وبعدين `https://<الدومين>/admin` |
+| مزامنة أقسام المشتركين | `docker compose exec api php artisan billing:sync-modules` (بعد ما قسم «قريباً» يبقى متاح) |
+
+**الاشتراكات:** الدفع بـ InstaPay. حط في `.env` بتاع السيرفر `BILLING_INSTAPAY_ADDRESS` و`BILLING_INSTAPAY_NAME` و`BILLING_INSTAPAY_PHONE` (بيظهروا لصاحب المحل في صفحة الاشتراك)، وبعدين `./deploy.sh`. الأسعار والباقات في `apps/api/config/billing.php`.
 
 ## مشاكل شائعة
 - **الموقع مش بيفتح / مفيش HTTPS:** اتأكد إن الـ A record بيشاور على السيرفر (`dig app.muhasebi.com`) وإن 80 و443 مفتوحين، وبص على `docker compose logs caddy`.

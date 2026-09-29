@@ -59,6 +59,7 @@
       </header>
 
       <main class="flex-1 p-4 lg:p-8">
+        <BillingSubscriptionBanner />
         <slot />
       </main>
     </div>
@@ -130,7 +131,7 @@ const userItems = computed<DropdownMenuItem[][]>(() => [
   }],
   [
     ...(store.can('users.manage') ? [{ label: 'الموظفين', icon: 'i-lucide-users-round', to: '/settings/users' }] : []),
-    ...(store.isOwner ? [{ label: 'الأقسام والاشتراك', icon: 'i-lucide-blocks', to: '/settings/modules' }] : []),
+    ...(store.isOwner ? [{ label: 'الأقسام', icon: 'i-lucide-blocks', to: '/settings/modules' }, { label: 'الاشتراك والفواتير', icon: 'i-lucide-credit-card', to: '/settings/billing' }] : []),
     { label: 'بحث سريع', icon: 'i-lucide-search', kbds: ['meta', 'K'], onSelect: () => { searchOpen.value = true } },
     ...(store.can('products.view') ? [{ label: 'استعلام عن سعر', icon: 'i-lucide-tag', kbds: ['F8'], onSelect: () => priceCheck.show() }] : []),
     { label: `نسخ كود المحل (${store.session?.tenant.code ?? ''})`, icon: 'i-lucide-hash', onSelect: copyCode },

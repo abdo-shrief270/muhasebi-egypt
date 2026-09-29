@@ -39,6 +39,7 @@ export function useApi() {
   const config = useRuntimeConfig()
   const auth = useAuthToken()
   const branch = useBranchId()
+  const nuxtApp = useNuxtApp()
 
   return $fetch.create({
     baseURL: config.public.apiBase,
@@ -60,6 +61,13 @@ export function useApi() {
       }
       else if (response.status === 403 && body?.code === 'branch_forbidden') {
         branch.set(null)
+      }
+      else if (response.status === 402) {
+        // Subscription restricted / suspended: say why, and refresh the banner.
+        nuxtApp.runWithContext(() => {
+          useToast().add({ color: 'warning', title: body?.message ?? 'الاشتراك مش مفعّل', actions: useSessionStore().isOwner ? [{ label: 'الاشتراك', onClick: () => { navigateTo('/settings/billing') } }] : [] })
+          useSubscription().refresh()
+        })
       }
       else if (response.status === 403 && body?.code === 'module_not_enabled') {
         await navigateTo({ path: '/settings/modules', query: { need: body.module } })

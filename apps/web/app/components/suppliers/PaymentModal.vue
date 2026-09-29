@@ -10,10 +10,16 @@
             <USelect v-model="form.method" :items="methods" class="w-full" />
           </UFormField>
         </div>
+        <UCheckbox
+          v-if="form.method !== 'bank_transfer'"
+          v-model="form.fromDrawer"
+          label="من درج الوردية"
+          description="اتدفعت من فلوس الدرج — شيلها لو دفعت من الخزنة أو من جيبك"
+        />
         <UFormField label="ملاحظة">
           <UInput v-model="form.note" class="w-full" />
         </UFormField>
-        <UAlert v-if="error" color="error" variant="subtle" :title="error" />
+        <UAlert v-if="error" color="error" variant="subtle" :title="error" :actions="needsShift ? [{ label: 'افتح وردية', to: '/cash' }] : []" />
       </form>
     </template>
     <template #footer>
@@ -34,14 +40,16 @@ const emit = defineEmits<{ saved: [] }>()
 
 const api = useApi()
 const toast = useToast()
-const form = reactive({ amount: '', method: 'cash', note: '' })
+const form = reactive({ amount: '', method: 'cash', note: '', fromDrawer: true })
 const saving = ref(false)
 const error = ref<string | null>(null)
+const needsShift = ref(false)
 
 watch(open, (isOpen) => {
   if (isOpen) {
-    Object.assign(form, { amount: props.supplier && props.supplier.balance > 0 ? String(props.supplier.balance / 100) : '', method: 'cash', note: '' })
+    Object.assign(form, { amount: props.supplier && props.supplier.balance > 0 ? String(props.supplier.balance / 100) : '', method: 'cash', note: '', fromDrawer: true })
     error.value = null
+    needsShift.value = false
   }
 })
 
@@ -54,7 +62,7 @@ async function save() {
   try {
     await api(`/suppliers/${props.supplier.id}/payments`, {
       method: 'POST',
-      body: { amount: toPiasters(form.amount), payment_method: form.method, note: form.note || null },
+      body: { amount: toPiasters(form.amount), payment_method: form.method, note: form.note || null, from_drawer: form.fromDrawer },
     })
     toast.add({ color: 'success', title: 'اتسجّلت الدفعة' })
     open.value = false
@@ -62,6 +70,7 @@ async function save() {
   }
   catch (e) {
     error.value = apiErrorMessage(e)
+    needsShift.value = apiErrorCode(e) === 'shift_not_open'
   }
   finally {
     saving.value = false

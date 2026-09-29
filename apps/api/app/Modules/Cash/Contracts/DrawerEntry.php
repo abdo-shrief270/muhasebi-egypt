@@ -12,4 +12,6 @@ enum DrawerEntry: string
     case CustomerPayment = 'customer_payment';
     /** A repair deposit, the final bill, or a deposit refunded (negative). */
     case Repair = 'repair';
+    /** Money paid to a supplier out of the drawer (negative). */
+    case SupplierPayment = 'supplier_payment';
 }

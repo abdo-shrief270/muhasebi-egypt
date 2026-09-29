@@ -70,6 +70,7 @@ final class PurchaseController
             paid: (int) $request->validated('paid', 0),
             paymentMethod: $request->enum('payment_method', PaymentMethod::class),
             notes: $request->validated('notes'),
+            fromDrawer: $request->boolean('from_drawer', true),
         );
 
         return $this->show($purchase->id)->response()->setStatusCode(201);

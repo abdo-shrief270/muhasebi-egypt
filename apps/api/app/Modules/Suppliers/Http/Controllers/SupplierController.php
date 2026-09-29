@@ -78,6 +78,7 @@ final class SupplierController
             (int) $request->validated('amount'),
             $request->enum('payment_method', PaymentMethod::class) ?? PaymentMethod::Cash,
             $request->validated('note'),
+            $request->boolean('from_drawer', true),
         );
 
         return (new SupplierTransactionResource($transaction))->response()->setStatusCode(201);

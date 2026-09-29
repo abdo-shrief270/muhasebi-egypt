@@ -11,6 +11,12 @@ enum PaymentMethod: string
     case Wallet = 'wallet';
     case InstaPay = 'instapay';
 
+    /** The drawer method this is paid from; a bank transfer never touches a drawer. */
+    public function drawerMethod(): ?string
+    {
+        return $this === self::BankTransfer ? null : $this->value;
+    }
+
     public function label(): string
     {
         return match ($this) {

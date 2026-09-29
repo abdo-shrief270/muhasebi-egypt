@@ -125,6 +125,12 @@
           <UFormField v-if="paidPiasters > 0" label="طريقة الدفع" required>
             <USelect v-model="form.payment_method" :items="methods" class="w-full" />
           </UFormField>
+          <UCheckbox
+            v-if="paidPiasters > 0 && form.payment_method !== 'bank_transfer'"
+            v-model="form.from_drawer"
+            label="من درج الوردية"
+            description="اتدفعت من فلوس الدرج — شيلها لو دفعت من الخزنة أو من جيبك"
+          />
           <UFormField label="ملاحظات">
             <UTextarea v-model="form.notes" :rows="2" class="w-full" />
           </UFormField>
@@ -164,7 +170,7 @@
       </div>
     </UCard>
 
-    <UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-circle-alert" :title="error" />
+    <UAlert v-if="error" color="error" variant="subtle" icon="i-lucide-circle-alert" :title="error" :actions="needsShift ? [{ label: 'افتح وردية', to: '/cash' }] : []" />
 
     <div class="flex justify-end gap-2">
       <UButton to="/purchases" color="neutral" variant="ghost" label="إلغاء" />
@@ -200,6 +206,7 @@ const form = reactive({
   discount: '',
   paid: '',
   payment_method: 'cash',
+  from_drawer: true,
   notes: '',
   items: [] as Line[],
 })
@@ -272,6 +279,7 @@ const total = computed(() => Math.max(0, subtotal.value - discountPiasters.value
 
 const saving = ref(false)
 const error = ref<string | null>(null)
+const needsShift = ref(false)
 
 async function save() {
   saving.value = true
@@ -286,6 +294,7 @@ async function save() {
         discount: discountPiasters.value,
         paid: paidPiasters.value,
         payment_method: paidPiasters.value > 0 ? form.payment_method : null,
+        from_drawer: form.from_drawer,
         notes: form.notes || null,
         items: form.items.map(l => ({ variant_id: l.variant.id, qty: Number(l.qty), unit_cost: toPiasters(l.cost) ?? 0 })),
       },
@@ -300,6 +309,7 @@ async function save() {
   }
   catch (e) {
     error.value = apiErrorMessage(e)
+    needsShift.value = apiErrorCode(e) === 'shift_not_open'
   }
   finally {
     saving.value = false

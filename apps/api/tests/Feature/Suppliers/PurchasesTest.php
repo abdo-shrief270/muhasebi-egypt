@@ -37,6 +37,13 @@ class PurchasesTest extends TestCase
         $this->owner = $this->newShop();
         $this->branchId = $this->inShop(fn () => Branch::query()->value('id'));
         Sanctum::actingAs($this->owner);
+        $this->postJson('/api/v1/cash/shifts', ['opening_cash' => 100000])->assertCreated();
+    }
+
+    /** @return array<string, int> expected drawer per method */
+    private function drawer(): array
+    {
+        return $this->getJson('/api/v1/cash/current')->assertOk()->json('data.expected');
     }
 
     private function newShop(): User
@@ -129,6 +136,36 @@ class PurchasesTest extends TestCase
 
         $this->assertSame(2, $this->purchase($supplier['id'], [['variant_id' => $black, 'qty' => 1, 'unit_cost' => 1]])['number'], 'numbers run per shop');
         $this->assertSame(2, AuditEntry::query()->where('action', 'purchases.created')->count());
+    }
+
+    public function test_what_is_paid_now_comes_out_of_the_shift_drawer(): void
+    {
+        [$black] = $this->variants();
+        $supplier = $this->supplier(['opening_balance' => 100000]);
+
+        $this->purchase($supplier['id'], [['variant_id' => $black, 'qty' => 10, 'unit_cost' => 10000]], ['paid' => 30000, 'payment_method' => 'cash']);
+        $this->assertSame(70000, $this->drawer()['cash']);
+
+        $this->postJson("/api/v1/suppliers/{$supplier['id']}/payments", ['amount' => 20000, 'payment_method' => 'cash'])->assertCreated();
+        $this->postJson("/api/v1/suppliers/{$supplier['id']}/payments", ['amount' => 5000, 'payment_method' => 'wallet'])->assertCreated();
+        $this->assertSame([50000, -5000], [$this->drawer()['cash'], $this->drawer()['wallet']]);
+
+        // Paid from the safe / the owner's pocket, or by bank: the drawer is untouched.
+        $this->postJson("/api/v1/suppliers/{$supplier['id']}/payments", ['amount' => 10000, 'payment_method' => 'cash', 'from_drawer' => false])->assertCreated();
+        $this->purchase($supplier['id'], [['variant_id' => $black, 'qty' => 1, 'unit_cost' => 10000]], ['paid' => 10000, 'payment_method' => 'cash', 'from_drawer' => false]);
+        $this->postJson("/api/v1/suppliers/{$supplier['id']}/payments", ['amount' => 10000, 'payment_method' => 'bank_transfer'])->assertCreated();
+        $this->assertSame(50000, $this->drawer()['cash']);
+        $this->assertSame(100000 + 110000 - 30000 - 20000 - 5000 - 10000 - 10000 - 10000, $this->balance($supplier['id']));
+
+        $movements = $this->getJson('/api/v1/cash/current')->json('data.movements');
+        $this->assertContains('دفع لمورد', array_column($movements ?? [], 'type_label'));
+
+        // Cash from the drawer needs an open shift.
+        $shift = $this->getJson('/api/v1/cash/current')->json('data.id');
+        $this->postJson("/api/v1/cash/shifts/{$shift}/close", ['counted' => ['cash' => 50000]])->assertOk();
+        $this->postJson("/api/v1/suppliers/{$supplier['id']}/payments", ['amount' => 1000, 'payment_method' => 'cash'])
+            ->assertStatus(409)->assertJsonPath('code', 'shift_not_open');
+        $this->postJson("/api/v1/suppliers/{$supplier['id']}/payments", ['amount' => 1000, 'payment_method' => 'cash', 'from_drawer' => false])->assertCreated();
     }
 
     public function test_a_cost_increase_is_flagged(): void

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Suppliers\Actions;
 
+use App\Modules\Cash\Contracts\CashDrawer;
+use App\Modules\Cash\Contracts\DrawerEntry;
 use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Inventory\Contracts\MovementType;
 use App\Modules\Inventory\Contracts\StockLedger;
@@ -31,6 +33,7 @@ final class CreatePurchaseAction
         private readonly StockLedger $stock,
         private readonly VariantCatalog $catalog,
         private readonly SupplierAccount $account,
+        private readonly CashDrawer $drawer,
         private readonly DocumentNumbers $numbers,
         private readonly EventRecorder $events,
         private readonly Auditor $audit,
@@ -51,6 +54,7 @@ final class CreatePurchaseAction
         int $paid = 0,
         ?PaymentMethod $paymentMethod = null,
         ?string $notes = null,
+        bool $fromDrawer = true,
     ): Purchase {
         $supplier = Supplier::query()->find($supplierId) ?? throw new DomainRuleException('المورد مش موجود.', 'supplier_not_found', 404);
         if (! $supplier->is_active) {
@@ -75,7 +79,7 @@ final class CreatePurchaseAction
             throw new DomainRuleException('اختار طريقة الدفع.', 'payment_method_required');
         }
 
-        return DB::transaction(function () use ($tenantId, $branchId, $supplier, $items, $invoiceDate, $supplierInvoiceNo, $discount, $paid, $paymentMethod, $notes, $subtotal, $total): Purchase {
+        return DB::transaction(function () use ($tenantId, $branchId, $supplier, $items, $invoiceDate, $supplierInvoiceNo, $discount, $paid, $paymentMethod, $notes, $subtotal, $total, $fromDrawer): Purchase {
             $user = $this->auth->guard('sanctum')->user();
             $previousCosts = $this->stock->averageCosts($branchId, array_column($items, 'variant_id'));
 
@@ -126,6 +130,10 @@ final class CreatePurchaseAction
             $this->account->post($supplier->id, SupplierTransactionType::Purchase, $total, $purchase, note: $purchase->reference());
             if ($paid > 0) {
                 $this->account->post($supplier->id, SupplierTransactionType::Payment, -$paid, $purchase, $paymentMethod, "مدفوع مع الفاتورة {$purchase->reference()}");
+                // Paid out of the drawer unless it came from elsewhere (the owner's pocket, the safe).
+                if ($fromDrawer && ($method = $paymentMethod?->drawerMethod()) !== null) {
+                    $this->drawer->record($branchId, DrawerEntry::SupplierPayment, $method, -$paid, 'purchase', $purchase->id, "{$purchase->reference()} — {$supplier->name}");
+                }
             }
 
             $this->events->record(new PurchaseReceived(

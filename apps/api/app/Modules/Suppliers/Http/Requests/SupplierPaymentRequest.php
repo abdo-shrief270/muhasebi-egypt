@@ -24,6 +24,7 @@ final class SupplierPaymentRequest extends FormRequest
             'amount' => ['required', 'integer', 'min:1', 'max:100000000000'],
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'note' => ['nullable', 'string', 'max:500'],
+            'from_drawer' => ['nullable', 'boolean'],
         ];
     }
 

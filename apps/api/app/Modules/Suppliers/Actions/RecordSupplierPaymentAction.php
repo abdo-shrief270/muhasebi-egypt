@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Suppliers\Actions;
 
+use App\Modules\Cash\Contracts\CashDrawer;
+use App\Modules\Cash\Contracts\DrawerEntry;
 use App\Modules\Suppliers\Enums\PaymentMethod;
 use App\Modules\Suppliers\Enums\SupplierTransactionType;
 use App\Modules\Suppliers\Events\SupplierPaid;
@@ -22,14 +24,18 @@ final class RecordSupplierPaymentAction
 {
     public function __construct(
         private readonly SupplierAccount $account,
+        private readonly CashDrawer $drawer,
         private readonly EventRecorder $events,
         private readonly Auditor $audit,
     ) {}
 
-    public function handle(string $tenantId, string $branchId, Supplier $supplier, int $amount, PaymentMethod $method, ?string $note): SupplierTransaction
+    public function handle(string $tenantId, string $branchId, Supplier $supplier, int $amount, PaymentMethod $method, ?string $note, bool $fromDrawer = true): SupplierTransaction
     {
-        return DB::transaction(function () use ($tenantId, $branchId, $supplier, $amount, $method, $note): SupplierTransaction {
+        return DB::transaction(function () use ($tenantId, $branchId, $supplier, $amount, $method, $note, $fromDrawer): SupplierTransaction {
             $transaction = $this->account->post($supplier->id, SupplierTransactionType::Payment, -$amount, method: $method, note: $note);
+            if ($fromDrawer && ($drawerMethod = $method->drawerMethod()) !== null) {
+                $this->drawer->record($branchId, DrawerEntry::SupplierPayment, $drawerMethod, -$amount, 'supplier_transaction', $transaction->id, "دفعة لـ {$supplier->name}");
+            }
 
             $this->events->record(new SupplierPaid($tenantId, $supplier->id, $branchId, $amount, $method->value));
             $this->audit->record(

@@ -29,6 +29,8 @@ final class CreatePurchaseRequest extends FormRequest
             'discount' => ['nullable', 'integer', 'min:0', 'max:'.self::MAX_MONEY],
             'paid' => ['nullable', 'integer', 'min:0', 'max:'.self::MAX_MONEY],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            // false: paid from outside the drawer (the owner's pocket, the safe).
+            'from_drawer' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1', 'max:300'],
             'items.*.variant_id' => ['required', 'uuid', 'distinct'],

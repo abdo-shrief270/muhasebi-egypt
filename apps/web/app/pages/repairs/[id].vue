@@ -299,6 +299,9 @@
               <span>{{ ticket.due < 0 ? 'يرجع للعميل' : 'الباقي' }}</span><span class="num">{{ formatMoney(Math.abs(ticket.due)) }}</span>
             </div>
           </div>
+          <p v-if="ticket.status === 'delivered' && ticket.commission !== null && ticket.commission_rule" class="mt-3 text-sm text-(--ui-text-muted)">
+            عمولة {{ ticket.technician_name }}: <span class="font-bold text-(--ui-text) num">{{ formatMoney(ticket.commission) }}</span> ({{ ticket.commission_rule }})
+          </p>
           <p v-if="ticket.warranty_until" class="mt-3 text-sm" :class="ticket.under_warranty ? 'text-success' : 'text-(--ui-text-muted)'">
             <UIcon name="i-lucide-shield-check" class="size-4 align-middle" />
             ضمان {{ ticket.warranty_days }} يوم — لحد {{ formatDate(ticket.warranty_until) }}

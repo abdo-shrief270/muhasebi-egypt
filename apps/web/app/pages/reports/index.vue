@@ -34,6 +34,7 @@ const icons: Record<string, string> = {
   products: 'i-lucide-package',
   staff: 'i-lucide-users',
   payments: 'i-lucide-credit-card',
+  repairs: 'i-lucide-wrench',
   inventory: 'i-lucide-warehouse',
   receivables: 'i-lucide-hand-coins',
   payables: 'i-lucide-truck',

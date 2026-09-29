@@ -75,6 +75,9 @@ final class TicketResource extends JsonResource
             'paid' => $this->paid,
             'credit' => $this->credit,
             'due' => $this->due(),
+            // What the technician earns: for them, and for whoever sees profits.
+            'commission' => $user?->can('reports.profit') || ($this->technician_id !== null && $this->technician_id === $user?->getAuthIdentifier()) ? $this->commission : null,
+            'commission_rule' => $this->commission_rule,
             'warranty_days' => $this->warranty_days,
             'warranty_until' => $this->warranty_until?->toIso8601String(),
             'under_warranty' => $this->underWarranty(),

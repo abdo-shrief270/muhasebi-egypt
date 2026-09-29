@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Repairs\Http\Controllers\CommissionController;
 use App\Modules\Repairs\Http\Controllers\FaultCategoryController;
 use App\Modules\Repairs\Http\Controllers\PublicTicketController;
 use App\Modules\Repairs\Http\Controllers\TicketController;
@@ -20,6 +21,8 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:repairs'])->prefix('repairs
         Route::patch('fault-categories/{category}', [FaultCategoryController::class, 'updateCategory'])->whereNumber('category');
         Route::post('fault-categories/{category}/types', [FaultCategoryController::class, 'storeType'])->whereNumber('category');
         Route::patch('fault-types/{type}', [FaultCategoryController::class, 'updateType'])->whereNumber('type');
+        Route::get('commissions', [CommissionController::class, 'index']);
+        Route::put('commissions/{technician}', [CommissionController::class, 'update'])->whereUuid('technician');
     });
 
     // Tickets live in a branch.

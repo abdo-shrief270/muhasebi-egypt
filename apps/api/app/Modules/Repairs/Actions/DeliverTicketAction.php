@@ -9,6 +9,7 @@ use App\Modules\Repairs\Enums\EventType;
 use App\Modules\Repairs\Enums\TicketStatus;
 use App\Modules\Repairs\Events\TicketDelivered;
 use App\Modules\Repairs\Models\RepairTicket;
+use App\Modules\Repairs\Support\Commission;
 use App\Modules\Repairs\Support\TicketMoney;
 use App\Modules\Repairs\Support\Timeline;
 use App\Support\Audit\Auditor;
@@ -87,6 +88,8 @@ final class DeliverTicketAction
             $ticket->delivered_by_name = $user?->getAttribute('name');
             $ticket->warranty_days = $repaired ? $warrantyDays : 0;
             $ticket->warranty_until = $repaired && $warrantyDays > 0 ? now()->addDays($warrantyDays) : null;
+            // The technician's cut, fixed now by their rule (only for a device that was repaired).
+            [$ticket->commission, $ticket->commission_rule] = $repaired ? Commission::for($ticket) : [0, null];
             $ticket->save();
 
             $this->timeline->add($ticket, EventType::Delivered, $note, $from, TicketStatus::Delivered);

@@ -10,6 +10,7 @@ use App\Modules\Reports\Definitions\PayablesReport;
 use App\Modules\Reports\Definitions\PaymentsReport;
 use App\Modules\Reports\Definitions\ProductsReport;
 use App\Modules\Reports\Definitions\ReceivablesReport;
+use App\Modules\Reports\Definitions\RepairsReport;
 use App\Modules\Reports\Definitions\SalesReport;
 use App\Modules\Reports\Definitions\ShiftsReport;
 use App\Modules\Reports\Definitions\StaffReport;
@@ -23,6 +24,7 @@ final class ReportRegistry
         ProductsReport::class,
         StaffReport::class,
         PaymentsReport::class,
+        RepairsReport::class,
         InventoryReport::class,
         ReceivablesReport::class,
         PayablesReport::class,

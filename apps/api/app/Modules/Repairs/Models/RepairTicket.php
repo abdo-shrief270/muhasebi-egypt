@@ -52,6 +52,8 @@ use Illuminate\Support\Carbon;
  * @property int $total
  * @property int $paid
  * @property int $credit
+ * @property int $commission the technician's, fixed at delivery
+ * @property string|null $commission_rule
  * @property int $warranty_days
  * @property Carbon|null $warranty_until
  * @property string|null $warranty_of_id
@@ -63,7 +65,7 @@ use Illuminate\Support\Carbon;
     'reported_faults', 'reported_note', 'diagnosed_faults', 'diagnosis_note',
     'received_by', 'received_by_name', 'received_at', 'expected_at', 'technician_id', 'technician_name',
     'ready_at', 'delivered_at', 'delivered_by', 'delivered_by_name',
-    'estimate', 'labor', 'parts_total', 'parts_cost', 'discount', 'total', 'paid', 'credit',
+    'estimate', 'labor', 'parts_total', 'parts_cost', 'discount', 'total', 'paid', 'credit', 'commission', 'commission_rule',
     'warranty_days', 'warranty_until', 'warranty_of_id', 'public_token',
 ])]
 final class RepairTicket extends Model
@@ -78,6 +80,7 @@ final class RepairTicket extends Model
         'total' => 0,
         'paid' => 0,
         'credit' => 0,
+        'commission' => 0,
         'warranty_days' => 0,
         'unlock_type' => 'none',
     ];
@@ -107,6 +110,7 @@ final class RepairTicket extends Model
             'total' => 'integer',
             'paid' => 'integer',
             'credit' => 'integer',
+            'commission' => 'integer',
             'warranty_days' => 'integer',
         ];
     }

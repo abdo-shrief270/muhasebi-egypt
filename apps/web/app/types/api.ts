@@ -580,6 +580,9 @@ export interface RepairTicket {
   paid: number
   credit: number
   due: number
+  /** the technician's; null unless you're that technician or see profits */
+  commission: number | null
+  commission_rule: string | null
   warranty_days: number
   warranty_until: string | null
   under_warranty: boolean

@@ -1,12 +1,21 @@
 <template>
   <!-- Selling goes into the cashier's drawer: no open shift, no sale. -->
-  <div v-if="shiftChecked && !hasShift" class="grid min-h-[60dvh] place-items-center">
+  <!-- Offline the shift can't be checked or opened: keep selling, the server sorts it out on sync. -->
+  <div v-if="online && shiftChecked && !hasShift" class="grid min-h-[60dvh] place-items-center">
     <CashOpenShiftCard v-if="canShift" hint="لازم وردية مفتوحة عشان تبيع. اكتب الكاش اللي في الدرج وابدأ." @opened="() => refreshShift()" />
     <UAlert v-else color="warning" variant="subtle" icon="i-lucide-lock" title="مفيش وردية مفتوحة" description="البيع محتاج وردية، ومعندكش صلاحية فتح وردية. كلّم المدير." class="max-w-md" />
   </div>
   <div v-else class="-m-4 flex min-h-[calc(100dvh-4rem)] flex-col gap-4 p-4 lg:-m-8 lg:flex-row lg:p-6">
     <!-- Items -->
     <section class="flex min-w-0 flex-1 flex-col gap-3">
+      <UAlert
+        v-if="!online"
+        color="warning"
+        variant="subtle"
+        icon="i-lucide-wifi-off"
+        title="النت فاصل — الكاشير شغال أوفلاين"
+        :description="offlineHint"
+      />
       <div class="flex gap-2">
         <UInput
           ref="searchRef"
@@ -18,6 +27,15 @@
           autofocus
           @keydown.enter.prevent="onEnter"
           @keydown.esc="term = ''"
+        />
+        <UButton
+          v-if="queuedHere.length"
+          size="xl"
+          :color="queuedHere.some(e => e.status === 'failed') ? 'error' : 'warning'"
+          variant="soft"
+          icon="i-lucide-cloud-upload"
+          :label="`مستنية (${queuedHere.length})`"
+          @click="panelOpen = true"
         />
         <UDropdownMenu v-if="held.length" :items="heldItems" :content="{ align: 'end' }">
           <UButton size="xl" color="neutral" variant="outline" icon="i-lucide-pause" :label="`المعلّقة (${held.length})`" />
@@ -88,10 +106,11 @@
         </div>
       </div>
 
-      <div v-if="canCustomers" class="border-b border-(--ui-border) p-3">
+      <!-- Offline there's no looking customers up: a name / phone for the receipt only. -->
+      <div v-if="canCustomers && (online || cart.customer)" class="border-b border-(--ui-border) p-3">
         <PosCustomerPicker v-model="cart.customer" />
       </div>
-      <div v-else-if="showCustomer" class="grid grid-cols-2 gap-2 border-b border-(--ui-border) p-3">
+      <div v-else-if="showCustomer || (canCustomers && !online)" class="grid grid-cols-2 gap-2 border-b border-(--ui-border) p-3">
         <UInput v-model="cart.customer_name" size="sm" placeholder="اسم العميل" />
         <UInput v-model="cart.customer_phone" size="sm" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx" />
       </div>
@@ -210,29 +229,45 @@ const route = useRoute()
 const branchId = computed(() => store.session?.current_branch_id)
 const { cart, held, subtotal, total, count, missingSerials, unitPrice, lineTotal, add, setQty, remove, clear, hold, resume, dropHeld } = usePosCart(branchId)
 
+// Offline: items come from the catalog kept on the device, sales go to the outbox.
+const { online } = useConnectivity()
+const outbox = useOutbox()
+const { panelOpen } = outbox
+const catalog = usePosCatalog()
+await catalog.load()
+const queuedHere = computed(() => outbox.forBranch(branchId.value))
+const offlineHint = computed(() => catalog.items.value.length
+  ? `الأصناف والأسعار من آخر تحديث (${formatDate(catalog.syncedAt.value, true)}). الفواتير بتتحفظ على الجهاز وبتتسجل لوحدها أول ما النت يرجع. البيع الآجل محتاج نت.`
+  : 'مفيش نسخة من الأصناف على الجهاز ده — افتح الكاشير مرة والنت شغال عشان تتحفظ.')
+const offlineKey = computed(() => `${store.session?.tenant.id}_${store.session?.user.id}_${branchId.value}`)
+
 // Options
 const [{ data: optionsData }, { data: categoriesData }] = await Promise.all([
-  useAsyncData('pos-options', () => api<{ data: { payment_methods: { value: string, label: string }[], price_levels: { value: string, label: string }[] } }>('/pos/options')),
-  useAsyncData('catalog-categories', () => api<{ data: Category[] }>('/catalog/categories')),
+  useAsyncData('pos-options', () => withOfflineCache('pos_options', () => api<{ data: { payment_methods: { value: string, label: string }[], price_levels: { value: string, label: string }[] } }>('/pos/options'))
+    .catch(() => ({ data: { payment_methods: [...CASH_METHODS], price_levels: [{ value: 'retail', label: 'قطاعي' }] } }))),
+  useAsyncData('catalog-categories', () => withOfflineCache(`pos_categories_${store.session?.tenant.id}`, () => api<{ data: Category[] }>('/catalog/categories'))
+    .catch(() => ({ data: [] as Category[] }))),
 ])
 const methods = computed(() => optionsData.value?.data.payment_methods ?? [])
-// آجل only for a customer with an account, and only for whoever may give credit.
-const payMethods = computed(() => methods.value.filter(m => m.value !== 'credit' || (cart.value.customer && canCredit.value)))
+// آجل only for a customer with an account, and only for whoever may give credit — and never offline.
+const payMethods = computed(() => methods.value.filter(m => m.value !== 'credit' || (online.value && cart.value.customer && canCredit.value)))
 const creditAvailable = computed(() => {
   const c = cart.value.customer
   return c && c.credit_limit !== null ? Math.max(0, c.credit_limit - c.balance) : null
 })
 
 // The cashier's shift in this branch.
-const { data: shiftData, status: shiftStatus, refresh: refreshShift } = await useAsyncData('pos-shift', () => api<{ data: CashShift | null }>('/cash/current'), { watch: [branchId] })
+const { data: shiftData, status: shiftStatus, refresh: refreshShift } = await useAsyncData('pos-shift', () => withOfflineCache(`pos_shift_${offlineKey.value}`, () => api<{ data: CashShift | null }>('/cash/current')), { watch: [branchId] })
 const shiftChecked = computed(() => shiftStatus.value !== 'pending' || shiftData.value !== undefined)
 const hasShift = computed(() => !!shiftData.value?.data)
 
 // Added from the price check: /pos?add=<variant id>
 if (typeof route.query.add === 'string') {
-  const res = await api<{ data: PosItem[] }>('/pos/items', { query: { 'ids[]': [route.query.add] } }).catch(() => ({ data: [] as PosItem[] }))
-  if (res.data[0]) {
-    add(res.data[0])
+  const id = route.query.add
+  const res = await api<{ data: PosItem[] }>('/pos/items', { query: { 'ids[]': [id] } }).catch(() => ({ data: [] as PosItem[] }))
+  const item = res.data[0] ?? catalog.byId(id)
+  if (item) {
+    add(item)
   }
   useRouter().replace({ query: { ...route.query, add: undefined } })
 }
@@ -250,7 +285,10 @@ if (typeof route.query.customer === 'string' && canCustomers.value) {
 const priceLevels = computed(() => optionsData.value?.data.price_levels ?? [])
 const ALL = 0
 const categoryId = ref(ALL)
-const chips = computed(() => [{ id: ALL, name: 'الكل' }, ...(categoriesData.value?.data ?? []).filter(c => (c.products_count ?? 0) > 0)])
+const chips = computed(() => {
+  const fromApi = (categoriesData.value?.data ?? []).filter(c => (c.products_count ?? 0) > 0)
+  return [{ id: ALL, name: 'الكل' }, ...(fromApi.length ? fromApi : catalog.categories.value)]
+})
 
 // Items
 const term = ref('')
@@ -264,8 +302,42 @@ watch(term, (value) => {
 })
 onBeforeUnmount(() => clearTimeout(timer))
 
-const fetchItems = (q: string) => api<{ data: PosItem[] }>('/pos/items', { query: { q: q || undefined, category_id: categoryId.value || undefined } })
-const { data: itemsData, status: itemsStatus, refresh: refreshItems } = await useAsyncData('pos-items', () => fetchItems(debounced.value), { watch: [debounced, categoryId, branchId] })
+/** From the API, or from the catalog on the device when offline (or the API doesn't answer). */
+async function fetchItems(q: string): Promise<{ data: PosItem[] }> {
+  const offline = () => ({ data: catalog.search(q, categoryId.value || null) })
+  if (!online.value) {
+    return offline()
+  }
+  try {
+    return await api<{ data: PosItem[] }>('/pos/items', { query: { q: q || undefined, category_id: categoryId.value || undefined }, timeout: 8000 })
+  }
+  catch (e) {
+    if (isNetworkError(e)) {
+      return offline()
+    }
+    throw e
+  }
+}
+const { data: itemsData, status: itemsStatus, refresh: refreshItems } = await useAsyncData('pos-items', () => fetchItems(debounced.value), { watch: [debounced, categoryId, branchId, online] })
+
+// Keep the device's copy of the catalog fresh while the POS is open; send what's queued.
+async function refreshCatalog() {
+  await catalog.load()
+  if (online.value) {
+    await catalog.refresh()
+  }
+}
+onMounted(() => {
+  refreshCatalog()
+  outbox.sync()
+})
+watch(branchId, refreshCatalog)
+const catalogTimer = setInterval(() => online.value && catalog.refresh(), CATALOG_REFRESH_MS)
+const stopSynced = outbox.onSynced(() => online.value && refreshItems())
+onBeforeUnmount(() => {
+  clearInterval(catalogTimer)
+  stopSynced()
+})
 const items = computed(() => itemsData.value?.data ?? [])
 
 const priceOf = (item: PosItem) => {
@@ -305,19 +377,33 @@ async function onEnter() {
   }
 }
 
+/** A unit in stock here by its IMEI / serial: asked from the API, or from the device's catalog offline. */
+async function findSerial(serial: string): Promise<{ item: PosItem, serial: string } | null> {
+  if (online.value) {
+    try {
+      const found = (await api<{ data: { serial: string, variant: { id: string } | null }[] }>('/inventory/serials', { query: { q: serial, in_stock: 1 }, timeout: 8000 }))
+        .data.find(s => s.serial === serial)
+      if (!found?.variant) {
+        return null
+      }
+      const res = await api<{ data: PosItem[] }>('/pos/items', { query: { 'ids[]': [found.variant.id] }, timeout: 8000 })
+      return res.data[0] ? { item: res.data[0], serial: found.serial } : null
+    }
+    catch (e) {
+      if (!isNetworkError(e)) {
+        return null
+      }
+    }
+  }
+  return catalog.bySerial(serial)
+}
+
 async function addBySerial(q: string): Promise<boolean> {
-  const serial = q.replace(/[\s-]+/g, '').toUpperCase()
-  const found = await api<{ data: { serial: string, variant: { id: string } | null }[] }>('/inventory/serials', { query: { q: serial, in_stock: 1 } })
-    .then(r => r.data.find(s => s.serial === serial))
-    .catch(() => undefined)
-  if (!found?.variant) {
+  const found = await findSerial(normalizeSerial(q))
+  if (!found) {
     return false
   }
-  const res = await api<{ data: PosItem[] }>('/pos/items', { query: { 'ids[]': [found.variant.id] } }).catch(() => ({ data: [] as PosItem[] }))
-  if (!res.data[0]) {
-    return false
-  }
-  add(res.data[0], 1, found.serial)
+  add(found.item, 1, found.serial)
   term.value = ''
   focusSearch()
   return true
@@ -359,31 +445,44 @@ watch(receiptOpen, (isOpen) => {
   }
 })
 
-async function checkout(payments: { method: string, amount: number }[]) {
+type Payment = { method: string, amount: number }
+
+function done(sale: Sale) {
+  lastSale.value = sale
+  clear()
+  showCustomer.value = false
+  payOpen.value = false
+  receiptOpen.value = true
+  refreshItems()
+}
+
+async function checkout(payments: Payment[]) {
   paying.value = true
   payError.value = null
+  const body = {
+    id: cart.value.id,
+    price_level: cart.value.price_level,
+    discount: cart.value.discount,
+    customer_id: cart.value.customer?.id ?? null,
+    customer_name: cart.value.customer ? null : cart.value.customer_name || null,
+    customer_phone: cart.value.customer ? null : cart.value.customer_phone || null,
+    items: cart.value.lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, discount: l.discount, serials: l.track_serial ? l.serials : undefined })),
+    payments,
+  }
   try {
-    const res = await api<{ data: Sale }>('/sales', {
-      method: 'POST',
-      body: {
-        id: cart.value.id,
-        price_level: cart.value.price_level,
-        discount: cart.value.discount,
-        customer_id: cart.value.customer?.id ?? null,
-        customer_name: cart.value.customer ? null : cart.value.customer_name || null,
-        customer_phone: cart.value.customer ? null : cart.value.customer_phone || null,
-        items: cart.value.lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, discount: l.discount, serials: l.track_serial ? l.serials : undefined })),
-        payments,
-      },
-    })
-    lastSale.value = res.data
-    clear()
-    showCustomer.value = false
-    payOpen.value = false
-    receiptOpen.value = true
-    refreshItems()
+    if (!online.value) {
+      await queueOffline(body, payments)
+      return
+    }
+    // A slow answer counts as none: the sale is queued, and its id keeps it from being saved twice.
+    const res = await api<{ data: Sale }>('/sales', { method: 'POST', body, timeout: 15_000 })
+    done(res.data)
   }
   catch (e) {
+    if (isNetworkError(e)) {
+      await queueOffline(body, payments)
+      return
+    }
     payError.value = apiErrorMessage(e)
     if (apiErrorCode(e) === 'shift_not_open') {
       payOpen.value = false
@@ -393,6 +492,93 @@ async function checkout(payments: { method: string, amount: number }[]) {
   finally {
     paying.value = false
   }
+}
+
+/** What the server would refuse, checked on the device before a sale is queued offline. */
+function offlineProblem(payments: Payment[]): string | null {
+  const paid = payments.reduce((s, p) => s + p.amount, 0)
+  const cash = payments.filter(p => p.method === 'cash').reduce((s, p) => s + p.amount, 0)
+  if (payments.some(p => !CASH_METHODS.some(m => m.value === p.method))) {
+    return 'البيع الآجل محتاج نت. خده كاش أو فيزا أو محفظة.'
+  }
+  const serialLine = cart.value.lines.find(l => l.track_serial && (l.serials?.length ?? 0) !== l.qty)
+  if (serialLine) {
+    return `«${serialLine.name}» محتاج IMEI / سيريال لكل قطعة.`
+  }
+  if (paid < total.value) {
+    return 'المدفوع أقل من المطلوب.'
+  }
+  if (paid - total.value > cash) {
+    return 'الفيزا والمحافظ مينفعش يزيدوا عن المطلوب؛ الباقي بيرجع من الكاش بس.'
+  }
+  return null
+}
+
+/** No internet: the sale is kept on the device (outbox) and sent as soon as the API answers. */
+async function queueOffline(body: Record<string, unknown>, payments: Payment[]) {
+  const session = store.session
+  const problem = offlineProblem(payments)
+  if (problem || !session || !branchId.value) {
+    payError.value = problem ?? 'حصلت مشكلة، حاول تاني.'
+    return
+  }
+  const soldAt = new Date().toISOString()
+  const paid = payments.reduce((s, p) => s + p.amount, 0)
+  const lines = cart.value.lines
+  const receipt: Sale = {
+    id: cart.value.id,
+    number: 0,
+    reference: `OFF-${cart.value.id.slice(-6).toUpperCase()}`,
+    status: 'completed',
+    status_label: '',
+    price_level: cart.value.price_level,
+    price_level_label: '',
+    customer_id: cart.value.customer?.id ?? null,
+    customer_name: cart.value.customer?.name ?? (cart.value.customer_name || null),
+    customer_phone: cart.value.customer?.phone ?? (cart.value.customer_phone || null),
+    subtotal: subtotal.value,
+    discount: cart.value.discount,
+    total: total.value,
+    paid,
+    credit: 0,
+    change: paid - total.value,
+    refunded: 0,
+    notes: null,
+    cashier_name: session.user.name,
+    public_token: '',
+    completed_at: soldAt,
+    offline: true,
+    items: lines.map((l, i) => ({
+      id: i,
+      variant_id: l.variant_id,
+      name: l.name,
+      barcode: l.barcode,
+      qty: l.qty,
+      unit_price: unitPrice(l),
+      discount: l.discount,
+      line_total: lineTotal(l),
+      returned_qty: 0,
+      serials: l.track_serial ? [...(l.serials ?? [])] : null,
+    })),
+    payments: payments.map(p => ({ method: p.method, method_label: cashMethodLabel(p.method), amount: p.amount, reference: null })),
+  }
+  try {
+    await outbox.enqueue({
+      id: cart.value.id,
+      tenant_id: session.tenant.id,
+      branch_id: branchId.value,
+      user_id: session.user.id,
+      created_at: soldAt,
+      body: { ...body, offline: true, sold_at: soldAt },
+      receipt,
+      lines: lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, serials: l.track_serial ? [...(l.serials ?? [])] : [] })),
+    })
+  }
+  catch {
+    payError.value = 'مقدرتش أحفظ الفاتورة على الجهاز (المتصفح مانع التخزين). الفاتورة لسه في السلة.'
+    return
+  }
+  done(receipt)
 }
 
 // The cursor lives in the search box (for the scanner), so the function keys must work inside inputs.

@@ -30,7 +30,8 @@ export const useSessionStore = defineStore('session', () => {
     if (!auth.token.value) {
       return null
     }
-    const { data } = await api<{ data: Session }>('/auth/me')
+    // Offline, the app still opens with the last session this token got (the POS keeps selling).
+    const { data } = await withOfflineCache(`session_${shortHash(auth.token.value)}`, () => api<{ data: Session }>('/auth/me'))
     session.value = data
     if (data.current_branch_id !== branch.branchId.value) {
       branch.set(data.current_branch_id)
@@ -61,6 +62,7 @@ export const useSessionStore = defineStore('session', () => {
       auth.set(null)
       branch.set(null)
       session.value = null
+      forgetCache('session_')
       await navigateTo('/login')
     }
   }

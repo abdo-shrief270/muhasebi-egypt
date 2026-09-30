@@ -12,6 +12,10 @@
       </p>
     </div>
 
+    <p v-if="note" class="mt-2 border border-black p-1 text-center text-xs font-bold">
+      {{ note }}
+    </p>
+
     <div class="my-2 border-y border-dashed border-black py-1 text-xs">
       <div class="flex justify-between">
         <span>فاتورة</span><span class="font-bold num">{{ data.reference }}</span>
@@ -79,7 +83,7 @@
 import type { ReceiptData } from '~/types/api'
 
 /** The customer's receipt: thermal 80mm / 58mm, also shown on the public receipt page. */
-withDefaults(defineProps<{ data: ReceiptData, qrUrl?: string | null, width?: string }>(), { qrUrl: null, width: '72mm' })
+withDefaults(defineProps<{ data: ReceiptData, qrUrl?: string | null, width?: string, note?: string | null }>(), { qrUrl: null, width: '72mm', note: null })
 
 /** "1,250" or "1,250.50" — the currency is printed once, on the total. */
 function money(piasters: number): string {

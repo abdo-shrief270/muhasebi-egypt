@@ -338,6 +338,12 @@ export interface PosItem {
   exact_barcode: boolean
 }
 
+/** GET /pos/catalog: the branch's sellable items kept on the device for selling offline. */
+export interface PosCatalogItem extends Omit<PosItem, 'exact_barcode'> {
+  /** IMEIs / serials in stock here, for products that track them */
+  serials: string[] | null
+}
+
 export interface SaleLine {
   id: number
   variant_id: string
@@ -376,6 +382,8 @@ export interface Sale {
   cashier_name: string | null
   public_token: string
   completed_at: string
+  /** made offline on this device and not on the server yet (no number / public link) */
+  offline?: boolean
   items_count?: number
   items?: SaleLine[]
   payments?: { method: string, method_label: string, amount: number, reference: string | null }[]

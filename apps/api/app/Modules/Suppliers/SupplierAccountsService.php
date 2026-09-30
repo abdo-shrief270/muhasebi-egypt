@@ -103,6 +103,6 @@ final class SupplierAccountsService implements SupplierAccounts
             throw new InvalidArgumentException('Refund a positive amount.');
         }
         $this->account->post($supplierId, SupplierTransactionType::ReturnNote, -$amount, note: $note, refType: $refType, refId: $refId);
-        $this->account->post($supplierId, SupplierTransactionType::Refund, $amount, PaymentMethod::from($method), $note, refType: $refType, refId: $refId);
+        $this->account->post($supplierId, SupplierTransactionType::Refund, $amount, method: PaymentMethod::from($method), note: $note, refType: $refType, refId: $refId);
     }
 }

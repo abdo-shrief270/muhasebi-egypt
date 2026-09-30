@@ -35,8 +35,8 @@
               <UBadge color="neutral" variant="subtle" icon="i-lucide-map-pin">
                 {{ parsedId.governorate }}
               </UBadge>
-              <UBadge v-if="parsedId.age < 18" color="warning" variant="subtle" icon="i-lucide-triangle-alert">
-                أقل من 18 سنة
+              <UBadge v-if="parsedId.age < 18" color="error" variant="subtle" icon="i-lucide-ban">
+                أقل من 18 سنة: مينفعش نشتري منه
               </UBadge>
               <UBadge v-if="idCheck?.known" color="info" variant="subtle" icon="i-lucide-history">
                 باعلك قبل كده <span class="num">{{ idCheck.devices_count }}</span> {{ idCheck.devices_count === 1 ? 'جهاز' : 'أجهزة' }}
@@ -186,7 +186,7 @@
           </div>
         </UCard>
         <UAlert v-if="error" color="error" variant="subtle" :title="error" :actions="needsShift ? [{ label: 'افتح وردية', to: '/cash' }] : []" />
-        <UButton type="submit" block size="xl" icon="i-lucide-check" label="اشتري واطبع الإقرار" :loading="saving" :disabled="imeiCheck?.in_stock" />
+        <UButton type="submit" block size="xl" icon="i-lucide-check" label="اشتري واطبع الإقرار" :loading="saving" :disabled="imeiCheck?.in_stock || (parsedId && parsedId.age < 18)" />
       </div>
     </form>
 

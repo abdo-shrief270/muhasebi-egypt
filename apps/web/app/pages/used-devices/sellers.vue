@@ -123,11 +123,11 @@
       </template>
     </UModal>
 
-    <UModal v-model:open="settingsOpen" title="مدة الاحتفاظ بالبطايق" description="للبايعين اللي اتمسحت بياناتهم.">
+    <UModal v-model:open="settingsOpen" title="مدة الاحتفاظ بالبطايق" description="لكل البايعين.">
       <template #body>
         <form id="retention-form" class="space-y-3" @submit.prevent="saveSettings">
           <p class="text-sm leading-7">
-            لما تمسح بيانات بايع، الرقم القومي وصور بطاقته بيفضلوا محفوظين المدة دي من آخر جهاز باعهولك (حماية ليك لو الجهاز طلع مسروق)، وبعدين بيتمسحوا لوحدهم كل يوم بالليل.
+            الرقم القومي وصور بطاقة أي بايع بيفضلوا محفوظين ومتشفرين المدة دي من آخر جهاز باعهولك (حماية ليك لو الجهاز طلع مسروق)، وبعدين بيتمسحوا لوحدهم. ولو بايع طلب مسح بياناته، اسمه وموبايله بيتمسحوا على طول.
           </p>
           <UFormField label="المدة">
             <div class="flex items-center gap-2">

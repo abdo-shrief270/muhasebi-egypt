@@ -348,6 +348,30 @@ class UsedDevicesTest extends TestCase
         $this->assertNull($this->inShop(fn () => UsedDeviceSeller::query()->findOrFail($first['seller']['id'])->national_id));
     }
 
+    public function test_the_retention_applies_to_every_seller_not_only_erased_ones(): void
+    {
+        $device = $this->buy()->assertCreated()->json('data');
+        $sellerId = $device['seller']['id'];
+
+        $this->age($device['id'], 3 * 365 - 5);
+        $this->artisan('used-devices:purge-ids')->assertSuccessful();
+        $this->assertNotNull($this->inShop(fn () => UsedDeviceSeller::query()->findOrFail($sellerId)->national_id));
+
+        $this->age($device['id'], 3 * 365 + 5);
+        $this->artisan('used-devices:purge-ids')->assertSuccessful();
+        $seller = $this->inShop(fn () => UsedDeviceSeller::query()->findOrFail($sellerId));
+        $this->assertNull($seller->national_id);
+        $this->assertNull($seller->erased_at, 'never asked to be erased: the name stays, only the ID record goes');
+        $this->assertSame('محمود سعيد', $seller->name);
+    }
+
+    public function test_a_seller_under_18_is_refused(): void
+    {
+        // Born 1 Jan 2010: 16 years old.
+        $this->buy(['seller_national_id' => '31001010112351'])->assertStatus(422)->assertJsonPath('code', 'seller_under_age');
+        $this->assertSame(0, $this->inShop(fn () => UsedDevice::query()->count()));
+    }
+
     public function test_erasing_the_customer_with_the_same_phone_erases_the_seller(): void
     {
         $device = $this->buy()->assertCreated()->json('data');

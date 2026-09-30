@@ -244,6 +244,24 @@ class SupplierReturnsTest extends TestCase
         $this->assertSame(0, $this->stock($this->screen));
     }
 
+    public function test_the_compensation_shows_in_the_sales_report_profit(): void
+    {
+        $this->buy($this->supplierA, $this->screen, 3, 20000);
+        $row = $this->toBin(['variant_id' => $this->screen, 'qty' => 2])->json('data.0');
+        $note = $this->note([$row['id']]);
+        $summary = fn () => collect($this->getJson('/api/v1/reports/sales?period=today')->assertOk()->json('data.summary'))->keyBy('label');
+        $this->assertFalse($summary()->has('تعويض مرتجعات الموردين'), 'nothing settled yet');
+        $before = $summary()['صافي الربح']['value'];
+
+        $this->postJson("/api/v1/supplier-returns/notes/{$note['id']}/settle", [
+            'items' => [['id' => $row['id'], 'accepted_qty' => 2]], 'resolution' => 'credit',
+        ])->assertOk();
+
+        $after = $summary();
+        $this->assertSame(40000, $after['تعويض مرتجعات الموردين']['value']);
+        $this->assertSame($before + 40000, $after['صافي الربح']['value']);
+    }
+
     public function test_a_replacement_comes_back_into_stock_with_its_new_serial(): void
     {
         $this->buy($this->supplierB, $this->phone, 1, 600000, ['351234567890121']);

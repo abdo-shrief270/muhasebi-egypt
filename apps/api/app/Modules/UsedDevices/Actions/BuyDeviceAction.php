@@ -35,6 +35,9 @@ use Illuminate\Support\Str;
  */
 final class BuyDeviceAction
 {
+    /** The youngest seller the shop may buy from. */
+    public const MIN_SELLER_AGE = 18;
+
     public function __construct(
         private readonly UsedDeviceCatalog $catalog,
         private readonly StockLedger $stock,
@@ -58,6 +61,10 @@ final class BuyDeviceAction
         [$nationalId, $why] = NationalId::parse($seller['national_id']);
         if ($nationalId === null) {
             throw new DomainRuleException((string) $why, 'national_id_invalid', 422);
+        }
+        // No buying from minors (the owner's rule: a legal risk for the shop).
+        if ($nationalId->age() < self::MIN_SELLER_AGE) {
+            throw new DomainRuleException('البايع أقل من '.self::MIN_SELLER_AGE.' سنة؛ مينفعش نشتري منه.', 'seller_under_age', 422, ['age' => $nationalId->age()]);
         }
 
         $imei = Imei::normalize($device['imei']);

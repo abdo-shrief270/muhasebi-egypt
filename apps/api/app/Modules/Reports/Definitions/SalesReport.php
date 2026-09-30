@@ -133,15 +133,26 @@ final class SalesReport implements Report
                 ->whereIn('branch_id', $query->branchIds())
                 ->where('type', 'expense')
                 ->sum('amount');
+            // What suppliers paid back or credited for defective returns settled in the period
+            // (the loss itself stayed in the cost of the sale it came back from).
+            $compensation = (int) $query->inPeriod(DB::table('supplier_returns'), 'settled_at')
+                ->where('tenant_id', $query->tenantId)
+                ->whereIn('branch_id', $query->branchIds())
+                ->whereIn('resolution', ['credit', 'refund'])
+                ->sum('accepted_value');
             $totals['margin'] = Labels::margin($totals['profit'], $totals['net']);
             array_push(
                 $summary,
                 ['label' => 'مجمل الربح', 'value' => $totals['profit'], 'type' => 'money', 'hint' => 'هامش '.($totals['margin'] ?? 0).'%'],
                 ['label' => 'المصروفات', 'value' => $expenses, 'type' => 'money'],
-                ['label' => 'صافي الربح', 'value' => $totals['profit'] - $expenses, 'type' => 'money', 'hint' => 'مجمل الربح ناقص المصروفات'],
             );
+            if ($compensation > 0) {
+                $summary[] = ['label' => 'تعويض مرتجعات الموردين', 'value' => $compensation, 'type' => 'money', 'hint' => 'فلوس أو رصيد رجعلك عن التالف'];
+            }
+            $summary[] = ['label' => 'صافي الربح', 'value' => $totals['profit'] - $expenses + $compensation, 'type' => 'money', 'hint' => $compensation > 0 ? 'مجمل الربح ناقص المصروفات زائد تعويض المرتجعات' : 'مجمل الربح ناقص المصروفات'];
             $notes[] = 'التكلفة = تكلفة البضاعة اللي اتباعت فعلاً (أول وارد أول صادر). التالف في المرتجع بيفضل تكلفة.';
             $notes[] = 'المصروفات = اللي اتسجّل من درج الورديات في الفترة.';
+            $notes[] = 'تعويض مرتجعات الموردين = قيمة التالف اللي المورد قبله ورجّع فلوسه أو خصمه من حسابه في الفترة (البديل بيرجع المخزون بتكلفته).';
         }
 
         return new ReportResult(

@@ -13,8 +13,8 @@ use App\Support\Audit\Auditor;
 use Illuminate\Support\Facades\DB;
 
 /**
- * For the current shop: erased sellers whose last sale to the shop is older than the retention
- * period lose what was kept for the anti-theft record — the national ID (and what it says: birth
+ * For the current shop: every seller (erased or not) whose last sale to the shop is older than the
+ * retention period loses what was kept for the anti-theft record — the national ID (and what it says: birth
  * date, gender, governorate) and the photos of their card. The devices and their money stay.
  */
 final class PurgeSellerIdsAction
@@ -31,8 +31,8 @@ final class PurgeSellerIdsAction
         $count = 0;
 
         UsedDeviceSeller::query()
-            ->whereNotNull('erased_at')
             ->whereNull('id_purged_at')
+            ->whereNotNull('national_id_hash')
             ->whereDoesntHave('devices', fn ($q) => $q->where('bought_at', '>', $cutoff))
             ->orderBy('id')
             ->each(function (UsedDeviceSeller $seller) use (&$count): void {

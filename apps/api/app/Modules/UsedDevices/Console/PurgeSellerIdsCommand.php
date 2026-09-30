@@ -12,14 +12,14 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('used-devices:purge-ids')]
-#[Description('Delete the national ID and card photos of erased used-device sellers once the retention period is over')]
+#[Description('Delete the national ID and card photos of used-device sellers whose last sale is older than the retention period')]
 final class PurgeSellerIdsCommand extends Command
 {
     public function handle(CurrentTenant $tenant, PurgeSellerIdsAction $action): int
     {
         $total = 0;
 
-        $tenants = UsedDeviceSeller::withoutTenancy()->whereNotNull('erased_at')->whereNull('id_purged_at')->distinct()->orderBy('tenant_id')->pluck('tenant_id');
+        $tenants = UsedDeviceSeller::withoutTenancy()->whereNull('id_purged_at')->whereNotNull('national_id_hash')->distinct()->orderBy('tenant_id')->pluck('tenant_id');
         foreach ($tenants as $tenantId) {
             $total += $tenant->runAs((string) $tenantId, fn (): int => $action->handle());
         }

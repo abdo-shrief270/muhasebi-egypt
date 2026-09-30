@@ -26,6 +26,7 @@ export function useQuickActions() {
     { to: '/repairs/new', label: 'استلام جهاز', description: 'تذكرة صيانة جديدة', icon: 'i-lucide-wrench', permission: 'repairs.create' },
     { to: '/customers?owing=1', label: 'تحصيل آجل', description: 'اللي عليهم فلوس', icon: 'i-lucide-hand-coins', permission: 'customers.credit' },
     { to: '/customers?new=1', label: 'عميل جديد', description: 'ضيف عميل بحسابه', icon: 'i-lucide-user-plus', permission: 'customers.manage' },
+    { to: '/services', label: 'شحن وتحويل', description: 'فودافون كاش وشحن الرصيد', icon: 'i-lucide-arrow-left-right', permission: 'services.manage' },
     { to: '/cash?expense=1', label: 'مصروف', description: 'سجّل مصروف من الدرج', icon: 'i-lucide-receipt', permission: 'cash.expenses' },
     { to: '/cash', label: 'الوردية', description: 'الدرج وقفل اليوم', icon: 'i-lucide-wallet', permission: 'cash.shift' },
     { to: '/purchases/new', label: 'فاتورة شراء', description: 'استلم بضاعة من مورد', icon: 'i-lucide-receipt-text', permission: 'suppliers.manage' },

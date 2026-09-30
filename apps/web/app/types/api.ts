@@ -465,6 +465,80 @@ export interface SalesStats {
   series: { date: string, sales: number, revenue: number, profit: number | null }[]
   top_items: { name: string, qty: number, revenue: number }[]
   payments: { method: string, label: string, amount: number }[]
+  /** wallets / airtime profit, apart from goods: only with reports.profit and the Services module */
+  services: { today: number, today_operations: number, period: number } | null
+}
+
+export type ServiceOperation = 'deposit' | 'withdraw' | 'topup'
+export type ServiceTransactionType = ServiceOperation | 'opening' | 'fund' | 'cash_out'
+
+export interface ServiceFeeRule {
+  /** basis points: 150 = 1.5% */
+  percent: number
+  fixed: number
+  min: number
+  max: number | null
+  round_to: number
+}
+
+export interface ServiceAccount {
+  id: string
+  branch_id: string
+  kind: 'wallet' | 'airtime'
+  kind_label: string
+  provider: string
+  provider_label: string
+  name: string
+  phone: string | null
+  balance: number
+  /** what the balance cost (airtime bought at a discount); null without services.settings / reports.profit */
+  cost_value: number | null
+  daily_limit: number | null
+  today_used: number
+  withdraw_fee_mode: 'cash' | 'wallet'
+  is_active: boolean
+  operations: ServiceOperation[]
+  fees: Partial<Record<ServiceOperation, ServiceFeeRule>>
+}
+
+export interface ServiceTransaction {
+  id: string
+  number: number
+  account_id: string
+  account_name: string | null
+  account_kind: 'wallet' | 'airtime' | null
+  provider_label: string | null
+  type: ServiceTransactionType
+  type_label: string
+  /** negative on a reversal */
+  amount: number
+  fee: number
+  suggested_fee: number | null
+  balance_change: number
+  balance_after: number
+  /** into (+) / out of (−) the drawer */
+  cash: number
+  profit: number | null
+  fee_mode: 'cash' | 'wallet' | null
+  source: 'drawer' | 'safe' | null
+  source_label: string | null
+  customer_name: string | null
+  customer_phone: string | null
+  reference: string | null
+  note: string | null
+  reverses_id: string | null
+  reversed_number: number | null
+  reversed: boolean
+  user_id: string | null
+  user_name: string | null
+  created_at: string
+}
+
+export interface ServiceOptions {
+  kinds: { value: 'wallet' | 'airtime', label: string, providers: { value: string, label: string }[], operations: { value: ServiceOperation, label: string }[] }[]
+  types: { value: ServiceTransactionType, label: string }[]
+  fee_modes: { value: 'cash' | 'wallet', label: string }[]
+  sources: { value: 'drawer' | 'safe', label: string }[]
 }
 
 export interface Customer {

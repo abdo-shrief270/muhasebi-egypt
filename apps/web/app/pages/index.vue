@@ -292,6 +292,10 @@ const moneyCards = computed(() => [
         { label: 'مصروفات النهارده', value: cash.value.expenses_today, to: '/cash', icon: 'i-lucide-receipt', hint: null },
       ]
     : []),
+  // Wallets / airtime profit, apart from the goods profit above (only with reports.profit and the module).
+  ...(stats.value?.services
+    ? [{ label: 'مكسب الشحن والتحويلات النهارده', value: stats.value.services.today, to: '/services', icon: 'i-lucide-arrow-left-right', hint: `${stats.value.services.today_operations} عملية · آخر ${stats.value.days} يوم ${formatMoney(stats.value.services.period)}` }]
+    : []),
   ...(receivable.value
     ? [{ label: 'الآجل عند العملاء', value: receivable.value.receivable, to: '/customers?owing=1', icon: 'i-lucide-hand-coins', hint: `${receivable.value.owing_count} عميل` }]
     : []),

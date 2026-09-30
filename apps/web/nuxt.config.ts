@@ -61,6 +61,9 @@ export default defineNuxtConfig({
         // «ابدأ من هنا» step icons (from the API) and «ابعت ملاحظة» (menu / Ctrl+K / toast).
         'lucide:boxes', 'lucide:package-plus', 'lucide:file-spreadsheet', 'lucide:shield-check', 'lucide:rocket',
         'lucide:message-square-heart', 'lucide:heart-handshake', 'lucide:bug', 'lucide:lightbulb', 'lucide:circle-help',
+        // Services (wallets / airtime): operations, tabs, row menus, the account form.
+        'lucide:send', 'lucide:smartphone-charging', 'lucide:wallet-cards', 'lucide:list', 'lucide:printer', 'lucide:pencil',
+        'lucide:arrow-down-to-line', 'lucide:arrow-up-from-line', 'lucide:check', 'lucide:ellipsis-vertical', 'lucide:rotate-ccw',
       ],
     },
   },

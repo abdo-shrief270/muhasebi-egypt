@@ -27,6 +27,15 @@ interface VariantCatalog
     public function search(?string $q, ?int $categoryId, ?array $onlyIds, int $page, int $perPage, bool $activeOnly = true, array $exceptIds = []): array;
 
     /**
+     * Every selling price the variants had at the price level since $since (from the price
+     * history, plus today's price): what an offline POS may have shown from its cached catalog.
+     *
+     * @param  list<string>  $variantIds
+     * @return array<string, list<int>> variant id => prices
+     */
+    public function pricesSince(array $variantIds, string $level, \DateTimeInterface $since): array;
+
+    /**
      * @return array<string, int> variant id => low-stock threshold, for variants that have one
      */
     public function minStockThresholds(): array;

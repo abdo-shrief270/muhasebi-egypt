@@ -6,6 +6,7 @@ namespace App\Modules\Catalog;
 
 use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Catalog\Contracts\VariantSummary;
+use App\Modules\Catalog\Models\PriceChange;
 use App\Modules\Catalog\Models\ProductVariant;
 use App\Support\Text\SearchText;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,6 +25,33 @@ final class VariantCatalogService implements VariantCatalog
             ->get()
             ->mapWithKeys(fn (ProductVariant $v): array => [$v->id => $this->summary($v)])
             ->all();
+    }
+
+    public function pricesSince(array $variantIds, string $level, \DateTimeInterface $since): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+        // A level without its own price sells at retail, so both histories count.
+        $fields = array_values(array_unique(['price_'.$level, 'price_retail']));
+        $prices = [];
+        foreach ($this->find($variantIds) as $id => $variant) {
+            $prices[$id] = [$variant->priceFor($level)];
+        }
+        PriceChange::query()
+            ->whereIn('variant_id', array_keys($prices))
+            ->whereIn('field', $fields)
+            ->where('created_at', '>=', $since)
+            ->get(['variant_id', 'old_price', 'new_price'])
+            ->each(function (PriceChange $c) use (&$prices): void {
+                foreach ([$c->old_price, $c->new_price] as $price) {
+                    if ($price !== null) {
+                        $prices[$c->variant_id][] = (int) $price;
+                    }
+                }
+            });
+
+        return array_map(fn (array $p): array => array_values(array_unique($p)), $prices);
     }
 
     public function search(?string $q, ?int $categoryId, ?array $onlyIds, int $page, int $perPage, bool $activeOnly = true, array $exceptIds = []): array

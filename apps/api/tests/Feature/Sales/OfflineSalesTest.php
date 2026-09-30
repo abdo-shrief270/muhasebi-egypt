@@ -3,8 +3,11 @@
 namespace Tests\Feature\Sales;
 
 use App\Modules\Catalog\Models\Product;
+use App\Modules\Catalog\Models\ProductVariant;
+use App\Modules\Catalog\Support\PriceHistory;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Sales\Models\Sale;
+use App\Support\Audit\AuditEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -159,5 +162,51 @@ class OfflineSalesTest extends TestCase
 
         Sanctum::actingAs($cashier);
         $this->withHeader('X-Branch-Id', $this->branchId)->getJson('/api/v1/pos/catalog')->assertOk()->assertJsonPath('meta.total', 2);
+    }
+
+    /** The owner changes the charger's retail price (written to the price history like the product form). */
+    private function reprice(int $price): void
+    {
+        $this->inShop(function () use ($price): void {
+            $variant = ProductVariant::query()->findOrFail($this->v[1]);
+            app(PriceHistory::class)->record($variant, 'price_retail', $variant->price_retail, $price, 'edit');
+            $variant->update(['price_retail' => $price]);
+        });
+    }
+
+    public function test_an_offline_sale_keeps_the_price_the_customer_paid(): void
+    {
+        $soldAt = now()->subHours(2)->toIso8601String();
+        $this->reprice(50000); // raised after the POS cached 450
+
+        $sale = $this->queued([
+            'offline' => true,
+            'sold_at' => $soldAt,
+            'items' => [['variant_id' => $this->v[1], 'qty' => 1, 'unit_price' => 45000]],
+        ])->assertCreated()->json('data');
+
+        $this->assertSame(45000, $sale['total']);
+        $this->assertSame(45000, $sale['items'][0]['unit_price']);
+        $entry = $this->inShop(fn () => AuditEntry::query()->where('action', 'sales.offline_price')->sole());
+        $this->assertStringContainsString('450.00 بدل 500.00', $entry->description);
+    }
+
+    public function test_an_offline_price_the_variant_never_had_is_not_taken(): void
+    {
+        $this->queued([
+            'offline' => true,
+            'sold_at' => now()->subHour()->toIso8601String(),
+            'items' => [['variant_id' => $this->v[1], 'qty' => 1, 'unit_price' => 100]],
+            'payments' => [['method' => 'cash', 'amount' => 100]],
+        ])->assertStatus(422)->assertJsonPath('code', 'underpaid');
+    }
+
+    public function test_an_online_sale_ignores_the_price_sent(): void
+    {
+        $this->reprice(50000);
+
+        $this->queued([
+            'items' => [['variant_id' => $this->v[1], 'qty' => 1, 'unit_price' => 45000]],
+        ])->assertStatus(422)->assertJsonPath('code', 'underpaid');
     }
 }

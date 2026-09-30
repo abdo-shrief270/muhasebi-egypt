@@ -41,6 +41,8 @@ final class CompleteSaleRequest extends FormRequest
             'items' => ['required', 'array', 'min:1', 'max:200'],
             'items.*.variant_id' => ['required', 'uuid', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:100000'],
+            // The price the offline POS showed (from its cached catalog); used only for offline sales.
+            'items.*.unit_price' => ['nullable', 'integer', 'min:0', 'max:'.self::MAX_MONEY],
             'items.*.discount' => ['nullable', 'integer', 'min:0', 'max:'.self::MAX_MONEY],
             'items.*.serials' => ['nullable', 'array', 'max:1000'],
             'items.*.serials.*' => ['string', 'regex:/^[A-Za-z0-9 \-\/]{4,48}$/'],
@@ -100,7 +102,7 @@ final class CompleteSaleRequest extends FormRequest
     }
 
     /**
-     * @return list<array{variant_id: string, qty: int, discount: int, serials: list<string>|null}>
+     * @return list<array{variant_id: string, qty: int, discount: int, serials: list<string>|null, unit_price: int|null}>
      */
     public function items(): array
     {
@@ -109,6 +111,7 @@ final class CompleteSaleRequest extends FormRequest
             'qty' => (int) $i['qty'],
             'discount' => (int) ($i['discount'] ?? 0),
             'serials' => isset($i['serials']) ? array_values(array_map('strval', $i['serials'])) : null,
+            'unit_price' => isset($i['unit_price']) ? (int) $i['unit_price'] : null,
         ], $this->validated('items')));
     }
 

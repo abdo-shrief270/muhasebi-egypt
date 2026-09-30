@@ -466,7 +466,7 @@ async function checkout(payments: Payment[]) {
     customer_id: cart.value.customer?.id ?? null,
     customer_name: cart.value.customer ? null : cart.value.customer_name || null,
     customer_phone: cart.value.customer ? null : cart.value.customer_phone || null,
-    items: cart.value.lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, discount: l.discount, serials: l.track_serial ? l.serials : undefined })),
+    items: cart.value.lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, unit_price: unitPrice(l), discount: l.discount, serials: l.track_serial ? l.serials : undefined })),
     payments,
   }
   try {

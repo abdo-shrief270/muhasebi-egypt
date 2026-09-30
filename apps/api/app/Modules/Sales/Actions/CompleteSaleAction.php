@@ -24,6 +24,7 @@ use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
 use App\Support\Numbering\DocumentNumbers;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -37,6 +38,9 @@ use Illuminate\Support\Str;
  */
 final class CompleteSaleAction
 {
+    /** How old the offline POS's cached catalog may be (the same week an offline sale may wait). */
+    private const OFFLINE_CATALOG_MAX_AGE_DAYS = 7;
+
     public function __construct(
         private readonly VariantCatalog $catalog,
         private readonly StockLedger $stock,
@@ -50,7 +54,7 @@ final class CompleteSaleAction
     ) {}
 
     /**
-     * @param  list<array{variant_id: string, qty: int, discount: int, serials?: list<string>|null}>  $items  discount = piasters off the line; serials for products that track them
+     * @param  list<array{variant_id: string, qty: int, discount: int, serials?: list<string>|null, unit_price?: int|null}>  $items  discount = piasters off the line; serials for products that track them; unit_price = what an offline POS charged
      * @param  list<array{method: PaymentMethod, amount: int, reference: string|null}>  $payments
      * @param  bool  $canDiscount  sales.discount: line / invoice discounts and non-retail price levels
      * @param  bool  $canCredit  customers.credit: part or all of the total on the customer's account
@@ -86,6 +90,12 @@ final class CompleteSaleAction
         $variants = $this->catalog->find(array_column($items, 'variant_id'));
         // The owner's switch: no selling beyond the branch's stock.
         $inStock = $blockOutOfStock ? $this->stock->quantities($branchId, array_column($items, 'variant_id')) : [];
+        // An offline sale keeps the price the customer paid when it was a real price of the
+        // variant lately (the POS's cached catalog), even if the price changed before it synced.
+        $offlinePrices = $soldAt !== null && array_filter($items, fn (array $i) => ($i['unit_price'] ?? null) !== null) !== []
+            ? $this->catalog->pricesSince(array_column($items, 'variant_id'), $priceLevel->value, CarbonImmutable::instance($soldAt)->subDays(self::OFFLINE_CATALOG_MAX_AGE_DAYS))
+            : [];
+        $keptPrices = [];
         $lines = [];
         foreach ($items as $item) {
             $variant = $variants[$item['variant_id']] ?? throw new DomainRuleException('فيه صنف في الفاتورة مش موجود.', 'variant_not_found', 404);
@@ -96,6 +106,11 @@ final class CompleteSaleAction
                 throw new DomainRuleException("«{$variant->displayName()}» مفيش منه كفاية في الفرع (الموجود ".max(0, $inStock[$variant->id] ?? 0).').', 'out_of_stock', context: ['variant_id' => $variant->id, 'available' => $inStock[$variant->id] ?? 0]);
             }
             $unitPrice = $variant->priceFor($priceLevel->value);
+            $paidPrice = $item['unit_price'] ?? null;
+            if ($paidPrice !== null && $paidPrice !== $unitPrice && in_array($paidPrice, $offlinePrices[$variant->id] ?? [], true)) {
+                $keptPrices[] = ['variant_id' => $variant->id, 'name' => $variant->displayName(), 'paid' => $paidPrice, 'current' => $unitPrice];
+                $unitPrice = $paidPrice;
+            }
             $gross = $unitPrice * $item['qty'];
             if ($item['discount'] > $gross) {
                 throw new DomainRuleException("خصم «{$variant->displayName()}» أكبر من سعره.", 'line_discount_too_large');
@@ -136,7 +151,7 @@ final class CompleteSaleAction
         }
 
         try {
-            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt);
+            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices);
         } catch (UniqueConstraintViolationException $e) {
             // The same id arrived twice at once: the other request saved it.
             return ($saleId !== null ? Sale::query()->find($saleId) : null) ?? throw $e;
@@ -146,6 +161,7 @@ final class CompleteSaleAction
     /**
      * @param  list<array{variant: VariantSummary, qty: int, unit_price: int, discount: int, line_total: int, serials: list<string>|null}>  $lines
      * @param  list<array{method: PaymentMethod, amount: int, reference: string|null}>  $payments
+     * @param  list<array{variant_id: string, name: string, paid: int, current: int}>  $keptPrices
      */
     private function save(
         string $tenantId,
@@ -165,8 +181,9 @@ final class CompleteSaleAction
         int $change,
         int $credit,
         ?CarbonInterface $soldAt,
+        array $keptPrices = [],
     ): Sale {
-        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt): Sale {
+        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices): Sale {
             $user = $this->auth->guard('sanctum')->user();
 
             $sale = new Sale([
@@ -268,6 +285,16 @@ final class CompleteSaleAction
                         .($priceLevel !== PriceLevel::Retail ? " بسعر {$priceLevel->label()}" : ''),
                     $sale,
                     ['invoice_discount' => $discount, 'line_discounts' => $lineDiscounts, 'price_level' => $priceLevel->value],
+                );
+            }
+
+            if ($keptPrices !== []) {
+                $this->audit->record(
+                    'sales.offline_price',
+                    "الفاتورة {$sale->reference()} اتعملت أوفلاين واتسجلت بالسعر اللي العميل دفعه: "
+                        .implode('، ', array_map(fn (array $k) => "{$k['name']} بـ ".number_format($k['paid'] / 100, 2).' بدل '.number_format($k['current'] / 100, 2), $keptPrices)),
+                    $sale,
+                    ['lines' => $keptPrices],
                 );
             }
 

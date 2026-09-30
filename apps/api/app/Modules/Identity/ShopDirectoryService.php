@@ -7,6 +7,7 @@ namespace App\Modules\Identity;
 use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Identity\Contracts\ShopSummary;
 use App\Modules\Identity\Models\Tenant;
+use App\Modules\Identity\Support\ReceiptSettings;
 
 final class ShopDirectoryService implements ShopDirectory
 {
@@ -39,6 +40,6 @@ final class ShopDirectoryService implements ShopDirectory
 
     private function summary(Tenant $tenant): ShopSummary
     {
-        return new ShopSummary($tenant->id, $tenant->name, $tenant->code, $tenant->phone);
+        return new ShopSummary($tenant->id, $tenant->name, $tenant->code, $tenant->phone, ReceiptSettings::of($tenant));
     }
 }

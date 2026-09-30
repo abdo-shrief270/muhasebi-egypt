@@ -35,7 +35,7 @@ const open = defineModel<boolean>('open', { default: false })
 const store = useSessionStore()
 const { printing, print } = usePrint()
 
-const shop = computed(() => store.session ? { name: store.session.tenant.name, phone: store.session.tenant.phone } : null)
+const shop = useReceiptShop()
 const receipt = computed(() => props.sale ? receiptFromSale(props.sale, shop.value, store.currentBranch?.name ?? null) : receiptFromSale({ items: [], payments: [] } as unknown as Sale, null, null))
 // A sale made offline has no public link until it reaches the server.
 const qrUrl = computed(() => props.sale && !props.sale.offline && store.hasFeature('sales.receipt_link') ? receiptUrl(props.sale.public_token) : null)

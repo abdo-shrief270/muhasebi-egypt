@@ -96,6 +96,12 @@ export function apiErrorMessage(error: unknown): string {
   return data?.message ?? 'حصلت مشكلة، حاول تاني.'
 }
 
+/** The first validation message per field (`{errors: {field: [..]}}`), for showing under each input. */
+export function apiValidationErrors(error: unknown): Record<string, string> {
+  const errors = (error as { data?: ApiError })?.data?.errors ?? {}
+  return Object.fromEntries(Object.entries(errors).map(([field, messages]) => [field, messages[0] ?? '']))
+}
+
 /** No answer from the server at all (offline, DNS, timeout) — as opposed to an error response. */
 export function isNetworkError(error: unknown): boolean {
   const e = error as { name?: string, response?: unknown } | null

@@ -23,6 +23,8 @@ export interface SessionUser {
   role?: { id: number, name: string } | null
   branch_ids?: string[]
   two_factor_enabled: boolean
+  /** when they last signed in on any device */
+  last_login_at?: string | null
 }
 
 /** POST /auth/login: a token, or (two-factor sign-in on) a challenge for POST /auth/two-factor. */
@@ -106,7 +108,7 @@ export interface AuditEntry {
 
 export interface Session {
   user: SessionUser
-  tenant: { id: string, name: string, code: string, phone: string, shop_type: string, shop_types: string[], shop_type_label: string }
+  tenant: { id: string, name: string, code: string, phone: string, shop_type: string, shop_types: string[], shop_type_label: string, receipt?: ReceiptSettings }
   branches: Branch[]
   current_branch_id: string | null
   enabled_modules: string[]
@@ -440,9 +442,24 @@ export interface Sale {
   returns?: { id: string, reference: string, total: number, refund_method_label: string, reason: string | null, created_by_name: string | null, created_at: string }[]
 }
 
+/** What the shop prints on its receipts (/settings/shop). */
+export interface ReceiptSettings {
+  tax_number: string | null
+  commercial_register: string | null
+  footer: string
+}
+
+/** The shop's lines at the top / bottom of a receipt. */
+export interface ReceiptShop {
+  name: string
+  phone: string | null
+  address?: string | null
+  receipt?: ReceiptSettings
+}
+
 /** What a printed / public receipt shows. */
 export interface ReceiptData {
-  shop: { name: string, phone: string | null } | null
+  shop: ReceiptShop | null
   branch?: string | null
   reference: string
   completed_at: string

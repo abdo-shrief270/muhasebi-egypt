@@ -24,6 +24,9 @@
             <th class="p-3 text-start font-bold">
               الحالة
             </th>
+            <th class="p-3 text-start font-bold">
+              آخر دخول
+            </th>
             <th class="p-3" />
           </tr>
         </thead>
@@ -36,7 +39,7 @@
               </div>
             </td>
             <td class="p-3">
-              <span class="num">{{ u.phone }}</span>
+              <span class="num">{{ localPhone(u.phone) }}</span>
             </td>
             <td class="p-3">
               <UBadge v-if="u.is_owner" color="primary" variant="subtle">
@@ -56,6 +59,10 @@
                   تحقق بخطوتين
                 </UBadge>
               </div>
+            </td>
+            <td class="p-3 whitespace-nowrap text-(--ui-text-muted)">
+              <span v-if="u.last_login_at" class="num" :title="formatDate(u.last_login_at, true)">{{ formatDate(u.last_login_at, true) }}</span>
+              <span v-else>ما دخلش لسه</span>
             </td>
             <td class="p-3 text-end whitespace-nowrap">
               <UButton v-if="store.isOwner" size="sm" color="neutral" variant="ghost" icon="i-lucide-monitor-smartphone" label="الأجهزة" @click="openSessions(u)" />

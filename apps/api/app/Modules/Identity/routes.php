@@ -7,6 +7,7 @@ use App\Modules\Identity\Http\Controllers\PasswordController;
 use App\Modules\Identity\Http\Controllers\PermissionController;
 use App\Modules\Identity\Http\Controllers\RoleController;
 use App\Modules\Identity\Http\Controllers\SessionController;
+use App\Modules\Identity\Http\Controllers\ShopProfileController;
 use App\Modules\Identity\Http\Controllers\ShopTypeController;
 use App\Modules\Identity\Http\Controllers\TwoFactorController;
 use App\Modules\Identity\Http\Controllers\UserController;
@@ -52,6 +53,8 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
     Route::pattern('role', '[0-9]+');
 
     Route::put('shop/types', [ShopTypeController::class, 'update'])->middleware('can:owner');
+    Route::get('shop/profile', [ShopProfileController::class, 'show'])->middleware('can:owner');
+    Route::put('shop/profile', [ShopProfileController::class, 'update'])->middleware('can:owner');
 
     Route::middleware('can:users.manage')->group(function (): void {
         Route::get('users', [UserController::class, 'index']);

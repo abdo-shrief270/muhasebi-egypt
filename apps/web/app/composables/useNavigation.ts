@@ -10,6 +10,7 @@ export function useNavigation() {
   const home: NavItem = { to: '/', label: 'الرئيسية', icon: 'i-lucide-layout-dashboard' }
 
   const settings = computed<NavItem[]>(() => [
+    { to: '/settings/shop', label: 'بيانات المحل والإيصال', icon: 'i-lucide-receipt-text', show: store.isOwner },
     { to: '/settings/users', label: 'الموظفين', icon: 'i-lucide-users-round', show: store.can('users.manage') },
     { to: '/settings/roles', label: 'الأدوار والصلاحيات', icon: 'i-lucide-shield-check', show: store.can('roles.manage') },
     { to: '/settings/branches', label: 'الفروع', icon: 'i-lucide-store', show: store.can('branches.manage') },

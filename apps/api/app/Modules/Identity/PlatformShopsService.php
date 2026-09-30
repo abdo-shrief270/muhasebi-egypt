@@ -46,6 +46,7 @@ final class PlatformShopsService implements PlatformShops
             ->whereIn('u.tenant_id', $tenantIds)
             ->selectRaw('u.tenant_id, max(t.created_at) as signed_in, max(t.last_used_at) as seen')
             ->groupBy('u.tenant_id')->get()->keyBy('tenant_id');
+        $logins = User::query()->whereIn('tenant_id', $tenantIds)->selectRaw('tenant_id, max(last_login_at) as at')->groupBy('tenant_id')->pluck('at', 'tenant_id');
         $iso = fn (?string $at): ?string => $at !== null ? Carbon::parse($at)->toIso8601String() : null;
 
         return Tenant::query()->whereIn('id', $tenantIds)->get()->mapWithKeys(fn (Tenant $t): array => [$t->id => [
@@ -59,7 +60,7 @@ final class PlatformShopsService implements PlatformShops
             'users' => (int) ($users[$t->id] ?? 0),
             'branches' => (int) ($branches[$t->id] ?? 0),
             'created_at' => $t->created_at?->toIso8601String() ?? '',
-            'last_sign_in_at' => $iso($devices->get($t->id)?->signed_in),
+            'last_sign_in_at' => $iso($logins[$t->id] ?? $devices->get($t->id)?->signed_in),
             'last_seen_at' => $iso($devices->get($t->id)?->seen ?? $devices->get($t->id)?->signed_in),
         ]])->all();
     }

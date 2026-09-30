@@ -35,7 +35,7 @@ final class SetupChecklist implements SetupProgress
         $excel = $this->features->enabled('catalog.excel_import', $tenantId);
 
         $steps = [
-            ['key' => 'shop_info', 'title' => 'بيانات المحل على الإيصال', 'description' => 'عنوان وتليفون الفرع الرئيسي بيتطبعوا على كل إيصال.', 'to' => '/settings/branches', 'icon' => 'i-lucide-store', 'permission' => 'branches.manage'],
+            ['key' => 'shop_info', 'title' => 'بيانات المحل على الإيصال', 'description' => 'عنوان وتليفون الفرع الرئيسي، والضريبي وآخر سطر، بيتطبعوا على كل إيصال.', 'to' => '/settings/shop', 'icon' => 'i-lucide-store', 'permission' => 'owner'],
             $excel
                 ? ['key' => 'products', 'title' => 'ضيف أصنافك', 'description' => 'ارفع ملف إكسل فيه أصنافك وأسعارها مرة واحدة، أو ضيفهم واحد واحد.', 'to' => '/products/import', 'icon' => 'i-lucide-file-spreadsheet', 'permission' => 'products.manage']
                 : ['key' => 'products', 'title' => 'ضيف أصنافك', 'description' => 'الأصناف اللي بتبيعها بأسعارها والباركود بتاعها.', 'to' => '/products/new', 'icon' => 'i-lucide-package-plus', 'permission' => 'products.manage'],

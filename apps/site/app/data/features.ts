@@ -76,12 +76,15 @@ export const features: Feature[] = [
   { icon: 'i-lucide-wallet', title: 'الخزنة والورديات', text: 'كل كاشير بدرجه: مصروفات وإيداعات، وقفل الوردية بالمتوقع والمعدود لكل طريقة دفع.', doc: 'cash' },
   { icon: 'i-lucide-truck', title: 'الموردين والمشتريات', text: 'فواتير شراء، حساب كل مورد، مدفوعات ومرتجعات من نفس الشحنة.', doc: 'purchases' },
   { icon: 'i-lucide-message-circle', title: 'رسايل واتساب', text: 'قوالب جاهزة بكلامك إنت: الجهاز جاهز، الفاتورة، تذكير بالآجل. من غير أي اشتراك في واتساب بيزنس.', doc: 'whatsapp' },
+  { icon: 'i-lucide-arrow-left-right', title: 'الشحن والتحويلات', text: 'فودافون كاش واتصالات وإنستاباي ورصيد الشحن: رصيد كل محفظة وعمولتك متسجلين، والدرج مظبوط.', doc: 'services' },
+  { icon: 'i-lucide-smartphone', title: 'المستعمل', text: 'اشتري موبايل مستعمل بالرقم القومي وصورة البطاقة وفحص الـ IMEI، وبيعه من الكاشير ومكسبه لوحده.', doc: 'used-devices' },
+  { icon: 'i-lucide-undo-2', title: 'مرتجعات الموردين', text: 'التالف والمرتجع متفرز حسب المورد لوحده، وإذن مرتجع لكل مورد بضغطة.', doc: 'supplier-returns' },
   { icon: 'i-lucide-handshake', title: 'الطلبات بين المحلات', text: 'اطلب بضاعة أو ابعت صيانة لمحل صاحبك على السيستم، وتابعوا الطلب سوا.', doc: 'shop-orders' },
   { icon: 'i-lucide-git-branch', title: 'فروع وموظفين', text: 'كل فرع بمخزونه، وكل موظف بصلاحياته: الكاشير ميشوفش التكلفة، والفني يشوف تذاكره بس.', doc: 'team' },
   { icon: 'i-lucide-toggle-right', title: 'إنت اللي بتتحكم', text: 'افتح واقفل مميزات صغيرة زي الخصم والاستيراد والأسعار بين المحلات حسب طريقة شغلك.', doc: 'settings' },
   { icon: 'i-lucide-printer', title: 'طباعة من غير تعقيد', text: 'إيصالات حرارية 80مم، ليبلات باركود بأي مقاس، وتقارير A4.', doc: 'printing' },
   { icon: 'i-lucide-shield-check', title: 'أمان وخصوصية', text: 'تحقق بخطوتين، الأجهزة المسجلة، سجل عمليات لكل حاجة حساسة، ومتوافق مع قانون حماية البيانات.', doc: 'security' },
-  { icon: 'i-lucide-smartphone', title: 'على الموبايل والكمبيوتر', text: 'افتحه من أي متصفح: الكمبيوتر اللي في المحل أو موبايلك وإنت برا.', doc: 'getting-started' },
+  { icon: 'i-lucide-monitor-smartphone', title: 'على الموبايل والكمبيوتر', text: 'افتحه من أي متصفح: الكمبيوتر اللي في المحل أو موبايلك وإنت برا.', doc: 'getting-started' },
 ]
 
 export const steps = [

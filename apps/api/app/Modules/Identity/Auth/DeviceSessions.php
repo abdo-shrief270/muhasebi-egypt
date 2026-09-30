@@ -28,6 +28,7 @@ final class DeviceSessions
     public function issue(User $user, string $deviceName): string
     {
         $token = $user->createToken(Str::limit($deviceName, 120, ''));
+        $user->forceFill(['last_login_at' => now()])->saveQuietly();
         $token->accessToken->forceFill([
             'ip_address' => $this->request->ip(),
             'user_agent' => Str::limit((string) $this->request->userAgent(), 250, ''),

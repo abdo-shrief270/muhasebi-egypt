@@ -398,7 +398,7 @@ function notify(t: RepairTicket) {
     data.value.data.ready_notified_at = new Date().toISOString()
   }
 }
-const shop = computed(() => store.session ? { name: store.session.tenant.name, phone: store.session.tenant.phone ?? null } : null)
+const shop = useReceiptShop()
 
 const [{ data }, { data: optionsData }] = await Promise.all([
   useAsyncData(`repair-${id.value}`, () => api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}`)),

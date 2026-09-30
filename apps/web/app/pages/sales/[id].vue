@@ -220,7 +220,7 @@ const methods = computed(() => (optionsData.value?.data.payment_methods ?? [])
   .map(m => ({ label: m.value === 'credit' ? 'يتخصم من حساب العميل' : m.label, value: m.value })))
 const returnable = computed(() => sale.value?.items?.some(i => i.qty > i.returned_qty) ?? false)
 
-const shop = computed(() => store.session ? { name: store.session.tenant.name, phone: store.session.tenant.phone } : null)
+const shop = useReceiptShop()
 const receipt = computed(() => receiptFromSale(sale.value!, shop.value, store.currentBranch?.name ?? null))
 
 const messages = useMessages()

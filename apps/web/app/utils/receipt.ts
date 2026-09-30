@@ -1,4 +1,4 @@
-import type { ReceiptData, Sale } from '~/types/api'
+import type { ReceiptData, ReceiptShop, Sale } from '~/types/api'
 
 /** Printed on a receipt made offline, until the sale reaches the server. */
 export const OFFLINE_NOTE = 'لسه ما اتسجلتش — هتتسجل أول ما النت يرجع'
@@ -8,7 +8,7 @@ export function receiptUrl(token: string): string {
   return `${window.location.origin}/r/${token}`
 }
 
-export function receiptFromSale(sale: Sale, shop: { name: string, phone: string | null } | null, branch: string | null): ReceiptData {
+export function receiptFromSale(sale: Sale, shop: ReceiptShop | null, branch: string | null): ReceiptData {
   return {
     shop,
     branch,

@@ -33,6 +33,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property list<string>|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
  * @property int|null $two_factor_last_step
+ * @property Carbon|null $last_login_at when they last signed in (any device)
  */
 #[Fillable(['tenant_id', 'name', 'phone', 'email', 'password', 'is_owner', 'role_id', 'is_active'])]
 #[Hidden(['password', 'pin_hash', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_last_step'])]
@@ -47,6 +48,7 @@ final class User extends Authenticatable
         'is_owner' => false,
         'is_active' => true,
         'role_id' => null,
+        'last_login_at' => null,
         'two_factor_secret' => null,
         'two_factor_recovery_codes' => null,
         'two_factor_confirmed_at' => null,
@@ -59,6 +61,7 @@ final class User extends Authenticatable
             'password' => 'hashed',
             'is_owner' => 'boolean',
             'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'array',
             'two_factor_confirmed_at' => 'datetime',

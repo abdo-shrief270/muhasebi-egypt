@@ -7,8 +7,20 @@
       <p v-if="data.branch" class="text-xs">
         {{ data.branch }}
       </p>
+      <p v-if="data.shop?.address" class="text-xs">
+        {{ data.shop.address }}
+      </p>
       <p v-if="data.shop?.phone" class="text-xs num">
-        {{ data.shop.phone }}
+        {{ localPhone(data.shop.phone) }}
+      </p>
+      <p v-if="data.shop?.receipt?.tax_number || data.shop?.receipt?.commercial_register" class="text-[10px]">
+        <template v-if="data.shop?.receipt?.tax_number">
+          رقم التسجيل الضريبي <span class="num">{{ data.shop.receipt.tax_number }}</span>
+        </template>
+        <template v-if="data.shop?.receipt?.tax_number && data.shop?.receipt?.commercial_register"> · </template>
+        <template v-if="data.shop?.receipt?.commercial_register">
+          س.ت <span class="num">{{ data.shop.receipt.commercial_register }}</span>
+        </template>
       </p>
     </div>
 
@@ -73,8 +85,8 @@
         امسح الكود عشان تشوف الفاتورة على موبايلك
       </p>
     </div>
-    <p class="mt-2 text-center text-xs font-bold">
-      شكراً لزيارتك 🌷
+    <p class="mt-2 whitespace-pre-line text-center text-xs font-bold">
+      {{ data.shop?.receipt?.footer ?? 'شكراً لزيارتك 🌷' }}
     </p>
   </div>
 </template>

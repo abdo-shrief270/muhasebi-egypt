@@ -6,6 +6,7 @@ namespace App\Modules\Identity\Http\Resources;
 
 use App\Modules\Identity\Enums\ShopType;
 use App\Modules\Identity\Models\Tenant;
+use App\Modules\Identity\Support\ReceiptSettings;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -27,6 +28,7 @@ final class TenantResource extends JsonResource
             'shop_type' => $this->shop_type->value,
             'shop_types' => array_map(fn (ShopType $t) => $t->value, $this->types()),
             'shop_type_label' => ShopType::labels($this->types()),
+            'receipt' => ReceiptSettings::of($this->resource),
         ];
     }
 }

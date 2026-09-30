@@ -151,7 +151,7 @@ definePageMeta({ module: 'repairs', permission: 'repairs.create' })
 const api = useApi()
 const store = useSessionStore()
 const canCustomers = computed(() => store.can('customers.view'))
-const shop = computed(() => store.session ? { name: store.session.tenant.name, phone: store.session.tenant.phone ?? null } : null)
+const shop = useReceiptShop()
 
 const { data: optionsData } = await useAsyncData('repair-options', () => api<{ data: RepairOptions }>('/repairs/options'))
 const options = computed(() => optionsData.value?.data)

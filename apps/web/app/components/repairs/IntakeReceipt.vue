@@ -4,8 +4,11 @@
       <p class="text-lg font-extrabold">
         {{ shop?.name }}
       </p>
+      <p v-if="shop?.address" class="text-xs">
+        {{ shop.address }}
+      </p>
       <p v-if="shop?.phone" class="text-xs num">
-        {{ shop.phone }}
+        {{ localPhone(shop.phone) }}
       </p>
       <p class="mt-1 text-sm font-bold">
         إيصال استلام جهاز
@@ -84,10 +87,10 @@
 </template>
 
 <script setup lang="ts">
-import type { RepairTicket } from '~/types/api'
+import type { ReceiptShop, RepairTicket } from '~/types/api'
 
 /** What the customer takes home when leaving a device: 80mm thermal. */
-withDefaults(defineProps<{ ticket: RepairTicket, shop: { name: string, phone: string | null } | null, width?: string }>(), { width: '72mm' })
+withDefaults(defineProps<{ ticket: RepairTicket, shop: ReceiptShop | null, width?: string }>(), { width: '72mm' })
 
 const tracking = computed(() => useSessionStore().hasFeature('repairs.public_tracking'))
 </script>

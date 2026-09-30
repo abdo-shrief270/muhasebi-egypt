@@ -31,7 +31,7 @@ final class PublicReceiptController
             $shop = $shops->find($sale->tenant_id);
 
             return response()->json(['data' => [
-                'shop' => $shop ? ['name' => $shop->name, 'phone' => $shop->phone] : null,
+                'shop' => $shop ? ['name' => $shop->name, 'phone' => $shop->phone, 'receipt' => $shop->receipt] : null,
                 'reference' => $sale->reference(),
                 'status_label' => $sale->status->label(),
                 'completed_at' => $sale->completed_at->toIso8601String(),

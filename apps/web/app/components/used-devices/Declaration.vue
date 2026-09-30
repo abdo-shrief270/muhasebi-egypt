@@ -30,16 +30,11 @@
     </h1>
 
     <p class="text-justify text-base leading-9">
-      أقر أنا / <b>{{ seller?.name ?? '................................' }}</b>
-      ، الرقم القومي <b class="num" dir="ltr">{{ seller?.national_id ?? '..............................' }}</b>
-      <template v-if="seller?.phone">
-        ، موبايل <b class="num" dir="ltr">{{ localPhone(seller.phone) }}</b>
-      </template>
-      ، والمقيم في ........................................................................
+      أقر أنا / <b>{{ seller?.name ?? '................................' }}</b>، الرقم القومي <b class="num" dir="ltr">{{ seller?.national_id ?? '..............................' }}</b><template v-if="seller?.phone">، موبايل <b class="num" dir="ltr">{{ localPhone(seller.phone) }}</b></template>، والمقيم في ........................................................................
       بإني بعت لمحل «{{ shop.name }}» الجهاز الموضّح بياناته تحت، وإنه ملكي الخاص، ومش مسروق ولا ضايع ولا متبلّغ عنه،
       وخالي من أي نزاع أو رهن أو أقساط، وإني شلت منه كل حساباتي (iCloud / Google) وبياناتي الشخصية،
       وإني استلمت تمنه كامل وقدره <b class="num">{{ formatMoney(device.purchase_price ?? pricePaid) }}</b>
-      ({{ device.payment_method_label }})، وأتحمّل المسئولية القانونية كاملة لو ظهر عكس كده.
+      ({{ paidBy }})، وأتحمّل المسئولية القانونية كاملة لو ظهر عكس كده.
     </p>
 
     <table class="mt-6 w-full border-collapse text-sm">
@@ -101,6 +96,7 @@ const props = defineProps<{
 }>()
 
 const seller = computed(() => props.device.seller)
+const paidBy = computed(() => ({ cash: 'كاش', wallet: 'على محفظة', instapay: 'InstaPay', bank: 'تحويل بنكي' })[props.device.payment_method])
 const rows = computed(() => [
   { label: 'الجهاز', value: props.device.model_name },
   { label: 'السعة / اللون', value: [props.device.storage, props.device.color].filter(Boolean).join(' · ') || '—' },

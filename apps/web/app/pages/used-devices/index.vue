@@ -30,12 +30,20 @@
       />
     </div>
 
-    <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_8rem_9.5rem_9.5rem]">
-      <UInput v-model="q" icon="i-lucide-search" placeholder="الموديل، IMEI، أو رقم UD…" class="w-full sm:col-span-2 lg:col-span-1" />
+    <div class="grid grid-cols-2 gap-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)_8rem_11rem_11rem]">
+      <UInput v-model="q" icon="i-lucide-search" placeholder="الموديل، IMEI، أو رقم UD…" class="col-span-2 w-full lg:col-span-1" />
       <DeviceModelPicker v-model="modelId" endpoint="/used-devices/device-models" placeholder="كل الموديلات" />
       <USelect v-model="grade" :items="gradeItems" class="w-full" aria-label="الفئة" />
-      <UInput v-model="from" type="date" dir="ltr" class="w-full" aria-label="اتشرى من" />
-      <UInput v-model="to" type="date" dir="ltr" class="w-full" aria-label="اتشرى لحد" />
+      <UInput v-model="from" type="date" class="w-full" aria-label="اتشرى من" :ui="{ leading: 'text-xs text-(--ui-text-muted)' }">
+        <template #leading>
+          من
+        </template>
+      </UInput>
+      <UInput v-model="to" type="date" class="w-full" aria-label="اتشرى لحد" :ui="{ leading: 'text-xs text-(--ui-text-muted)' }">
+        <template #leading>
+          لحد
+        </template>
+      </UInput>
     </div>
     <div v-if="filtered" class="-mt-4">
       <UButton size="xs" color="neutral" variant="link" icon="i-lucide-x" label="شيل الفلاتر" @click="clearFilters" />

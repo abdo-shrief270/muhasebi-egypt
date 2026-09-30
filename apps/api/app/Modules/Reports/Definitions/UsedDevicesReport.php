@@ -110,6 +110,7 @@ final class UsedDevicesReport implements Report
                 ".ReportQuery::localDay('bought_at').' as bought_day, '.ReportQuery::localDay('sold_at').' as sold_day,
                 purchase_price, sale_price, '.self::DAYS.' as days')
             ->orderBy('bought_at')
+            ->orderBy('number')
             ->limit(1000)
             ->get();
 

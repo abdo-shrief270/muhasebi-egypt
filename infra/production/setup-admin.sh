@@ -79,6 +79,14 @@ done
 
 server_ip=$(curl -fsS4 --max-time 5 https://ifconfig.me 2>/dev/null || true)
 dns_ip=$(getent ahostsv4 "$ADMIN_DOMAIN" 2>/dev/null | awk 'NR == 1 { print $1 }' || true)
+# This server may still remember "no such name" from before the record existed; ask public DNS
+# (what Let's Encrypt sees) too.
+if [[ -z "$dns_ip" ]] && command -v dig >/dev/null; then
+  for resolver in 1.1.1.1 8.8.8.8; do
+    dns_ip=$(dig +short +time=3 +tries=1 A "$ADMIN_DOMAIN" "@$resolver" 2>/dev/null | grep -E '^[0-9.]+$' | head -n1 || true)
+    [[ -n "$dns_ip" ]] && break
+  done
+fi
 if [[ -z "$dns_ip" ]]; then
   warn "$ADMIN_DOMAIN doesn't resolve yet. The HTTPS certificate will fail until the DNS record exists."
   yes_no "Continue anyway?" n || exit 1

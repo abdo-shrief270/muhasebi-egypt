@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Inventory;
 
+use App\Modules\Inventory\Contracts\MovementType;
 use App\Modules\Inventory\Contracts\StockIssue;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockPortion;
@@ -107,6 +108,83 @@ final class StockLedgerService implements StockLedger
 
             return new StockIssue($portions, $level->qty);
         });
+    }
+
+    public function restore(string $branchId, string $variantId, int $qty, int $unitCost, ?string $lotId, StockReference $reference): string
+    {
+        if ($qty <= 0 || $unitCost < 0) {
+            throw new InvalidArgumentException('Restore a positive quantity at a non-negative cost.');
+        }
+
+        return DB::transaction(function () use ($branchId, $variantId, $qty, $unitCost, $lotId, $reference): string {
+            $level = $this->lockLevel($branchId, $variantId);
+            $lot = $lotId === null ? null : StockLot::query()
+                ->where('id', $lotId)
+                ->where('branch_id', $branchId)
+                ->where('variant_id', $variantId)
+                ->lockForUpdate()
+                ->first();
+
+            // Only units that left this lot can go back into it.
+            if ($lot === null || $lot->qty_remaining + $qty > $lot->qty_in) {
+                return $this->receive($branchId, $variantId, $qty, $unitCost, $reference);
+            }
+
+            $covering = min($qty, max(0, -$level->qty));
+            $lot->increment('qty_remaining', $qty - $covering);
+
+            $level->avg_cost = $level->qty > 0
+                ? intdiv($level->qty * $level->avg_cost + $qty * $unitCost + intdiv($level->qty + $qty, 2), $level->qty + $qty)
+                : $unitCost;
+            $level->qty += $qty;
+            $level->save();
+
+            $this->record($level, $lot->id, $qty, $unitCost, $reference);
+
+            return $lot->id;
+        });
+    }
+
+    public function issuedFor(string $refType, string $refId, string $variantId): array
+    {
+        return StockMovement::query()
+            ->where('ref_type', $refType)
+            ->where('ref_id', $refId)
+            ->where('variant_id', $variantId)
+            ->where('qty', '<', 0)
+            ->orderBy('seq')
+            ->get(['lot_id', 'qty', 'unit_cost'])
+            ->map(fn (StockMovement $m): StockPortion => new StockPortion($m->lot_id, -$m->qty, (int) $m->unit_cost))
+            ->values()
+            ->all();
+    }
+
+    public function lotOrigins(array $lotIds): array
+    {
+        if ($lotIds === []) {
+            return [];
+        }
+
+        return StockLot::query()
+            ->whereIn('id', array_values(array_unique($lotIds)))
+            ->get()
+            ->mapWithKeys(fn (StockLot $lot): array => [$lot->id => [
+                'source_type' => $lot->source_type,
+                'source_id' => $lot->source_id,
+                'unit_cost' => $lot->unit_cost,
+                'received_at' => $lot->received_at->toIso8601String(),
+            ]])
+            ->all();
+    }
+
+    public function lotOf(MovementType $sourceType, string $sourceId, string $variantId): ?string
+    {
+        return StockLot::query()
+            ->where('source_type', $sourceType->value)
+            ->where('source_id', $sourceId)
+            ->where('variant_id', $variantId)
+            ->orderByDesc('seq')
+            ->value('id');
     }
 
     public function quantity(string $branchId, string $variantId): int

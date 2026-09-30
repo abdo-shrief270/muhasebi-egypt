@@ -57,8 +57,8 @@ final class PayablesReport implements Report
     {
         $period = $query->inPeriod(DB::table('supplier_transactions'), 'created_at')
             ->selectRaw("supplier_id, sum(amount) filter (where type = 'purchase') as purchases,
-                -sum(amount) filter (where type = 'payment') as payments,
-                -sum(amount) filter (where type = 'purchase_return') as returns")
+                -sum(amount) filter (where type in ('payment', 'refund')) as payments,
+                -sum(amount) filter (where type in ('purchase_return', 'return_note')) as returns")
             ->groupBy('supplier_id');
         $rows = DB::table('suppliers')
             ->leftJoinSub($period, 'p', 'p.supplier_id', '=', 'suppliers.id')

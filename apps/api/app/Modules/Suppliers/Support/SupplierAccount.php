@@ -29,6 +29,8 @@ final class SupplierAccount
         ?Model $reference = null,
         ?PaymentMethod $method = null,
         ?string $note = null,
+        ?string $refType = null,
+        ?string $refId = null,
     ): SupplierTransaction {
         $supplier = Supplier::query()->lockForUpdate()->findOrFail($supplierId);
         $supplier->balance += $amount;
@@ -43,8 +45,8 @@ final class SupplierAccount
             'amount' => $amount,
             'balance_after' => $supplier->balance,
             'payment_method' => $method,
-            'ref_type' => $reference ? strtolower(class_basename($reference)) : null,
-            'ref_id' => $reference?->getKey(),
+            'ref_type' => $refType ?? ($reference ? strtolower(class_basename($reference)) : null),
+            'ref_id' => $refId ?? $reference?->getKey(),
             'note' => $note,
             'user_id' => $user?->getAuthIdentifier(),
             'user_name' => $user?->getAttribute('name'),

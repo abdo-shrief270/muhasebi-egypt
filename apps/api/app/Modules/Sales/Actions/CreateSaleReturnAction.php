@@ -29,7 +29,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Takes items back from a customer. Each unit is refunded at what it was really paid (its line
  * after the invoice discount's share). Sound units go back into stock at their original cost;
- * damaged ones don't (they're a loss, or later a return to the supplier). The money leaves the
+ * damaged ones don't: they're a loss, or — with supplier returns on — they go to the returns bin
+ * (SaleRefunded carries them). The money leaves the
  * refunding cashier's drawer, or — refunded as credit (آجل) — comes off the customer's account.
  */
 final class CreateSaleReturnAction
@@ -46,7 +47,7 @@ final class CreateSaleReturnAction
     ) {}
 
     /**
-     * @param  list<array{sale_item_id: int, qty: int, restock: bool, serials?: list<string>|null}>  $lines  serials: which units, for lines sold with serials
+     * @param  list<array{sale_item_id: int, qty: int, restock: bool, serials?: list<string>|null, defect_reason?: string|null}>  $lines  serials: which units, for lines sold with serials
      */
     public function handle(string $tenantId, string $branchId, Sale $sale, array $lines, PaymentMethod $refundMethod, ?string $reason): SaleReturn
     {
@@ -101,6 +102,7 @@ final class CreateSaleReturnAction
 
             $total = 0;
             $cost = 0;
+            $damaged = [];
             foreach ($lines as $line) {
                 /** @var SaleItem $item */
                 $item = $items->get($line['sale_item_id']);
@@ -128,6 +130,15 @@ final class CreateSaleReturnAction
                     'serials' => $serialsOf[$item->id] ?? null,
                 ]);
                 $item->increment('returned_qty', $line['qty']);
+                if (! $line['restock']) {
+                    $damaged[] = [
+                        'variant_id' => $item->variant_id,
+                        'qty' => $line['qty'],
+                        'unit_cost' => $item->unit_cost,
+                        'serials' => $serialsOf[$item->id] ?? null,
+                        'reason' => $line['defect_reason'] ?? null,
+                    ];
+                }
                 $total += $unitRefund * $line['qty'];
                 // Restocked units stop counting as sold cost; damaged ones stay a cost (a loss).
                 $cost += $line['restock'] ? $item->unit_cost * $line['qty'] : 0;
@@ -148,7 +159,7 @@ final class CreateSaleReturnAction
                 'status' => $allBack ? SaleStatus::Refunded : SaleStatus::PartiallyRefunded,
             ]);
 
-            $this->events->record(new SaleRefunded($tenantId, $sale->id, $return->id, $sale->branch_id, $total, $refundMethod->value));
+            $this->events->record(new SaleRefunded($tenantId, $sale->id, $return->id, $sale->branch_id, $total, $refundMethod->value, $damaged, $return->reference(), $sale->reference()));
             $this->audit->record(
                 'sales.refunded',
                 "عمل مرتجع {$return->reference()} بـ ".number_format($total / 100, 2)." ج من الفاتورة {$sale->reference()}",

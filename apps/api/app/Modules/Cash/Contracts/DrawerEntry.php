@@ -14,4 +14,6 @@ enum DrawerEntry: string
     case Repair = 'repair';
     /** Money paid to a supplier out of the drawer (negative). */
     case SupplierPayment = 'supplier_payment';
+    /** Money a supplier paid back for returned goods (positive). */
+    case SupplierRefund = 'supplier_refund';
 }

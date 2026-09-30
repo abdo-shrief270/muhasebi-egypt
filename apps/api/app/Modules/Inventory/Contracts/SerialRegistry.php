@@ -35,6 +35,36 @@ interface SerialRegistry
     public function takeBack(string $branchId, string $variantId, array $serials, StockReference $reference, bool $restock): void;
 
     /**
+     * Units set aside as damaged / for returning to their supplier: out of sellable stock but still
+     * in the shop. Each must be in stock in the branch as that variant, or unknown (registered now).
+     *
+     * @param  list<string>  $serials
+     */
+    public function setAside(string $branchId, string $variantId, array $serials, StockReference $reference): void;
+
+    /**
+     * Units set aside (damaged) go back into sellable stock.
+     *
+     * @param  list<string>  $serials
+     */
+    public function putBack(string $branchId, string $variantId, array $serials, StockReference $reference): void;
+
+    /**
+     * Units set aside (damaged) leave the shop for good: taken back by the supplier, or written off.
+     *
+     * @param  list<string>  $serials
+     */
+    public function release(string $branchId, string $variantId, array $serials, StockReference $reference): void;
+
+    /**
+     * How each unit came into the shop: its latest purchase / opening / replacement event.
+     *
+     * @param  list<string>  $serials  normalised
+     * @return array<string, array{type: string, ref_type: string|null, ref_id: string|null}> keyed by serial; unknown ones left out
+     */
+    public function origins(array $serials): array;
+
+    /**
      * Serials in stock in a branch (e.g. for the POS to recognise a scanned IMEI while offline).
      *
      * @param  list<string>  $variantIds

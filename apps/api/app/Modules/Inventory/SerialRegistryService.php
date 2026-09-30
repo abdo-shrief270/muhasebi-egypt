@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Inventory;
 
+use App\Modules\Inventory\Contracts\MovementType;
 use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockReference;
 use App\Modules\Inventory\Models\SerialEvent;
@@ -77,6 +78,63 @@ final class SerialRegistryService implements SerialRegistry
         }
     }
 
+    public function setAside(string $branchId, string $variantId, array $serials, StockReference $reference): void
+    {
+        $serials = $this->distinct($serials);
+        $existing = $this->rows($serials);
+
+        foreach ($serials as $serial) {
+            $row = $existing->get($serial);
+            if ($row === null) {
+                $row = SerialNumber::create(['tenant_id' => $this->tenant->idOrFail(), 'serial' => $serial, 'variant_id' => $variantId, 'branch_id' => $branchId, 'status' => SerialNumber::DAMAGED]);
+                $this->event($row, $branchId, $reference);
+
+                continue;
+            }
+            if ($row->status !== SerialNumber::IN_STOCK || $row->branch_id !== $branchId || $row->variant_id !== $variantId) {
+                throw new DomainRuleException("السيريال {$serial} مش في مخزن الفرع ده على الصنف ده.", 'serial_not_in_stock', context: ['serial' => $serial]);
+            }
+            $row->update(['status' => SerialNumber::DAMAGED]);
+            $this->event($row, $branchId, $reference);
+        }
+    }
+
+    public function putBack(string $branchId, string $variantId, array $serials, StockReference $reference): void
+    {
+        $this->fromDamaged($branchId, $variantId, $serials, $reference, SerialNumber::IN_STOCK);
+    }
+
+    public function release(string $branchId, string $variantId, array $serials, StockReference $reference): void
+    {
+        $this->fromDamaged($branchId, $variantId, $serials, $reference, SerialNumber::OUT);
+    }
+
+    public function origins(array $serials): array
+    {
+        if ($serials === []) {
+            return [];
+        }
+
+        $incoming = [MovementType::Purchase->value, MovementType::Opening->value, MovementType::SupplierReplacement->value];
+        $found = [];
+        SerialEvent::query()
+            ->join('serial_numbers', 'serial_numbers.id', '=', 'serial_events.serial_id')
+            ->whereIn('serial_numbers.serial', $serials)
+            ->whereIn('serial_events.type', $incoming)
+            ->orderBy('serial_events.seq')
+            ->get(['serial_numbers.serial', 'serial_events.type', 'serial_events.ref_type', 'serial_events.ref_id'])
+            ->each(function (SerialEvent $e) use (&$found): void {
+                // Ordered oldest first: the latest arrival wins.
+                $found[(string) $e->getAttribute('serial')] = [
+                    'type' => $e->type->value,
+                    'ref_type' => $e->ref_type,
+                    'ref_id' => $e->ref_id,
+                ];
+            });
+
+        return $found;
+    }
+
     public function inStock(string $branchId, array $variantIds): array
     {
         if ($variantIds === []) {
@@ -100,6 +158,24 @@ final class SerialRegistryService implements SerialRegistry
     public function normalize(array $serials): array
     {
         return array_values(array_map(fn (string $s): string => strtoupper((string) preg_replace('/[\s\-\/]+/u', '', $s)), $serials));
+    }
+
+    /**
+     * @param  list<string>  $serials
+     */
+    private function fromDamaged(string $branchId, string $variantId, array $serials, StockReference $reference, string $to): void
+    {
+        $serials = $this->distinct($serials);
+        $existing = $this->rows($serials);
+
+        foreach ($serials as $serial) {
+            $row = $existing->get($serial);
+            if ($row === null || $row->status !== SerialNumber::DAMAGED || $row->variant_id !== $variantId) {
+                throw new DomainRuleException("السيريال {$serial} مش من القطع التالفة / المرتجعة.", 'serial_not_set_aside', context: ['serial' => $serial]);
+            }
+            $row->update(['status' => $to, 'branch_id' => $branchId]);
+            $this->event($row, $branchId, $reference);
+        }
     }
 
     /**

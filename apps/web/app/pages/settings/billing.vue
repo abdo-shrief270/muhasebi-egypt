@@ -13,10 +13,13 @@
             <UBadge :color="subscriptionStatusColor(sub.status)" variant="subtle">
               {{ sub.status_label }}
             </UBadge>
+            <UBadge v-if="sub.beta" color="info" variant="subtle">
+              Beta مجانية
+            </UBadge>
           </div>
           <p class="text-sm text-(--ui-text-muted)">
             <template v-if="sub.paid_up">
-              {{ sub.on_trial ? 'التجربة لحد' : 'مدفوع لحد' }} <span class="num">{{ formatDate(sub.paid_until) }}</span>
+              {{ sub.on_trial ? 'التجربة لحد' : sub.beta ? 'مجاناً لحد' : 'مدفوع لحد' }} <span class="num">{{ formatDate(sub.paid_until) }}</span>
               (فاضل <span class="num">{{ Math.max(0, sub.days_left) }}</span> يوم)
             </template>
             <template v-else>

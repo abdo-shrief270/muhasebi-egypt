@@ -58,6 +58,9 @@ export default defineNuxtConfig({
         // Security page (navigation, device icons, conditional shield icons).
         'lucide:lock-keyhole', 'lucide:monitor', 'lucide:tablet', 'lucide:shield', 'lucide:shield-check', 'lucide:shield-alert',
         'lucide:wifi-off', 'lucide:cloud-upload', 'lucide:cloud-alert', 'lucide:refresh-cw',
+        // «ابدأ من هنا» step icons (from the API) and «ابعت ملاحظة» (menu / Ctrl+K / toast).
+        'lucide:boxes', 'lucide:package-plus', 'lucide:file-spreadsheet', 'lucide:shield-check', 'lucide:rocket',
+        'lucide:message-square-heart', 'lucide:heart-handshake', 'lucide:bug', 'lucide:lightbulb', 'lucide:circle-help',
       ],
     },
   },
@@ -65,6 +68,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:8000/api/v1', // NUXT_PUBLIC_API_BASE
+      appVersion: '', // NUXT_PUBLIC_APP_VERSION (e.g. the git sha), sent with feedback and error reports
     },
   },
 

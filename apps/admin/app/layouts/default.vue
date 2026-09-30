@@ -29,6 +29,8 @@ const nav = [
   { to: '/', label: 'نظرة عامة', icon: 'i-lucide-layout-dashboard' },
   { to: '/payments', label: 'المدفوعات', icon: 'i-lucide-banknote' },
   { to: '/shops', label: 'المحلات', icon: 'i-lucide-store' },
+  { to: '/feedback', label: 'الملاحظات', icon: 'i-lucide-message-square-heart' },
+  { to: '/errors', label: 'أخطاء الواجهة', icon: 'i-lucide-bug' },
   { to: '/activity', label: 'السجل', icon: 'i-lucide-history' },
 ]
 const isActive = (to: string) => (to === '/' ? route.path === '/' : route.path.startsWith(to))

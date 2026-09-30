@@ -63,6 +63,11 @@ const labels: Record<string, string> = {
   trial_extended: 'مدّ التجربة',
   shop_suspended: 'وقّف محل',
   shop_unsuspended: 'رجّع محل',
+  beta_granted: 'ادّى فترة Beta مجانية',
+  feedback_status: 'غيّر حالة ملاحظة',
+  feedback_screenshot_viewed: 'فتح صورة ملاحظة',
+  client_error_resolved: 'علّم خطأ واجهة إنه اتحل',
+  client_error_reopened: 'رجّع خطأ واجهة مفتوح',
 }
 
 function summary(details: Record<string, unknown>): string {

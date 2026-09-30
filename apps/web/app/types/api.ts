@@ -28,6 +28,26 @@ export interface SessionUser {
 /** POST /auth/login: a token, or (two-factor sign-in on) a challenge for POST /auth/two-factor. */
 export type LoginResponse = { token: string, user: SessionUser } | { two_factor: true, challenge: string, expires_in: number }
 
+/** GET /onboarding: the «ابدأ من هنا» card (steps ticked from the shop's data). */
+export interface OnboardingStep {
+  key: string
+  title: string
+  description: string
+  to: string
+  icon: string
+  done: boolean
+}
+
+export interface OnboardingState {
+  visible: boolean
+  done: number
+  total: number
+  complete: boolean
+  collapsed: boolean
+  dismissed: boolean
+  steps: OnboardingStep[]
+}
+
 export interface TwoFactorStatus {
   enabled: boolean
   confirmed_at: string | null
@@ -687,6 +707,9 @@ export interface SubscriptionInfo {
   paid_until: string
   days_left: number
   suspended_reason: string | null
+  /** in a free beta period granted by the Muhasebi team */
+  beta?: boolean
+  beta_until?: string | null
   monthly_value: number
 }
 

@@ -13,6 +13,8 @@
 
     <SecurityTwoFactorCard />
 
+    <SecurityPasswordCard />
+
     <UCard>
       <template #header>
         <div>

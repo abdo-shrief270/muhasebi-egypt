@@ -163,4 +163,22 @@ class SessionsTest extends TestCase
         $this->assertFalse($cashier->refresh()->hasTwoFactor());
         $this->as($cashierToken)->getJson('/api/v1/auth/me')->assertUnauthorized();
     }
+
+    public function test_anyone_changes_their_own_password_and_other_devices_sign_out(): void
+    {
+        $owner = $this->registerShop();
+        [, $pc] = $this->employeeOf($owner);
+        $phone = $this->signIn('01122223333', 'secret-pass', 'Phone');
+
+        $this->as($pc)->putJson('/api/v1/account/password', ['current_password' => 'wrong', 'password' => 'new-secret-1', 'password_confirmation' => 'new-secret-1'])
+            ->assertUnprocessable()->assertJsonPath('code', 'wrong_password');
+        $this->as($pc)->putJson('/api/v1/account/password', ['current_password' => 'secret-pass', 'password' => 'short', 'password_confirmation' => 'short'])
+            ->assertUnprocessable()->assertJsonValidationErrors('password');
+        $this->as($pc)->putJson('/api/v1/account/password', ['current_password' => 'secret-pass', 'password' => 'new-secret-1', 'password_confirmation' => 'new-secret-1'])
+            ->assertOk()->assertJsonPath('data.signed_out_devices', 1);
+
+        $this->as($phone)->getJson('/api/v1/auth/me')->assertUnauthorized();
+        $this->as($pc)->getJson('/api/v1/auth/me')->assertOk();
+        $this->signIn('01122223333', 'new-secret-1', 'Laptop');
+    }
 }

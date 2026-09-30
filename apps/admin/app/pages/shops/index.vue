@@ -62,7 +62,7 @@
               </td>
               <td class="p-3 whitespace-nowrap">
                 <p :class="staleTone(row.shop?.last_seen_at)">
-                  آخر دخول {{ timeAgo(row.shop?.last_seen_at) }}
+                  {{ row.shop?.last_seen_at ? `آخر استخدام ${timeAgo(row.shop.last_seen_at)}` : 'ما فتحش البرنامج' }}
                 </p>
                 <p class="text-xs text-(--ui-text-muted)">
                   <span class="num">{{ row.activity?.sales_7d ?? 0 }}</span> فاتورة ·

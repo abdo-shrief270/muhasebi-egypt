@@ -35,7 +35,7 @@
 
         <p class="flex items-start gap-1.5 text-xs text-(--ui-text-muted)">
           <UIcon name="i-lucide-info" class="mt-0.5 size-3.5 shrink-0" />
-          هيتبعت معاها الصفحة اللي انت فيها (<span class="num" dir="ltr">{{ route.path }}</span>) ونوع المتصفح ومقاس الشاشة، عشان نعرف نوصل للمشكلة.
+          هيتبعت معاها الصفحة اللي انت فيها ونوع المتصفح ومقاس الشاشة، عشان نوصل للمشكلة أسرع.
         </p>
       </form>
     </template>

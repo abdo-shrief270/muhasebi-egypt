@@ -33,7 +33,7 @@
                 آخر مرة {{ timeAgo(g.last_seen_at) }}
               </span>
             </div>
-            <p class="break-words font-mono text-sm font-bold" dir="ltr">
+            <p class="rounded-(--ui-radius) bg-(--ui-bg-elevated) px-3 py-2 break-words font-mono text-sm font-bold" dir="ltr">
               {{ g.message }}
             </p>
             <p class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-(--ui-text-muted)">

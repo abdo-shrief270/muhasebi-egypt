@@ -39,9 +39,9 @@ export function apiErrorMessage(error: unknown): string {
 
 /** "منذ 3 أيام" style, for last activity. */
 const relative = new Intl.RelativeTimeFormat('ar-EG-u-nu-latn', { numeric: 'auto' })
-export function timeAgo(iso: string | null | undefined): string {
+export function timeAgo(iso: string | null | undefined, never = 'لسه'): string {
   if (!iso) {
-    return 'أبداً'
+    return never
   }
   const minutes = Math.round((new Date(iso).getTime() - Date.now()) / 60000)
   if (minutes > -1) {

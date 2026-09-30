@@ -52,7 +52,7 @@
               </UBadge>
             </p>
             <p class="text-xs text-(--ui-text-muted)">
-              {{ a.provider_label }}<template v-if="a.phone">
+              {{ a.name === a.provider_label ? a.kind_label : a.provider_label }}<template v-if="a.phone">
                 · <span class="num">{{ localPhone(a.phone) }}</span>
               </template>
             </p>
@@ -72,7 +72,7 @@
         <div v-if="a.daily_limit" class="mt-3">
           <div class="mb-1 flex justify-between text-xs text-(--ui-text-muted)">
             <span>النهارده</span>
-            <span class="num">{{ formatMoney(a.today_used) }} / {{ formatMoney(a.daily_limit) }}</span>
+            <span><span class="num">{{ formatMoney(a.today_used) }}</span> من <span class="num">{{ formatMoney(a.daily_limit) }}</span></span>
           </div>
           <div class="h-2 rounded-full bg-(--ui-bg-elevated)">
             <div class="h-2 rounded-full" :class="a.today_used > a.daily_limit ? 'bg-error' : 'bg-(--app-chart)'" :style="{ width: `${Math.min(100, Math.round(a.today_used / a.daily_limit * 100))}%` }" />

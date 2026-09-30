@@ -40,7 +40,8 @@ final class ServiceAccountController
             ->where('branch_id', $branchId)
             ->unless($request->boolean('all'), fn ($q) => $q->where('is_active', true))
             ->orderByDesc('is_active')
-            ->orderBy('kind')
+            // Wallets first: most of the counter's work.
+            ->orderByRaw("kind = 'wallet' desc")
             ->orderBy('name')
             ->get();
         $used = DailyUsage::today($accounts->pluck('id')->all());

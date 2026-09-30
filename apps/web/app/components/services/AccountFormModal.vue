@@ -16,7 +16,7 @@
             <UIcon :name="k.value === 'wallet' ? 'i-lucide-wallet' : 'i-lucide-smartphone-charging'" class="size-5" />
             <span>
               <span class="block font-bold">{{ k.label }}</span>
-              <span class="block text-xs opacity-80">{{ k.value === 'wallet' ? 'فودافون كاش، InstaPay…: إيداع وسحب' : 'شحن فكة على خطوط العملاء' }}</span>
+              <span class="block text-xs opacity-80">{{ k.value === 'wallet' ? 'فودافون كاش، InstaPay وغيرهم — إيداع وسحب' : 'شحن فكة على خطوط العملاء' }}</span>
             </span>
           </button>
         </div>

@@ -44,7 +44,7 @@
               <UKbd v-if="i < 9" :value="`Alt ${i + 1}`" size="sm" class="ms-auto hidden shrink-0 lg:inline-flex" />
             </span>
             <span class="text-lg font-extrabold num">{{ formatMoney(a.balance) }}</span>
-            <span class="text-xs text-(--ui-text-muted)">{{ a.provider_label }}</span>
+            <span class="text-xs text-(--ui-text-muted)">{{ a.name === a.provider_label ? a.kind_label : a.provider_label }}</span>
           </button>
         </div>
 
@@ -71,7 +71,7 @@
               </button>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2">
+            <div class="grid grid-cols-2 gap-3">
               <UFormField :label="operation === 'topup' ? 'قيمة الشحن' : 'المبلغ'" hint="بالجنيه" required>
                 <UInput
                   ref="amountInput"
@@ -243,7 +243,7 @@ const [{ data: accountsData, status, refresh: refreshAccounts }, { data: recentD
 ])
 const accounts = computed(() => accountsData.value?.data ?? [])
 const today = computed(() => accountsData.value?.meta.today ?? { operations: 0, fees: 0 })
-const recent = computed(() => (recentData.value?.data ?? []).slice(0, 12))
+const recent = computed(() => (recentData.value?.data ?? []).filter(t => t.type !== 'opening').slice(0, 12))
 const noShift = computed(() => shiftData.value === null)
 
 // The picked account is remembered per branch on this device.

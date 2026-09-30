@@ -3,8 +3,8 @@
     <PageHeader title="الشحن والتحويلات" :description="`كل حركات المحافظ والأرصدة في فرع «${store.currentBranch?.name ?? ''}».`" />
     <ServicesTabs />
 
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_200px_160px_150px_150px]">
-      <UInput v-model="q" icon="i-lucide-search" placeholder="رقم العملية، موبايل أو اسم العميل، المرجع…" class="w-full" />
+    <div class="grid grid-cols-2 gap-3 lg:grid-cols-[1fr_200px_160px_150px_150px]">
+      <UInput v-model="q" icon="i-lucide-search" placeholder="رقم العملية، موبايل أو اسم العميل، المرجع…" class="col-span-2 w-full lg:col-span-1" />
       <USelect v-model="accountId" :items="accountItems" placeholder="كل المحافظ" class="w-full" aria-label="المحفظة" />
       <USelect v-model="type" :items="typeItems" placeholder="كل العمليات" class="w-full" aria-label="العملية" />
       <UInput v-model="from" type="date" aria-label="من" />
@@ -73,7 +73,7 @@
                 </p>
                 <span v-if="!t.customer_phone && !t.customer_name && !t.reference">—</span>
               </td>
-              <td class="p-3 text-end font-bold num" :class="t.reverses_id || t.reversed ? 'line-through' : ''">
+              <td class="p-3 text-end font-bold whitespace-nowrap num" :class="t.reverses_id || t.reversed ? 'line-through' : ''">
                 {{ formatMoney(Math.abs(t.amount)) }}
               </td>
               <td class="hidden p-3 text-end num sm:table-cell">

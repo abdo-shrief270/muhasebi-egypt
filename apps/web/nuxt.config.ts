@@ -58,6 +58,8 @@ export default defineNuxtConfig({
         // Security page (navigation, device icons, conditional shield icons).
         'lucide:lock-keyhole', 'lucide:monitor', 'lucide:tablet', 'lucide:shield', 'lucide:shield-check', 'lucide:shield-alert',
         'lucide:wifi-off', 'lucide:cloud-upload', 'lucide:cloud-alert', 'lucide:refresh-cw',
+        // Used devices (tabs, checklist marks, photo picker).
+        'lucide:list', 'lucide:circle-check', 'lucide:circle-x', 'lucide:circle-dashed', 'lucide:camera', 'lucide:loader-circle',
       ],
     },
   },

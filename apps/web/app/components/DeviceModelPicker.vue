@@ -31,7 +31,9 @@ const props = withDefaults(defineProps<{
   /** Models already selected, so their names show before any search. */
   known?: DeviceModel[]
   placeholder?: string
-}>(), { multiple: false, known: () => [], placeholder: 'الموديلات' })
+  /** Where to search: the catalog's list, or a module's own route to it (used devices). */
+  endpoint?: string
+}>(), { multiple: false, known: () => [], placeholder: 'الموديلات', endpoint: '/catalog/device-models' })
 
 const model = defineModel<number[] | number | undefined>()
 /** The picked model itself (single mode), for screens that also want its name. */
@@ -60,7 +62,7 @@ async function search(q: string) {
   const id = ++requestId
   loading.value = true
   try {
-    const res = await api<{ data: DeviceModel[] }>('/catalog/device-models', { query: { q } })
+    const res = await api<{ data: DeviceModel[] }>(props.endpoint, { query: { q } })
     if (id === requestId) {
       results.value = res.data
       res.data.forEach(m => remembered.set(m.id, m))

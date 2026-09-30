@@ -50,7 +50,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, UsedDevicePhoto> $photos
  */
 #[Fillable([
-    'tenant_id', 'branch_id', 'number', 'seller_id', 'device_model_id', 'model_name', 'storage', 'color', 'imei', 'imei2',
+    'id', 'tenant_id', 'branch_id', 'number', 'seller_id', 'device_model_id', 'model_name', 'storage', 'color', 'imei', 'imei2',
     'grade', 'checklist', 'battery_health', 'notes', 'purchase_price', 'asking_price', 'payment_method', 'variant_id',
     'status', 'sale_id', 'sale_reference', 'sale_price', 'sold_at', 'bought_by', 'bought_by_name', 'bought_at',
 ])]

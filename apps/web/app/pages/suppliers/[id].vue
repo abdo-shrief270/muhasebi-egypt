@@ -71,6 +71,9 @@
                 <NuxtLink v-if="t.ref_type === 'purchase' && t.ref_id" :to="`/purchases/${t.ref_id}`" class="font-bold hover:text-primary">
                   {{ t.type_label }}
                 </NuxtLink>
+                <NuxtLink v-else-if="t.ref_type === 'supplier_return' && t.ref_id && store.can('supplier_returns.view')" :to="`/supplier-returns/${t.ref_id}`" class="font-bold hover:text-primary">
+                  {{ t.type_label }}
+                </NuxtLink>
                 <span v-else class="font-bold">{{ t.type_label }}</span>
                 <span v-if="t.payment_method_label" class="text-(--ui-text-muted)"> · {{ t.payment_method_label }}</span>
                 <p v-if="t.note" class="text-xs text-(--ui-text-muted)">

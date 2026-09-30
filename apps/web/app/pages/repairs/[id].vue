@@ -141,7 +141,17 @@
               </span>
               <span class="flex items-center gap-2">
                 <span class="font-bold num">{{ formatMoney(p.line_total) }}</span>
-                <UButton v-if="canWork && ticket.status !== 'delivered'" size="xs" color="neutral" variant="ghost" icon="i-lucide-trash-2" square :aria-label="`شيل ${p.name}`" @click="removePart(p.id)" />
+                <UDropdownMenu
+                  v-if="canWork && ticket.status !== 'delivered' && binOn"
+                  :items="[[
+                    { label: 'شيلها (ترجع المخزون)', icon: 'i-lucide-package-plus', onSelect: () => removePart(p.id) },
+                    { label: 'القطعة طلعت بايظة (لسلة المرتجعات)', icon: 'i-lucide-undo-2', color: 'warning', onSelect: () => removePart(p.id, true) },
+                  ]]"
+                  :content="{ align: 'end' }"
+                >
+                  <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-trash-2" square :aria-label="`شيل ${p.name}`" />
+                </UDropdownMenu>
+                <UButton v-else-if="canWork && ticket.status !== 'delivered'" size="xs" color="neutral" variant="ghost" icon="i-lucide-trash-2" square :aria-label="`شيل ${p.name}`" @click="removePart(p.id)" />
               </span>
             </li>
             <li v-if="!ticket.parts?.length" class="py-3 text-center text-sm text-(--ui-text-muted)">
@@ -481,9 +491,14 @@ function addFirstPart() {
     addPart(hit)
   }
 }
-async function removePart(partId: number) {
+// With supplier returns on, a part that turned out bad goes to the returns bin instead of stock.
+const binOn = computed(() => store.hasModule('supplier_returns'))
+async function removePart(partId: number, defective = false) {
   try {
-    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/parts/${partId}`, { method: 'DELETE' })
+    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/parts/${partId}`, { method: 'DELETE', query: defective ? { defective: 1 } : undefined })
+    if (defective) {
+      toast.add({ color: 'success', title: 'القطعة راحت سلة مرتجعات الموردين' })
+    }
   }
   catch (e) {
     toast.add({ color: 'error', title: apiErrorMessage(e) })

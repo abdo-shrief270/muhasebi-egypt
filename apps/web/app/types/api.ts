@@ -307,7 +307,7 @@ export interface Supplier {
 
 export interface SupplierTransaction {
   id: string
-  type: 'opening' | 'purchase' | 'payment' | 'purchase_return'
+  type: 'opening' | 'purchase' | 'payment' | 'purchase_return' | 'return_note' | 'refund'
   type_label: string
   amount: number
   balance_after: number

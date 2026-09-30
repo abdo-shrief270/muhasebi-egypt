@@ -25,6 +25,33 @@ interface StockLedger
     public function issue(string $branchId, string $variantId, int $qty, StockReference $reference, ?string $fromLotId = null): StockIssue;
 
     /**
+     * Puts units that left stock back into the lot they came from (e.g. a unit the supplier refused
+     * to take back), so that lot keeps telling where they were bought. Without a usable lot it is a
+     * plain receive at $unitCost.
+     *
+     * @return string the lot id
+     */
+    public function restore(string $branchId, string $variantId, int $qty, int $unitCost, ?string $lotId, StockReference $reference): string;
+
+    /**
+     * What a document took out of stock for a variant (a sale, a repair ticket…): the lots and costs.
+     *
+     * @return list<StockPortion>
+     */
+    public function issuedFor(string $refType, string $refId, string $variantId): array;
+
+    /**
+     * Where lots came from: the movement type that received them (purchase, opening…) and its document.
+     *
+     * @param  list<string>  $lotIds
+     * @return array<string, array{source_type: string, source_id: string|null, unit_cost: int, received_at: string}> keyed by lot id
+     */
+    public function lotOrigins(array $lotIds): array;
+
+    /** The lot a document received for a variant (e.g. the lot of a purchase line), newest first. */
+    public function lotOf(MovementType $sourceType, string $sourceId, string $variantId): ?string;
+
+    /**
      * @param  list<string>  $variantIds
      * @return array<string, int> variant id => average cost (piasters) in the branch; unknown ones left out
      */

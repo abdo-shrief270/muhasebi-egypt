@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Suppliers\SuppliersServiceProvider;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -18,5 +19,6 @@ return new ModuleManifest(
         new MenuItem('/purchases', 'فواتير الشراء', 'i-lucide-receipt-text', 'suppliers.view', group: 'stock'),
         new MenuItem('/suppliers', 'الموردين', 'i-lucide-truck', 'suppliers.view', group: 'stock'),
     ],
+    provider: SuppliersServiceProvider::class,
     sort: 50,
 );

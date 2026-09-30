@@ -16,4 +16,6 @@ enum DrawerEntry: string
     case SupplierPayment = 'supplier_payment';
     /** Wallet transfers and airtime top-ups (Services): cash taken or handed out at the counter, funding a wallet from the drawer or cashing one out into it. */
     case Service = 'service';
+    /** Money a supplier paid back for returned goods (positive). */
+    case SupplierRefund = 'supplier_refund';
 }

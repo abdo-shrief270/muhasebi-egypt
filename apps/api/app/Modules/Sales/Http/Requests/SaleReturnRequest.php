@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Http\Requests;
 
 use App\Modules\Sales\Enums\PaymentMethod;
+use App\Modules\SupplierReturns\Contracts\ReturnReason;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,6 +28,8 @@ final class SaleReturnRequest extends FormRequest
             'items.*.sale_item_id' => ['required', 'integer', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1'],
             'items.*.restock' => ['required', 'boolean'],
+            // Why a damaged unit is bad (it goes to the supplier returns bin when that module is on).
+            'items.*.defect_reason' => ['nullable', Rule::enum(ReturnReason::class)],
             'items.*.serials' => ['nullable', 'array'],
             'items.*.serials.*' => ['string', 'max:48'],
         ];
@@ -38,7 +41,7 @@ final class SaleReturnRequest extends FormRequest
     }
 
     /**
-     * @return list<array{sale_item_id: int, qty: int, restock: bool, serials: list<string>|null}>
+     * @return list<array{sale_item_id: int, qty: int, restock: bool, serials: list<string>|null, defect_reason: string|null}>
      */
     public function lines(): array
     {
@@ -47,6 +50,7 @@ final class SaleReturnRequest extends FormRequest
             'qty' => (int) $l['qty'],
             'restock' => (bool) $l['restock'],
             'serials' => isset($l['serials']) ? array_values(array_map('strval', $l['serials'])) : null,
+            'defect_reason' => $l['defect_reason'] ?? null,
         ], $this->validated('items')));
     }
 }

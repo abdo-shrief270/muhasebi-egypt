@@ -64,6 +64,8 @@ export default defineNuxtConfig({
         // Services (wallets / airtime): operations, tabs, row menus, the account form.
         'lucide:send', 'lucide:smartphone-charging', 'lucide:wallet-cards', 'lucide:list', 'lucide:printer', 'lucide:pencil',
         'lucide:arrow-down-to-line', 'lucide:arrow-up-from-line', 'lucide:check', 'lucide:ellipsis-vertical', 'lucide:rotate-ccw',
+        // Supplier returns (tabs, settle options, bin line actions).
+        'lucide:layers', 'lucide:file-text', 'lucide:repeat', 'lucide:trash-2', 'lucide:pencil', 'lucide:wallet', 'lucide:banknote',
       ],
     },
   },

@@ -179,6 +179,7 @@
 
     <InventoryMovementsSlideover v-model:open="movementsOpen" :variant-id="selected?.id ?? null" />
     <InventoryAdjustModal v-model:open="adjustOpen" :row="selected" :mode="adjustMode" :reasons="reasonItems" @saved="reload" />
+    <SupplierReturnsAddModal v-if="canReturn" v-model:open="binOpen" :row="selected" @saved="reload" />
   </div>
 </template>
 
@@ -195,6 +196,8 @@ const store = useSessionStore()
 const toast = useToast()
 const canAdjust = computed(() => store.can('inventory.adjust'))
 const canCost = computed(() => store.can('products.view_cost'))
+// Supplier returns: defective units go to the returns bin («طلّع للمرتجعات»).
+const canReturn = computed(() => store.hasModule('supplier_returns') && store.can('supplier_returns.manage'))
 
 const ALL = 0
 const q = ref('')
@@ -260,6 +263,7 @@ const selected = ref<StockRow | null>(null)
 const movementsOpen = ref(false)
 const adjustOpen = ref(false)
 const adjustMode = ref<'adjust' | 'opening'>('adjust')
+const binOpen = ref(false)
 
 function showMovements(row: StockRow) {
   selected.value = row
@@ -279,6 +283,12 @@ function rowActions(row: StockRow): DropdownMenuItem[][] {
           { label: 'إضافة أو خصم', icon: 'i-lucide-plus-minus', onSelect: open('adjust') },
           ...(row.qty === 0 ? [{ label: 'رصيد افتتاحي', icon: 'i-lucide-package-plus', onSelect: open('opening') }] : []),
         ]
+      : [],
+    canReturn.value && row.qty > 0
+      ? [{ label: 'طلّع للمرتجعات', icon: 'i-lucide-undo-2', onSelect: () => {
+          selected.value = row
+          binOpen.value = true
+        } }]
       : [],
   ].filter(group => group.length)
 }

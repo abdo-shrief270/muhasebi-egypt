@@ -24,6 +24,7 @@ use App\Modules\Repairs\Models\FaultCategory;
 use App\Modules\Repairs\Models\RepairTicket;
 use App\Modules\Repairs\Models\RepairTicketPart;
 use App\Modules\Repairs\Support\IntakeOptions;
+use App\Modules\SupplierReturns\Contracts\ReturnReason;
 use App\Support\Exceptions\DomainRuleException;
 use App\Support\Tenancy\CurrentBranch;
 use App\Support\Tenancy\CurrentTenant;
@@ -199,8 +200,10 @@ final class TicketController
         $this->inBranch($ticket);
         abort_unless((bool) $request->user()?->can('repairs.update_status'), 403);
         $model = RepairTicketPart::query()->where('ticket_id', $ticket->id)->findOrFail($part);
+        // ?defective=1: the part is bad — it stays out of stock (and goes to the supplier returns bin).
+        $data = $request->validate(['defective' => ['nullable', 'boolean'], 'reason' => ['nullable', Rule::enum(ReturnReason::class)]]);
 
-        return $this->show($action->handle($ticket, $model));
+        return $this->show($action->handle($ticket, $model, (bool) ($data['defective'] ?? false), $data['reason'] ?? null));
     }
 
     public function deliver(DeliverTicketRequest $request, RepairTicket $ticket, DeliverTicketAction $action): TicketResource

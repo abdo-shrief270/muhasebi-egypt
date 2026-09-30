@@ -1,4 +1,5 @@
 import type { RepairTicket, Sale } from '~/types/api'
+import type { ReturnNote } from '~/utils/supplierReturns'
 
 export interface MessageTemplate {
   key: string
@@ -75,7 +76,7 @@ export function useMessages() {
     return template ? renderTemplate(template.body, vars) : fallback()
   }
 
-  function open(key: string, phone: string | null, message: string, subject?: { type: 'repair_ticket' | 'sale' | 'customer', id: string }) {
+  function open(key: string, phone: string | null, message: string, subject?: { type: 'repair_ticket' | 'sale' | 'customer' | 'supplier_return', id: string }) {
     window.open(phone ? whatsappLink(phone, message) : `https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
     if (store.can('messages.send')) {
       api('/messages/log', { method: 'POST', body: { template: key, phone, subject_type: subject?.type, subject_id: subject?.id } }).catch(() => {})
@@ -106,5 +107,19 @@ export function useMessages() {
     open('debt_reminder', customer.phone, message, { type: 'customer', id: customer.id })
   }
 
-  return { templates, load, ticketText, sendTicket, sendSale, sendDebtReminder }
+  /** A return note to its supplier / partner shop (the value only for users who see costs). */
+  function sendReturnNote(note: ReturnNote) {
+    const withTotal = store.can('products.view_cost')
+    const message = text('supplier_return_note', {
+      supplier: note.source.name,
+      shop: shopName.value,
+      note: note.reference,
+      count: String(note.units),
+      items: noteItemLines(note.items ?? []),
+      total: withTotal && note.total_cost ? formatMoney(note.total_cost) : null,
+    }, () => returnNoteText(note, shopName.value, withTotal))
+    open('supplier_return_note', note.source.phone ?? null, message, { type: 'supplier_return', id: note.id })
+  }
+
+  return { templates, load, ticketText, sendTicket, sendSale, sendDebtReminder, sendReturnNote }
 }

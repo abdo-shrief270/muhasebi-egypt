@@ -6,6 +6,7 @@ namespace App\Modules\Reports\Support;
 
 use App\Modules\Reports\Definitions\ExpensesReport;
 use App\Modules\Reports\Definitions\InventoryReport;
+use App\Modules\Reports\Definitions\OpenSupplierReturnsReport;
 use App\Modules\Reports\Definitions\PayablesReport;
 use App\Modules\Reports\Definitions\PaymentsReport;
 use App\Modules\Reports\Definitions\ProductsReport;
@@ -15,6 +16,7 @@ use App\Modules\Reports\Definitions\SalesReport;
 use App\Modules\Reports\Definitions\ServicesReport;
 use App\Modules\Reports\Definitions\ShiftsReport;
 use App\Modules\Reports\Definitions\StaffReport;
+use App\Modules\Reports\Definitions\SupplierReturnRateReport;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 
 final class ReportRegistry
@@ -30,6 +32,8 @@ final class ReportRegistry
         InventoryReport::class,
         ReceivablesReport::class,
         PayablesReport::class,
+        SupplierReturnRateReport::class,
+        OpenSupplierReturnsReport::class,
         ExpensesReport::class,
         ShiftsReport::class,
     ];

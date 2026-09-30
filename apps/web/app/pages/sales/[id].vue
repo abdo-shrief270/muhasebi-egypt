@@ -152,6 +152,14 @@
             <UInput v-if="!item.serials" v-model="lines[item.id]!.qty" type="number" min="0" :max="item.qty - item.returned_qty" step="1" dir="ltr" :aria-label="`كمية مرتجع ${item.name}`" />
             <span v-else class="num text-center font-bold">{{ lines[item.id]!.serials.length }}</span>
             <USwitch v-model="lines[item.id]!.restock" size="sm" :label="lines[item.id]!.restock ? 'سليم' : 'تالف'" />
+            <USelect
+              v-if="binOn && !lines[item.id]!.restock"
+              v-model="lines[item.id]!.defect"
+              :items="RETURN_REASONS"
+              size="sm"
+              class="col-span-3"
+              :aria-label="`عيب ${item.name}`"
+            />
             <UCheckboxGroup
               v-if="item.serials"
               v-model="lines[item.id]!.serials"
@@ -169,7 +177,8 @@
             </UFormField>
           </div>
           <p class="text-xs text-(--ui-text-muted)">
-            السليم بيرجع المخزون، والتالف لأ.
+            السليم بيرجع المخزون، والتالف لأ<template v-if="binOn">
+              — بيروح سلة مرتجعات الموردين عشان يرجع لمصدره</template>.
           </p>
           <UAlert v-if="returnError" color="error" variant="subtle" :title="returnError" />
         </form>
@@ -224,7 +233,9 @@ function share() {
 }
 
 const returnOpen = ref(false)
-const lines = reactive<Record<number, { qty: string, restock: boolean, serials: string[] }>>({})
+const lines = reactive<Record<number, { qty: string, restock: boolean, serials: string[], defect: string }>>({})
+// With supplier returns on, a damaged unit goes to the returns bin: say what's wrong with it.
+const binOn = computed(() => store.hasModule('supplier_returns'))
 const refundMethod = ref('cash')
 const reason = ref('')
 const returning = ref(false)
@@ -232,7 +243,7 @@ const returnError = ref<string | null>(null)
 
 function openReturn() {
   for (const item of sale.value?.items ?? []) {
-    lines[item.id] = { qty: '', restock: true, serials: [] }
+    lines[item.id] = { qty: '', restock: true, serials: [], defect: 'defect' }
   }
   refundMethod.value = sale.value?.credit ? 'credit' : 'cash'
   reason.value = ''
@@ -251,8 +262,8 @@ async function saveReturn() {
         reason: reason.value || null,
         items: Object.entries(lines)
           .map(([id, l]) => l.serials.length
-            ? { sale_item_id: Number(id), qty: l.serials.length, restock: l.restock, serials: l.serials }
-            : { sale_item_id: Number(id), qty: Number(l.qty), restock: l.restock })
+            ? { sale_item_id: Number(id), qty: l.serials.length, restock: l.restock, serials: l.serials, defect_reason: l.restock ? null : l.defect }
+            : { sale_item_id: Number(id), qty: Number(l.qty), restock: l.restock, defect_reason: l.restock ? null : l.defect })
           .filter(l => l.qty > 0),
       },
     })

@@ -97,6 +97,27 @@ final class SerialRegistryService implements SerialRegistry
         return $found;
     }
 
+    public function history(string $serial): ?array
+    {
+        $row = SerialNumber::query()->where('serial', $this->normalize([$serial])[0])->with('events')->first();
+
+        return $row === null ? null : [
+            'serial' => $row->serial,
+            'status' => $row->status,
+            'variant_id' => $row->variant_id,
+            'branch_id' => $row->branch_id,
+            'events' => $row->events->map(fn (SerialEvent $e): array => [
+                'type' => $e->type->value,
+                'type_label' => $e->type->label(),
+                'ref_type' => $e->ref_type,
+                'ref_id' => $e->ref_id,
+                'note' => $e->note,
+                'user_name' => $e->user_name,
+                'created_at' => $e->created_at->toIso8601String(),
+            ])->values()->all(),
+        ];
+    }
+
     public function normalize(array $serials): array
     {
         return array_values(array_map(fn (string $s): string => strtoupper((string) preg_replace('/[\s\-\/]+/u', '', $s)), $serials));

@@ -16,6 +16,7 @@ enum MovementType: string
     case RepairUse = 'repair_use';
     case RepairReturn = 'repair_return';
     case SupplierReturn = 'supplier_return';
+    case UsedPurchase = 'used_purchase';
 
     public function label(): string
     {
@@ -30,6 +31,7 @@ enum MovementType: string
             self::RepairUse => 'صرف لصيانة',
             self::RepairReturn => 'رجوع من صيانة',
             self::SupplierReturn => 'مرتجع لمورد',
+            self::UsedPurchase => 'شراء مستعمل',
         };
     }
 }

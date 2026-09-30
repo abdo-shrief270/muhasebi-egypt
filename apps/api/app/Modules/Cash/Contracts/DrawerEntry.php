@@ -14,4 +14,6 @@ enum DrawerEntry: string
     case Repair = 'repair';
     /** Money paid to a supplier out of the drawer (negative). */
     case SupplierPayment = 'supplier_payment';
+    /** A used device bought from a walk-in seller, paid out of the drawer (negative). */
+    case UsedDevicePurchase = 'used_device_purchase';
 }

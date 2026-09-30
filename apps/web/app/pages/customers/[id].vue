@@ -204,6 +204,7 @@ const api = useApi()
 const route = useRoute()
 const store = useSessionStore()
 const canManage = computed(() => store.can('customers.manage'))
+const canExport = computed(() => store.can('customers.export'))
 const canCredit = computed(() => store.can('customers.credit'))
 const canSell = computed(() => store.can('sales.sell'))
 const messages = useMessages()
@@ -252,7 +253,7 @@ const eraseError = ref<string | null>(null)
 const toast = useToast()
 
 const privacyItems = computed<DropdownMenuItem[]>(() => [
-  ...(canManage.value ? [{ label: 'نزّل بياناته (JSON)', icon: 'i-lucide-download', onSelect: exportData }] : []),
+  ...(canExport.value ? [{ label: 'نزّل بياناته (JSON)', icon: 'i-lucide-download', onSelect: exportData }] : []),
   ...(store.isOwner && !customer.value?.erased_at
     ? [{ label: 'مسح بيانات العميل', icon: 'i-lucide-user-x', color: 'error' as const, onSelect: openErase }]
     : []),

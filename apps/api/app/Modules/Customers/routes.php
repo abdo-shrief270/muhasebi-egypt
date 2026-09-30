@@ -19,9 +19,9 @@ Route::middleware(['auth:sanctum', 'tenant'])->prefix('customers')->group(functi
         Route::post('{customer}/payments', 'pay')->middleware('branch');
     });
 
-    // Personal data (Law 151/2020): export for whoever manages customers; erasure and retention for the owner.
+    // Personal data (Law 151/2020): export with customers.export (owner and managers); erasure and retention for the owner.
     Route::controller(CustomerPrivacyController::class)->group(function (): void {
-        Route::get('{customer}/export', 'export')->middleware('can:customers.manage');
+        Route::get('{customer}/export', 'export')->middleware('can:customers.export');
         Route::post('{customer}/erase', 'erase')->middleware('can:owner');
         Route::middleware('can:owner')->group(function (): void {
             Route::get('privacy-settings', 'settings');

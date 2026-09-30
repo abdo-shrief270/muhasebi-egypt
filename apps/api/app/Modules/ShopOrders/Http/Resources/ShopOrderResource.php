@@ -6,9 +6,11 @@ namespace App\Modules\ShopOrders\Http\Resources;
 
 use App\Modules\Identity\Contracts\ShopSummary;
 use App\Modules\ShopOrders\Enums\OrderStatus;
+use App\Modules\ShopOrders\Enums\Party;
 use App\Modules\ShopOrders\Models\ShopOrder;
 use App\Modules\ShopOrders\Models\ShopOrderActivity;
 use App\Modules\ShopOrders\Models\ShopOrderItem;
+use App\Modules\ShopOrders\Support\ShopOrderPrices;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,6 +26,7 @@ final class ShopOrderResource extends JsonResource
     {
         ['order' => $order, 'tenantId' => $tenantId, 'counterparty' => $counterparty] = $this->resource;
         $party = $order->partyOf($tenantId);
+        $hidePrices = $party === Party::Buyer && ShopOrderPrices::hiddenFromBuyer($order);
 
         return [
             'id' => $order->id,
@@ -36,7 +39,9 @@ final class ShopOrderResource extends JsonResource
             'counterparty' => ShopView::of($counterparty),
             'needed_by' => $order->needed_by?->toDateString(),
             'notes' => $order->notes,
-            'total' => $order->total,
+            // The seller may keep prices to itself until the order is ready.
+            'total' => $hidePrices ? null : $order->total,
+            'prices_hidden' => $hidePrices,
             'created_at' => $order->created_at->toIso8601String(),
             'allowed_transitions' => array_map(
                 fn (OrderStatus $status): array => ['status' => $status->value, 'label' => $status->label()],
@@ -47,7 +52,7 @@ final class ShopOrderResource extends JsonResource
                 'id' => $item->id,
                 'description' => $item->description,
                 'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
+                'unit_price' => $hidePrices ? null : $item->unit_price,
                 'device_model' => $item->device_model,
                 'imei' => $item->imei,
                 'note' => $item->note,

@@ -14,6 +14,7 @@ return new ModuleManifest(
         'customers.view' => 'عرض العملاء',
         'customers.manage' => 'إضافة وتعديل العملاء',
         'customers.credit' => 'البيع الآجل وتحصيل المديونيات',
+        'customers.export' => 'تنزيل كل بيانات عميل (قانون حماية البيانات)',
     ],
     menu: [
         new MenuItem('/customers', 'العملاء', 'i-lucide-users', 'customers.view', group: 'sales'),

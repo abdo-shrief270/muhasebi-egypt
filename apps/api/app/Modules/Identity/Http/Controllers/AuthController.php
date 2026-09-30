@@ -17,6 +17,7 @@ use App\Modules\Identity\Http\Resources\UserResource;
 use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\PermissionResolver;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Modules\ModuleAccess;
 use App\Support\Modules\ModuleRegistry;
 use Illuminate\Http\JsonResponse;
@@ -111,7 +112,7 @@ final class AuthController
     /**
      * Everything a client needs to boot: who am I, which shop, which branches, modules, permissions and menu.
      */
-    public function me(Request $request, ModuleRegistry $registry, ModuleAccess $access, PermissionResolver $permissions, BranchAccess $branches): JsonResponse
+    public function me(Request $request, ModuleRegistry $registry, ModuleAccess $access, PermissionResolver $permissions, BranchAccess $branches, FeatureAccess $features): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
@@ -150,6 +151,8 @@ final class AuthController
                 ),
                 'current_branch_id' => $branches->resolve($user, $request->header('X-Branch-Id')),
                 'enabled_modules' => $access->enabledKeys(),
+                // The owner's switches: what the screens should offer.
+                'features' => $features->all(),
                 'modules' => $modules,
                 'permissions' => $granted,
                 'menu' => $menu,

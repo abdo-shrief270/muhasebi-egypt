@@ -23,6 +23,7 @@ final readonly class ModuleManifest
      *                                   Empty = every shop sees it, none gets it on trial by default.
      * @param  list<string>|null  $trialFor  the shop types that get it on trial at registration, when only some of
      *                                       $shopTypes should (null = all of them)
+     * @param  list<Feature>  $features  small switches the owner can turn on or off
      */
     public function __construct(
         public string $key,
@@ -37,6 +38,7 @@ final readonly class ModuleManifest
         public bool $available = true,
         public array $shopTypes = [],
         public ?array $trialFor = null,
+        public array $features = [],
     ) {}
 
     public function isOptional(): bool

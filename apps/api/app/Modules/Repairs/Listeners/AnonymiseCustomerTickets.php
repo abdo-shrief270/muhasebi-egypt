@@ -12,7 +12,7 @@ use App\Support\Privacy\Anonymised;
 
 /**
  * An erased customer's name and phone come off their tickets, with what else points at them: the
- * phone's unlock code and IMEI. The device, faults, money and timeline stay.
+ * phone's unlock code. The IMEI (it identifies the device, not the person), the device, faults, money and timeline stay.
  */
 final class AnonymiseCustomerTickets extends ModuleListener
 {
@@ -37,7 +37,7 @@ final class AnonymiseCustomerTickets extends ModuleListener
                 'customer_phone' => null,
                 'unlock_type' => 'none',
                 'unlock_code' => null,
-                'imei' => null,
+                // The IMEI stays: it identifies the device, not the person (stolen-phone checks, warranty).
             ]);
     }
 }

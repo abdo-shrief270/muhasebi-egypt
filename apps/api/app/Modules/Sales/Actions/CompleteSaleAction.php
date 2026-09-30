@@ -68,6 +68,7 @@ final class CompleteSaleAction
         ?string $notes = null,
         ?string $customerId = null,
         bool $canCredit = false,
+        bool $blockOutOfStock = false,
     ): Sale {
         // The same sale sent twice (a retry after a timeout) is saved once.
         if ($saleId !== null && ($existing = Sale::query()->find($saleId)) !== null) {
@@ -80,11 +81,16 @@ final class CompleteSaleAction
         }
 
         $variants = $this->catalog->find(array_column($items, 'variant_id'));
+        // The owner's switch: no selling beyond the branch's stock.
+        $inStock = $blockOutOfStock ? $this->stock->quantities($branchId, array_column($items, 'variant_id')) : [];
         $lines = [];
         foreach ($items as $item) {
             $variant = $variants[$item['variant_id']] ?? throw new DomainRuleException('فيه صنف في الفاتورة مش موجود.', 'variant_not_found', 404);
             if (! $variant->isActive) {
                 throw new DomainRuleException("«{$variant->displayName()}» موقوف ومينفعش يتباع.", 'variant_inactive');
+            }
+            if ($blockOutOfStock && $item['qty'] > ($inStock[$variant->id] ?? 0)) {
+                throw new DomainRuleException("«{$variant->displayName()}» مفيش منه كفاية في الفرع (الموجود ".max(0, $inStock[$variant->id] ?? 0).').', 'out_of_stock', context: ['variant_id' => $variant->id, 'available' => $inStock[$variant->id] ?? 0]);
             }
             $unitPrice = $variant->priceFor($priceLevel->value);
             $gross = $unitPrice * $item['qty'];

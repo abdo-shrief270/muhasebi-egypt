@@ -8,5 +8,5 @@ Route::middleware(['auth:sanctum', 'tenant', 'can:reports.view'])->prefix('repor
 
     Route::get('/', 'index');
     Route::get('{report}', 'show');
-    Route::get('{report}/export', 'export');
+    Route::get('{report}/export', 'export')->middleware('feature:reports.excel_export');
 });

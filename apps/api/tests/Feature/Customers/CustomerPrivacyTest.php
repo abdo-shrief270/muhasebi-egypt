@@ -121,7 +121,8 @@ class CustomerPrivacyTest extends TestCase
         $this->assertSame([45000, 'منى', '+201198765432'], [$sales[$sale['id']]->total, $sales[$otherSale['id']]->customer_name, $sales[$otherSale['id']]->customer_phone]);
 
         $repair = $this->inShop(fn () => RepairTicket::query()->findOrFail($ticket['id']));
-        $this->assertSame(['عميل محذوف', null, null, null, 'none'], [$repair->customer_name, $repair->customer_phone, $repair->unlock_code, $repair->imei, $repair->unlock_type]);
+        $this->assertSame(['عميل محذوف', null, null, 'none'], [$repair->customer_name, $repair->customer_phone, $repair->unlock_code, $repair->unlock_type]);
+        $this->assertSame('356789012345678', $repair->imei, 'the IMEI identifies the device, not the person');
         $this->assertSame('delivered', $repair->status->value);
 
         $phones = $this->inShop(fn () => MessageLog::query()->orderBy('seq')->pluck('phone')->all());
@@ -156,7 +157,12 @@ class CustomerPrivacyTest extends TestCase
     {
         $customer = $this->customer();
         $technician = $this->staff('technician');
+        $cashier = $this->staff('cashier');
         $manager = $this->staff('manager');
+
+        // The cashier manages customers but can't take their whole data home.
+        Sanctum::actingAs($cashier);
+        $this->getJson("/api/v1/customers/{$customer['id']}/export")->assertForbidden();
 
         Sanctum::actingAs($technician);
         $this->postJson("/api/v1/customers/{$customer['id']}/erase")->assertForbidden();

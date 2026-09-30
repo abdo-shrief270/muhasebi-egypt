@@ -8,6 +8,7 @@ use App\Modules\ShopOrders\Enums\OrderStatus;
 use App\Modules\ShopOrders\Enums\Party;
 use App\Modules\ShopOrders\Events\ShopOrderUpdated;
 use App\Modules\ShopOrders\Models\ShopOrder;
+use App\Modules\ShopOrders\Support\ShopOrderPrices;
 use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
@@ -86,7 +87,8 @@ final class TransitionOrderAction
                     fromStatus: $from->value,
                     toStatus: $to->value,
                     counterpartyTenantId: $order->counterpartyOf($partyTenant),
-                    total: $order->total,
+                    // The buyer only learns the price once the seller lets it (prices after review).
+                    total: $p === Party::Buyer && ShopOrderPrices::hiddenFromBuyer($order) ? null : $order->total,
                     actorTenantId: $tenantId,
                     orderType: $order->type->value,
                 ));

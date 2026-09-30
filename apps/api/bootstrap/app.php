@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Identity\Http\Middleware\ResolveBranch;
+use App\Support\Modules\EnsureFeatureEnabled;
 use App\Support\Modules\EnsureModuleEnabled;
 use App\Support\Tenancy\ResolveTenant;
 use Illuminate\Auth\AuthenticationException;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => ResolveTenant::class,
             'module' => EnsureModuleEnabled::class,
+            'feature' => EnsureFeatureEnabled::class,
             'branch' => ResolveBranch::class,
         ]);
 

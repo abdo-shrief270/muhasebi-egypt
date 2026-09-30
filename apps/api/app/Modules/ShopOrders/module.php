@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\ShopOrders\ShopOrdersServiceProvider;
+use App\Support\Modules\Feature;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -19,5 +20,8 @@ return new ModuleManifest(
     menu: [new MenuItem('/shop-orders', 'الطلبات بين المحلات', 'i-lucide-handshake', 'shop_orders.view', group: 'services')],
     provider: ShopOrdersServiceProvider::class,
     shopTypes: ['accessories', 'repair', 'phones', 'wholesale', 'importer'],
+    features: [
+        new Feature('shop_orders.prices_after_review', 'أخفي الأسعار عن المحل الطالب لحد ما الأوردر يجهز', 'المحل اللي طالب منك مش هيشوف أسعارك غير لما تجهّز الأوردر (جاهز / اتسلّم).', default: false),
+    ],
     sort: 300,
 );

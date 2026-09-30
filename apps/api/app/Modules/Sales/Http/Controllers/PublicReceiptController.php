@@ -8,6 +8,7 @@ use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Sales\Models\Sale;
 use App\Modules\Sales\Models\SaleItem;
 use App\Modules\Sales\Models\SalePayment;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
 
@@ -17,10 +18,11 @@ use Illuminate\Http\JsonResponse;
  */
 final class PublicReceiptController
 {
-    public function show(string $token, ShopDirectory $shops, CurrentTenant $tenant): JsonResponse
+    public function show(string $token, ShopDirectory $shops, CurrentTenant $tenant, FeatureAccess $features): JsonResponse
     {
         $sale = Sale::withoutTenancy()->where('public_token', $token)->first();
-        if ($sale === null) {
+        // The shop may have turned receipt links off.
+        if ($sale === null || ! $features->enabled('sales.receipt_link', $sale->tenant_id)) {
             return response()->json(['message' => 'الإيصال ده مش موجود.', 'code' => 'receipt_not_found'], 404);
         }
 

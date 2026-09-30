@@ -7,6 +7,7 @@ namespace App\Modules\Repairs\Http\Controllers;
 use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Repairs\Enums\TicketStatus;
 use App\Modules\Repairs\Models\RepairTicket;
+use App\Support\Modules\FeatureAccess;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -15,9 +16,11 @@ use Illuminate\Http\JsonResponse;
  */
 final class PublicTicketController
 {
-    public function show(string $token, ShopDirectory $shops): JsonResponse
+    public function show(string $token, ShopDirectory $shops, FeatureAccess $features): JsonResponse
     {
         $ticket = RepairTicket::query()->where('public_token', $token)->firstOrFail();
+        // The shop may have turned the tracking page off.
+        abort_unless($features->enabled('repairs.public_tracking', $ticket->tenant_id), 404);
         $shop = $shops->find($ticket->tenant_id);
 
         return response()->json(['data' => [

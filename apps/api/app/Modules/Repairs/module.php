@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Repairs\RepairsServiceProvider;
+use App\Support\Modules\Feature;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -23,5 +24,8 @@ return new ModuleManifest(
     // Accessories and phone shops take devices in too and send them to a partner repair shop.
     shopTypes: ['repair', 'accessories', 'phones'],
     trialFor: ['repair'],
+    features: [
+        new Feature('repairs.public_tracking', 'صفحة متابعة الجهاز للعميل', 'العميل يتابع حالة جهازه من لينك / QR على إيصال الاستلام وفي رسايل واتساب.'),
+    ],
     sort: 200,
 );

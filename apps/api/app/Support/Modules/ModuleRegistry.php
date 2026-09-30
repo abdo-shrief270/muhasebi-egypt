@@ -85,6 +85,28 @@ final class ModuleRegistry
         return $permissions;
     }
 
+    /**
+     * Every feature switch, keyed by feature key, with the module that declares it.
+     *
+     * @return array<string, array{module: string, feature: Feature}>
+     */
+    public function features(): array
+    {
+        $features = [];
+        foreach ($this->all() as $module) {
+            foreach ($module->features as $feature) {
+                $features[$feature->key] = ['module' => $module->key, 'feature' => $feature];
+            }
+        }
+
+        return $features;
+    }
+
+    public function feature(string $key): ?Feature
+    {
+        return $this->features()[$key]['feature'] ?? null;
+    }
+
     public function moduleOfPermission(string $permission): ?string
     {
         return $this->permissions()[$permission]['module'] ?? null;

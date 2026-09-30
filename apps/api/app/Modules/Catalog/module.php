@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Catalog\CatalogServiceProvider;
+use App\Support\Modules\Feature;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -20,5 +21,8 @@ return new ModuleManifest(
         new MenuItem('/products/prices', 'تعديل الأسعار', 'i-lucide-tags', 'products.manage', group: 'stock'),
     ],
     provider: CatalogServiceProvider::class,
+    features: [
+        new Feature('catalog.excel_import', 'استيراد الأصناف من إكسل', 'رفع ملف إكسل فيه أصناف كتير مرة واحدة (بالكميات الافتتاحية).'),
+    ],
     sort: 20,
 );

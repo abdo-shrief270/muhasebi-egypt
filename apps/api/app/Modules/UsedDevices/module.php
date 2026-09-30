@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\UsedDevices\UsedDevicesServiceProvider;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -12,11 +13,12 @@ return new ModuleManifest(
     dependsOn: ['inventory', 'customers'],
     permissions: [
         'used_devices.manage' => 'شراء وبيع المستعمل',
+        'used_devices.view_seller' => 'رؤية بيانات البايع وصور البطاقة',
     ],
     menu: [
         new MenuItem('/used-devices', 'المستعمل', 'i-lucide-smartphone', 'used_devices.manage', group: 'services'),
     ],
+    provider: UsedDevicesServiceProvider::class,
     shopTypes: ['repair', 'phones'],
     sort: 230,
-    available: false,
 );

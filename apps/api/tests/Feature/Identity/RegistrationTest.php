@@ -41,8 +41,8 @@ class RegistrationTest extends TestCase
         $this->assertDatabaseHas('branches', ['tenant_id' => $owner->tenant_id, 'is_main' => true]);
 
         $trials = TenantModule::withoutTenancy()->where('tenant_id', $owner->tenant_id)->pluck('state', 'module_key');
-        // supplier_returns and used_devices are recommended too, but still being built: they keep their trial for later.
-        $this->assertEqualsCanonicalizing(['repairs', 'shop_orders'], $trials->keys()->all());
+        // supplier_returns is recommended too, but still being built: it keeps its trial for later.
+        $this->assertEqualsCanonicalizing(['repairs', 'shop_orders', 'used_devices'], $trials->keys()->all());
         $this->assertTrue($trials->every(fn (ModuleState $state): bool => $state === ModuleState::Trial));
 
         $this->assertTrue(StoredEvent::query()->where('name', TenantRegistered::NAME)->where('tenant_id', $owner->tenant_id)->exists());

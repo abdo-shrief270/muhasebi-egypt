@@ -14,6 +14,7 @@ use App\Modules\Reports\Definitions\RepairsReport;
 use App\Modules\Reports\Definitions\SalesReport;
 use App\Modules\Reports\Definitions\ShiftsReport;
 use App\Modules\Reports\Definitions\StaffReport;
+use App\Modules\Reports\Definitions\UsedDevicesReport;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 
 final class ReportRegistry
@@ -26,6 +27,7 @@ final class ReportRegistry
         PaymentsReport::class,
         RepairsReport::class,
         InventoryReport::class,
+        UsedDevicesReport::class,
         ReceivablesReport::class,
         PayablesReport::class,
         ExpensesReport::class,

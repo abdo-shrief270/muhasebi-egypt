@@ -116,7 +116,7 @@ class ModuleLifecycleTest extends TestCase
         $this->assertSame('trial', $modules['repairs']['state']);
         $this->assertSame('not_entitled', $modules['multi_branch']['state']);
         $this->assertTrue($modules['multi_branch']['trial_available']);
-        $this->assertSame([false, false], [$modules['used_devices']['available'], $modules['used_devices']['trial_available']], 'still being built');
+        $this->assertSame([false, false], [$modules['e_invoicing']['available'], $modules['e_invoicing']['trial_available']], 'still being built');
         $this->assertFalse($modules->has('imports'), 'for importers, not repair shops');
         $this->assertNotContains('/transfers', array_column($modules['multi_branch']['menu'], 'to'), 'its screen is not built yet');
         $this->assertSame('enabled', $modules['sales']['state']);
@@ -127,17 +127,17 @@ class ModuleLifecycleTest extends TestCase
     {
         $owner = $this->actingAsOwnerOf(ShopType::Accessories);
 
-        $this->postJson('/api/v1/modules/used_devices/trial')->assertStatus(409)->assertJsonPath('code', 'module_coming_soon');
+        $this->postJson('/api/v1/modules/e_invoicing/trial')->assertStatus(409)->assertJsonPath('code', 'module_coming_soon');
 
         // A shop that started a trial before the module was marked «قريباً» doesn't get it either.
-        TenantModule::withoutTenancy()->create(['tenant_id' => $owner->tenant_id, 'module_key' => 'used_devices', 'entitled' => false, 'state' => ModuleState::Trial, 'source' => 'trial', 'trial_started_at' => now(), 'trial_ends_at' => now()->addDays(14), 'enabled_at' => now()]);
+        TenantModule::withoutTenancy()->create(['tenant_id' => $owner->tenant_id, 'module_key' => 'e_invoicing', 'entitled' => false, 'state' => ModuleState::Trial, 'source' => 'trial', 'trial_started_at' => now(), 'trial_ends_at' => now()->addDays(14), 'enabled_at' => now()]);
         app(ModuleAccess::class)->forget($owner->tenant_id);
 
         $me = $this->getJson('/api/v1/auth/me')->assertOk()->json('data');
-        $this->assertNotContains('used_devices', $me['enabled_modules']);
-        $this->assertNotContains('/used-devices', array_column($me['menu'], 'to'));
-        $this->assertNotContains('used_devices.manage', $me['permissions']);
-        $this->assertFalse(collect($me['modules'])->firstWhere('key', 'used_devices')['available']);
+        $this->assertNotContains('e_invoicing', $me['enabled_modules']);
+        $this->assertNotContains('/settings/eta', array_column($me['menu'], 'to'));
+        $this->assertNotContains('e_invoicing.manage', $me['permissions']);
+        $this->assertFalse(collect($me['modules'])->firstWhere('key', 'e_invoicing')['available']);
     }
 
     public function test_only_the_owner_sees_the_modules_page(): void

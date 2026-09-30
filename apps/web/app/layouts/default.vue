@@ -30,6 +30,7 @@
         </button>
 
         <div class="ms-auto flex items-center gap-1 sm:gap-2">
+          <OfflineStatus />
           <UTooltip v-if="store.can('products.view')" text="استعلام عن سعر (F8)">
             <UButton color="neutral" variant="outline" icon="i-lucide-tag" aria-label="استعلام عن سعر" @click="priceCheck.show()">
               <span class="hidden sm:inline">سعر</span>
@@ -68,6 +69,7 @@
 
     <GlobalSearch v-model:open="searchOpen" />
     <PriceCheck v-if="store.can('products.view')" />
+    <PosOutboxPanel />
   </div>
 </template>
 

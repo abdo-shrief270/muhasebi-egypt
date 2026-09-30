@@ -1,6 +1,20 @@
 <template>
   <UModal v-model:open="open" :title="`قفل الوردية ${shift?.reference ?? ''}`" description="اعد الفلوس اللي في الدرج واكتبها. الفيزا والمحافظ قارنها بتقرير الماكينة / التطبيق.">
     <template #body>
+      <!-- Sales made offline go into this shift when they sync: it can't close before they're in. -->
+      <UAlert
+        v-if="waiting.length"
+        color="error"
+        variant="subtle"
+        icon="i-lucide-cloud-alert"
+        class="mb-3"
+        :title="`فيه ${waiting.length} فاتورة اتعملت والنت فاصل ولسه ما اتسجلتش`"
+        description="مينفعش تقفل الوردية قبل ما تتسجل، عشان فلوسها تدخل في الوردية دي. استنى لما النت يرجع وتتسجل، أو افتح «فواتير مستنية» وشوف اللي اترفض."
+        :actions="[
+          { label: 'سجّلها دلوقتي', icon: 'i-lucide-cloud-upload', loading: syncing, disabled: !online, onClick: () => { outbox.sync(true) } },
+          { label: 'فواتير مستنية', color: 'neutral', variant: 'outline', onClick: () => { open = false; panelOpen = true } },
+        ]"
+      />
       <form v-if="shift?.expected" id="close-form" class="space-y-3" @submit.prevent="save">
         <div v-for="m in methods" :key="m.value" class="grid grid-cols-[1fr_8rem] items-center gap-3 rounded-(--ui-radius) border border-(--ui-border) p-3">
           <div>
@@ -36,7 +50,7 @@
     <template #footer>
       <div class="flex w-full justify-end gap-2">
         <UButton color="neutral" variant="ghost" label="إلغاء" @click="open = false" />
-        <UButton type="submit" form="close-form" icon="i-lucide-lock" label="قفل الوردية" :loading="saving" :disabled="counted.cash === ''" />
+        <UButton type="submit" form="close-form" icon="i-lucide-lock" label="قفل الوردية" :loading="saving" :disabled="counted.cash === '' || waiting.length > 0" />
       </div>
     </template>
   </UModal>
@@ -50,6 +64,12 @@ const open = defineModel<boolean>('open', { default: false })
 const emit = defineEmits<{ closed: [shift: CashShift] }>()
 
 const api = useApi()
+const store = useSessionStore()
+const { online } = useConnectivity()
+const outbox = useOutbox()
+const { syncing, panelOpen } = outbox
+/** This user's sales still queued offline in the shift's branch (only the cashier's own device knows). */
+const waiting = computed(() => props.shift && props.shift.user_id === store.session?.user.id ? outbox.forBranch(props.shift.branch_id) : [])
 const counted = reactive<Record<CashMethod, string>>({ cash: '', card: '', wallet: '', instapay: '' })
 const note = ref('')
 const saving = ref(false)
@@ -65,6 +85,9 @@ watch(open, (isOpen) => {
     }
     note.value = ''
     error.value = null
+    if (waiting.value.length) {
+      outbox.sync(true)
+    }
   }
 })
 
@@ -77,7 +100,7 @@ function diff(method: CashMethod): number {
 }
 
 async function save() {
-  if (!props.shift) {
+  if (!props.shift || waiting.value.length) {
     return
   }
   saving.value = true

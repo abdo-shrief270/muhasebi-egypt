@@ -1,4 +1,14 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { createHash } from 'node:crypto'
+import { readdir, readFile, writeFile } from 'node:fs/promises'
+import { join, relative, sep } from 'node:path'
+
+async function filesUnder(dir: string): Promise<string[]> {
+  const entries = await readdir(dir, { withFileTypes: true }).catch(() => [])
+  const nested = await Promise.all(entries.map(e => (e.isDirectory() ? filesUnder(join(dir, e.name)) : [join(dir, e.name)])))
+  return nested.flat()
+}
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-09-01',
   devtools: { enabled: true },
@@ -47,6 +57,7 @@ export default defineNuxtConfig({
         'lucide:database', 'lucide:target', 'lucide:eye', 'lucide:clock', 'lucide:user-check', 'lucide:phone', 'lucide:lock',
         // Security page (navigation, device icons, conditional shield icons).
         'lucide:lock-keyhole', 'lucide:monitor', 'lucide:tablet', 'lucide:shield', 'lucide:shield-check', 'lucide:shield-alert',
+        'lucide:wifi-off', 'lucide:cloud-upload', 'lucide:cloud-alert', 'lucide:refresh-cw',
       ],
     },
   },
@@ -58,4 +69,25 @@ export default defineNuxtConfig({
   },
 
   typescript: { strict: true },
+
+  hooks: {
+    // The service worker (public/sw.js) gets this build's version and its /_nuxt files to precache,
+    // so the POS opens offline after one visit and each deploy replaces the old cache.
+    async 'nitro:build:public-assets'(nitro) {
+      const publicDir = nitro.options.output.publicDir
+      const swPath = join(publicDir, 'sw.js')
+      const sw = await readFile(swPath, 'utf8').catch(() => null)
+      if (sw === null) {
+        return
+      }
+      const assets = (await filesUnder(join(publicDir, '_nuxt')))
+        .map(file => '/' + relative(publicDir, file).split(sep).join('/'))
+        .filter(url => !url.startsWith('/_nuxt/builds/') && !url.endsWith('.map'))
+        .sort()
+      const version = createHash('sha256').update(assets.join('\n')).digest('hex').slice(0, 12)
+      await writeFile(swPath, sw
+        .replace(/^const VERSION = .*$/m, `const VERSION = '${version}'`)
+        .replace(/^const PRECACHE = .*$/m, `const PRECACHE = ${JSON.stringify(assets)}`))
+    },
+  },
 })

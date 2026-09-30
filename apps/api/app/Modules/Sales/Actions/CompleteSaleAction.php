@@ -24,6 +24,7 @@ use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
 use App\Support\Numbering\DocumentNumbers;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -53,6 +54,7 @@ final class CompleteSaleAction
      * @param  list<array{method: PaymentMethod, amount: int, reference: string|null}>  $payments
      * @param  bool  $canDiscount  sales.discount: line / invoice discounts and non-retail price levels
      * @param  bool  $canCredit  customers.credit: part or all of the total on the customer's account
+     * @param  CarbonInterface|null  $soldAt  when a sale queued offline was made (its completed_at); null = now
      */
     public function handle(
         string $tenantId,
@@ -69,6 +71,7 @@ final class CompleteSaleAction
         ?string $customerId = null,
         bool $canCredit = false,
         bool $blockOutOfStock = false,
+        ?CarbonInterface $soldAt = null,
     ): Sale {
         // The same sale sent twice (a retry after a timeout) is saved once.
         if ($saleId !== null && ($existing = Sale::query()->find($saleId)) !== null) {
@@ -133,7 +136,7 @@ final class CompleteSaleAction
         }
 
         try {
-            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit);
+            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt);
         } catch (UniqueConstraintViolationException $e) {
             // The same id arrived twice at once: the other request saved it.
             return ($saleId !== null ? Sale::query()->find($saleId) : null) ?? throw $e;
@@ -161,8 +164,9 @@ final class CompleteSaleAction
         int $paid,
         int $change,
         int $credit,
+        ?CarbonInterface $soldAt,
     ): Sale {
-        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit): Sale {
+        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt): Sale {
             $user = $this->auth->guard('sanctum')->user();
 
             $sale = new Sale([
@@ -185,7 +189,7 @@ final class CompleteSaleAction
                 'cashier_id' => $user?->getAuthIdentifier(),
                 'cashier_name' => $user?->getAttribute('name'),
                 'public_token' => Str::random(32),
-                'completed_at' => now(),
+                'completed_at' => $soldAt ?? now(),
             ]);
             if ($saleId !== null) {
                 $sale->id = $saleId;

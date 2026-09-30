@@ -48,8 +48,18 @@ export function useApi() {
       if (auth.token.value) {
         options.headers.set('Authorization', `Bearer ${auth.token.value}`)
       }
-      if (branch.branchId.value) {
+      // A queued offline sale is sent with the branch it was made in.
+      if (branch.branchId.value && !options.headers.has('X-Branch-Id')) {
         options.headers.set('X-Branch-Id', branch.branchId.value)
+      }
+    },
+    // Any answer means the API is reachable; no answer at all means we're offline (useConnectivity).
+    onResponse() {
+      markReachable(true)
+    },
+    onRequestError({ error }) {
+      if (error?.name !== 'AbortError') {
+        markReachable(false)
       }
     },
     async onResponseError({ response }) {
@@ -84,6 +94,17 @@ export function apiErrorMessage(error: unknown): string {
   }
 
   return data?.message ?? 'حصلت مشكلة، حاول تاني.'
+}
+
+/** No answer from the server at all (offline, DNS, timeout) — as opposed to an error response. */
+export function isNetworkError(error: unknown): boolean {
+  const e = error as { name?: string, response?: unknown } | null
+  return !!e && e.name === 'FetchError' && !e.response
+}
+
+/** The HTTP status of an error response, or null when there was no answer. */
+export function apiErrorStatus(error: unknown): number | null {
+  return (error as { response?: { status?: number } })?.response?.status ?? null
 }
 
 /** The API's machine-readable error code (`{message, code}`), if any. */

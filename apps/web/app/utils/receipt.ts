@@ -1,5 +1,8 @@
 import type { ReceiptData, Sale } from '~/types/api'
 
+/** Printed on a receipt made offline, until the sale reaches the server. */
+export const OFFLINE_NOTE = 'لسه ما اتسجلتش — هتتسجل أول ما النت يرجع'
+
 /** The public link printed as a QR code and shared on WhatsApp. */
 export function receiptUrl(token: string): string {
   return `${window.location.origin}/r/${token}`

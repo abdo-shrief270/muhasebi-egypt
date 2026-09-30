@@ -20,6 +20,7 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
         Route::prefix('pos')->controller(PosController::class)->middleware('can:sales.sell')->group(function (): void {
             Route::get('items', 'items');
             Route::get('options', 'options');
+            Route::get('catalog', 'catalog');
         });
 
         Route::prefix('sales')->controller(SaleController::class)->group(function (): void {

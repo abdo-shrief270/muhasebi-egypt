@@ -17,6 +17,7 @@ use App\Modules\Reports\Definitions\ServicesReport;
 use App\Modules\Reports\Definitions\ShiftsReport;
 use App\Modules\Reports\Definitions\StaffReport;
 use App\Modules\Reports\Definitions\SupplierReturnRateReport;
+use App\Modules\Reports\Definitions\UsedDevicesReport;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 
 final class ReportRegistry
@@ -30,6 +31,7 @@ final class ReportRegistry
         RepairsReport::class,
         ServicesReport::class,
         InventoryReport::class,
+        UsedDevicesReport::class,
         ReceivablesReport::class,
         PayablesReport::class,
         SupplierReturnRateReport::class,

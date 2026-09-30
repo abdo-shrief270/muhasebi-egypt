@@ -66,6 +66,8 @@ export default defineNuxtConfig({
         'lucide:arrow-down-to-line', 'lucide:arrow-up-from-line', 'lucide:check', 'lucide:ellipsis-vertical', 'lucide:rotate-ccw',
         // Supplier returns (tabs, settle options, bin line actions).
         'lucide:layers', 'lucide:file-text', 'lucide:repeat', 'lucide:trash-2', 'lucide:pencil', 'lucide:wallet', 'lucide:banknote',
+        // Used devices (tabs, checklist marks, photo picker).
+        'lucide:list', 'lucide:circle-check', 'lucide:circle-x', 'lucide:circle-dashed', 'lucide:camera', 'lucide:loader-circle',
       ],
     },
   },

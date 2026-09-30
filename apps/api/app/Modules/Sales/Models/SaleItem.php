@@ -7,6 +7,7 @@ namespace App\Modules\Sales\Models;
 use App\Support\Tenancy\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $line_total
  * @property int $unit_cost
  * @property int $returned_qty
+ * @property-read Sale $sale
  */
 #[Fillable(['tenant_id', 'sale_id', 'variant_id', 'name', 'barcode', 'qty', 'unit_price', 'discount', 'line_total', 'unit_cost', 'returned_qty', 'serials'])]
 final class SaleItem extends Model
@@ -41,6 +43,14 @@ final class SaleItem extends Model
             'unit_cost' => 'integer',
             'returned_qty' => 'integer',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Sale, $this>
+     */
+    public function sale(): BelongsTo
+    {
+        return $this->belongsTo(Sale::class);
     }
 
     /**

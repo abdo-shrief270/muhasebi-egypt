@@ -54,7 +54,7 @@ class ReportsTest extends TestCase
     {
         $index = $this->getJson('/api/v1/reports')->assertOk()->json('data');
 
-        $this->assertSame(['sales', 'products', 'staff', 'payments', 'repairs', 'services', 'inventory', 'receivables', 'payables', 'supplier_return_rate', 'supplier_returns_open', 'expenses', 'shifts'], array_column($index['reports'], 'key'));
+        $this->assertSame(['sales', 'products', 'staff', 'payments', 'repairs', 'services', 'inventory', 'used_devices', 'receivables', 'payables', 'supplier_return_rate', 'supplier_returns_open', 'expenses', 'shifts'], array_column($index['reports'], 'key'));
         $this->assertSame([$this->branchId], array_column($index['branches'], 'id'));
     }
 

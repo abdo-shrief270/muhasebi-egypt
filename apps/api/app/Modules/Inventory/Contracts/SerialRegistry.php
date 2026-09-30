@@ -73,6 +73,15 @@ interface SerialRegistry
     public function inStock(string $branchId, array $variantIds): array;
 
     /**
+     * Where a unit is now and its story (bought, sold, returned…), oldest first; null when the shop never
+     * recorded it. status: in_stock | out | damaged.
+     *
+     * @return array{serial: string, status: string, variant_id: string, branch_id: string|null,
+     *               events: list<array{type: string, type_label: string, ref_type: string|null, ref_id: string|null, note: string|null, user_name: string|null, created_at: string}>}|null
+     */
+    public function history(string $serial): ?array;
+
+    /**
      * @param  list<string>  $serials
      * @return list<string> normalised, in the same order
      */

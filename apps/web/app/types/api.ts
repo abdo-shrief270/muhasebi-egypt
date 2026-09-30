@@ -589,7 +589,7 @@ export type CashMethod = 'cash' | 'card' | 'wallet' | 'instapay'
 
 export interface CashMovement {
   id: string
-  type: 'sale' | 'sale_refund' | 'customer_payment' | 'expense' | 'deposit' | 'withdrawal'
+  type: 'sale' | 'sale_refund' | 'customer_payment' | 'repair' | 'supplier_payment' | 'used_device_purchase' | 'expense' | 'deposit' | 'withdrawal'
   type_label: string
   method: CashMethod
   method_label: string
@@ -861,4 +861,114 @@ export interface AppNotification {
   to: string | null
   read: boolean
   created_at: string
+}
+
+// Used devices (المستعمل). Prices are piasters.
+export type UsedDeviceGrade = 'A' | 'B' | 'C'
+export type UsedDeviceStatus = 'in_stock' | 'sold' | 'gone'
+export type UsedDevicePaymentMethod = 'cash' | 'wallet' | 'instapay' | 'bank'
+export type CheckValue = 'yes' | 'no' | 'na'
+
+export interface UsedDeviceSeller {
+  id: string
+  name: string
+  phone: string | null
+  national_id: string | null
+  birth_date: string | null
+  age?: number | null
+  gender: 'male' | 'female' | null
+  governorate: string | null
+  erased: boolean
+  id_purged: boolean
+}
+
+export interface UsedDevice {
+  id: string
+  reference: string
+  branch_id: string
+  title: string
+  device_model_id: number | null
+  model_name: string
+  storage: string | null
+  color: string | null
+  imei: string
+  imei2: string | null
+  grade: UsedDeviceGrade
+  grade_label: string
+  battery_health: number | null
+  notes: string | null
+  asking_price: number
+  /** only with products.view_cost */
+  purchase_price: number | null
+  payment_method: UsedDevicePaymentMethod
+  payment_method_label: string
+  variant_id: string
+  status: UsedDeviceStatus
+  status_label: string
+  sale: { id: string, reference: string | null, price: number | null, sold_at: string | null } | null
+  sold_at: string | null
+  /** only with products.view_cost */
+  profit: number | null
+  days_in_stock: number
+  bought_at: string
+  bought_by_name: string | null
+  /** only with used_devices.view_seller */
+  seller: UsedDeviceSeller | null
+  seller_hidden: boolean
+  checklist?: { key: string, label: string, required: boolean, value: CheckValue }[]
+  photos?: { id: number, kind: 'id_front' | 'id_back' | 'device' }[]
+}
+
+export interface UsedDeviceSummary {
+  in_stock: number
+  stock_asking: number
+  stock_cost: number | null
+  bought_this_month: number
+  sold_this_month: number
+}
+
+export interface UsedDeviceOptions {
+  grades: { value: UsedDeviceGrade, label: string }[]
+  checklist: { key: string, label: string, required: boolean }[]
+  payment_methods: { value: UsedDevicePaymentMethod, label: string }[]
+  max_photo_kb: number
+  max_device_photos: number
+  can_view_seller: boolean
+}
+
+export interface ImeiCheck {
+  imei: string
+  valid: boolean
+  in_stock: boolean
+  sold_before: boolean
+  events: { type: string, type_label: string, ref_type: string | null, ref_id: string | null, note: string | null, user_name: string | null, created_at: string }[]
+  previous: { id: string, reference: string, title: string, bought_at: string, status: UsedDeviceStatus }[]
+}
+
+export interface NationalIdCheck {
+  valid: boolean
+  error?: string
+  birth_date?: string
+  age?: number
+  gender?: 'male' | 'female'
+  gender_label?: string
+  governorate?: string
+  known?: boolean
+  devices_count?: number
+  seller?: { id: string, name: string, phone: string | null } | null
+}
+
+export interface UsedDeviceSellerSummary extends UsedDeviceSeller {
+  erased_at: string | null
+  devices_count: number
+  last_sold_at: string | null
+  devices?: UsedDevice[]
+}
+
+export interface UsedDeviceSettings {
+  id_retention_years: number
+  updated_by_name: string | null
+  updated_at: string | null
+  min_years: number
+  max_years: number
 }

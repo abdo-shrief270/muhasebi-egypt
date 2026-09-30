@@ -24,6 +24,7 @@ enum MovementType: string
     case SupplierReplacement = 'supplier_replace';
     /** A damaged unit written off (serials only: the stock left when it was set aside). */
     case WriteOff = 'write_off';
+    case UsedPurchase = 'used_purchase';
 
     public function label(): string
     {
@@ -42,6 +43,7 @@ enum MovementType: string
             self::ReturnsBinBack => 'رجوع من سلة المرتجعات',
             self::SupplierReplacement => 'بديل من المورد',
             self::WriteOff => 'إعدام تالف',
+            self::UsedPurchase => 'شراء مستعمل',
         };
     }
 }

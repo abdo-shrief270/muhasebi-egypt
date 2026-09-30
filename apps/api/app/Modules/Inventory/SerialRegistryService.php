@@ -77,6 +77,26 @@ final class SerialRegistryService implements SerialRegistry
         }
     }
 
+    public function inStock(string $branchId, array $variantIds): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        $found = [];
+        SerialNumber::query()
+            ->where('branch_id', $branchId)
+            ->where('status', SerialNumber::IN_STOCK)
+            ->whereIn('variant_id', $variantIds)
+            ->orderBy('serial')
+            ->get(['variant_id', 'serial'])
+            ->each(function (SerialNumber $row) use (&$found): void {
+                $found[$row->variant_id][] = $row->serial;
+            });
+
+        return $found;
+    }
+
     public function normalize(array $serials): array
     {
         return array_values(array_map(fn (string $s): string => strtoupper((string) preg_replace('/[\s\-\/]+/u', '', $s)), $serials));

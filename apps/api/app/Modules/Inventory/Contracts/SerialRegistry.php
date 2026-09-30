@@ -35,6 +35,14 @@ interface SerialRegistry
     public function takeBack(string $branchId, string $variantId, array $serials, StockReference $reference, bool $restock): void;
 
     /**
+     * Serials in stock in a branch (e.g. for the POS to recognise a scanned IMEI while offline).
+     *
+     * @param  list<string>  $variantIds
+     * @return array<string, list<string>> variant id => its serials; variants without any are left out
+     */
+    public function inStock(string $branchId, array $variantIds): array;
+
+    /**
      * @param  list<string>  $serials
      * @return list<string> normalised, in the same order
      */

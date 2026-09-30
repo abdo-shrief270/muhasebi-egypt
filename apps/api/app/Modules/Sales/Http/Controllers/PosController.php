@@ -6,6 +6,7 @@ namespace App\Modules\Sales\Http\Controllers;
 
 use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Catalog\Contracts\VariantSummary;
+use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Sales\Enums\PaymentMethod;
 use App\Modules\Sales\Enums\PriceLevel;
@@ -18,9 +19,12 @@ use Illuminate\Http\Request;
  */
 final class PosController
 {
+    private const CATALOG_PAGE = 500;
+
     public function __construct(
         private readonly VariantCatalog $catalog,
         private readonly StockLedger $stock,
+        private readonly SerialRegistry $serials,
         private readonly CurrentBranch $branch,
     ) {}
 
@@ -47,6 +51,30 @@ final class PosController
                 'exact_barcode' => $q !== '' && $v->barcode === $q,
             ], $items),
             'meta' => ['current_page' => $page['page'], 'last_page' => $page['last_page'], 'total' => $page['total']],
+        ]);
+    }
+
+    /**
+     * The whole sellable catalog of this branch, page by page (?page=), for the POS to keep on the
+     * device and keep selling when the internet drops: prices, barcode, SKU, category, stock here,
+     * and the IMEIs / serials in stock here for products that track them.
+     */
+    public function catalog(Request $request): JsonResponse
+    {
+        $page = $this->catalog->search(q: null, categoryId: null, onlyIds: null, page: max(1, $request->integer('page', 1)), perPage: self::CATALOG_PAGE);
+        $items = $page['items'];
+        $ids = array_map(fn (VariantSummary $v) => $v->id, $items);
+        $branchId = $this->branch->idOrFail();
+        $qty = $this->stock->quantities($branchId, $ids);
+        $serials = $this->serials->inStock($branchId, array_values(array_map(fn (VariantSummary $v) => $v->id, array_filter($items, fn (VariantSummary $v) => $v->trackSerial))));
+
+        return response()->json([
+            'data' => array_map(fn (VariantSummary $v): array => [
+                ...$v->toArray(),
+                'qty' => $qty[$v->id] ?? 0,
+                'serials' => $v->trackSerial ? ($serials[$v->id] ?? []) : null,
+            ], $items),
+            'meta' => ['current_page' => $page['page'], 'last_page' => $page['last_page'], 'per_page' => $page['per_page'], 'total' => $page['total'], 'generated_at' => now()->toIso8601String()],
         ]);
     }
 

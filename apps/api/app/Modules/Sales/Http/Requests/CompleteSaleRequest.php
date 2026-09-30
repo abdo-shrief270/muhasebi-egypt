@@ -6,12 +6,19 @@ namespace App\Modules\Sales\Http\Requests;
 
 use App\Modules\Sales\Enums\PaymentMethod;
 use App\Modules\Sales\Enums\PriceLevel;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 final class CompleteSaleRequest extends FormRequest
 {
     private const MAX_MONEY = 100_000_000_000;
+
+    /** A sale made offline is synced later with the time it was made: not from the future (beyond clock skew), not older than a week. */
+    public const OFFLINE_MAX_AGE_DAYS = 7;
+
+    public const OFFLINE_CLOCK_SKEW_MINUTES = 5;
 
     public function authorize(): bool
     {
@@ -41,7 +48,41 @@ final class CompleteSaleRequest extends FormRequest
             'payments.*.method' => ['required', Rule::enum(PaymentMethod::class)],
             'payments.*.amount' => ['required', 'integer', 'min:1', 'max:'.self::MAX_MONEY],
             'payments.*.reference' => ['nullable', 'string', 'max:60'],
+            // Queued on the POS while the internet was down: sold_at = when it was sold (device clock).
+            'offline' => ['nullable', 'boolean'],
+            'sold_at' => ['nullable', 'date'],
         ];
+    }
+
+    /**
+     * @return list<callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            if ($validator->errors()->has('sold_at') || $this->input('sold_at') === null) {
+                return;
+            }
+            if (! $this->boolean('offline')) {
+                $validator->errors()->add('sold_at', 'وقت البيع بيتبعت بس مع الفواتير اللي اتعملت أوفلاين.');
+
+                return;
+            }
+            $soldAt = CarbonImmutable::parse((string) $this->input('sold_at'));
+            if ($soldAt->isAfter(now()->addMinutes(self::OFFLINE_CLOCK_SKEW_MINUTES))) {
+                $validator->errors()->add('sold_at', 'وقت البيع في المستقبل؛ اظبط ساعة الجهاز.');
+            } elseif ($soldAt->isBefore(now()->subDays(self::OFFLINE_MAX_AGE_DAYS))) {
+                $validator->errors()->add('sold_at', 'الفاتورة دي أقدم من '.self::OFFLINE_MAX_AGE_DAYS.' أيام ومينفعش تتسجل.');
+            }
+        }];
+    }
+
+    /** When an offline sale was made; null = now. */
+    public function soldAt(): ?CarbonImmutable
+    {
+        $soldAt = $this->validated('sold_at');
+
+        return $soldAt !== null && $this->boolean('offline') ? CarbonImmutable::parse((string) $soldAt) : null;
     }
 
     public function attributes(): array
@@ -54,6 +95,7 @@ final class CompleteSaleRequest extends FormRequest
             'payments' => 'الدفع',
             'payments.*.amount' => 'المبلغ',
             'payments.*.method' => 'طريقة الدفع',
+            'sold_at' => 'وقت البيع',
         ];
     }
 

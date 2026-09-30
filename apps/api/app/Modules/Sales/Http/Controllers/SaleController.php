@@ -78,6 +78,7 @@ final class SaleController
             notes: $request->validated('notes'),
             customerId: $request->validated('customer_id'),
             canCredit: (bool) $request->user()?->can('customers.credit'),
+            soldAt: $request->soldAt(),
         );
 
         return $this->show($request, $sale->id)->response()->setStatusCode(201);

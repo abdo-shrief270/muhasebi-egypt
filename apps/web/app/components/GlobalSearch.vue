@@ -31,6 +31,7 @@ const api = useApi()
 const store = useSessionStore()
 const { allItems } = useNavigation()
 const actions = useQuickActions()
+const feedback = useFeedback()
 
 const term = ref('')
 const loading = ref(false)
@@ -108,6 +109,18 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => {
     id: 'pages',
     label: 'الصفحات',
     items: allItems.value.map(item => ({ label: item.label, icon: item.icon, onSelect: () => go(item.to) })),
+  }, {
+    id: 'help',
+    label: 'مساعدة',
+    items: [{
+      label: 'ابعت ملاحظة',
+      suffix: 'مشكلة، اقتراح، أو سؤال لفريق محاسبي',
+      icon: 'i-lucide-message-square-heart',
+      onSelect: () => {
+        open.value = false
+        feedback.show()
+      },
+    }],
   }]
 
   if (products.value.length) {

@@ -51,6 +51,10 @@ const cards = computed(() => {
     { label: 'مشتركين', value: o.counts.active, to: '/shops?status=active', tone: 'text-(--ui-success)' },
     { label: 'تجربة', value: o.counts.trialing, to: '/shops?status=trialing', tone: 'text-(--ui-info)' },
     { label: 'متأخرين / محدود / موقوف', value: `${o.counts.past_due} / ${o.counts.restricted} / ${o.counts.suspended}`, to: '/shops?status=past_due', tone: 'text-(--ui-error)' },
+    { label: 'في فترة Beta', value: o.beta, to: '/shops?status=beta', tone: 'text-(--ui-info)' },
+    { label: 'ملاحظات جديدة', value: o.new_feedback, to: '/feedback', tone: o.new_feedback ? 'text-(--ui-warning)' : '' },
+    { label: 'أخطاء واجهة مفتوحة', value: o.open_errors, to: '/errors', tone: o.open_errors ? 'text-(--ui-error)' : '' },
+    { label: 'أخطاء آخر 24 ساعة', value: o.errors_24h, to: '/errors', tone: '' },
   ]
 })
 </script>

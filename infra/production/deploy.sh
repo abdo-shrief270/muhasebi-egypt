@@ -9,6 +9,9 @@ if git -C ../.. rev-parse --git-dir >/dev/null 2>&1 && [[ "${SKIP_PULL:-0}" != "
   git -C ../.. pull --ff-only
 fi
 
+# The web app sends this with feedback and error reports (NUXT_PUBLIC_APP_VERSION).
+APP_VERSION="$(git -C ../.. rev-parse --short HEAD 2>/dev/null || echo unknown)"
+export APP_VERSION
 docker compose build --pull
 docker compose up -d pgsql redis
 

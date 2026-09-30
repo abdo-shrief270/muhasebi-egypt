@@ -13,6 +13,9 @@
       <UBadge :color="subscriptionStatusColor(sub.status)" variant="subtle" size="lg">
         {{ sub.status_label }}
       </UBadge>
+      <UBadge v-if="sub.beta" color="info" variant="outline" size="lg">
+        Beta لحد <span class="num ms-1">{{ formatDate(sub.beta_until) }}</span>
+      </UBadge>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -56,6 +59,94 @@
           <p v-if="sub.suspended_reason" class="mt-3 text-sm text-(--ui-error)">
             موقوف: {{ sub.suspended_reason }}
           </p>
+        </UCard>
+
+        <UCard>
+          <template #header>
+            <p class="font-bold">
+              بيشتغل على البرنامج؟
+            </p>
+          </template>
+          <dl class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div>
+              <dt class="text-xs text-(--ui-text-muted)">
+                آخر استخدام
+              </dt>
+              <dd class="font-bold" :class="staleTone(detail.shop.last_seen_at)">
+                {{ timeAgo(detail.shop.last_seen_at) }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-(--ui-text-muted)">
+                آخر تسجيل دخول
+              </dt>
+              <dd class="font-bold">
+                {{ timeAgo(detail.shop.last_sign_in_at) }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-(--ui-text-muted)">
+                آخر فاتورة بيع
+              </dt>
+              <dd class="font-bold">
+                {{ timeAgo(detail.activity.last_sale_at) }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-(--ui-text-muted)">
+                فواتير آخر 7 أيام
+              </dt>
+              <dd class="num text-xl font-extrabold">
+                {{ detail.activity.sales_7d }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-(--ui-text-muted)">
+                أجهزة صيانة آخر 7 أيام
+              </dt>
+              <dd class="num text-xl font-extrabold">
+                {{ detail.activity.repairs_7d }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs text-(--ui-text-muted)">
+                ابدأ من هنا
+              </dt>
+              <dd class="num text-xl font-extrabold">
+                {{ detail.setup.done }} / {{ detail.setup.total }}
+              </dd>
+            </div>
+          </dl>
+          <p v-if="detail.setup.missing.length" class="mt-4 text-sm">
+            <span class="text-(--ui-text-muted)">لسه ما عملش:</span> {{ detail.setup.missing.join('، ') }}
+          </p>
+        </UCard>
+
+        <UCard v-if="detail.feedback.length">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <p class="font-bold">
+                ملاحظاته
+              </p>
+              <UButton to="/feedback" size="xs" color="neutral" variant="ghost" label="كل الملاحظات" trailing-icon="i-lucide-arrow-left" />
+            </div>
+          </template>
+          <ul class="divide-y divide-(--ui-border)">
+            <li v-for="f in detail.feedback" :key="f.id" class="space-y-1 py-3 first:pt-0 last:pb-0">
+              <div class="flex flex-wrap items-center gap-2 text-sm">
+                <UBadge :color="feedbackTypeColor(f.type)" variant="subtle" size="sm">
+                  {{ f.type_label }}
+                </UBadge>
+                <UBadge :color="feedbackStatusColor(f.status)" variant="outline" size="sm">
+                  {{ f.status_label }}
+                </UBadge>
+                <span class="text-(--ui-text-muted)">{{ f.user_name }} · <span class="num">{{ formatDate(f.created_at, true) }}</span></span>
+              </div>
+              <p class="whitespace-pre-line break-words text-sm">
+                {{ f.message }}
+              </p>
+            </li>
+          </ul>
         </UCard>
 
         <UCard v-if="detail.requests.length">
@@ -132,6 +223,31 @@
         </UCard>
 
         <UCard>
+          <template #header>
+            <p class="font-bold">
+              فترة Beta مجانية
+            </p>
+            <p class="text-xs text-(--ui-text-muted)">
+              من غير دفع: فاتورة بصفر، والأقسام بتاعة الباقة بتتفتح. بتبدأ بعد آخر الفترة الحالية.
+            </p>
+          </template>
+          <form class="space-y-3" @submit.prevent="grantBeta">
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField label="الباقة">
+                <USelect v-model="beta.plan" :items="planItems" class="w-full" />
+              </UFormField>
+              <UFormField label="المدة">
+                <USelect v-model="beta.months" :items="betaMonths" class="w-full" />
+              </UFormField>
+            </div>
+            <UFormField label="ملاحظة" hint="اختياري">
+              <UInput v-model="beta.note" class="w-full" placeholder="مثلاً: محل Beta — المجموعة الأولى" />
+            </UFormField>
+            <UButton type="submit" block color="info" variant="soft" icon="i-lucide-gift" label="ادّي فترة Beta" :loading="busy === 'beta'" />
+          </form>
+        </UCard>
+
+        <UCard>
           <div class="space-y-3">
             <div v-if="sub.on_trial" class="flex items-end gap-2">
               <UFormField label="مدّ التجربة (أيام)" class="flex-1">
@@ -154,10 +270,17 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminOverview, AdminShop, BillingInvoiceInfo, PaymentRequestInfo, SubscriptionInfo } from '~/types/api'
+import type { AdminFeedback, AdminOverview, AdminShop, BillingInvoiceInfo, PaymentRequestInfo, SetupProgress, ShopActivity, SubscriptionInfo } from '~/types/api'
 
-
-interface Detail { shop: AdminShop, subscription: SubscriptionInfo, requests: PaymentRequestInfo[], invoices: BillingInvoiceInfo[] }
+interface Detail {
+  shop: AdminShop
+  subscription: SubscriptionInfo
+  activity: ShopActivity
+  setup: SetupProgress
+  feedback: AdminFeedback[]
+  requests: PaymentRequestInfo[]
+  invoices: BillingInvoiceInfo[]
+}
 
 const api = useAdminApi()
 const route = useRoute()
@@ -218,6 +341,14 @@ const activate = () => run('activate', () => api(`/shops/${id}/activate`, {
     note: form.note || undefined,
   },
 }), 'اتفعّل الاشتراك')
+
+const betaMonths = [1, 2, 3, 6, 12].map(m => ({ label: m === 1 ? 'شهر' : m === 2 ? 'شهرين' : m === 12 ? 'سنة' : `${m} شهور`, value: m }))
+const beta = reactive({ plan: sub.value?.plan ?? 'repair', months: 3, note: '' })
+const grantBeta = () => run('beta', () => api(`/shops/${id}/beta`, {
+  method: 'POST',
+  body: { plan: beta.plan, months: beta.months, note: beta.note || undefined },
+}), 'اتفعّلت فترة Beta')
+
 
 const trialDays = ref('7')
 const extendTrial = () => run('trial', () => api(`/shops/${id}/trial`, { method: 'POST', body: { days: Number(trialDays.value) } }), 'اتمدّت التجربة')

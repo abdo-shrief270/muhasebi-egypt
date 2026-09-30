@@ -37,6 +37,42 @@ export function apiErrorMessage(error: unknown): string {
   return data?.message ?? 'حصلت مشكلة، حاول تاني.'
 }
 
+/** "منذ 3 أيام" style, for last activity. */
+const relative = new Intl.RelativeTimeFormat('ar-EG-u-nu-latn', { numeric: 'auto' })
+export function timeAgo(iso: string | null | undefined, never = 'لسه'): string {
+  if (!iso) {
+    return never
+  }
+  const minutes = Math.round((new Date(iso).getTime() - Date.now()) / 60000)
+  if (minutes > -1) {
+    return 'دلوقتي'
+  }
+  if (minutes > -60) {
+    return relative.format(minutes, 'minute')
+  }
+  if (minutes > -60 * 24) {
+    return relative.format(Math.round(minutes / 60), 'hour')
+  }
+  if (minutes > -60 * 24 * 30) {
+    return relative.format(Math.round(minutes / 1440), 'day')
+  }
+  return formatDate(iso)
+}
+
+/** Days since, or null when never. */
+export function daysSince(iso: string | null | undefined): number | null {
+  return iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000) : null
+}
+
+/** A beta shop nobody opened for 3+ days is probably stuck (7+ days or never: red). */
+export function staleTone(iso: string | null | undefined): string {
+  const days = daysSince(iso)
+  return days === null || days >= 7 ? 'text-(--ui-error)' : days >= 3 ? 'text-(--ui-warning)' : ''
+}
+
+export const feedbackTypeColor = (type: string) => ({ problem: 'error', suggestion: 'info', question: 'warning' } as const)[type as 'problem'] ?? 'neutral'
+export const feedbackStatusColor = (status: string) => ({ new: 'primary', seen: 'warning', done: 'success' } as const)[status as 'new'] ?? 'neutral'
+
 export const subscriptionStatusColor = (status: string) => ({
   trialing: 'info',
   active: 'success',

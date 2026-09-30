@@ -23,7 +23,9 @@
       </div>
     </div>
 
-    <!-- Owners without two-factor sign-in get a nudge (dismissible for a week). -->
+    <OnboardingChecklist />
+
+    <!-- Owners without two-factor sign-in get a nudge (dismissible for a week); «ابدأ من هنا» already asks while it shows. -->
     <UAlert
       v-if="showTwoFactorNudge"
       color="warning"
@@ -237,7 +239,7 @@
 </template>
 
 <script setup lang="ts">
-import type { RepairSummary, SalesStats, StockSummary } from '~/types/api'
+import type { OnboardingState, RepairSummary, SalesStats, StockSummary } from '~/types/api'
 import { NuxtLink } from '#components'
 
 const api = useApi()
@@ -251,7 +253,9 @@ const nudgeDismissedAt = ref<number>(0)
 onMounted(() => {
   nudgeDismissedAt.value = Number(localStorage.getItem(NUDGE_KEY) ?? 0)
 })
+const { data: onboarding } = useNuxtData<OnboardingState | null>('onboarding')
 const showTwoFactorNudge = computed(() => store.isOwner
+  && !onboarding.value?.visible
   && store.session?.user.two_factor_enabled === false
   && Date.now() - nudgeDismissedAt.value > 7 * 24 * 60 * 60 * 1000)
 function dismissTwoFactorNudge() {

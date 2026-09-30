@@ -8,6 +8,9 @@ RUN npm ci --no-audit --no-fund --ignore-scripts
 COPY apps/web/ ./
 # Same-origin API: the browser calls https://<domain>/api/v1.
 ENV NUXT_PUBLIC_API_BASE=/api/v1
+# The release (git sha from deploy.sh), sent with feedback and error reports.
+ARG APP_VERSION=""
+ENV NUXT_PUBLIC_APP_VERSION=$APP_VERSION
 RUN npx nuxi prepare && npx nuxi generate
 
 # The admin panel: a separate app, served on the admin domain only.

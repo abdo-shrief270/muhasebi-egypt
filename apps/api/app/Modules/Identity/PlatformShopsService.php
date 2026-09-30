@@ -10,6 +10,8 @@ use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\Tenant;
 use App\Modules\Identity\Models\User;
 use App\Support\Text\SearchText;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 final class PlatformShopsService implements PlatformShops
 {
@@ -37,6 +39,15 @@ final class PlatformShopsService implements PlatformShops
         $users = User::query()->whereIn('tenant_id', $tenantIds)->selectRaw('tenant_id, count(*) as n')->groupBy('tenant_id')->pluck('n', 'tenant_id');
         $branches = Branch::withoutTenancy()->whereIn('tenant_id', $tenantIds)->selectRaw('tenant_id, count(*) as n')->groupBy('tenant_id')->pluck('n', 'tenant_id');
 
+        // Signed-in devices (Sanctum tokens): when one was issued (a sign-in) and last used.
+        $devices = DB::table('personal_access_tokens as t')
+            ->join('users as u', 'u.id', '=', 't.tokenable_id')
+            ->where('t.tokenable_type', (new User)->getMorphClass())
+            ->whereIn('u.tenant_id', $tenantIds)
+            ->selectRaw('u.tenant_id, max(t.created_at) as signed_in, max(t.last_used_at) as seen')
+            ->groupBy('u.tenant_id')->get()->keyBy('tenant_id');
+        $iso = fn (?string $at): ?string => $at !== null ? Carbon::parse($at)->toIso8601String() : null;
+
         return Tenant::query()->whereIn('id', $tenantIds)->get()->mapWithKeys(fn (Tenant $t): array => [$t->id => [
             'id' => $t->id,
             'name' => $t->name,
@@ -48,6 +59,8 @@ final class PlatformShopsService implements PlatformShops
             'users' => (int) ($users[$t->id] ?? 0),
             'branches' => (int) ($branches[$t->id] ?? 0),
             'created_at' => $t->created_at?->toIso8601String() ?? '',
+            'last_sign_in_at' => $iso($devices->get($t->id)?->signed_in),
+            'last_seen_at' => $iso($devices->get($t->id)?->seen ?? $devices->get($t->id)?->signed_in),
         ]])->all();
     }
 }

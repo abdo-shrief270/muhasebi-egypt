@@ -70,6 +70,7 @@
     <GlobalSearch v-model:open="searchOpen" />
     <PriceCheck v-if="store.can('products.view')" />
     <PosOutboxPanel />
+    <FeedbackModal />
   </div>
 </template>
 
@@ -83,6 +84,7 @@ const colorMode = useColorMode()
 const menuOpen = ref(false)
 const searchOpen = ref(false)
 const priceCheck = usePriceCheck()
+const feedback = useFeedback()
 
 defineShortcuts({
   meta_k: () => {
@@ -141,6 +143,7 @@ const userItems = computed<DropdownMenuItem[][]>(() => [
     ...(store.can('products.view') ? [{ label: 'استعلام عن سعر', icon: 'i-lucide-tag', kbds: ['F8'], onSelect: () => priceCheck.show() }] : []),
     { label: `نسخ كود المحل (${store.session?.tenant.code ?? ''})`, icon: 'i-lucide-hash', onSelect: copyCode },
   ],
+  [{ label: 'ابعت ملاحظة', description: 'مشكلة، اقتراح، أو سؤال لفريق محاسبي', icon: 'i-lucide-message-square-heart', onSelect: () => feedback.show() }],
   [{ label: 'تسجيل الخروج', icon: 'i-lucide-log-out', color: 'error' as const, onSelect: () => store.logout() }],
 ])
 

@@ -10,7 +10,64 @@ export interface SubscriptionInfo {
   paid_until: string
   days_left: number
   suspended_reason: string | null
+  beta: boolean
+  beta_until: string | null
   monthly_value: number
+}
+
+/** Beta: is the shop actually working in the app? */
+export interface ShopActivity {
+  last_sale_at: string | null
+  sales_7d: number
+  repairs_7d: number
+}
+
+/** «ابدأ من هنا» progress (shop-wide). */
+export interface SetupProgress {
+  done: number
+  total: number
+  missing: string[]
+}
+
+export interface ShopLine { id: string, name: string, code: string }
+
+export interface AdminFeedback {
+  id: string
+  tenant_id: string
+  shop: ShopLine | null
+  user_name: string | null
+  type: 'problem' | 'suggestion' | 'question'
+  type_label: string
+  message: string
+  page: string | null
+  app_version: string | null
+  user_agent: string | null
+  screen: string | null
+  has_screenshot: boolean
+  status: 'new' | 'seen' | 'done'
+  status_label: string
+  status_changed_at: string | null
+  status_changed_by: string | null
+  created_at: string
+}
+
+export interface InboxCounts { new_feedback: number, open_errors: number, errors_24h: number }
+
+export interface ClientErrorGroup {
+  fingerprint: string
+  kind: 'error' | 'rejection'
+  message: string
+  source: string | null
+  stack: string | null
+  page: string | null
+  app_version: string | null
+  user_agent: string | null
+  count: number
+  tenant_ids: string[]
+  shops: ShopLine[]
+  first_seen_at: string
+  last_seen_at: string
+  resolved: boolean
 }
 
 export interface BillingPlan {
@@ -87,13 +144,16 @@ export interface AdminShop {
   users: number
   branches: number
   created_at: string
+  last_sign_in_at: string | null
+  last_seen_at: string | null
 }
 
 export type AdminPayment = PaymentRequestInfo & { shop: AdminShop | null }
 
-export interface AdminOverview {
+export interface AdminOverview extends InboxCounts {
   counts: Record<SubscriptionInfo['status'], number>
   shops: number
+  beta: number
   pending_payments: number
   expiring_soon: number
   mrr: number

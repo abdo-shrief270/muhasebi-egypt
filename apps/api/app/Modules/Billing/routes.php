@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
+use App\Modules\Billing\Http\Controllers\Admin\AdminFeedbackController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
 use App\Modules\Billing\Http\Controllers\BillingController;
@@ -46,8 +47,18 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::get('shops/{tenant}', 'show');
             Route::post('shops/{tenant}/activate', 'activate');
             Route::post('shops/{tenant}/trial', 'extendTrial');
+            Route::post('shops/{tenant}/beta', 'grantBeta');
             Route::post('shops/{tenant}/suspend', 'suspend');
             Route::post('shops/{tenant}/unsuspend', 'unsuspend');
+        });
+
+        Route::controller(AdminFeedbackController::class)->group(function (): void {
+            Route::pattern('feedback', '[0-9a-fA-F-]{36}');
+            Route::get('feedback', 'index');
+            Route::patch('feedback/{feedback}', 'update');
+            Route::get('feedback/{feedback}/screenshot', 'screenshot');
+            Route::get('client-errors', 'errors');
+            Route::post('client-errors/{fingerprint}/resolve', 'resolve')->where('fingerprint', '[0-9a-f]{40}');
         });
 
         Route::controller(AdminPaymentController::class)->group(function (): void {

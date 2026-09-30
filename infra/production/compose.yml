@@ -25,6 +25,7 @@ services:
       args:
         APP_URL: https://${DOMAIN}
         SITE_URL: https://${LANDING_DOMAIN:-muhasebi.com}
+        APP_VERSION: ${APP_VERSION:-}
     image: muhasebi-web:latest
     restart: unless-stopped
     environment:

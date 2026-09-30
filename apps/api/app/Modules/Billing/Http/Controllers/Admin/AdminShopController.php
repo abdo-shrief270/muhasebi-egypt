@@ -12,7 +12,10 @@ use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Billing\Support\Subscriptions;
 use App\Modules\Billing\Support\SubscriptionStatus;
+use App\Modules\Feedback\Contracts\FeedbackInbox;
 use App\Modules\Identity\Contracts\PlatformShops;
+use App\Modules\Onboarding\Contracts\SetupProgress;
+use App\Modules\Onboarding\Contracts\ShopActivity;
 use App\Support\Audit\Auditor;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
@@ -28,6 +31,9 @@ final class AdminShopController
         private readonly BillingView $view,
         private readonly Pricing $pricing,
         private readonly AdminLog $log,
+        private readonly SetupProgress $setup,
+        private readonly ShopActivity $activity,
+        private readonly FeedbackInbox $inbox,
     ) {}
 
     public function overview(): JsonResponse
@@ -41,6 +47,8 @@ final class AdminShopController
         return response()->json(['data' => [
             'counts' => $counts,
             'shops' => Subscription::withoutTenancy()->count(),
+            'beta' => Subscription::withoutTenancy()->where('beta_until', '>', now())->count(),
+            ...$this->inbox->counts(),
             'pending_payments' => PaymentRequest::withoutTenancy()->where('status', 'pending')->count(),
             'expiring_soon' => Subscription::withoutTenancy()->whereNull('suspended_at')->whereBetween('paid_until', [now(), now()->addDays(7)])->count(),
             'mrr' => $mrr,
@@ -54,17 +62,28 @@ final class AdminShopController
     {
         $data = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', Rule::enum(SubscriptionStatus::class)],
+            // a subscription status, or «beta»: shops in a free beta period
+            'status' => ['nullable', Rule::in([...array_column(SubscriptionStatus::cases(), 'value'), 'beta'])],
         ]);
+        $status = $data['status'] ?? null;
         $page = Subscription::withoutTenancy()
             ->when(filled($data['q'] ?? null), fn ($q) => $q->whereIn('tenant_id', $this->shops->searchIds((string) $data['q'])))
-            ->when(isset($data['status']), fn ($q) => $q->withStatus(SubscriptionStatus::from($data['status'])))
+            ->when($status === 'beta', fn ($q) => $q->where('beta_until', '>', now()))
+            ->when($status !== null && $status !== 'beta', fn ($q) => $q->withStatus(SubscriptionStatus::from($status)))
             ->orderBy('paid_until')
             ->paginate(30);
-        $details = $this->shops->details($page->getCollection()->pluck('tenant_id')->all());
+        $ids = $page->getCollection()->pluck('tenant_id')->all();
+        $details = $this->shops->details($ids);
+        $activity = $this->activity->recent($ids);
+        $setup = $this->setup->progress($ids);
 
         return response()->json([
-            'data' => $page->getCollection()->map(fn (Subscription $s) => ['shop' => $details[$s->tenant_id] ?? null, 'subscription' => $this->view->subscription($s)])->values(),
+            'data' => $page->getCollection()->map(fn (Subscription $s) => [
+                'shop' => $details[$s->tenant_id] ?? null,
+                'subscription' => $this->view->subscription($s),
+                'activity' => $activity[$s->tenant_id] ?? null,
+                'setup' => $setup[$s->tenant_id] ?? null,
+            ])->values(),
             'meta' => ['current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total()],
         ]);
     }
@@ -76,6 +95,9 @@ final class AdminShopController
         return response()->json(['data' => [
             'shop' => $shop,
             'subscription' => $this->view->subscription($this->subscriptions->for($tenant)),
+            'activity' => $this->activity->recent([$tenant])[$tenant],
+            'setup' => $this->setup->progress([$tenant])[$tenant],
+            'feedback' => $this->inbox->feedback(['tenant_ids' => [$tenant]], 1, 10)['items'],
             'requests' => PaymentRequest::withoutTenancy()->where('tenant_id', $tenant)->latest()->get()->map(fn (PaymentRequest $r) => $this->view->request($r))->all(),
             'invoices' => BillingInvoice::withoutTenancy()->where('tenant_id', $tenant)->orderByDesc('number')->get()->map(fn (BillingInvoice $i) => $this->view->invoice($i))->all(),
         ]]);
@@ -98,6 +120,23 @@ final class AdminShopController
         $quote = $this->pricing->quote($data['plan'], $data['cycle'], $data['modules'] ?? []);
         $invoice = $this->subscriptions->activate($tenant, $quote, 'manual', $data['reference'] ?? null, $request->user()?->getAttribute('name'), $data['amount'] ?? null, $data['note'] ?? null, $data['months'] ?? null);
         $this->log->record('shop_activated', $tenant, $invoice->id, ['plan' => $quote['plan'], 'cycle' => $quote['cycle'], 'modules' => $quote['modules'], 'amount' => $invoice->total, 'months' => $invoice->months, 'note' => $data['note'] ?? null]);
+
+        return $this->show($tenant);
+    }
+
+    /** A free beta period (no payment): a zero invoice marked «beta», the plan's modules granted. */
+    public function grantBeta(Request $request, string $tenant): JsonResponse
+    {
+        $this->shops->details([$tenant])[$tenant] ?? abort(404);
+        $data = $request->validate([
+            'plan' => ['required', Rule::in(array_keys($this->pricing->plans()))],
+            'months' => ['required', 'integer', 'min:1', 'max:12'],
+            'modules' => ['nullable', 'array'],
+            'modules.*' => ['string', Rule::in(array_keys($this->pricing->modulePrices()))],
+            'note' => ['nullable', 'string', 'max:255'],
+        ]);
+        $invoice = $this->subscriptions->grantBeta($tenant, $data['plan'], (int) $data['months'], $data['modules'] ?? [], $request->user()?->getAttribute('name'), $data['note'] ?? null);
+        $this->log->record('beta_granted', $tenant, $invoice->id, ['plan' => $invoice->plan, 'months' => $invoice->months, 'modules' => $data['modules'] ?? [], 'until' => $invoice->period_end->toIso8601String(), 'note' => $data['note'] ?? null]);
 
         return $this->show($tenant);
     }

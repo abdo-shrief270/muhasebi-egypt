@@ -22,11 +22,17 @@ services:
     build:
       context: ../..
       dockerfile: infra/production/Dockerfile.web
+      args:
+        APP_URL: https://${DOMAIN}
+        SITE_URL: https://${LANDING_DOMAIN:-muhasebi.com}
     image: muhasebi-web:latest
     restart: unless-stopped
     environment:
       SITE_ADDRESS: ${DOMAIN}
       ADMIN_SITE_ADDRESS: ${ADMIN_DOMAIN:-http://admin.invalid}
+      # The public website: "example.com, www.example.com" (setup-landing.sh writes it).
+      LANDING_SITE_ADDRESS: ${LANDING_SITE_ADDRESS:-http://landing.invalid}
+      LANDING_DOMAIN: ${LANDING_DOMAIN:-landing.invalid}
       ACME_EMAIL: ${ACME_EMAIL}
     ports:
       - "80:80"

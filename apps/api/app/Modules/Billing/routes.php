@@ -4,8 +4,12 @@ use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
 use App\Modules\Billing\Http\Controllers\BillingController;
+use App\Modules\Billing\Http\Controllers\PublicPlansController;
 use App\Modules\Billing\Http\Middleware\AdminGate;
 use Illuminate\Support\Facades\Route;
+
+// Plans and prices for the public website (no sign-in).
+Route::get('public/plans', PublicPlansController::class)->middleware('throttle:60,1');
 
 // The shop's subscription.
 Route::middleware(['auth:sanctum', 'tenant'])->prefix('billing')->controller(BillingController::class)->group(function (): void {

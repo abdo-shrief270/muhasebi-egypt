@@ -6,6 +6,7 @@ services:
     environment:
       SITE_ADDRESS: ":80"
       ADMIN_SITE_ADDRESS: http://${ADMIN_DOMAIN:-admin.invalid}
+      LANDING_SITE_ADDRESS: http://${LANDING_DOMAIN:-landing.invalid}, http://www.${LANDING_DOMAIN:-landing.invalid}
       TRUSTED_PROXIES: private_ranges
     ports: !override
       - "127.0.0.1:${EDGE_PORT:-8088}:80"

@@ -3,3 +3,6 @@
 .vscode
 *.log
 .claude/worktrees/
+
+# Local Redis snapshot (redis-server started from the repo root)
+dump.rdb

@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/* The same calm teal as the app (apps/web/app/assets/css/main.css). */
+@theme {
+  --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --ui-primary: var(--ui-color-primary-600);
+  --ui-radius: 0.5rem;
+  --ui-bg: #FFFFFF;
+  --ui-bg-muted: #F5F7FA;
+  --ui-bg-elevated: #F1F5F9;
+  --ui-border: #E4E8EE;
+  --ui-text: #0F172A;
+  --ui-text-muted: #64748B;
+
+  --app-primary-soft: #E3F4F1;
+  --app-primary-strong: #0F766E;
+  --app-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 8px 32px rgba(15, 23, 42, .08);
+  --app-hero: radial-gradient(1200px 500px at 85% -10%, #CCF1EA 0%, transparent 60%), radial-gradient(900px 400px at 0% 10%, #E0F2FE 0%, transparent 55%);
+}
+
+.dark {
+  --ui-primary: var(--ui-color-primary-400);
+  --ui-bg: #111927;
+  --ui-bg-muted: #0A1019;
+  --ui-bg-elevated: #1A2433;
+  --ui-bg-accented: #243044;
+  --ui-border: #243145;
+  --ui-border-muted: #1B2637;
+  --ui-text: #E2E8F0;
+  --ui-text-muted: #94A3B8;
+  --ui-text-dimmed: #64748B;
+  --ui-text-highlighted: #F8FAFC;
+
+  --app-primary-soft: rgba(45, 212, 191, .12);
+  --app-primary-strong: #5EEAD4;
+  --app-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 32px rgba(0, 0, 0, .35);
+  --app-hero: radial-gradient(1200px 500px at 85% -10%, rgba(45, 212, 191, .14) 0%, transparent 60%), radial-gradient(900px 400px at 0% 10%, rgba(56, 189, 248, .08) 0%, transparent 55%);
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--ui-bg); color: var(--ui-text); }
+
+.num {
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Screenshots: a soft frame like a browser window. */
+.shot {
+  border-radius: calc(var(--ui-radius) * 2);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--app-shadow);
+  background: var(--ui-bg);
+  overflow: hidden;
+}
+.shot img { display: block; width: 100%; height: auto; }
+
+/* The phone frame for mobile screenshots. */
+.phone {
+  border-radius: 2.25rem;
+  border: 8px solid #0F172A;
+  box-shadow: var(--app-shadow);
+  overflow: hidden;
+  background: #0F172A;
+}
+.phone img { display: block; width: 100%; height: auto; }
+
+/* Long-form docs text. */
+.prose-ar p { line-height: 2; margin-block: .75rem; }
+.prose-ar h2 { font-size: 1.35rem; font-weight: 800; margin-top: 2.25rem; margin-bottom: .5rem; scroll-margin-top: 5rem; }
+.prose-ar h3 { font-size: 1.1rem; font-weight: 700; margin-top: 1.5rem; }
+.prose-ar ol, .prose-ar ul { padding-inline-start: 1.25rem; line-height: 2; }
+.prose-ar ol { list-style: decimal; }
+.prose-ar ul { list-style: disc; }
+.prose-ar kbd {
+  font-family: ui-monospace, monospace;
+  font-size: .8em;
+  padding: .1rem .4rem;
+  border: 1px solid var(--ui-border);
+  border-bottom-width: 2px;
+  border-radius: .35rem;
+  background: var(--ui-bg-elevated);
+}

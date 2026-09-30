@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $register->handle(new RegisterTenantData(
             shopName: 'محل التجربة',
-            shopType: ShopType::AccessoriesAndRepair,
+            shopTypes: ShopType::AccessoriesAndRepair->parts(),
             ownerName: 'صاحب المحل',
             phone: '+201000000000',
             email: 'owner@example.com',

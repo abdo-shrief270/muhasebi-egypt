@@ -20,7 +20,7 @@ trait CreatesShops
             shopName: "محل {$this->shopCounter}",
             shopTypes: $type->parts(),
             ownerName: 'المالك',
-            phone: $phone ?? sprintf('+20100000%04d', $this->shopCounter + random_int(0, 9000)),
+            phone: $phone ?? sprintf('+20100000%04d', $this->shopCounter), // unique within a test (each test starts on an empty database)
             email: null,
             password: 'password',
             branchName: 'الفرع الرئيسي',

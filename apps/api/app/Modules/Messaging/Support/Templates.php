@@ -60,6 +60,15 @@ final class Templates
             'sale_receipt' => ['label' => 'فاتورة بيع', 'group' => 'sales', 'variables' => [
                 'customer' => 'اسم العميل', 'shop' => 'اسم المحل', 'invoice' => 'رقم الفاتورة', 'total' => 'الإجمالي', 'link' => 'لينك الفاتورة',
             ], 'body' => "شكراً لتعاملك مع {shop} 🌷\nفاتورتك {invoice} بـ {total}\n{link}"],
+            'supplier_return_note' => ['label' => 'إذن مرتجع لمورد', 'group' => 'suppliers', 'variables' => [
+                'supplier' => 'اسم المورد', 'shop' => 'اسم المحل', 'note' => 'رقم الإذن', 'count' => 'عدد القطع', 'items' => 'الأصناف', 'total' => 'القيمة',
+            ], 'body' => implode("\n", [
+                'أهلاً أستاذ/ة {supplier} 👋',
+                'معاك {shop}. جهّزنا إذن مرتجع {note} ({count} قطعة):',
+                '{items}',
+                'القيمة: {total}',
+                'ياريت تقولنا إمتى نبعتهم أو تعدّي تستلمهم. شكراً 🙏',
+            ])],
             'debt_reminder' => ['label' => 'تذكير بالحساب', 'group' => 'customers', 'variables' => [
                 'customer' => 'اسم العميل', 'shop' => 'اسم المحل', 'balance' => 'المبلغ اللي عليه',
             ], 'body' => implode("\n", [
@@ -78,6 +87,7 @@ final class Templates
         return match ($group) {
             'repairs' => 'الصيانة',
             'sales' => 'المبيعات',
+            'suppliers' => 'الموردين',
             default => 'العملاء',
         };
     }

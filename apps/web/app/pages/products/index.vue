@@ -8,7 +8,7 @@
       <UButton v-if="canManage" to="/products/new" icon="i-lucide-plus" label="صنف جديد" />
     </PageHeader>
 
-    <div class="grid gap-3 md:grid-cols-[1fr_220px_260px]">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_220px_260px]">
       <UInput v-model="q" icon="i-lucide-search" placeholder="دوّر بالاسم أو الباركود أو الموديل… (مثلاً جراب iphone 13)" class="w-full" />
       <USelect v-model="categoryId" :items="categoryItems" class="w-full" />
       <DeviceModelPicker v-model="deviceModelId" placeholder="كل الموديلات" />

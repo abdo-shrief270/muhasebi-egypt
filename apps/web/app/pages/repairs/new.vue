@@ -5,7 +5,7 @@
       <PageHeader title="استلام جهاز" description="سجّل الجهاز وحالته قدام العميل، واطبعله إيصال فيه كود يتابع بيه." class="flex-1" />
     </div>
 
-    <form class="grid gap-6 lg:grid-cols-[1fr_340px]" @submit.prevent="save">
+    <form class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]" @submit.prevent="save">
       <div class="space-y-6">
         <!-- Customer -->
         <UCard>

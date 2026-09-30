@@ -35,7 +35,7 @@
         </div>
       </div>
 
-      <div class="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <UCard :ui="{ body: 'p-0 sm:p-0' }">
           <template #header>
             <p class="font-bold">

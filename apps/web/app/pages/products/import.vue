@@ -27,7 +27,7 @@
 
     <template v-else>
       <UCard>
-        <div class="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <div class="space-y-1.5 text-sm">
             <p class="font-bold">
               1. نزّل النموذج واملاه

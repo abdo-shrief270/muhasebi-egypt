@@ -57,7 +57,7 @@
       :actions="store.can('shop_orders.view') ? [{ label: `طلب ${ticket.partner.reference}`, to: `/shop-orders/${ticket.partner.order_id}`, color: 'neutral', variant: 'outline' }] : []"
     />
 
-    <div class="grid gap-6 lg:grid-cols-[1fr_340px]">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
       <div class="space-y-6">
         <!-- Faults and diagnosis -->
         <UCard>

@@ -40,7 +40,7 @@
       </div>
     </div>
 
-    <div class="grid gap-3 md:grid-cols-[1fr_240px]">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_240px]">
       <UInput v-model="q" icon="i-lucide-search" placeholder="دوّر بالاسم أو الباركود أو الموديل…" class="w-full" />
       <USelect v-model="categoryId" :items="categoryItems" class="w-full" />
     </div>

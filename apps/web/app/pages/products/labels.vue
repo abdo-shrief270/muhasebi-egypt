@@ -5,7 +5,7 @@
       <PageHeader title="طباعة ليبلات الباركود" description="اختار الأصناف وعدد الليبلات، وحجم الورق اللي في الطابعة." class="flex-1" />
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div class="space-y-4">
         <div class="relative">
           <UInput v-model="term" icon="i-lucide-search" size="lg" placeholder="دوّر على صنف أو امسح باركوده…" class="w-full" @keydown.enter.prevent="addFirst" />

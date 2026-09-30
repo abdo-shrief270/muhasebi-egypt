@@ -5,6 +5,7 @@
     </PageHeader>
 
     <UCard :ui="{ body: 'p-0 sm:p-0' }">
+      <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-(--ui-bg-elevated) text-(--ui-text-muted)">
           <tr>
@@ -63,6 +64,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </UCard>
 
     <UModal v-model:open="sessionsOpen" :title="sessionsFor ? `أجهزة «${sessionsFor.name}»` : 'الأجهزة'" :ui="{ content: 'sm:max-w-2xl' }">

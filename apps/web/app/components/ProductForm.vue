@@ -48,7 +48,7 @@
 
       <div class="space-y-3">
         <div v-for="(v, i) in form.variants" :key="v.key" class="space-y-3 rounded-[calc(var(--ui-radius)*1.5)] bg-(--ui-bg-muted) p-3">
-          <div class="grid gap-3 md:grid-cols-[1fr_160px_1fr_auto]">
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_160px_1fr_auto]">
             <UFormField label="النوع" :hint="form.variants.length === 1 ? 'اختياري' : undefined">
               <UInput v-model="v.name" placeholder="مثلاً: أسود، 128GB، مطفي" class="w-full" />
             </UFormField>

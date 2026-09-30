@@ -33,6 +33,9 @@ class RouteAuthorizationTest extends TestCase
         'api/v1/notifications/unread' => 'your own bell: only notifications whose permission you have',
         'api/v1/notifications/read-all' => 'your own read marks, on notifications you may see',
         'api/v1/notifications/{notification}/read' => 'your own read marks, on notifications you may see',
+        'api/v1/onboarding' => 'your own «ابدأ من هنا» card: only the steps you have the permission for, folded / hidden per user',
+        'api/v1/feedback' => 'anyone signed in may write to the platform team (rate-limited per user and per shop)',
+        'api/v1/client-errors' => 'the app reporting its own crashes (scrubbed, rate-limited, capped per shop)',
     ];
 
     public function test_every_signed_in_route_checks_a_permission(): void

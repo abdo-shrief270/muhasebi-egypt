@@ -20,8 +20,8 @@ final class SubscriptionGuard implements TenantRequestGuard
     /** POST routes a restricted shop can't use. */
     private const GROWTH = ['api/v1/products', 'api/v1/products/import', 'api/v1/users', 'api/v1/branches'];
 
-    /** Always allowed, whatever the status. */
-    private const ALWAYS = ['api/v1/billing', 'api/v1/auth/'];
+    /** Always allowed, whatever the status (a suspended shop can still tell us what's wrong). */
+    private const ALWAYS = ['api/v1/billing', 'api/v1/auth/', 'api/v1/feedback', 'api/v1/client-errors', 'api/v1/onboarding'];
 
     public function __construct(private readonly Subscriptions $subscriptions) {}
 

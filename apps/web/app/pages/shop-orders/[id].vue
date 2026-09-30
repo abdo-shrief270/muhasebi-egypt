@@ -79,7 +79,8 @@
                   المطلوب
                 </td>
                 <td class="p-3 text-lg font-extrabold">
-                  <span class="num">{{ formatMoney(pricing ? pricedTotal : order.total) }}</span>
+                  <span v-if="order.prices_hidden" class="text-sm font-normal text-(--ui-text-muted)">الأسعار هتظهر لما المحل يجهز الأوردر</span>
+                  <span v-else class="num">{{ formatMoney(pricing ? pricedTotal : order.total) }}</span>
                 </td>
               </tr>
             </tfoot>

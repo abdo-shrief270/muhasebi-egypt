@@ -91,7 +91,8 @@
               {{ order.items_count }}
             </td>
             <td class="p-3 font-bold">
-              <span class="num">{{ formatMoney(order.total) }}</span>
+              <span v-if="order.prices_hidden" class="text-xs font-normal text-(--ui-text-muted)">بعد التجهيز</span>
+              <span v-else class="num">{{ formatMoney(order.total) }}</span>
             </td>
             <td class="p-3">
               <UBadge :color="shopOrderStatusColor[order.status]" variant="subtle">

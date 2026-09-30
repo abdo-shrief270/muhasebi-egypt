@@ -26,6 +26,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo(store.isOwner ? { path: '/settings/modules', query: { need: to.meta.module } } : '/')
   }
 
+  if (to.meta.feature && !store.hasFeature(to.meta.feature)) {
+    return navigateTo(store.isOwner ? '/settings/features' : '/')
+  }
+
   if ((to.meta.ownerOnly && !store.isOwner) || (to.meta.permission && !store.can(to.meta.permission))) {
     return navigateTo('/')
   }

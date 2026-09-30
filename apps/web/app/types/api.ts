@@ -90,6 +90,8 @@ export interface Session {
   branches: Branch[]
   current_branch_id: string | null
   enabled_modules: string[]
+  /** feature switch key → on */
+  features: Record<string, boolean>
   permissions: string[]
   modules: { key: string, state: ModuleState, usable: boolean }[]
   menu: MenuEntry[]
@@ -150,6 +152,8 @@ export interface ShopOrder {
   needed_by: string | null
   notes: string | null
   total: number | null
+  /** the seller hides prices from the buyer until the order is ready */
+  prices_hidden?: boolean
   created_at: string
   allowed_transitions: { status: ShopOrderStatus, label: string }[]
   items_count: number | null

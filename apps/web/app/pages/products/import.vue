@@ -144,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ permission: 'products.manage' })
+definePageMeta({ permission: 'products.manage', feature: 'catalog.excel_import' })
 
 interface RowMessages { row: number, messages: string[] }
 interface ImportSummary {

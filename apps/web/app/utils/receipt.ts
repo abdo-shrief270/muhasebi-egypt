@@ -24,6 +24,6 @@ export function receiptFromSale(sale: Sale, shop: { name: string, phone: string 
   }
 }
 
-export function receiptWhatsappText(sale: Sale, shopName: string): string {
-  return `شكراً لتعاملك مع ${shopName} 🌷\nفاتورتك ${sale.reference} بـ ${formatMoney(sale.total)}\n${receiptUrl(sale.public_token)}`
+export function receiptWhatsappText(sale: Sale, shopName: string, withLink = true): string {
+  return `شكراً لتعاملك مع ${shopName} 🌷\nفاتورتك ${sale.reference} بـ ${formatMoney(sale.total)}` + (withLink ? `\n${receiptUrl(sale.public_token)}` : '')
 }

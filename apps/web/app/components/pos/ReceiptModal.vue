@@ -36,7 +36,7 @@ const { printing, print } = usePrint()
 
 const shop = computed(() => store.session ? { name: store.session.tenant.name, phone: store.session.tenant.phone } : null)
 const receipt = computed(() => props.sale ? receiptFromSale(props.sale, shop.value, store.currentBranch?.name ?? null) : receiptFromSale({ items: [], payments: [] } as unknown as Sale, null, null))
-const qrUrl = computed(() => props.sale ? receiptUrl(props.sale.public_token) : null)
+const qrUrl = computed(() => props.sale && store.hasFeature('sales.receipt_link') ? receiptUrl(props.sale.public_token) : null)
 
 const messages = useMessages()
 

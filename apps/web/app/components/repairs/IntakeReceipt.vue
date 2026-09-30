@@ -71,7 +71,7 @@
       </div>
     </div>
 
-    <div class="mt-3 flex flex-col items-center gap-1">
+    <div v-if="tracking" class="mt-3 flex flex-col items-center gap-1">
       <PrintQrCode :value="ticketUrl(ticket.public_token)" :size="92" />
       <p class="text-[10px]">
         امسح الكود عشان تتابع حالة جهازك
@@ -88,6 +88,8 @@ import type { RepairTicket } from '~/types/api'
 
 /** What the customer takes home when leaving a device: 80mm thermal. */
 withDefaults(defineProps<{ ticket: RepairTicket, shop: { name: string, phone: string | null } | null, width?: string }>(), { width: '72mm' })
+
+const tracking = computed(() => useSessionStore().hasFeature('repairs.public_tracking'))
 </script>
 
 <style scoped>

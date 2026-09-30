@@ -23,9 +23,9 @@ export function ticketUrl(token: string): string {
  * The WhatsApp message that fits the ticket's status right now. The shop reviews it before
  * sending (wa.me opens with the text filled in).
  */
-export function ticketMessage(ticket: RepairTicket, shopName: string): string {
+export function ticketMessage(ticket: RepairTicket, shopName: string, withLink = true): string {
   const hello = `أهلاً أستاذ/ة ${ticket.customer_name} 👋`
-  const link = `تابع جهازك من هنا: ${ticketUrl(ticket.public_token)}`
+  const link = withLink ? `تابع جهازك من هنا: ${ticketUrl(ticket.public_token)}` : ''
   const faults = (ticket.diagnosed_faults ?? ticket.reported_faults).map(f => f.name).join('، ')
   const due = ticket.due > 0 ? `\nالمطلوب: ${formatMoney(ticket.due)}` : ''
   const lines: Record<TicketStatus, string[]> = {

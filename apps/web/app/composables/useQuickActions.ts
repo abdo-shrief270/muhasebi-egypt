@@ -3,6 +3,7 @@ export interface QuickAction {
   description: string
   icon: string
   permission: string
+  feature?: string
   /** a page to open… */
   to?: string
   /** …or something to do in place (open a window) */
@@ -34,8 +35,8 @@ export function useQuickActions() {
     { to: '/inventory/serials', label: 'بحث IMEI', description: 'الجهاز ده اتشرى واتباع إمتى', icon: 'i-lucide-scan-line', permission: 'inventory.view' },
     { to: '/products/labels', label: 'ليبلات باركود', description: 'اطبع باركود أو QR', icon: 'i-lucide-tag', permission: 'products.view' },
     { to: '/reports/sales?period=today', label: 'تقرير النهارده', description: 'مبيعات وأرباح اليوم', icon: 'i-lucide-chart-column', permission: 'reports.view' },
-    { to: '/products/import', label: 'استيراد إكسل', description: 'ارفع أصناف كتير مرة واحدة', icon: 'i-lucide-file-spreadsheet', permission: 'products.manage' },
+    { to: '/products/import', label: 'استيراد إكسل', description: 'ارفع أصناف كتير مرة واحدة', icon: 'i-lucide-file-spreadsheet', permission: 'products.manage', feature: 'catalog.excel_import' },
   ]
 
-  return computed(() => actions.filter(a => store.can(a.permission)))
+  return computed(() => actions.filter(a => store.can(a.permission) && (!a.feature || store.hasFeature(a.feature))))
 }

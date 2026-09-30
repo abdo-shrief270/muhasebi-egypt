@@ -14,6 +14,11 @@ export const useSessionStore = defineStore('session', () => {
     return session.value?.enabled_modules.includes(key) ?? false
   }
 
+  /** The owner's switches (the «المميزات» page); unknown keys count as off. */
+  function hasFeature(key: string): boolean {
+    return session.value?.features?.[key] ?? false
+  }
+
   function can(permission: string): boolean {
     return session.value?.permissions.includes(permission) ?? false
   }
@@ -81,5 +86,5 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
-  return { session, isLoggedIn, isOwner, menu, currentBranch, hasModule, can, switchBranch, load, login, completeTwoFactor, register, logout }
+  return { session, isLoggedIn, isOwner, menu, currentBranch, hasModule, hasFeature, can, switchBranch, load, login, completeTwoFactor, register, logout }
 })

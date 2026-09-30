@@ -26,7 +26,7 @@ export function renderTemplate(body: string, vars: Vars): string {
     .join('\n')
 }
 
-export function ticketVars(ticket: RepairTicket, shopName: string): Vars {
+export function ticketVars(ticket: RepairTicket, shopName: string, withLink = true): Vars {
   const faults = (ticket.diagnosed_faults ?? ticket.reported_faults).map(f => f.name).join('، ')
   const cost = ticket.total || ticket.estimate || 0
   return {
@@ -34,7 +34,7 @@ export function ticketVars(ticket: RepairTicket, shopName: string): Vars {
     device: ticket.device_name,
     ticket: ticket.reference,
     shop: shopName,
-    link: ticketUrl(ticket.public_token),
+    link: withLink ? ticketUrl(ticket.public_token) : null,
     expected: ticket.expected_at ? formatDate(ticket.expected_at, true) : null,
     faults: faults || 'محتاج صيانة',
     cost: cost ? formatMoney(cost) : null,
@@ -52,6 +52,8 @@ export function useMessages() {
   const store = useSessionStore()
   const templates = useState<MessageTemplate[] | null>('message-templates', () => null)
   const shopName = computed(() => store.session?.tenant.name ?? '')
+  const tracking = computed(() => store.hasFeature('repairs.public_tracking'))
+  const receiptLink = computed(() => store.hasFeature('sales.receipt_link'))
 
   async function load(force = false) {
     if (templates.value && !force) {
@@ -81,7 +83,7 @@ export function useMessages() {
   }
 
   function ticketText(ticket: RepairTicket): string {
-    return text(`repair_${ticket.status}`, ticketVars(ticket, shopName.value), () => ticketMessage(ticket, shopName.value))
+    return text(`repair_${ticket.status}`, ticketVars(ticket, shopName.value, tracking.value), () => ticketMessage(ticket, shopName.value, tracking.value))
   }
 
   function sendTicket(ticket: RepairTicket) {
@@ -94,8 +96,8 @@ export function useMessages() {
       shop: shopName.value,
       invoice: sale.reference,
       total: formatMoney(sale.total),
-      link: receiptUrl(sale.public_token),
-    }, () => receiptWhatsappText(sale, shopName.value))
+      link: receiptLink.value ? receiptUrl(sale.public_token) : null,
+    }, () => receiptWhatsappText(sale, shopName.value, receiptLink.value))
     open('sale_receipt', sale.customer_phone, message, { type: 'sale', id: sale.id })
   }
 

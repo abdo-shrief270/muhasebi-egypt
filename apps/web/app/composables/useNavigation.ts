@@ -14,6 +14,7 @@ export function useNavigation() {
     { to: '/settings/roles', label: 'الأدوار والصلاحيات', icon: 'i-lucide-shield-check', show: store.can('roles.manage') },
     { to: '/settings/branches', label: 'الفروع', icon: 'i-lucide-store', show: store.can('branches.manage') },
     { to: '/settings/modules', label: 'الأقسام', icon: 'i-lucide-blocks', show: store.isOwner },
+    { to: '/settings/features', label: 'المميزات', icon: 'i-lucide-toggle-right', show: store.isOwner },
     { to: '/settings/billing', label: 'الاشتراك والفواتير', icon: 'i-lucide-credit-card', show: store.isOwner },
     { to: '/settings/audit', label: 'سجل العمليات', icon: 'i-lucide-history', show: store.can('audit.view') },
     { to: '/settings/security', label: 'الأمان وتسجيل الدخول', icon: 'i-lucide-lock-keyhole', show: true },

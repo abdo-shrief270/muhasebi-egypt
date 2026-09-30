@@ -3,7 +3,7 @@
     <div class="flex items-center gap-3">
       <UButton to="/reports" color="neutral" variant="ghost" icon="i-lucide-arrow-right" square aria-label="رجوع" />
       <PageHeader :title="definition.title" :description="definition.description" class="flex-1">
-        <UButton color="neutral" variant="outline" icon="i-lucide-file-spreadsheet" label="Excel" :loading="exporting" :disabled="!report" @click="exportXlsx" />
+        <UButton v-if="store.hasFeature('reports.excel_export')" color="neutral" variant="outline" icon="i-lucide-file-spreadsheet" label="Excel" :loading="exporting" :disabled="!report" @click="exportXlsx" />
         <UButton color="neutral" variant="outline" icon="i-lucide-printer" label="طباعة / PDF" :disabled="!report" @click="print" />
       </PageHeader>
     </div>

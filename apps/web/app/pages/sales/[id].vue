@@ -183,7 +183,7 @@
     </UModal>
 
     <PrintSheet v-if="printing" page-size="80mm auto">
-      <PrintReceipt :data="receipt" :qr-url="receiptUrl(sale.public_token)" />
+      <PrintReceipt :data="receipt" :qr-url="store.hasFeature('sales.receipt_link') ? receiptUrl(sale.public_token) : null" />
     </PrintSheet>
   </div>
 </template>

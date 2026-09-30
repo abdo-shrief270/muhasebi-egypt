@@ -11,6 +11,7 @@ enum MovementType: string
     case CustomerPayment = 'customer_payment';
     case Repair = 'repair';
     case SupplierPayment = 'supplier_payment';
+    case Service = 'service';
     case Expense = 'expense';
     case Deposit = 'deposit';
     case Withdrawal = 'withdrawal';
@@ -23,6 +24,7 @@ enum MovementType: string
             self::CustomerPayment => 'تحصيل من عميل',
             self::Repair => 'صيانة',
             self::SupplierPayment => 'دفع لمورد',
+            self::Service => 'شحن وتحويلات',
             self::Expense => 'مصروف',
             self::Deposit => 'إيداع',
             self::Withdrawal => 'سحب',

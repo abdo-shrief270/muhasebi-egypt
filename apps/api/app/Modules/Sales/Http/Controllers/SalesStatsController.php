@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Sales\Http\Controllers;
 
 use App\Modules\Sales\Enums\PaymentMethod;
+use App\Modules\Services\Contracts\ServiceProfits;
+use App\Support\Modules\ModuleAccess;
 use App\Support\Tenancy\CurrentTenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +22,7 @@ final class SalesStatsController
 {
     private const TZ = 'Africa/Cairo';
 
-    public function __invoke(Request $request, CurrentTenant $tenant): JsonResponse
+    public function __invoke(Request $request, CurrentTenant $tenant, ModuleAccess $modules): JsonResponse
     {
         $days = min(90, max(7, $request->integer('days', 14)));
         $withProfit = (bool) $request->user()?->can('reports.profit');
@@ -84,6 +86,17 @@ final class SalesStatsController
             }
         }
 
+        // Wallet / airtime profit, apart from goods: only for shops using the module, and only with reports.profit.
+        $services = null;
+        if ($withProfit && $modules->enabled('services', $tenantId)) {
+            $daily = app(ServiceProfits::class)->daily($tenantId, $fromUtc);
+            $services = [
+                'today' => $daily[$today->toDateString()]['profit'] ?? 0,
+                'today_operations' => $daily[$today->toDateString()]['operations'] ?? 0,
+                'period' => array_sum(array_column($daily, 'profit')),
+            ];
+        }
+
         return response()->json(['data' => [
             'days' => $days,
             'today' => [
@@ -101,6 +114,7 @@ final class SalesStatsController
             'series' => $series,
             'top_items' => $top,
             'payments' => $byMethod,
+            'services' => $services,
         ]]);
     }
 }

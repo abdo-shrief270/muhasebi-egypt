@@ -20,10 +20,11 @@ use Illuminate\Support\Carbon;
  * @property list<string> $modules
  * @property bool $on_trial
  * @property Carbon $paid_until
+ * @property Carbon|null $beta_until end of a free beta period (an admin's grant)
  * @property Carbon|null $suspended_at
  * @property string|null $suspended_reason
  */
-#[Fillable(['tenant_id', 'plan', 'cycle', 'modules', 'on_trial', 'paid_until', 'suspended_at', 'suspended_reason'])]
+#[Fillable(['tenant_id', 'plan', 'cycle', 'modules', 'on_trial', 'paid_until', 'beta_until', 'suspended_at', 'suspended_reason'])]
 final class Subscription extends Model
 {
     use BelongsToTenant, HasUuids;
@@ -36,8 +37,15 @@ final class Subscription extends Model
             'modules' => 'array',
             'on_trial' => 'boolean',
             'paid_until' => 'datetime',
+            'beta_until' => 'datetime',
             'suspended_at' => 'datetime',
         ];
+    }
+
+    /** In a free beta period right now. */
+    public function inBeta(): bool
+    {
+        return $this->beta_until !== null && $this->beta_until->isFuture();
     }
 
     public function status(?Carbon $now = null): SubscriptionStatus

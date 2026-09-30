@@ -31,14 +31,16 @@ final class BillingView
             'paid_until' => $s->paid_until->toIso8601String(),
             'days_left' => (int) floor(now()->diffInDays($s->paid_until, false)),
             'suspended_reason' => $s->suspended_reason,
+            'beta' => $s->inBeta(),
+            'beta_until' => $s->beta_until?->toIso8601String(),
             'monthly_value' => $this->monthlyValue($s),
         ];
     }
 
-    /** What the subscription is worth per month (0 on trial). */
+    /** What the subscription is worth per month (0 on trial or in a free beta period). */
     public function monthlyValue(Subscription $s): int
     {
-        if ($s->plan === null || $s->on_trial) {
+        if ($s->plan === null || $s->on_trial || $s->inBeta()) {
             return 0;
         }
         $prices = $this->pricing->modulePrices();
@@ -93,7 +95,11 @@ final class BillingView
             'period_start' => $i->period_start->toIso8601String(),
             'period_end' => $i->period_end->toIso8601String(),
             'method' => $i->method,
-            'method_label' => $i->method === 'instapay' ? 'InstaPay' : 'تفعيل من الإدارة',
+            'method_label' => match ($i->method) {
+                'instapay' => 'InstaPay',
+                'beta' => 'Beta مجانية',
+                default => 'تفعيل من الإدارة',
+            },
             'payment_reference' => $i->payment_reference,
             'issued_by_name' => $i->issued_by_name,
             'note' => $i->note,

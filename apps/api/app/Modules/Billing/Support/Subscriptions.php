@@ -83,7 +83,8 @@ final class Subscriptions
             $lines = $quote['lines'];
             $total = $amount ?? $quote['total'];
             if ($total !== $quote['total']) {
-                $lines[] = ['description' => $total < $quote['total'] ? 'خصم' : 'تعديل', 'amount' => $total - $quote['total']];
+                $label = $method === 'beta' ? 'فترة Beta مجانية' : ($total < $quote['total'] ? 'خصم' : 'تعديل');
+                $lines[] = ['description' => $label, 'amount' => $total - $quote['total']];
             }
 
             $invoice = BillingInvoice::create([
@@ -110,6 +111,8 @@ final class Subscriptions
                 'modules' => $quote['modules'],
                 'on_trial' => false,
                 'paid_until' => $end,
+                // A beta grant marks its period; a paid one after it leaves the old mark (already past by then).
+                ...($method === 'beta' ? ['beta_until' => $end] : []),
                 'suspended_at' => null,
                 'suspended_reason' => null,
             ])->save();
@@ -118,8 +121,8 @@ final class Subscriptions
             $this->syncModules($tenantId, $current, $previous);
 
             $this->audit->record(
-                'billing.activated',
-                "اتفعّل الاشتراك: باقة «{$this->pricing->plans()[$quote['plan']]['name']}» لحد ".$end->format('Y-m-d')." (فاتورة {$invoice->reference()})",
+                $method === 'beta' ? 'billing.beta_granted' : 'billing.activated',
+                ($method === 'beta' ? 'فترة Beta مجانية' : 'اتفعّل الاشتراك').": باقة «{$this->pricing->plans()[$quote['plan']]['name']}» لحد ".$end->format('Y-m-d')." (فاتورة {$invoice->reference()})",
                 $invoice,
                 ['total' => $total, 'method' => $method],
                 $tenantId,
@@ -129,6 +132,25 @@ final class Subscriptions
 
             return $invoice;
         }));
+    }
+
+    /**
+     * A free beta period (no payment): a zero invoice marked «beta», the plan's modules granted, the
+     * shop active until the end of it. Extends from the end of the current period like a payment.
+     *
+     * @param  list<string>  $modules  extra modules on top of the plan
+     */
+    public function grantBeta(string $tenantId, string $plan, int $months, array $modules, ?string $issuedBy, ?string $note = null): BillingInvoice
+    {
+        $quote = $this->pricing->quote($plan, 'monthly', $modules);
+        $quote['total'] *= $months;
+        $period = $months === 1 ? 'شهر' : ($months <= 10 ? "{$months} شهور" : "{$months} شهر");
+        $quote['lines'] = array_map(fn (array $line): array => [
+            'description' => str_replace('— شهر', "— {$period}", $line['description']),
+            'amount' => $line['amount'] * $months,
+        ], $quote['lines']);
+
+        return $this->activate($tenantId, $quote, 'beta', null, $issuedBy, 0, $note, $months);
     }
 
     /**

@@ -16,7 +16,7 @@ interface PlatformShops
 
     /**
      * @param  list<string>  $tenantIds
-     * @return array<string, array{id: string, name: string, code: string, phone: string, types: string, owner_name: string|null, owner_phone: string|null, users: int, branches: int, created_at: string}>
+     * @return array<string, array{id: string, name: string, code: string, phone: string, types: string, owner_name: string|null, owner_phone: string|null, users: int, branches: int, created_at: string, last_sign_in_at: string|null, last_seen_at: string|null}> last sign-in / last request of any of the shop's users (signed-in devices)
      */
     public function details(array $tenantIds): array;
 }

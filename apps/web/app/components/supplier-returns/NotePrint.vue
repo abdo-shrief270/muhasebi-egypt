@@ -7,7 +7,9 @@
         </p>
         <p class="text-xs">
           إلى: <span class="font-bold">{{ note.source.name }}</span> ({{ note.source.type === 'shop' ? 'محل شريك' : 'مورد' }})
-          <span v-if="note.source.phone" class="num"> · {{ localPhone(note.source.phone) }}</span>
+          <template v-if="note.source.phone">
+            · <span class="num">{{ localPhone(note.source.phone) }}</span>
+          </template>
         </p>
       </div>
       <div class="text-end text-xs">

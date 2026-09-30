@@ -2,7 +2,33 @@
   <UModal v-model:open="open" :title="item?.source ? 'تعديل القطعة' : 'اختار المصدر'" :description="item ? `${item.qty} × ${item.name}${item.serial ? ` · ${item.serial}` : ''}` : undefined">
     <template #body>
       <form id="bin-item-form" class="space-y-4" @submit.prevent="save">
-        <UFormField label="المصدر" :hint="item?.source ? `دلوقتي: ${item.source.name} (${detectedLabel(item.detected_by)})` : 'اختار من اللي اتشرى منهم الصنف ده قريب'">
+        <div v-if="candidates?.suggested.length">
+          <p class="mb-2 text-sm font-bold">
+            الصنف ده اتشرى قريب من:
+          </p>
+          <div class="grid gap-2 sm:grid-cols-2">
+            <button
+              v-for="s in candidates.suggested"
+              :key="`${s.type}:${s.id}`"
+              type="button"
+              class="rounded-[calc(var(--ui-radius)*1.5)] border p-2.5 text-start transition"
+              :class="form.source === `${s.type}:${s.id}` ? 'border-primary app-soft' : 'border-(--ui-border) hover:bg-(--ui-bg-elevated)'"
+              @click="form.source = `${s.type}:${s.id}`"
+            >
+              <p class="font-bold">
+                {{ s.name }}
+              </p>
+              <p class="text-xs text-(--ui-text-muted)">
+                <span class="num">{{ s.doc }}</span><template v-if="s.date">
+                  · <span class="num">{{ formatDate(s.date) }}</span>
+                </template><template v-if="s.unit_cost">
+                  · <span class="num">{{ formatMoney(s.unit_cost) }}</span>
+                </template>
+              </p>
+            </button>
+          </div>
+        </div>
+        <UFormField :label="candidates?.suggested.length ? 'أو مصدر تاني' : 'المصدر'" :hint="item?.source ? `دلوقتي: ${item.source.name} (${detectedLabel(item.detected_by)})` : undefined">
           <USelectMenu v-model="form.source" :items="sourceItems" value-key="value" :search-input="{ placeholder: 'دوّر…' }" :loading="!candidates" class="w-full" />
         </UFormField>
         <div class="grid gap-4 sm:grid-cols-2">

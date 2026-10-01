@@ -1,19 +1,19 @@
 <template>
-  <div class="min-h-dvh flex bg-(--ui-bg-muted)">
-    <aside class="sticky top-0 hidden h-dvh w-64 shrink-0 border-e border-(--ui-border) bg-(--ui-bg) px-3 py-4 lg:block">
+  <div class="app-shell min-h-dvh flex bg-(--ui-bg-muted)">
+    <aside class="app-sidebar sticky top-0 hidden h-dvh w-64 shrink-0 border-e border-(--ui-border) bg-(--ui-bg) px-3 py-4 lg:block">
       <AppSidebar />
     </aside>
 
     <USlideover v-model:open="menuOpen" side="right" title="القائمة" :ui="{ content: 'max-w-72', body: 'p-3 sm:p-3' }">
       <template #content>
-        <div class="h-full bg-(--ui-bg) px-3 py-4">
+        <div class="app-safe-y h-full bg-(--ui-bg) px-3 py-4">
           <AppSidebar @navigate="menuOpen = false" />
         </div>
       </template>
     </USlideover>
 
     <div class="flex min-w-0 flex-1 flex-col">
-      <header class="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-(--ui-border) bg-(--ui-bg)/90 px-3 backdrop-blur sm:gap-3 lg:px-8">
+      <header class="app-titlebar sticky top-0 z-20 flex items-center gap-2 border-b border-(--ui-border) bg-(--ui-bg)/90 px-3 backdrop-blur sm:gap-3 lg:px-8">
         <UButton class="lg:hidden" color="neutral" variant="ghost" icon="i-lucide-menu" square aria-label="القائمة" @click="menuOpen = true" />
 
         <button
@@ -61,7 +61,7 @@
         </div>
       </header>
 
-      <main class="flex-1 p-4 lg:p-8">
+      <main class="app-main flex-1 p-4 lg:p-8">
         <BillingSubscriptionBanner />
         <slot />
       </main>
@@ -71,6 +71,7 @@
     <PriceCheck v-if="store.can('products.view')" />
     <PosOutboxPanel />
     <FeedbackModal />
+    <InstallAppModal />
   </div>
 </template>
 
@@ -85,6 +86,7 @@ const menuOpen = ref(false)
 const searchOpen = ref(false)
 const priceCheck = usePriceCheck()
 const feedback = useFeedback()
+const installApp = useInstallApp()
 
 defineShortcuts({
   meta_k: () => {
@@ -143,6 +145,7 @@ const userItems = computed<DropdownMenuItem[][]>(() => [
     ...(store.can('products.view') ? [{ label: 'استعلام عن سعر', icon: 'i-lucide-tag', kbds: ['F8'], onSelect: () => priceCheck.show() }] : []),
     { label: `نسخ كود المحل (${store.session?.tenant.code ?? ''})`, icon: 'i-lucide-hash', onSelect: copyCode },
   ],
+  ...(installApp.installable.value ? [[{ label: 'نزّل التطبيق', description: 'افتح محاسبي من أيقونة زي أي برنامج', icon: 'i-lucide-download', onSelect: () => installApp.install() }]] : []),
   [{ label: 'ابعت ملاحظة', description: 'مشكلة، اقتراح، أو سؤال لفريق محاسبي', icon: 'i-lucide-message-square-heart', onSelect: () => feedback.show() }],
   [{ label: 'تسجيل الخروج', icon: 'i-lucide-log-out', color: 'error' as const, onSelect: () => store.logout() }],
 ])

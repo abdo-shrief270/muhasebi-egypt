@@ -1,7 +1,7 @@
 /**
  * Offline mode: connectivity tracking, sending the sales queued offline (on reconnect, window
- * focus and every 30 seconds) and, in production builds, the service worker that keeps the app
- * shell on the device so the POS opens with no internet.
+ * focus and every 30 seconds). The service worker that keeps the app shell on the device (so the POS
+ * opens with no internet) is registered by plugins/pwa.client.ts.
  */
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
@@ -24,8 +24,4 @@ export default defineNuxtPlugin((nuxtApp) => {
   window.addEventListener('focus', () => syncSoon())
   setInterval(() => syncSoon(), 30_000)
   nuxtApp.hook('app:mounted', () => syncSoon())
-
-  if (!import.meta.dev && 'serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => undefined)
-  }
 })

@@ -36,6 +36,9 @@
       :actions="[{ label: 'فعّله دلوقتي', to: '/settings/security', color: 'warning' }, { label: 'بعدين', color: 'neutral', variant: 'ghost', onClick: dismissTwoFactorNudge }]"
     />
 
+    <!-- «نزّل التطبيق»: until installed or dismissed on this device. -->
+    <InstallCard />
+
     <!-- Quick actions -->
     <div v-if="actions.length" class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       <component
@@ -247,6 +250,19 @@ const store = useSessionStore()
 const actions = useQuickActions()
 const canReports = computed(() => store.can('reports.view'))
 const canStock = computed(() => store.can('inventory.view'))
+
+// The «استعلام سعر» shortcut of the installed app opens /?action=price-check.
+const route = useRoute()
+const router = useRouter()
+const priceCheck = usePriceCheck()
+watch(() => route.query.action, (action) => {
+  if (action === 'price-check') {
+    if (store.can('products.view')) {
+      priceCheck.show()
+    }
+    router.replace({ query: { ...route.query, action: undefined } })
+  }
+}, { immediate: true })
 
 const NUDGE_KEY = 'muhasebi:2fa-nudge-dismissed'
 const nudgeDismissedAt = ref<number>(0)

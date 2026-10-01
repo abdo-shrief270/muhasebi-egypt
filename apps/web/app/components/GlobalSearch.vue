@@ -32,6 +32,7 @@ const store = useSessionStore()
 const { allItems } = useNavigation()
 const actions = useQuickActions()
 const feedback = useFeedback()
+const installApp = useInstallApp()
 
 const term = ref('')
 const loading = ref(false)
@@ -120,7 +121,17 @@ const groups = computed<CommandPaletteGroup<CommandPaletteItem>[]>(() => {
         open.value = false
         feedback.show()
       },
-    }],
+    }, ...(installApp.installable.value
+      ? [{
+          label: 'نزّل التطبيق',
+          suffix: 'على الموبايل أو الكمبيوتر',
+          icon: 'i-lucide-download',
+          onSelect: () => {
+            open.value = false
+            installApp.install()
+          },
+        }]
+      : [])],
   }]
 
   if (products.value.length) {

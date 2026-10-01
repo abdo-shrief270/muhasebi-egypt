@@ -22,7 +22,27 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'ar', dir: 'rtl' },
       title: 'محاسبي',
+      // viewport-fit=cover: the installed app draws under the notch / home bar (safe-area insets in main.css).
+      viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+      // Installable app (public/site.webmanifest). The theme-color metas (light / dark, or the theme picked
+      // in the app) come from plugins/pwa.client.ts. Bump ?v= when the icons change.
+      meta: [
+        { name: 'application-name', content: 'محاسبي' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-title', content: 'محاسبي' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
+        { name: 'format-detection', content: 'telephone=no' },
+      ],
+      script: [
+        // Chrome may offer the install prompt before the app's code runs: keep it for useInstallApp().
+        { innerHTML: 'addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__installPrompt=e})', tagPosition: 'head' },
+      ],
       link: [
+        { rel: 'manifest', href: '/site.webmanifest' },
+        { rel: 'icon', href: '/favicon.ico?v=1', sizes: '48x48' },
+        { rel: 'icon', href: '/favicon.svg?v=1', type: 'image/svg+xml' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png?v=1' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap' },
@@ -68,6 +88,10 @@ export default defineNuxtConfig({
         'lucide:layers', 'lucide:file-text', 'lucide:repeat', 'lucide:trash-2', 'lucide:pencil', 'lucide:wallet', 'lucide:banknote',
         // Used devices (tabs, checklist marks, photo picker).
         'lucide:list', 'lucide:circle-check', 'lucide:circle-x', 'lucide:circle-dashed', 'lucide:camera', 'lucide:loader-circle',
+        // «نزّل التطبيق» (user menu, Ctrl+K, home card, /settings/app, install steps) and the update toast.
+        'lucide:download', 'lucide:monitor-down', 'lucide:monitor-smartphone', 'lucide:laptop', 'lucide:share', 'lucide:square-plus',
+        'lucide:book-open', 'lucide:copy', 'lucide:star', 'lucide:printer', 'lucide:mouse-pointer-click', 'lucide:history', 'lucide:zap',
+        'lucide:refresh-cw', 'lucide:circle-check', 'lucide:chevron-left', 'lucide:chevron-right', 'lucide:ellipsis-vertical',
       ],
     },
   },

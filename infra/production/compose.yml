@@ -106,6 +106,8 @@ services:
       TZ: ${BACKUP_TZ:-Africa/Cairo}
     volumes:
       - ./backups:/backups
+      # The api's stored files (photos, payment proofs…), read-only: archived next to each dump.
+      - storage:/storage:ro
     depends_on:
       pgsql:
         condition: service_healthy

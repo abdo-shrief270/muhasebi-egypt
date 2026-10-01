@@ -1,5 +1,5 @@
-# Daily database backups: pg_dump (same major version as the pgsql service) + rclone for an
-# optional off-site copy. Build context: infra/production.
+# Daily backups: pg_dump (same major version as the pgsql service) + a tar of the stored files,
+# and rclone for an optional off-site copy. Build context: infra/production.
 FROM postgres:17-alpine
 
 RUN apk add --no-cache rclone tzdata

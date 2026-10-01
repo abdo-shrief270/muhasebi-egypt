@@ -292,11 +292,15 @@ class ShopSwitchesTest extends TestCase
         Sanctum::actingAs($cashier);
         $shift = $this->postJson('/api/v1/cash/shifts', ['opening_cash' => 5000])->assertCreated()->json('data');
         $this->assertSame([null, true], [$shift['expected'], $shift['blind']]);
+        // Nor the movements it could be added up from.
+        $current = $this->getJson('/api/v1/cash/current')->assertOk()->json('data');
+        $this->assertArrayNotHasKey('movements', $current);
         $closed = $this->postJson("/api/v1/cash/shifts/{$shift['id']}/close", ['counted' => ['cash' => 4000]])->assertOk()->json('data');
         $this->assertSame([null, null, 4000], [$closed['expected'], $closed['cash_difference'], $closed['counted']['cash'] ?? $closed['counted']]);
         Sanctum::actingAs($this->owner);
         $seen = $this->getJson("/api/v1/cash/shifts/{$shift['id']}")->assertOk()->json('data');
         $this->assertSame([false, -1000], [$seen['blind'], $seen['cash_difference']]);
+        $this->assertArrayHasKey('movements', $seen);
     }
 
     public function test_repair_deposits_warranty_commission_and_outsourcing(): void

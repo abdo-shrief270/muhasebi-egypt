@@ -38,7 +38,8 @@ final class CashShiftResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // «قفل الوردية على العمياني»: the cashier counts without seeing what the drawer should hold.
+        // «قفل الوردية على العمياني»: the cashier counts without seeing what the drawer should hold
+        // (nor the movements it could be added up from).
         $blind = $this->isBlindFor($request);
         $totals = ! $blind && ($this->isOpen() || $this->withDetail) ? ShiftTotals::for($this->resource) : null;
 
@@ -61,7 +62,7 @@ final class CashShiftResource extends JsonResource
             'blind' => $blind,
             'note' => $this->note,
             'by_type' => $this->when($totals !== null || $blind, fn () => $totals['by_type'] ?? []),
-            'movements' => $this->when($this->withDetail, fn () => CashMovementResource::collection(
+            'movements' => $this->when($this->withDetail && ! $blind, fn () => CashMovementResource::collection(
                 $this->movements()->orderByDesc('seq')->limit(500)->get(),
             )),
         ];

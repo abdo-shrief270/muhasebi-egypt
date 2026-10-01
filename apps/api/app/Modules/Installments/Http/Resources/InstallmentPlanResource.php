@@ -7,6 +7,7 @@ namespace App\Modules\Installments\Http\Resources;
 use App\Modules\Installments\Models\InstallmentItem;
 use App\Modules\Installments\Models\InstallmentPayment;
 use App\Modules\Installments\Models\InstallmentPlan;
+use App\Support\Time\ShopDay;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Carbon;
@@ -19,7 +20,7 @@ final class InstallmentPlanResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $today = Carbon::today();
+        $today = ShopDay::today();
         $open = $this->resource->relationLoaded('items')
             ? $this->items->filter(fn (InstallmentItem $i) => $i->remaining() > 0)
             : null;

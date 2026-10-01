@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Installments\Models;
 
 use App\Support\Tenancy\BelongsToTenant;
+use App\Support\Time\ShopDay;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,7 +50,7 @@ final class InstallmentItem extends Model
     /** Days past its date and not paid in full (0 when not late). */
     public function daysLate(?Carbon $today = null): int
     {
-        $today ??= Carbon::today();
+        $today ??= ShopDay::today();
 
         return $this->remaining() > 0 && $this->due_on->lt($today) ? (int) $this->due_on->diffInDays($today) : 0;
     }

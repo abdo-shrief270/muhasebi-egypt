@@ -206,6 +206,16 @@ ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده 
 
 **Google Play بعدين (اختياري، لسه مش معمول):** ينفع نحط نفس التطبيق على Play Store كـ Trusted Web Activity من غير ما نكتب تطبيق أندرويد: `npx @bubblewrap/cli init --manifest https://<الدومين>/site.webmanifest` ثم `bubblewrap build` (بيطلّع `.aab` نرفعه على Play Console، بحساب مطوّر 25 دولار مرة واحدة). عشان التطبيق يفتح من غير شريط المتصفح لازم الدومين يثبت إنه بتاعنا: ملف `/.well-known/assetlinks.json` فيه اسم الـ package وبصمة SHA-256 بتاعة مفتاح التوقيع (من Play Console ← App signing). الملف ده يتحط في `apps/web/public/.well-known/assetlinks.json` (Caddy بيخدمه زي أي ملف ثابت؛ اتأكد بـ `curl https://<الدومين>/.well-known/assetlinks.json` إنه راجع JSON مش صفحة التطبيق). iPhone مالوش طريقة زي دي: هناك بيتنزّل من سفاري بـ «إضافة إلى الشاشة الرئيسية».
 
+## الإشعارات على الموبايل (Push)
+مرة واحدة على السيرفر:
+```bash
+cd /opt/muhasebi/infra/production
+docker compose run --rm api php artisan notifications:vapid-keys   # بيطبع سطرين
+nano .env      # الصق السطرين: VAPID_PUBLIC_KEY=… و VAPID_PRIVATE_KEY=…
+./deploy.sh
+```
+بعدها أي حد يدخل «الإشعارات» من قايمة حسابه ويدوس «شغّل الإشعارات» على جهازه. **متغيّرش المفاتيح دي بعد كده**: لو اتغيّرت، الإشعارات بتقف على كل الأجهزة لحد ما كل واحد يشغّلها تاني. على الآيفون بتشتغل بس من التطبيق المنزّل على الشاشة الرئيسية (iOS 16.4 أو أحدث). ملخص آخر اليوم بيتبعت من الـ scheduler (`notifications:daily-summary` كل 10 دقايق بيشوف مين ساعته جت).
+
 ## مشاكل شائعة
 - **الموقع مش بيفتح / مفيش HTTPS:** اتأكد إن الـ A record بيشاور على السيرفر (`dig app.muhasebi.com`) وإن 80 و443 مفتوحين، وبص على `docker compose logs caddy`.
 - **Server Error:** `docker compose logs api --tail 100`.

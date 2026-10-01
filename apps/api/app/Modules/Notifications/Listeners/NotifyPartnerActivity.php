@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Notifications\Listeners;
 
 use App\Modules\Identity\Contracts\ShopDirectory;
-use App\Modules\Notifications\Models\Notification;
+use App\Modules\Notifications\Support\Notifier;
 use App\Modules\ShopOrders\Events\ShopConnectionRequested;
 use App\Modules\ShopOrders\Events\ShopOrderUpdated;
 use App\Support\Events\DomainEvent;
@@ -83,14 +83,6 @@ final class NotifyPartnerActivity extends ModuleListener
 
     private function add(string $type, string $title, ?string $body, string $icon, string $to, string $permission): void
     {
-        Notification::create([
-            'type' => $type,
-            'title' => $title,
-            'body' => $body,
-            'icon' => $icon,
-            'to' => $to,
-            'permission' => $permission,
-            'created_at' => now(),
-        ]);
+        app(Notifier::class)->notify($type, $title, $body, $icon, $to, $permission);
     }
 }

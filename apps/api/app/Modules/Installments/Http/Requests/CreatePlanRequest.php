@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Installments\Http\Requests;
 
+use App\Support\Time\ShopDay;
 use Illuminate\Foundation\Http\FormRequest;
 use Propaganistas\LaravelPhone\PhoneNumber;
 
@@ -46,7 +47,7 @@ final class CreatePlanRequest extends FormRequest
             'markup_rate' => ['nullable', 'integer', 'min:0', 'max:10000'],
             'count' => ['required', 'integer', 'min:1', 'max:60'],
             'interval_months' => ['nullable', 'integer', 'in:1,2,3'],
-            'first_due_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:today', 'before:+1 year'],
+            'first_due_on' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.ShopDay::today()->toDateString(), 'before:'.ShopDay::today()->addYear()->toDateString()],
             'guarantor_name' => ['nullable', 'string', 'max:120'],
             'guarantor_phone' => ['nullable', 'string', 'phone:EG'],
             'notes' => ['nullable', 'string', 'max:500'],

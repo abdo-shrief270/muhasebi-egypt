@@ -105,3 +105,40 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(networkFirst(request))
   }
 })
+
+// Push notifications (owner alerts, partner shops…): the API sends {title, body, url, tag, urgent}.
+self.addEventListener('push', (event) => {
+  let data = {}
+  try {
+    data = event.data ? event.data.json() : {}
+  }
+  catch {
+    data = { title: event.data ? event.data.text() : 'محاسبي' }
+  }
+  event.waitUntil(self.registration.showNotification(data.title || 'محاسبي', {
+    body: data.body || '',
+    icon: '/icons/icon-192.png?v=1',
+    badge: '/icons/icon-192.png?v=1',
+    tag: data.tag || undefined,
+    lang: 'ar',
+    dir: 'rtl',
+    requireInteraction: !!data.urgent,
+    data: { url: data.url || '/' },
+  }))
+})
+
+// Tapping a notification: focus an open window on that page, or open one.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = new URL(event.notification.data?.url || '/', self.location.origin).href
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const client of windows) {
+      if (new URL(client.url).origin === self.location.origin && 'focus' in client) {
+        await client.focus()
+        return client.navigate ? client.navigate(url) : undefined
+      }
+    }
+    return self.clients.openWindow(url)
+  })())
+})

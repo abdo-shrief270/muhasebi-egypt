@@ -25,6 +25,8 @@ class InstallmentsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Midday in Cairo: due dates are Cairo days (the app clock is UTC).
+        $this->travelTo(CarbonImmutable::now('Africa/Cairo')->setTime(12, 0));
         $this->openShopWithStock();
         $this->postJson('/api/v1/modules/installments/trial')->assertOk();
         app(PermissionResolver::class)->forget(); // memoised per process; a real request starts fresh

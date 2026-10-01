@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Cash\Actions;
 
 use App\Modules\Cash\Enums\Method;
+use App\Modules\Cash\Events\ShiftClosed;
 use App\Modules\Cash\Models\CashShift;
 use App\Modules\Cash\Support\ShiftTotals;
 use App\Support\Audit\Auditor;
+use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +20,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class CloseShiftAction
 {
-    public function __construct(private readonly Auditor $audit) {}
+    public function __construct(
+        private readonly Auditor $audit,
+        private readonly EventRecorder $events,
+    ) {}
 
     /**
      * @param  array<string, int>  $counted  piasters per method; cash is required
@@ -55,6 +60,10 @@ final class CloseShiftAction
                 $shift,
                 ['expected' => $expected, 'counted' => $final, 'cash_difference' => $difference],
             );
+
+            $this->events->record(new ShiftClosed(
+                $shift->tenant_id, $shift->id, $shift->branch_id, $shift->reference(), (string) $shift->user_name, $difference, (string) $by->getAttribute('name'),
+            ));
 
             return $shift;
         });

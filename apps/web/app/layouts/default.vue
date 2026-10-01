@@ -140,6 +140,7 @@ const userItems = computed<DropdownMenuItem[][]>(() => [
   [
     ...(store.can('users.manage') ? [{ label: 'الموظفين', icon: 'i-lucide-users-round', to: '/settings/users' }] : []),
     ...(store.isOwner ? [{ label: 'بيانات المحل والإيصال', icon: 'i-lucide-receipt-text', to: '/settings/shop' }, { label: 'الأقسام', icon: 'i-lucide-blocks', to: '/settings/modules' }, { label: 'المميزات', icon: 'i-lucide-toggle-right', to: '/settings/features' }, { label: 'الاشتراك والفواتير', icon: 'i-lucide-credit-card', to: '/settings/billing' }] : []),
+    { label: 'الإشعارات', icon: 'i-lucide-bell-ring', to: '/settings/notifications' },
     { label: 'الأمان وتسجيل الدخول', icon: 'i-lucide-lock-keyhole', to: '/settings/security' },
     { label: 'بحث سريع', icon: 'i-lucide-search', kbds: ['meta', 'K'], onSelect: () => { searchOpen.value = true } },
     ...(priceCheck.available.value ? [{ label: 'استعلام عن سعر', icon: 'i-lucide-tag', kbds: ['F8'], onSelect: () => priceCheck.show() }] : []),

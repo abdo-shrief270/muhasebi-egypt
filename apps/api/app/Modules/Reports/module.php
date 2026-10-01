@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Reports\ReportsServiceProvider;
 use App\Support\Modules\Feature;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
@@ -21,6 +22,7 @@ return new ModuleManifest(
         new Feature('reports.excel_export', 'تنزيل التقارير إكسل', 'زرار «إكسل» في كل تقرير. لو قفلته التقارير تفضل تتشاف وتتطبع بس.'),
         new Feature('reports.home_profit', 'المكسب في الصفحة الرئيسية', 'كارت «مكسب النهارده» ورسم المكسب ومكسب الشحن في الرئيسية لمين معاه صلاحية الأرباح. لو قفلته المكسب يفضل في التقارير بس.'),
     ],
+    provider: ReportsServiceProvider::class,
     featuresIntro: 'التقارير والأرقام في الصفحة الرئيسية.',
     sort: 90,
 );

@@ -21,6 +21,7 @@ use App\Support\Exceptions\DomainRuleException;
 use App\Support\Tenancy\CurrentBranch;
 use App\Support\Tenancy\CurrentTenant;
 use App\Support\Text\SearchText;
+use App\Support\Time\ShopDay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ final class InstallmentController
     public function index(Request $request): AnonymousResourceCollection
     {
         $status = (string) $request->query('status', 'active');
-        $today = Carbon::today()->toDateString();
+        $today = ShopDay::today()->toDateString();
         $plans = InstallmentPlan::query()
             ->with('items')
             ->when(in_array($status, ['active', 'completed', 'cancelled'], true), fn (Builder $q) => $q->where('status', $status))
@@ -62,7 +63,7 @@ final class InstallmentController
     /** Installments still open and due by the end of the week (late ones first), for collecting. */
     public function due(Request $request): JsonResponse
     {
-        $today = Carbon::today();
+        $today = ShopDay::today();
         $until = match ((string) $request->query('when', 'week')) {
             'late' => $today->copy()->subDay(),
             'today' => $today,
@@ -144,7 +145,7 @@ final class InstallmentController
      */
     private function summary(): array
     {
-        $today = Carbon::today()->toDateString();
+        $today = ShopDay::today()->toDateString();
         $active = InstallmentPlan::query()->where('status', PlanStatus::Active);
         $open = InstallmentItem::query()
             ->whereHas('plan', fn (Builder $q) => $q->where('status', PlanStatus::Active))

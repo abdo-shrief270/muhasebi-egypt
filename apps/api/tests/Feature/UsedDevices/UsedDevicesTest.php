@@ -387,6 +387,8 @@ class UsedDevicesTest extends TestCase
 
     public function test_the_report_counts_devices_profit_and_stock_age(): void
     {
+        // Midday in Cairo, so "today" is the same day in the app clock (UTC) and in the report (Cairo).
+        $this->travelTo(CarbonImmutable::now('Africa/Cairo')->setTime(12, 0));
         $a = $this->buy()->assertCreated()->json('data');
         $this->buy(['imei' => self::imei('35123456789099'), 'grade' => 'A', 'purchase_price' => 2_000_000, 'asking_price' => 2_400_000])->assertCreated();
         $this->buy(['imei' => self::imei('35777766665555'), 'device_model_id' => null, 'model_name' => 'Nokia 3310', 'grade' => 'C', 'purchase_price' => 50_000, 'asking_price' => 90_000])->assertCreated();

@@ -21,7 +21,7 @@
         v-model="term"
         size="sm"
         icon="i-lucide-user-search"
-        :placeholder="store.hasFeature('sales.require_customer') ? 'العميل (مطلوب) — دوّر بالاسم أو الموبايل' : 'العميل (اختياري) — دوّر بالاسم أو الموبايل'"
+        :placeholder="placeholder ?? (store.hasFeature('sales.require_customer') ? 'العميل (مطلوب) — دوّر بالاسم أو الموبايل' : 'العميل (اختياري) — دوّر بالاسم أو الموبايل')"
         class="w-full"
         @keydown.esc="term = ''"
       />
@@ -58,6 +58,7 @@ import type { Customer, PosCustomer } from '~/types/api'
 
 /** Picks (or adds) the customer a sale is for — needed to sell on credit (آجل). */
 const modelValue = defineModel<PosCustomer | null>({ default: null })
+defineProps<{ placeholder?: string }>()
 
 const api = useApi()
 const store = useSessionStore()

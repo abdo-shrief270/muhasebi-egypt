@@ -36,6 +36,7 @@
           label="فكّره على واتساب"
         />
         <UButton v-if="canCredit" color="neutral" variant="outline" icon="i-lucide-banknote" label="تحصيل" @click="payOpen = true" />
+        <UButton v-if="canPlan && customer.balance > 0" :to="`/installments/new?customer=${customer.id}`" color="neutral" variant="outline" icon="i-lucide-calendar-clock" label="قسّط الحساب" />
         <UButton v-if="canSell" :to="`/pos?customer=${customer.id}`" icon="i-lucide-shopping-cart" label="بيع له" :disabled="!customer.is_active" />
       </div>
     </div>
@@ -122,7 +123,7 @@
       </div>
     </UCard>
 
-    <UCard v-else :ui="{ body: 'p-0 sm:p-0' }">
+    <UCard v-else-if="tab === 'sales'" :ui="{ body: 'p-0 sm:p-0' }">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead class="bg-(--ui-bg-elevated) text-(--ui-text-muted)">
@@ -169,6 +170,62 @@
       </div>
     </UCard>
 
+    <UCard v-else-if="tab === 'installments'" :ui="{ body: 'p-0 sm:p-0' }">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-(--ui-bg-elevated) text-(--ui-text-muted)">
+            <tr>
+              <th class="p-3 text-start font-bold">
+                التقسيط
+              </th>
+              <th class="p-3 text-end font-bold">
+                الإجمالي
+              </th>
+              <th class="p-3 text-end font-bold">
+                الباقي
+              </th>
+              <th class="hidden p-3 text-start font-bold sm:table-cell">
+                القسط الجاي
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in plans" :key="p.id" class="cursor-pointer border-t border-(--ui-border) hover:bg-(--ui-bg-elevated)" @click="navigateTo(`/installments/${p.id}`)">
+              <td class="p-3">
+                <NuxtLink :to="`/installments/${p.id}`" class="font-bold num hover:underline" @click.stop>
+                  {{ p.reference }}
+                </NuxtLink>
+                <UBadge :color="installmentStatusColor(p.status)" variant="subtle" class="ms-2">
+                  {{ p.status_label }}
+                </UBadge>
+                <p class="text-xs text-(--ui-text-muted)">
+                  <span class="num">{{ p.paid_count }}/{{ p.count }}</span> قسط
+                </p>
+              </td>
+              <td class="p-3 text-end num">
+                {{ formatMoney(p.total) }}
+              </td>
+              <td class="p-3 text-end font-bold num">
+                {{ formatMoney(p.status === 'active' ? p.remaining : 0) }}
+              </td>
+              <td class="hidden p-3 sm:table-cell">
+                <template v-if="p.status === 'active' && p.next_due">
+                  <span class="num">{{ formatMoney(p.next_due.remaining) }}</span> · <span class="num">{{ formatDate(p.next_due.due_on) }}</span>
+                  <span v-if="p.next_due.days_late" class="text-xs font-bold text-(--ui-error)"> · {{ dueLabel(p.next_due) }}</span>
+                </template>
+                <span v-else class="text-(--ui-text-muted)">—</span>
+              </td>
+            </tr>
+            <tr v-if="!plans.length">
+              <td colspan="4" class="p-8 text-center text-(--ui-text-muted)">
+                مفيش تقسيط على العميل ده.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </UCard>
+
     <CustomersCustomerFormModal v-model:open="editOpen" :customer="customer" @saved="reload" />
     <CustomersPaymentModal v-model:open="payOpen" :customer="customer" @saved="reload" />
 
@@ -196,7 +253,7 @@
 
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { Customer, CustomerTransaction, Paginated, Sale } from '~/types/api'
+import type { Customer, CustomerTransaction, InstallmentPlan, Paginated, Sale } from '~/types/api'
 
 definePageMeta({ permission: 'customers.view' })
 
@@ -209,24 +266,31 @@ const canCredit = computed(() => store.can('customers.credit'))
 // The owner's «البيع الآجل» switch: off, there's no credit limit to show (old balances are still collected).
 const creditOn = computed(() => store.hasFeature('customers.credit_sales'))
 const canSell = computed(() => store.can('sales.sell'))
+const seesPlans = computed(() => store.hasModule('installments') && store.can('installments.collect'))
+const canPlan = computed(() => store.hasModule('installments') && store.can('installments.manage'))
 const messages = useMessages()
 const id = computed(() => String(route.params.id))
 
-const [{ data: customerData, refresh: refreshCustomer }, { data: statementData, refresh: refreshStatement }, { data: salesData }] = await Promise.all([
+const [{ data: customerData, refresh: refreshCustomer }, { data: statementData, refresh: refreshStatement }, { data: salesData }, { data: plansData, refresh: refreshPlans }] = await Promise.all([
   useAsyncData(`customer-${id.value}`, () => api<{ data: Customer }>(`/customers/${id.value}`)),
   useAsyncData(`customer-statement-${id.value}`, () => api<{ data: CustomerTransaction[] }>(`/customers/${id.value}/statement`)),
   useAsyncData(`customer-sales-${id.value}`, () => store.can('sales.view')
     ? api<Paginated<Sale>>('/sales', { query: { customer_id: id.value } })
     : Promise.resolve(null)),
+  useAsyncData(`customer-installments-${id.value}`, () => seesPlans.value
+    ? api<Paginated<InstallmentPlan>>('/installments', { query: { customer_id: id.value, status: 'all' } })
+    : Promise.resolve(null)),
 ])
 const customer = computed(() => customerData.value?.data)
 const statement = computed(() => statementData.value?.data ?? [])
 const sales = computed(() => salesData.value?.data ?? [])
+const plans = computed(() => plansData.value?.data ?? [])
 
 const tab = ref('statement')
 const tabs = computed(() => [
   { label: 'كشف الحساب', value: 'statement', icon: 'i-lucide-scroll-text' },
   ...(store.can('sales.view') ? [{ label: 'الفواتير', value: 'sales', icon: 'i-lucide-receipt' }] : []),
+  ...(seesPlans.value ? [{ label: 'التقسيط', value: 'installments', icon: 'i-lucide-calendar-clock' }] : []),
 ])
 
 const editOpen = ref(false)
@@ -298,6 +362,6 @@ async function erase() {
 }
 
 async function reload() {
-  await Promise.all([refreshCustomer(), refreshStatement()])
+  await Promise.all([refreshCustomer(), refreshStatement(), refreshPlans()])
 }
 </script>

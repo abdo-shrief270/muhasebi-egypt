@@ -1,4 +1,5 @@
-import type { RepairTicket, Sale } from '~/types/api'
+import type { InstallmentItem, RepairTicket, Sale } from '~/types/api'
+import type { InstallmentReminderSubject } from '~/utils/installments'
 import type { ReturnNote } from '~/utils/supplierReturns'
 
 export interface MessageTemplate {
@@ -78,7 +79,7 @@ export function useMessages() {
     return template ? renderTemplate(template.body, vars) : fallback()
   }
 
-  function open(key: string, phone: string | null, message: string, subject?: { type: 'repair_ticket' | 'sale' | 'customer' | 'supplier_return', id: string }) {
+  function open(key: string, phone: string | null, message: string, subject?: { type: 'repair_ticket' | 'sale' | 'customer' | 'supplier_return' | 'installment_plan', id: string }) {
     window.open(phone ? whatsappLink(phone, message) : `https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
     if (store.can('messages.send')) {
       api('/messages/log', { method: 'POST', body: { template: key, phone, subject_type: subject?.type, subject_id: subject?.id } }).catch(() => {})
@@ -123,5 +124,19 @@ export function useMessages() {
     open('supplier_return_note', note.source.phone ?? null, message, { type: 'supplier_return', id: note.id })
   }
 
-  return { templates, load, ticketText, sendTicket, sendSale, sendDebtReminder, sendReturnNote }
+  /** The next (or a late) installment of a plan. */
+  function sendInstallmentReminder(plan: InstallmentReminderSubject, item: Pick<InstallmentItem, 'due_on' | 'remaining' | 'days_late'>) {
+    const vars = {
+      customer: plan.customer_name,
+      shop: shopName.value,
+      amount: formatMoney(item.remaining),
+      due: formatDate(item.due_on),
+      late: item.days_late > 0 ? `القسط متأخر ${item.days_late} يوم.` : null,
+      remaining: formatMoney(plan.remaining),
+      plan: plan.reference,
+    }
+    open('installment_reminder', plan.customer_phone, text('installment_reminder', vars, () => installmentReminderText(vars)), { type: 'installment_plan', id: plan.id })
+  }
+
+  return { templates, load, ticketText, sendTicket, sendSale, sendDebtReminder, sendReturnNote, sendInstallmentReminder }
 }

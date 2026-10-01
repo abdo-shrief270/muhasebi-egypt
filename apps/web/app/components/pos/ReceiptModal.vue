@@ -7,6 +7,15 @@
           <span class="font-bold">{{ sale.change ? 'الباقي للعميل' : 'اتدفع' }}</span>
           <span class="text-3xl font-extrabold num">{{ formatMoney(sale.change || sale.paid) }}</span>
         </div>
+        <UButton
+          v-if="canPlan"
+          :to="`/installments/new?customer=${sale.customer_id}&sale=${sale.id}`"
+          block
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-calendar-clock"
+          :label="`قسّط الآجل (${formatMoney(sale.credit)})`"
+        />
         <div class="max-h-72 overflow-y-auto rounded-(--ui-radius) border border-(--ui-border) bg-white py-2">
           <PrintReceipt :data="receipt" :qr-url="qrUrl" :note="sale.offline ? OFFLINE_NOTE : null" width="100%" />
         </div>
@@ -33,6 +42,9 @@ const props = defineProps<{ sale: Sale | null }>()
 const open = defineModel<boolean>('open', { default: false })
 
 const store = useSessionStore()
+// A credit sale can be split into installments right away (not one still waiting to reach the server).
+const canPlan = computed(() => !!props.sale && props.sale.credit > 0 && !!props.sale.customer_id && !props.sale.offline
+  && store.hasModule('installments') && store.can('installments.manage'))
 const { printing, print } = usePrint()
 
 const shop = useReceiptShop()

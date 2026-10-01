@@ -73,6 +73,7 @@ export const features: Feature[] = [
   { icon: 'i-lucide-wifi-off', title: 'بيشتغل من غير نت', text: 'النت فصل؟ الكاشير يكمّل بيع عادي، والفواتير تتسجل أول ما النت يرجع.', doc: 'offline' },
   { icon: 'i-lucide-scan-line', title: 'IMEI لكل جهاز', text: 'كل موبايل بسيريال: اتشرى منين، اتباع لمين، وإمتى. ودوّر بالـ IMEI في ثانية.', doc: 'inventory' },
   { icon: 'i-lucide-hand-coins', title: 'الآجل والشُكك', text: 'حساب لكل عميل بحد آجل، تحصيل من الكاشير، ورسالة تذكير واتساب بضغطة.', doc: 'customers' },
+  { icon: 'i-lucide-calendar-clock', title: 'التقسيط', text: 'قسّط الفاتورة على شهور بزيادة أو من غير، وجدول أقساط مطبوع، والمتأخر قدامك بزرار تحصيل وتذكير.', doc: 'installments' },
   { icon: 'i-lucide-wallet', title: 'الخزنة والورديات', text: 'كل كاشير بدرجه: مصروفات وإيداعات، وقفل الوردية بالمتوقع والمعدود لكل طريقة دفع.', doc: 'cash' },
   { icon: 'i-lucide-truck', title: 'الموردين والمشتريات', text: 'فواتير شراء، حساب كل مورد، مدفوعات ومرتجعات من نفس الشحنة.', doc: 'purchases' },
   { icon: 'i-lucide-message-circle', title: 'رسايل واتساب', text: 'قوالب جاهزة بكلامك إنت: الجهاز جاهز، الفاتورة، تذكير بالآجل. من غير أي اشتراك في واتساب بيزنس.', doc: 'whatsapp' },

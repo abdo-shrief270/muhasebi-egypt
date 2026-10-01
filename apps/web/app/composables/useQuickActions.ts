@@ -25,6 +25,7 @@ export function useQuickActions() {
     { run: () => priceCheck.show(), label: 'استعلام سعر', description: 'امسح أو دوّر: السعر والمخزون', icon: 'i-lucide-scan-barcode', permission: 'products.view', feature: 'inventory.price_check', kbd: 'F8' },
     { to: '/repairs/new', label: 'استلام جهاز', description: 'تذكرة صيانة جديدة', icon: 'i-lucide-wrench', permission: 'repairs.create' },
     { to: '/customers?owing=1', label: 'تحصيل آجل', description: 'اللي عليهم فلوس', icon: 'i-lucide-hand-coins', permission: 'customers.credit' },
+    { to: '/installments', label: 'الأقساط', description: 'المتأخر واللي عليه الدور', icon: 'i-lucide-calendar-clock', permission: 'installments.collect' },
     { to: '/customers?new=1', label: 'عميل جديد', description: 'ضيف عميل بحسابه', icon: 'i-lucide-user-plus', permission: 'customers.manage' },
     { to: '/services', label: 'شحن وتحويل', description: 'فودافون كاش وشحن الرصيد', icon: 'i-lucide-arrow-left-right', permission: 'services.manage' },
     { to: '/cash?expense=1', label: 'مصروف', description: 'سجّل مصروف من الدرج', icon: 'i-lucide-receipt', permission: 'cash.expenses', feature: 'cash.expenses' },

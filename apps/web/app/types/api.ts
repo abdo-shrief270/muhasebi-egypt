@@ -992,3 +992,73 @@ export interface UsedDeviceSettings {
   min_years: number
   max_years: number
 }
+
+/** One dated installment of a plan (piasters). */
+export interface InstallmentItem {
+  id: number
+  seq: number
+  due_on: string
+  amount: number
+  paid: number
+  remaining: number
+  paid_at: string | null
+  days_late: number
+}
+
+export type InstallmentStatus = 'active' | 'completed' | 'cancelled'
+
+export interface InstallmentPlan {
+  id: string
+  reference: string
+  branch_id: string
+  customer_id: string
+  customer_name: string
+  customer_phone: string | null
+  sale_id: string | null
+  sale_reference: string | null
+  principal: number
+  markup: number
+  /** basis points a month it was worked out from */
+  markup_rate: number | null
+  total: number
+  paid: number
+  remaining: number
+  count: number
+  interval_months: number
+  first_due_on: string
+  guarantor_name: string | null
+  guarantor_phone: string | null
+  notes: string | null
+  status: InstallmentStatus
+  status_label: string
+  created_by_name: string | null
+  created_at: string
+  completed_at: string | null
+  cancelled_at: string | null
+  cancelled_by_name: string | null
+  paid_count?: number
+  next_due?: InstallmentItem | null
+  late_amount?: number
+  late_count?: number
+  items?: InstallmentItem[]
+  payments?: { id: string, amount: number, method: CashMethod | null, source: 'counter' | 'account', user_name: string | null, created_at: string }[]
+}
+
+/** An open installment on the collection list. */
+export interface InstallmentDue extends InstallmentItem {
+  plan_id: string
+  plan_reference: string
+  plan_remaining: number
+  customer_id: string
+  customer_name: string
+  customer_phone: string | null
+}
+
+export interface InstallmentSummary {
+  active: number
+  outstanding: number
+  late_amount: number
+  late_plans: number
+  due_today: number
+  collected_month: number
+}

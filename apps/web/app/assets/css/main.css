@@ -63,6 +63,89 @@
   --app-provider-instapay: #5B8FE0;
 }
 
+/*
+ * The installed app (public/site.webmanifest). viewport-fit=cover lets it draw under a notch, the
+ * Android status bar (edge-to-edge) and the iPhone home bar: the top bar, sidebars and the page
+ * bottom keep clear of them with the safe-area insets (0 in a normal browser tab).
+ */
+:root {
+  --app-topbar-h: calc(4rem + env(safe-area-inset-top, 0px));
+}
+
+.app-shell {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.app-titlebar {
+  height: var(--app-topbar-h);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.app-sidebar,
+.app-safe-y {
+  padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+.app-main {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 64rem) {
+  .app-main {
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Installed, the app doesn't bounce or pull-to-refresh like a web page; the POS never does (a swipe down the cart reloaded the page). */
+@media (display-mode: standalone), (display-mode: window-controls-overlay), (display-mode: fullscreen) {
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+html.app-no-overscroll,
+html.app-no-overscroll body {
+  overscroll-behavior-y: none;
+}
+
+/*
+ * Desktop app window with the title bar folded into the top bar (display_override
+ * window-controls-overlay): the top bar drags the window, its buttons stay clickable, and its
+ * content keeps clear of the window buttons (top right on Windows / Linux, top left on macOS).
+ */
+@media (display-mode: window-controls-overlay) {
+  .app-titlebar {
+    -webkit-app-region: drag;
+    app-region: drag;
+    padding-left: max(.75rem, env(titlebar-area-x, 0px));
+    padding-right: max(.75rem, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw)));
+  }
+
+  .app-titlebar :is(a, button, input, [role="button"], [tabindex]) {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+
+  @media (min-width: 64rem) {
+    /* The sidebar (16rem, on the right) sits under the Windows buttons: the top bar only needs what's left. */
+    .app-titlebar {
+      padding-left: max(2rem, env(titlebar-area-x, 0px));
+      padding-right: max(2rem, calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw) - 16rem));
+    }
+
+    .app-sidebar {
+      padding-top: calc(1rem + env(titlebar-area-height, 0px));
+    }
+  }
+}
+
 /* Numbers stay Latin and tabular in tables and totals. */
 .num {
   font-variant-numeric: tabular-nums;

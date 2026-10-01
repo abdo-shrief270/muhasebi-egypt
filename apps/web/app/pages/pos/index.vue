@@ -5,7 +5,7 @@
     <CashOpenShiftCard v-if="canShift" hint="لازم وردية مفتوحة عشان تبيع. اكتب الكاش اللي في الدرج وابدأ." @opened="() => refreshShift()" />
     <UAlert v-else color="warning" variant="subtle" icon="i-lucide-lock" title="مفيش وردية مفتوحة" description="البيع محتاج وردية، ومعندكش صلاحية فتح وردية. كلّم المدير." class="max-w-md" />
   </div>
-  <div v-else class="-m-4 flex min-h-[calc(100dvh-4rem)] flex-col gap-4 p-4 lg:-m-8 lg:flex-row lg:p-6">
+  <div v-else class="-m-4 flex min-h-[calc(100dvh-var(--app-topbar-h))] flex-col gap-4 p-4 lg:-m-8 lg:flex-row lg:p-6">
     <!-- Items -->
     <section class="flex min-w-0 flex-1 flex-col gap-3">
       <UAlert
@@ -216,6 +216,9 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 import type { CashShift, Category, Customer, PosItem, Sale } from '~/types/api'
 
 definePageMeta({ permission: 'sales.sell' })
+
+// No pull-to-refresh / bounce while scrolling the cart (a reload mid-sale).
+useHead({ htmlAttrs: { class: 'app-no-overscroll' } })
 
 const api = useApi()
 const store = useSessionStore()

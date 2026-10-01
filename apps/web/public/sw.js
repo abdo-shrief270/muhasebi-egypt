@@ -5,6 +5,10 @@
  * - /_nuxt/* (hashed file names, never change): cache first; /_nuxt/builds/* (the build manifest): network first;
  * - the API (/api, /up, websockets) and other sites: never touched, never cached.
  *
+ * Updates: the first worker takes over at once (offline from the first visit); a newer one waits
+ * until the page says so (`SKIP_WAITING`, the «فيه نسخة جديدة — حدّث» toast of plugins/pwa.client.ts)
+ * or every window of the old version is closed, so a page never runs against another build's cache.
+ *
  * The build (nuxt.config.ts, `nitro:build:public-assets`) writes the version (a hash of the build's
  * files) and the list of /_nuxt files into the copy in .output/public, so every deploy installs a
  * new worker that precaches the new files and drops the old cache.
@@ -15,15 +19,22 @@ const PRECACHE = []
 const PREFIX = 'muhasebi-shell-'
 const CACHE = PREFIX + VERSION
 const SHELL = '/index.html'
+// The installed app's manifest and icons, so its window and home-screen icon also work offline.
+const APP_FILES = ['/site.webmanifest', '/favicon.svg?v=1', '/icons/icon-192.png?v=1']
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE)
     await cache.add(new Request(SHELL, { cache: 'reload' }))
     // Best effort: a file that fails now is cached the first time it's used.
-    await Promise.all(PRECACHE.map(url => cache.add(new Request(url, { cache: 'reload' })).catch(() => undefined)))
-    await self.skipWaiting()
+    await Promise.all([...APP_FILES, ...PRECACHE].map(url => cache.add(new Request(url, { cache: 'reload' })).catch(() => undefined)))
   })())
+})
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
 })
 
 self.addEventListener('activate', (event) => {

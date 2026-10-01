@@ -125,6 +125,7 @@ export default defineNuxtPlugin(() => {
       title: 'فيه نسخة جديدة — حدّث',
       description: 'دوس «حدّث» عشان تشتغل بآخر نسخة من محاسبي.',
       duration: Number.POSITIVE_INFINITY,
+      progress: false,
       actions: [{
         label: 'حدّث',
         color: 'primary',

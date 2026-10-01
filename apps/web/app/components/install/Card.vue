@@ -6,7 +6,7 @@
         نزّل محاسبي على {{ deviceName }}
       </p>
       <p class="text-sm text-(--ui-text-muted)">
-        يفتح بدوسة من {{ state.platform === 'ios' || state.platform === 'android' ? 'الشاشة الرئيسية' : 'سطح المكتب' }} بملء الشاشة، والكاشير شغال حتى لو النت فصل.
+        {{ mobile ? 'يفتح بدوسة من الشاشة الرئيسية بملء الشاشة' : 'يفتح بدوسة من سطح المكتب في شباك لوحده' }}، والكاشير شغال حتى لو النت فصل.
       </p>
     </div>
     <div class="flex shrink-0 gap-2">
@@ -20,5 +20,6 @@
 /** Home page: offer the app once per device (dismiss is remembered on this device). */
 const { state, showCard, install, dismiss } = useInstallApp()
 
+const mobile = computed(() => state.value.platform === 'ios' || state.value.platform === 'android')
 const deviceName = computed(() => ({ ios: 'جهازك', android: 'الموبايل', desktop: 'الكمبيوتر', 'mac-safari': 'الماك' })[state.value.platform])
 </script>

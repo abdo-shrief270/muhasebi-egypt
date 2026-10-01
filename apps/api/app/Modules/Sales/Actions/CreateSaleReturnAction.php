@@ -21,6 +21,7 @@ use App\Modules\Sales\Models\SaleReturnItem;
 use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Numbering\DocumentNumbers;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Database\Eloquent\Collection;
@@ -44,6 +45,7 @@ final class CreateSaleReturnAction
         private readonly EventRecorder $events,
         private readonly Auditor $audit,
         private readonly Auth $auth,
+        private readonly FeatureAccess $features,
     ) {}
 
     /**
@@ -51,6 +53,13 @@ final class CreateSaleReturnAction
      */
     public function handle(string $tenantId, string $branchId, Sale $sale, array $lines, PaymentMethod $refundMethod, ?string $reason): SaleReturn
     {
+        // The owner's return window: no returns more than N days after the sale.
+        if ($this->features->enabled('sales.return_window')) {
+            $days = (int) $this->features->setting('sales.return_window');
+            if ($sale->completed_at->copy()->addDays($days)->isPast()) {
+                throw new DomainRuleException("الفاتورة دي عدّى عليها أكتر من {$days} يوم، والمرتجع مسموح خلال {$days} يوم بس.", 'return_window_passed', context: ['days' => $days]);
+            }
+        }
         if ($refundMethod === PaymentMethod::Credit && $sale->customer_id === null) {
             throw new DomainRuleException('الفاتورة دي مش على عميل، فمينفعش المرتجع يتخصم من حسابه.', 'credit_needs_customer');
         }

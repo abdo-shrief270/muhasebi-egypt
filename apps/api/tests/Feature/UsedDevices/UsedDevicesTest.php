@@ -422,4 +422,12 @@ class UsedDevicesTest extends TestCase
         $this->assertNotContains('purchase_price', array_column($plain['columns'], 'key'));
         $this->assertNotContains('profit', array_column($plain['columns'], 'key'));
     }
+
+    public function test_the_owner_can_require_photos_of_the_device(): void
+    {
+        $this->buy(['device_photos' => null])->assertCreated();
+        $this->putJson('/api/v1/features/used_devices.device_photos_required', ['enabled' => true])->assertOk();
+        $this->buy(['imei' => self::imei('35123456789099'), 'device_photos' => null])->assertUnprocessable()->assertJsonValidationErrors('device_photos');
+        $this->buy(['imei' => self::imei('35123456789099')])->assertCreated();
+    }
 }

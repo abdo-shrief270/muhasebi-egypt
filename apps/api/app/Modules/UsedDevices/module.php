@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\UsedDevices\UsedDevicesServiceProvider;
+use App\Support\Modules\Feature;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -20,5 +21,9 @@ return new ModuleManifest(
     ],
     provider: UsedDevicesServiceProvider::class,
     shopTypes: ['repair', 'phones'],
+    features: [
+        new Feature('used_devices.device_photos_required', 'صور الجهاز إجباري', 'مفيش جهاز مستعمل يتشرى من غير صورة واحدة على الأقل للجهاز نفسه (غير صور البطاقة).', default: false),
+    ],
+    featuresIntro: 'شراء الأجهزة المستعملة.',
     sort: 230,
 );

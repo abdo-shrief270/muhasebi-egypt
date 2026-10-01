@@ -8,6 +8,7 @@ use App\Modules\Messaging\Models\MessageLog;
 use App\Modules\Messaging\Models\MessageTemplate;
 use App\Modules\Messaging\Support\Templates;
 use App\Support\Audit\Auditor;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ final class MessageController
     public function __construct(
         private readonly CurrentTenant $tenant,
         private readonly Auditor $audit,
+        private readonly FeatureAccess $features,
     ) {}
 
     public function templates(): JsonResponse
@@ -37,6 +39,8 @@ final class MessageController
             'body' => $custom->get($key)?->body ?? $t['body'],
             'default_body' => $t['body'],
             'customized' => $custom->has($key),
+            // Switched off by the owner: the message isn't offered anywhere.
+            'feature' => Templates::feature($key),
             'updated_by_name' => $custom->get($key)?->updated_by_name,
         ])->values()]);
     }
@@ -69,6 +73,10 @@ final class MessageController
             'subject_id' => ['nullable', 'uuid', 'required_with:subject_type'],
             'phone' => ['nullable', 'string', 'max:20'],
         ]);
+        // A message the owner switched off (e.g. the debt reminder) isn't offered, so it isn't sent.
+        if (($feature = Templates::feature($data['template'])) !== null) {
+            $this->features->ensure($feature);
+        }
         $user = $request->user();
 
         MessageLog::create([

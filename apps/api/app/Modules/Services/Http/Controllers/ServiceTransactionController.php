@@ -12,6 +12,8 @@ use App\Modules\Services\Http\Requests\ReverseRequest;
 use App\Modules\Services\Http\Resources\ServiceTransactionResource;
 use App\Modules\Services\Models\ServiceTransaction;
 use App\Modules\Services\Support\DailyUsage;
+use App\Support\Exceptions\DomainRuleException;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Tenancy\CurrentBranch;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -64,8 +66,14 @@ final class ServiceTransactionController
         return new ServiceTransactionResource($transaction->load(['account', 'reversed:id,number'])->loadExists('reversal'));
     }
 
-    public function store(OperationRequest $request, RecordOperationAction $action): JsonResponse
+    public function store(OperationRequest $request, RecordOperationAction $action, FeatureAccess $features): JsonResponse
     {
+        if ($request->validated('type') === OperationType::Topup->value) {
+            $features->ensure('services.airtime');
+        }
+        if (trim((string) $request->validated('customer_phone')) === '' && $features->enabled('services.require_customer_phone')) {
+            throw new DomainRuleException('اكتب رقم موبايل العميل الأول.', 'customer_phone_required');
+        }
         [$transaction, $warning] = $action->handle(
             $this->branch->idOrFail(),
             (string) $request->validated('account_id'),

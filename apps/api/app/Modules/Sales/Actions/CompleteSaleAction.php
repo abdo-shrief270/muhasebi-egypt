@@ -23,6 +23,7 @@ use App\Modules\Sales\Models\Sale;
 use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Numbering\DocumentNumbers;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -51,6 +52,7 @@ final class CompleteSaleAction
         private readonly EventRecorder $events,
         private readonly Auditor $audit,
         private readonly Auth $auth,
+        private readonly FeatureAccess $features,
     ) {}
 
     /**
@@ -59,6 +61,10 @@ final class CompleteSaleAction
      * @param  bool  $canDiscount  sales.discount: line / invoice discounts and non-retail price levels
      * @param  bool  $canCredit  customers.credit: part or all of the total on the customer's account
      * @param  CarbonInterface|null  $soldAt  when a sale queued offline was made (its completed_at); null = now
+     * @param  bool  $belowCostConfirmed  the cashier saw the "below cost" warning and went on
+     *
+     * The owner's switches (FeatureAccess) apply too: which discounts and price levels exist, a
+     * customer on every sale, selling below cost, credit, and no selling beyond the stock.
      */
     public function handle(
         string $tenantId,
@@ -74,18 +80,29 @@ final class CompleteSaleAction
         ?string $notes = null,
         ?string $customerId = null,
         bool $canCredit = false,
-        bool $blockOutOfStock = false,
         ?CarbonInterface $soldAt = null,
+        bool $belowCostConfirmed = false,
     ): Sale {
         // The same sale sent twice (a retry after a timeout) is saved once.
         if ($saleId !== null && ($existing = Sale::query()->find($saleId)) !== null) {
             return $existing;
         }
 
-        $hasDiscount = $discount > 0 || array_filter($items, fn (array $i) => $i['discount'] > 0) !== [];
-        if (($hasDiscount || $priceLevel !== PriceLevel::Retail) && ! $canDiscount) {
+        $hasLineDiscount = array_filter($items, fn (array $i) => $i['discount'] > 0) !== [];
+        // Switched off by the owner: nobody may (the owner included), whatever their permissions.
+        if ($discount > 0) {
+            $this->features->ensure('sales.discounts');
+        }
+        if ($hasLineDiscount) {
+            $this->features->ensure('sales.line_discounts');
+        }
+        if ($priceLevel !== PriceLevel::Retail) {
+            $this->features->ensure('sales.price_levels');
+        }
+        if (($discount > 0 || $hasLineDiscount || $priceLevel !== PriceLevel::Retail) && ! $canDiscount) {
             throw new DomainRuleException('مش معاك صلاحية الخصم أو تغيير مستوى السعر.', 'discount_not_allowed', 403);
         }
+        $blockOutOfStock = $this->features->enabled('sales.block_out_of_stock');
 
         $variants = $this->catalog->find(array_column($items, 'variant_id'));
         // The owner's switch: no selling beyond the branch's stock.
@@ -125,6 +142,15 @@ final class CompleteSaleAction
         }
         $total = $subtotal - $discount;
 
+        // A sale made offline already happened: the owner's "below cost" rule can't stop it any more.
+        if ($soldAt === null && $this->features->enabled('sales.below_cost')) {
+            $this->guardBelowCost($branchId, $lines, $subtotal, $total, $belowCostConfirmed);
+        }
+
+        if ($customerId === null && trim((string) $customerName) === '' && $this->features->enabled('sales.require_customer')) {
+            throw new DomainRuleException('اختار العميل أو اكتب اسمه الأول.', 'customer_required');
+        }
+
         $customer = null;
         if ($customerId !== null) {
             $customer = $this->customers->find($customerId) ?? throw new DomainRuleException('العميل مش موجود.', 'customer_not_found', 404);
@@ -134,6 +160,9 @@ final class CompleteSaleAction
         $credit = array_sum(array_map(fn (array $p) => $p['method'] === PaymentMethod::Credit ? $p['amount'] : 0, $payments));
         if ($credit > 0 && $customer === null) {
             throw new DomainRuleException('اختار العميل الأول عشان تبيع آجل.', 'credit_needs_customer');
+        }
+        if ($credit > 0) {
+            $this->features->ensure('customers.credit_sales');
         }
         if ($credit > 0 && ! $canCredit) {
             throw new DomainRuleException('مش معاك صلاحية البيع الآجل.', 'credit_not_allowed', 403);
@@ -155,6 +184,36 @@ final class CompleteSaleAction
         } catch (UniqueConstraintViolationException $e) {
             // The same id arrived twice at once: the other request saved it.
             return ($saleId !== null ? Sale::query()->find($saleId) : null) ?? throw $e;
+        }
+    }
+
+    /**
+     * The owner's «حماية من البيع بخسارة»: a unit sold for less than the branch's average cost
+     * (after its line discount and its share of the invoice discount) is refused, or — in "warn"
+     * mode — needs the cashier to confirm.
+     *
+     * @param  list<array{variant: VariantSummary, qty: int, unit_price: int, discount: int, line_total: int, serials: list<string>|null}>  $lines
+     */
+    private function guardBelowCost(string $branchId, array $lines, int $subtotal, int $total, bool $confirmed): void
+    {
+        $costs = $this->stock->averageCosts($branchId, array_map(fn (array $l) => $l['variant']->id, $lines));
+        $below = [];
+        foreach ($lines as $line) {
+            $cost = $costs[$line['variant']->id] ?? 0;
+            $net = $subtotal > 0 ? intdiv($line['line_total'] * $total, $subtotal) : 0;
+            if ($cost > 0 && $net < $cost * $line['qty']) {
+                $below[] = ['variant_id' => $line['variant']->id, 'name' => $line['variant']->displayName()];
+            }
+        }
+        if ($below === []) {
+            return;
+        }
+        $names = implode('، ', array_column($below, 'name'));
+        if ($this->features->setting('sales.below_cost') === 'block') {
+            throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته، والمحل مانع البيع بخسارة.", 'below_cost', context: ['lines' => $below]);
+        }
+        if (! $confirmed) {
+            throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته. متأكد؟", 'below_cost_confirm', 409, ['lines' => $below]);
         }
     }
 

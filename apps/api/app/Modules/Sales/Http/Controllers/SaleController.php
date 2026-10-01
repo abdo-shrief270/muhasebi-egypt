@@ -12,7 +12,6 @@ use App\Modules\Sales\Http\Requests\CompleteSaleRequest;
 use App\Modules\Sales\Http\Requests\SaleReturnRequest;
 use App\Modules\Sales\Http\Resources\SaleResource;
 use App\Modules\Sales\Models\Sale;
-use App\Support\Modules\FeatureAccess;
 use App\Support\Tenancy\CurrentBranch;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
@@ -65,7 +64,7 @@ final class SaleController
             ->withCost((bool) $request->user()?->can('reports.profit'));
     }
 
-    public function store(CompleteSaleRequest $request, CompleteSaleAction $action, FeatureAccess $features): JsonResponse
+    public function store(CompleteSaleRequest $request, CompleteSaleAction $action): JsonResponse
     {
         $sale = $action->handle(
             tenantId: $this->tenant->idOrFail(),
@@ -75,14 +74,14 @@ final class SaleController
             payments: $request->payments(),
             discount: (int) $request->validated('discount', 0),
             priceLevel: $request->enum('price_level', PriceLevel::class) ?? PriceLevel::Retail,
-            canDiscount: (bool) $request->user()?->can('sales.discount') && $features->enabled('sales.discounts'),
-            blockOutOfStock: $features->enabled('sales.block_out_of_stock'),
+            canDiscount: (bool) $request->user()?->can('sales.discount'),
             customerName: $request->validated('customer_name'),
             customerPhone: $request->validated('customer_phone'),
             notes: $request->validated('notes'),
             customerId: $request->validated('customer_id'),
             canCredit: (bool) $request->user()?->can('customers.credit'),
             soldAt: $request->soldAt(),
+            belowCostConfirmed: $request->boolean('confirm_below_cost'),
         );
 
         return $this->show($request, $sale->id)->response()->setStatusCode(201);

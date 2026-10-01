@@ -30,7 +30,7 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
             });
             // sales.sell / sales.refund are checked by the form requests.
             Route::post('/', 'store');
-            Route::post('{sale}/returns', 'return');
+            Route::post('{sale}/returns', 'return')->middleware('feature:sales.returns');
         });
     });
 });

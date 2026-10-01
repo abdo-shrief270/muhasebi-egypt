@@ -16,6 +16,7 @@ use App\Modules\Repairs\Support\Timeline;
 use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Modules\FeatureAccess;
 use Illuminate\Contracts\Auth\Factory as Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -34,6 +35,7 @@ final class DeliverTicketAction
         private readonly EventRecorder $events,
         private readonly Auditor $audit,
         private readonly Auth $auth,
+        private readonly FeatureAccess $features,
     ) {}
 
     /**
@@ -57,6 +59,9 @@ final class DeliverTicketAction
 
             if ($due <= 0 && $payments !== []) {
                 throw new DomainRuleException('الحساب متدفع؛ مفيش حاجة تتحصّل.', 'nothing_due');
+            }
+            if ($credit > 0) {
+                $this->features->ensure('customers.credit_sales');
             }
             if ($credit > 0 && ! $canCredit) {
                 throw new DomainRuleException('مش معاك صلاحية الآجل.', 'credit_not_allowed', 403);
@@ -94,7 +99,8 @@ final class DeliverTicketAction
             $ticket->warranty_days = $repaired ? $warrantyDays : 0;
             $ticket->warranty_until = $repaired && $warrantyDays > 0 ? now()->addDays($warrantyDays) : null;
             // The technician's cut, fixed now by their rule (only for a device that was repaired).
-            [$ticket->commission, $ticket->commission_rule] = $repaired ? Commission::for($ticket) : [0, null];
+            // None at all when the owner switched commissions off.
+            [$ticket->commission, $ticket->commission_rule] = $repaired && $this->features->enabled('repairs.commission') ? Commission::for($ticket) : [0, null];
             $ticket->save();
 
             $this->timeline->add($ticket, EventType::Delivered, $note, $from, TicketStatus::Delivered);

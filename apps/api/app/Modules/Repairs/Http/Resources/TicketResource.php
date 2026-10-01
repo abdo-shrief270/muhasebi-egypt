@@ -11,6 +11,7 @@ use App\Modules\Repairs\Models\RepairTicketPart;
 use App\Modules\Repairs\Models\RepairTicketPayment;
 use App\Modules\Repairs\Support\Faults;
 use App\Modules\Repairs\Support\IntakeOptions;
+use App\Support\Modules\FeatureAccess;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -90,8 +91,8 @@ final class TicketResource extends JsonResource
             'credit' => $this->credit,
             'due' => $this->due(),
             // What the technician earns: for them, and for whoever sees profits.
-            'commission' => $user?->can('reports.profit') || ($this->technician_id !== null && $this->technician_id === $user?->getAuthIdentifier()) ? $this->commission : null,
-            'commission_rule' => $this->commission_rule,
+            'commission' => ! app(FeatureAccess::class)->enabled('repairs.commission') ? null : ($user?->can('reports.profit') || ($this->technician_id !== null && $this->technician_id === $user?->getAuthIdentifier()) ? $this->commission : null),
+            'commission_rule' => app(FeatureAccess::class)->enabled('repairs.commission') ? $this->commission_rule : null,
             'warranty_days' => $this->warranty_days,
             'warranty_until' => $this->warranty_until?->toIso8601String(),
             'under_warranty' => $this->underWarranty(),

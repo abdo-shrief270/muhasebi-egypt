@@ -7,6 +7,7 @@ namespace App\Modules\UsedDevices\Http\Requests;
 use App\Modules\UsedDevices\Enums\Grade;
 use App\Modules\UsedDevices\Enums\PaymentMethod;
 use App\Modules\UsedDevices\Support\Checklist;
+use App\Support\Modules\FeatureAccess;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
@@ -71,7 +72,8 @@ final class BuyDeviceRequest extends FormRequest
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'id_front' => ['required', ...$photo],
             'id_back' => ['required', ...$photo],
-            'device_photos' => ['nullable', 'array', 'max:'.self::MAX_DEVICE_PHOTOS],
+            // The owner's «صور الجهاز إجباري» switch.
+            'device_photos' => [app(FeatureAccess::class)->enabled('used_devices.device_photos_required') ? 'required' : 'nullable', 'array', 'max:'.self::MAX_DEVICE_PHOTOS],
             'device_photos.*' => $photo,
         ];
     }

@@ -22,19 +22,19 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <UButton
-          v-if="ticket.status === 'ready' && !ticket.ready_notified_at"
+          v-if="canMessage && ticket.status === 'ready' && !ticket.ready_notified_at"
           color="warning"
           icon="i-lucide-message-circle"
           label="بلّغ العميل إنه جاهز"
           @click="notify(ticket)"
         />
-        <UButton v-else color="neutral" variant="outline" icon="i-lucide-message-circle" label="واتساب" @click="notify(ticket)" />
+        <UButton v-else-if="canMessage" color="neutral" variant="outline" icon="i-lucide-message-circle" label="واتساب" @click="notify(ticket)" />
         <UButton color="neutral" variant="outline" icon="i-lucide-printer" label="الإيصال" @click="print" />
         <UButton v-if="canWork && ticket.next_statuses.length" color="neutral" variant="outline" icon="i-lucide-arrow-left-right" label="تغيير الحالة" @click="openStatus(null)" />
         <UButton v-if="canWork && ticket.next_statuses.some(s => s.value === 'ready')" color="success" variant="soft" icon="i-lucide-check-circle" label="جاهز" @click="openStatus('ready')" />
         <UButton v-if="canOutsource && !['delivered', 'rejected'].includes(ticket.status) && !ticket.outsourced?.active" color="neutral" variant="outline" icon="i-lucide-send" label="ابعته لمحل شريك" @click="outsourceOpen = true" />
         <UButton v-if="canDeliver && ticket.can_deliver" icon="i-lucide-hand-helping" label="تسليم للعميل" @click="deliverOpen = true" />
-        <UButton v-if="ticket.under_warranty && store.can('repairs.create')" color="warning" variant="soft" icon="i-lucide-shield-alert" label="رجوع في الضمان" :loading="returning" @click="warrantyReturn" />
+        <UButton v-if="ticket.under_warranty && store.can('repairs.create') && store.hasFeature('repairs.warranty')" color="warning" variant="soft" icon="i-lucide-shield-alert" label="رجوع في الضمان" :loading="returning" @click="warrantyReturn" />
       </div>
     </div>
 
@@ -389,7 +389,9 @@ const id = computed(() => String(route.params.id))
 const canWork = computed(() => store.can('repairs.update_status'))
 const canDeliver = computed(() => store.can('repairs.deliver'))
 const messages = useMessages()
-const canOutsource = computed(() => store.can('repairs.update_status') && store.can('shop_orders.place'))
+const canOutsource = computed(() => store.can('repairs.update_status') && store.can('shop_orders.place') && store.hasFeature('repairs.outsourcing'))
+// The owner's «رسايل واتساب للعميل» switch for repairs.
+const canMessage = computed(() => store.hasFeature('repairs.status_whatsapp'))
 const outsourceOpen = ref(false)
 
 function notify(t: RepairTicket) {
@@ -523,7 +525,7 @@ function onChanged(updated: RepairTicket) {
   toast.add({
     color: 'success',
     title: `بقت «${updated.status_label}»`,
-    actions: [{ label: 'ابعت للعميل واتساب', icon: 'i-lucide-message-circle', onClick: () => notify(updated) }],
+    actions: canMessage.value ? [{ label: 'ابعت للعميل واتساب', icon: 'i-lucide-message-circle', onClick: () => notify(updated) }] : [],
   })
 }
 

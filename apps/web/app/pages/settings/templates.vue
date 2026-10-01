@@ -17,7 +17,10 @@
             @click="select(t.key)"
           >
             {{ t.label }}
-            <UBadge v-if="t.customized" size="sm" color="primary" variant="subtle">
+            <UBadge v-if="t.feature && !store.hasFeature(t.feature)" size="sm" color="neutral" variant="subtle">
+              مقفولة
+            </UBadge>
+            <UBadge v-else-if="t.customized" size="sm" color="primary" variant="subtle">
               معدّل
             </UBadge>
           </button>
@@ -31,6 +34,9 @@
               <h2 class="font-bold">
                 {{ selected.label }}
               </h2>
+              <p v-if="selected.feature && !store.hasFeature(selected.feature)" class="text-xs text-(--ui-text-muted)">
+                الرسالة دي مقفولة من <NuxtLink v-if="store.isOwner" to="/settings/features" class="font-bold text-primary">المميزات</NuxtLink><template v-else>المميزات</template>، ومش هتظهر لحد ما تتفتح.
+              </p>
               <p v-if="selected.customized && selected.updated_by_name" class="text-xs text-(--ui-text-muted)">
                 آخر تعديل: {{ selected.updated_by_name }}
               </p>

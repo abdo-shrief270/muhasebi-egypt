@@ -17,10 +17,14 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <UButton color="neutral" variant="outline" icon="i-lucide-printer" label="طباعة" @click="print" />
-        <UButton color="neutral" variant="outline" icon="i-lucide-message-circle" label="WhatsApp" @click="share" />
-        <UButton v-if="canRefund && returnable" color="neutral" variant="outline" icon="i-lucide-undo-2" label="مرتجع" @click="openReturn" />
+        <UButton v-if="store.hasFeature('sales.receipt_link')" color="neutral" variant="outline" icon="i-lucide-message-circle" label="WhatsApp" @click="share" />
+        <UButton v-if="canRefund && returnable && !windowPassed" color="neutral" variant="outline" icon="i-lucide-undo-2" label="مرتجع" @click="openReturn" />
       </div>
     </div>
+    <p v-if="canRefund && returnable && windowPassed" class="flex items-center gap-1.5 text-sm text-(--ui-text-muted)">
+      <UIcon name="i-lucide-clock" class="size-4" />
+      المرتجع مسموح خلال <span class="num">{{ returnDays }}</span> يوم من البيع، والفاتورة دي عدّت المدة.
+    </p>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <UCard :ui="{ body: 'p-0 sm:p-0' }">
@@ -206,7 +210,9 @@ const api = useApi()
 const route = useRoute()
 const store = useSessionStore()
 const toast = useToast()
-const canRefund = computed(() => store.can('sales.refund'))
+// Returns: the role's permission AND the owner's switch; plus the owner's return window, if set.
+const canRefund = computed(() => store.can('sales.refund') && store.hasFeature('sales.returns'))
+const returnDays = computed(() => store.featureSetting<number>('sales.return_window'))
 const { printing, print } = usePrint()
 
 const [{ data, refresh }, { data: optionsData }] = await Promise.all([
@@ -216,9 +222,11 @@ const [{ data, refresh }, { data: optionsData }] = await Promise.all([
 const sale = computed(() => data.value?.data)
 // Back onto the customer's account (خصم من الآجل) only for a sale made to a customer.
 const methods = computed(() => (optionsData.value?.data.payment_methods ?? [])
-  .filter(m => m.value !== 'credit' || !!sale.value?.customer_id)
+  .filter(m => m.value !== 'credit' || (!!sale.value?.customer_id && (store.hasFeature('customers.credit_sales') || !!sale.value?.credit)))
   .map(m => ({ label: m.value === 'credit' ? 'يتخصم من حساب العميل' : m.label, value: m.value })))
 const returnable = computed(() => sale.value?.items?.some(i => i.qty > i.returned_qty) ?? false)
+const windowPassed = computed(() => returnDays.value !== null && !!sale.value
+  && Date.now() > new Date(sale.value.completed_at).getTime() + returnDays.value * 86_400_000)
 
 const shop = useReceiptShop()
 const receipt = computed(() => receiptFromSale(sale.value!, shop.value, store.currentBranch?.name ?? null))
@@ -235,7 +243,7 @@ function share() {
 const returnOpen = ref(false)
 const lines = reactive<Record<number, { qty: string, restock: boolean, serials: string[], defect: string }>>({})
 // With supplier returns on, a damaged unit goes to the returns bin: say what's wrong with it.
-const binOn = computed(() => store.hasModule('supplier_returns'))
+const binOn = computed(() => store.hasModule('supplier_returns') && store.hasFeature('supplier_returns.auto_collect'))
 const refundMethod = ref('cash')
 const reason = ref('')
 const returning = ref(false)

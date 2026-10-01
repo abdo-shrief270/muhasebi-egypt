@@ -6,7 +6,7 @@
         {{ product ? `تعديل «${product.name}»` : 'الصنف' }}
       </h1>
       <UButton
-        v-if="product"
+        v-if="product && store.hasFeature('catalog.labels')"
         :to="{ path: '/products/labels', query: { 'ids[]': product.variants.map(v => v.id) } }"
         color="neutral"
         variant="outline"
@@ -26,6 +26,7 @@ import type { Product } from '~/types/api'
 definePageMeta({ permission: 'products.manage' })
 
 const api = useApi()
+const store = useSessionStore()
 const route = useRoute()
 const toast = useToast()
 

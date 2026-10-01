@@ -63,7 +63,7 @@
 
             <div class="mt-3 flex flex-wrap gap-2">
               <UButton v-if="store.can('sales.sell') && item.is_active" size="xs" icon="i-lucide-shopping-cart" label="أضف للفاتورة" @click="go(`/pos?add=${item.id}`)" />
-              <UButton v-if="store.can('products.view')" size="xs" color="neutral" variant="outline" icon="i-lucide-tag" label="اطبع ليبل" @click="go(`/products/labels?ids[]=${item.id}`)" />
+              <UButton v-if="store.can('products.view') && store.hasFeature('catalog.labels')" size="xs" color="neutral" variant="outline" icon="i-lucide-tag" label="اطبع ليبل" @click="go(`/products/labels?ids[]=${item.id}`)" />
               <UButton v-if="store.can('products.manage')" size="xs" color="neutral" variant="ghost" icon="i-lucide-pencil" label="عدّل الصنف" @click="go(`/products/${item.product_id}`)" />
             </div>
           </li>

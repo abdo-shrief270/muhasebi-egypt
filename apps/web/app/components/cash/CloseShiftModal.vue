@@ -15,13 +15,16 @@
           { label: 'فواتير مستنية', color: 'neutral', variant: 'outline', onClick: () => { open = false; panelOpen = true } },
         ]"
       />
-      <form v-if="shift?.expected" id="close-form" class="space-y-3" @submit.prevent="save">
+      <form v-if="shift?.expected || shift?.blind" id="close-form" class="space-y-3" @submit.prevent="save">
         <div v-for="m in methods" :key="m.value" class="grid grid-cols-[1fr_8rem] items-center gap-3 rounded-(--ui-radius) border border-(--ui-border) p-3">
           <div>
             <p class="font-bold">
               {{ m.value === 'cash' ? 'الكاش في الدرج' : m.label }}
             </p>
-            <p class="text-xs text-(--ui-text-muted)">
+            <p v-if="shift.blind" class="text-xs text-(--ui-text-muted)">
+              {{ m.value === 'cash' ? 'اعد الكاش واكتبه' : 'من تقرير الماكينة / التطبيق — فاضي لو مفيش' }}
+            </p>
+            <p v-if="shift.expected" class="text-xs text-(--ui-text-muted)">
               المفروض <span class="num">{{ formatMoney(shift.expected[m.value]) }}</span>
               <template v-if="diff(m.value) !== 0">
                 · <span class="font-bold" :class="diff(m.value) < 0 ? 'text-error' : 'text-success'">
@@ -76,12 +79,14 @@ const saving = ref(false)
 const error = ref<string | null>(null)
 
 // Cash always; the others only when something came in through them.
-const methods = computed(() => CASH_METHODS.filter(m => m.value === 'cash' || (props.shift?.expected?.[m.value] ?? 0) !== 0))
+// Blind close: every method is asked for (nothing tells which ones moved).
+const methods = computed(() => CASH_METHODS.filter(m => props.shift?.blind || m.value === 'cash' || (props.shift?.expected?.[m.value] ?? 0) !== 0))
 
 watch(open, (isOpen) => {
-  if (isOpen && props.shift?.expected) {
+  if (isOpen && (props.shift?.expected || props.shift?.blind)) {
     for (const m of CASH_METHODS) {
-      counted[m.value] = m.value === 'cash' ? '' : String(props.shift.expected[m.value] / 100)
+      const expected = props.shift.expected?.[m.value]
+      counted[m.value] = m.value === 'cash' || expected === undefined ? '' : String(expected / 100)
     }
     note.value = ''
     error.value = null

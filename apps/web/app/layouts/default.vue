@@ -31,7 +31,7 @@
 
         <div class="ms-auto flex items-center gap-1 sm:gap-2">
           <OfflineStatus />
-          <UTooltip v-if="store.can('products.view')" text="استعلام عن سعر (F8)">
+          <UTooltip v-if="priceCheck.available.value" text="استعلام عن سعر (F8)">
             <UButton color="neutral" variant="outline" icon="i-lucide-tag" aria-label="استعلام عن سعر" @click="priceCheck.show()">
               <span class="hidden sm:inline">سعر</span>
             </UButton>
@@ -97,7 +97,7 @@ defineShortcuts({
   f8: {
     usingInput: true,
     handler: () => {
-      if (store.can('products.view')) {
+      if (priceCheck.available.value) {
         searchOpen.value = false
         priceCheck.show()
       }
@@ -140,7 +140,7 @@ const userItems = computed<DropdownMenuItem[][]>(() => [
     ...(store.isOwner ? [{ label: 'بيانات المحل والإيصال', icon: 'i-lucide-receipt-text', to: '/settings/shop' }, { label: 'الأقسام', icon: 'i-lucide-blocks', to: '/settings/modules' }, { label: 'المميزات', icon: 'i-lucide-toggle-right', to: '/settings/features' }, { label: 'الاشتراك والفواتير', icon: 'i-lucide-credit-card', to: '/settings/billing' }] : []),
     { label: 'الأمان وتسجيل الدخول', icon: 'i-lucide-lock-keyhole', to: '/settings/security' },
     { label: 'بحث سريع', icon: 'i-lucide-search', kbds: ['meta', 'K'], onSelect: () => { searchOpen.value = true } },
-    ...(store.can('products.view') ? [{ label: 'استعلام عن سعر', icon: 'i-lucide-tag', kbds: ['F8'], onSelect: () => priceCheck.show() }] : []),
+    ...(priceCheck.available.value ? [{ label: 'استعلام عن سعر', icon: 'i-lucide-tag', kbds: ['F8'], onSelect: () => priceCheck.show() }] : []),
     { label: `نسخ كود المحل (${store.session?.tenant.code ?? ''})`, icon: 'i-lucide-hash', onSelect: copyCode },
   ],
   [{ label: 'ابعت ملاحظة', description: 'مشكلة، اقتراح، أو سؤال لفريق محاسبي', icon: 'i-lucide-message-square-heart', onSelect: () => feedback.show() }],

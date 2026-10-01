@@ -124,7 +124,7 @@
             <UFormField v-if="options?.technicians.length" label="الفني">
               <USelect v-model="form.technician_id" :items="[{ label: 'بعدين', value: 'none' }, ...options.technicians.map(t => ({ label: t.name, value: t.id }))]" class="w-full" />
             </UFormField>
-            <UFormField label="عربون" hint="بالجنيه">
+            <UFormField v-if="store.hasFeature('repairs.deposits')" label="عربون" hint="بالجنيه">
               <div class="flex gap-2">
                 <UInput v-model="form.deposit" type="number" min="0" step="any" inputmode="decimal" dir="ltr" class="flex-1" />
                 <USelect v-model="form.deposit_method" :items="CASH_METHODS" class="w-28" />
@@ -224,7 +224,7 @@ async function save() {
   error.value = null
   needsShift.value = false
   try {
-    const deposit = toPiasters(form.deposit) ?? 0
+    const deposit = store.hasFeature('repairs.deposits') ? toPiasters(form.deposit) ?? 0 : 0
     const res = await api<{ data: RepairTicket }>('/repairs/tickets', {
       method: 'POST',
       body: {

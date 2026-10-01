@@ -28,7 +28,7 @@
           <UButton color="neutral" variant="ghost" icon="i-lucide-shield" label="البيانات" trailing-icon="i-lucide-chevron-down" :loading="exporting" />
         </UDropdownMenu>
         <UButton
-          v-if="customer.phone && customer.balance > 0"
+          v-if="customer.phone && customer.balance > 0 && store.hasFeature('customers.debt_reminders')"
           @click="messages.sendDebtReminder(customer)"
           color="neutral"
           variant="outline"
@@ -40,7 +40,7 @@
       </div>
     </div>
 
-    <div class="grid gap-3 sm:grid-cols-3">
+    <div class="grid gap-3" :class="creditOn ? 'sm:grid-cols-3' : 'sm:grid-cols-2'">
       <div class="app-card p-4">
         <p class="text-sm text-(--ui-text-muted)">
           الرصيد
@@ -49,7 +49,7 @@
           <CustomersBalanceBadge :balance="customer.balance" />
         </p>
       </div>
-      <div class="app-card p-4">
+      <div v-if="creditOn" class="app-card p-4">
         <p class="text-sm text-(--ui-text-muted)">
           حد الآجل
         </p>
@@ -206,6 +206,8 @@ const store = useSessionStore()
 const canManage = computed(() => store.can('customers.manage'))
 const canExport = computed(() => store.can('customers.export'))
 const canCredit = computed(() => store.can('customers.credit'))
+// The owner's «البيع الآجل» switch: off, there's no credit limit to show (old balances are still collected).
+const creditOn = computed(() => store.hasFeature('customers.credit_sales'))
 const canSell = computed(() => store.can('sales.sell'))
 const messages = useMessages()
 const id = computed(() => String(route.params.id))

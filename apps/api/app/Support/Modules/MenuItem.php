@@ -17,6 +17,8 @@ final readonly class MenuItem
         public string $group = 'sales',
         /** False while the screen behind this entry isn't built yet: the entry stays out of the menu. */
         public bool $ready = true,
+        /** A feature switch the entry needs (off = the entry is hidden for everyone). */
+        public ?string $feature = null,
     ) {
         if (! in_array($group, self::GROUPS, true)) {
             throw new \InvalidArgumentException("Unknown menu group [{$group}] for {$to}.");

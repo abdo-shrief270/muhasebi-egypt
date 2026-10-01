@@ -26,6 +26,7 @@ use App\Modules\Repairs\Models\RepairTicketPart;
 use App\Modules\Repairs\Support\IntakeOptions;
 use App\Modules\SupplierReturns\Contracts\ReturnReason;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Tenancy\CurrentBranch;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Database\Eloquent\Builder;
@@ -44,6 +45,7 @@ final class TicketController
         private readonly CurrentBranch $branch,
         private readonly StaffDirectory $staff,
         private readonly MessageHistory $messages,
+        private readonly FeatureAccess $features,
     ) {}
 
     /**
@@ -75,7 +77,7 @@ final class TicketController
         return response()->json(['data' => [
             'open' => $base()->where('status', '!=', TicketStatus::Delivered->value)->count(),
             'ready' => $base()->where('status', TicketStatus::Ready->value)->count(),
-            'unnotified' => $this->unnotified($base()),
+            'unnotified' => $this->features->enabled('repairs.status_whatsapp') ? $this->unnotified($base()) : 0,
             'overdue' => $this->overdue($base())->count(),
             'abandoned' => $this->abandoned($base())->count(),
             'mine' => $base()->where('status', '!=', TicketStatus::Delivered->value)->where('technician_id', $request->user()?->getAuthIdentifier())->count(),
@@ -129,6 +131,9 @@ final class TicketController
     public function store(ReceiveDeviceRequest $request, ReceiveDeviceAction $action): JsonResponse
     {
         $data = $request->validated();
+        if ($request->deposits() !== []) {
+            $this->features->ensure('repairs.deposits');
+        }
         $data['technician_name'] = $this->technicianName($data['technician_id'] ?? null);
         $ticket = $action->handle($this->tenant->idOrFail(), $this->branch->idOrFail(), $data, $request->deposits());
 
@@ -209,6 +214,9 @@ final class TicketController
     public function deliver(DeliverTicketRequest $request, RepairTicket $ticket, DeliverTicketAction $action): TicketResource
     {
         $this->inBranch($ticket);
+        if ((int) ($request->validated('warranty_days') ?? 0) > 0) {
+            $this->features->ensure('repairs.warranty');
+        }
 
         return $this->show($action->handle(
             $ticket,

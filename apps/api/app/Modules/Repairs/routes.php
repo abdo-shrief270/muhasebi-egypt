@@ -21,8 +21,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:repairs'])->prefix('repairs
         Route::patch('fault-categories/{category}', [FaultCategoryController::class, 'updateCategory'])->whereNumber('category');
         Route::post('fault-categories/{category}/types', [FaultCategoryController::class, 'storeType'])->whereNumber('category');
         Route::patch('fault-types/{type}', [FaultCategoryController::class, 'updateType'])->whereNumber('type');
-        Route::get('commissions', [CommissionController::class, 'index']);
-        Route::put('commissions/{technician}', [CommissionController::class, 'update'])->whereUuid('technician');
+        Route::middleware('feature:repairs.commission')->group(function (): void {
+            Route::get('commissions', [CommissionController::class, 'index']);
+            Route::put('commissions/{technician}', [CommissionController::class, 'update'])->whereUuid('technician');
+        });
     });
 
     // Tickets live in a branch.
@@ -38,10 +40,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:repairs'])->prefix('repairs
         Route::patch('tickets/{ticket}', 'update');
         Route::post('tickets/{ticket}/status', 'status');
         // repairs.update_status and shop_orders.place are checked in the controller.
-        Route::post('tickets/{ticket}/outsource', 'outsource');
+        Route::post('tickets/{ticket}/outsource', 'outsource')->middleware('feature:repairs.outsourcing');
         Route::post('tickets/{ticket}/parts', 'addPart');
         Route::delete('tickets/{ticket}/parts/{part}', 'removePart')->whereNumber('part');
         Route::post('tickets/{ticket}/deliver', 'deliver');
-        Route::post('tickets/{ticket}/warranty', 'warranty');
+        Route::post('tickets/{ticket}/warranty', 'warranty')->middleware('feature:repairs.warranty');
     });
 });

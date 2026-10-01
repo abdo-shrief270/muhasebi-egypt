@@ -37,6 +37,7 @@
           :label="`مستنية (${queuedHere.length})`"
           @click="panelOpen = true"
         />
+        <!-- Held invoices stay reachable even after the owner closes holding, so none is lost. -->
         <UDropdownMenu v-if="held.length" :items="heldItems" :content="{ align: 'end' }">
           <UButton size="xl" color="neutral" variant="outline" icon="i-lucide-pause" :label="`المعلّقة (${held.length})`" />
         </UDropdownMenu>
@@ -99,7 +100,7 @@
           </p>
         </div>
         <div class="flex items-center gap-1">
-          <USelect v-if="canDiscount" v-model="cart.price_level" :items="priceLevels" size="sm" class="w-24" />
+          <USelect v-if="canPriceLevel" v-model="cart.price_level" :items="priceLevels" size="sm" class="w-24" />
           <UDropdownMenu :items="cartMenu" :content="{ align: 'end' }">
             <UButton color="neutral" variant="ghost" icon="i-lucide-ellipsis-vertical" square aria-label="خيارات الفاتورة" />
           </UDropdownMenu>
@@ -110,7 +111,7 @@
       <div v-if="canCustomers && (online || cart.customer)" class="border-b border-(--ui-border) p-3">
         <PosCustomerPicker v-model="cart.customer" />
       </div>
-      <div v-else-if="showCustomer || (canCustomers && !online)" class="grid grid-cols-2 gap-2 border-b border-(--ui-border) p-3">
+      <div v-else-if="showCustomer || needsCustomer || (canCustomers && !online)" class="grid grid-cols-2 gap-2 border-b border-(--ui-border) p-3">
         <UInput v-model="cart.customer_name" size="sm" placeholder="اسم العميل" />
         <UInput v-model="cart.customer_phone" size="sm" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx" />
       </div>
@@ -144,7 +145,7 @@
               <UInput :model-value="String(line.qty)" class="w-14" dir="ltr" inputmode="numeric" :ui="{ base: 'text-center' }" :aria-label="`كمية ${line.name}`" @update:model-value="v => setQty(line, Number(v) || 0)" />
               <UButton color="neutral" variant="outline" icon="i-lucide-plus" :aria-label="`زوّد ${line.name}`" @click="setQty(line, line.qty + 1)" />
             </UFieldGroup>
-            <UPopover v-if="canDiscount">
+            <UPopover v-if="canLineDiscount">
               <UButton size="sm" color="neutral" variant="ghost" icon="i-lucide-percent" :aria-label="`خصم على ${line.name}`" />
               <template #content>
                 <div class="w-56 space-y-2 p-3">
@@ -177,7 +178,7 @@
           <span class="text-(--ui-text-muted)">الإجمالي</span>
           <span class="num">{{ formatMoney(subtotal) }}</span>
         </div>
-        <div v-if="canDiscount" class="flex items-center justify-between gap-2 text-sm">
+        <div v-if="canInvoiceDiscount" class="flex items-center justify-between gap-2 text-sm">
           <span class="text-(--ui-text-muted)">خصم على الفاتورة</span>
           <UInput
             :model-value="cart.discount ? String(cart.discount / 100) : ''"
@@ -196,18 +197,34 @@
           <span class="text-lg font-bold">المطلوب</span>
           <span class="text-3xl font-extrabold num">{{ formatMoney(total) }}</span>
         </div>
-        <div class="grid grid-cols-[auto_1fr] gap-2 pt-1">
-          <UButton size="xl" color="neutral" variant="outline" icon="i-lucide-pause" label="تعليق" :disabled="!cart.lines.length" @click="hold" />
-          <UButton size="xl" icon="i-lucide-check" class="justify-center" :label="`دفع ${formatMoney(total)} (F9)`" :disabled="!cart.lines.length || missingSerials.length > 0" @click="payOpen = true" />
+        <div class="grid gap-2 pt-1" :class="canHold ? 'grid-cols-[auto_1fr]' : 'grid-cols-1'">
+          <UButton v-if="canHold" size="xl" color="neutral" variant="outline" icon="i-lucide-pause" label="تعليق" :disabled="!cart.lines.length" @click="hold" />
+          <UButton size="xl" icon="i-lucide-check" class="justify-center" :label="`دفع ${formatMoney(total)} (F9)`" :disabled="!canPay" @click="payOpen = true" />
         </div>
         <p v-if="missingSerials.length" class="text-sm text-(--ui-warning)">
           امسح IMEI / سيريال «{{ missingSerials[0]?.name }}» الأول.
+        </p>
+        <p v-else-if="cart.lines.length && missingCustomer" class="text-sm text-(--ui-warning)">
+          اختار العميل أو اكتب اسمه الأول (المحل طالب اسم العميل على كل فاتورة).
         </p>
       </div>
     </aside>
 
     <PosPaymentModal v-model:open="payOpen" :total="total" :methods="payMethods" :credit-available="creditAvailable" :customer-name="cart.customer?.name ?? null" :loading="paying" :error="payError" @pay="checkout" />
     <PosReceiptModal ref="receiptRef" v-model:open="receiptOpen" :sale="lastSale" />
+
+    <!-- The owner's «حماية من البيع بخسارة» in warn mode: the cashier confirms. -->
+    <UModal v-model:open="belowCostOpen" title="بيع بأقل من التكلفة" :ui="{ content: 'sm:max-w-md' }">
+      <template #body>
+        <UAlert color="warning" variant="subtle" icon="i-lucide-triangle-alert" :title="belowCostMessage" description="المحل مفعّل تحذير البيع بخسارة. لو متأكد من السعر كمّل." />
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end gap-2">
+          <UButton color="neutral" variant="ghost" label="ارجع أعدّل" @click="belowCostOpen = false" />
+          <UButton color="warning" icon="i-lucide-check" label="كمّل البيع" :loading="paying" @click="confirmBelowCost" />
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -223,14 +240,39 @@ useHead({ htmlAttrs: { class: 'app-no-overscroll' } })
 const api = useApi()
 const store = useSessionStore()
 const toast = useToast()
-const canDiscount = computed(() => store.can('sales.discount') && store.hasFeature('sales.discounts'))
+// Discounts and price levels: the role's permission AND the owner's switch for each.
+const canDiscount = computed(() => store.can('sales.discount'))
+const canLineDiscount = computed(() => canDiscount.value && store.hasFeature('sales.line_discounts'))
+const canInvoiceDiscount = computed(() => canDiscount.value && store.hasFeature('sales.discounts'))
+const canPriceLevel = computed(() => canDiscount.value && store.hasFeature('sales.price_levels'))
+const canHold = computed(() => store.hasFeature('sales.hold_carts'))
+const needsCustomer = computed(() => store.hasFeature('sales.require_customer'))
 const canCustomers = computed(() => store.can('customers.view'))
-const canCredit = computed(() => store.can('customers.credit'))
+const canCredit = computed(() => store.can('customers.credit') && store.hasFeature('customers.credit_sales'))
 const canShift = computed(() => store.can('cash.shift'))
 const route = useRoute()
 
 const branchId = computed(() => store.session?.current_branch_id)
 const { cart, held, subtotal, total, count, missingSerials, unitPrice, lineTotal, add, setQty, remove, clear, hold, resume, dropHeld } = usePosCart(branchId)
+
+// A cart kept on the device may carry a discount / price level the owner has since closed: drop it.
+watchEffect(() => {
+  if (!canPriceLevel.value && cart.value.price_level !== 'retail') {
+    cart.value.price_level = 'retail'
+  }
+  if (!canInvoiceDiscount.value && cart.value.discount) {
+    cart.value.discount = 0
+  }
+  if (!canLineDiscount.value) {
+    cart.value.lines.forEach((l) => {
+      if (l.discount) {
+        l.discount = 0
+      }
+    })
+  }
+})
+const missingCustomer = computed(() => needsCustomer.value && !cart.value.customer && !cart.value.customer_name?.trim())
+const canPay = computed(() => cart.value.lines.length > 0 && !missingSerials.value.length && !missingCustomer.value)
 
 // Offline: items come from the catalog kept on the device, sales go to the outbox.
 const { online } = useConnectivity()
@@ -457,12 +499,25 @@ function done(sale: Sale) {
   payOpen.value = false
   receiptOpen.value = true
   refreshItems()
+  // The owner's «اطبع الإيصال لوحده».
+  if (store.hasFeature('sales.auto_print')) {
+    nextTick(() => receiptRef.value?.print())
+  }
 }
 
-async function checkout(payments: Payment[]) {
+// «حماية من البيع بخسارة» (warn): the API asks first; confirmed, the same cart is sent again.
+const belowCostOpen = ref(false)
+const belowCostMessage = ref('')
+let belowCostPayments: Payment[] = []
+function confirmBelowCost() {
+  checkout(belowCostPayments, true)
+}
+
+async function checkout(payments: Payment[], confirmBelowCost = false) {
   paying.value = true
   payError.value = null
   const body = {
+    confirm_below_cost: confirmBelowCost || undefined,
     id: cart.value.id,
     price_level: cart.value.price_level,
     discount: cart.value.discount,
@@ -479,6 +534,7 @@ async function checkout(payments: Payment[]) {
     }
     // A slow answer counts as none: the sale is queued, and its id keeps it from being saved twice.
     const res = await api<{ data: Sale }>('/sales', { method: 'POST', body, timeout: 15_000 })
+    belowCostOpen.value = false
     done(res.data)
   }
   catch (e) {
@@ -486,6 +542,13 @@ async function checkout(payments: Payment[]) {
       await queueOffline(body, payments)
       return
     }
+    if (apiErrorCode(e) === 'below_cost_confirm') {
+      belowCostMessage.value = apiErrorMessage(e)
+      belowCostPayments = payments
+      belowCostOpen.value = true
+      return
+    }
+    belowCostOpen.value = false
     payError.value = apiErrorMessage(e)
     if (apiErrorCode(e) === 'shift_not_open') {
       payOpen.value = false
@@ -507,6 +570,9 @@ function offlineProblem(payments: Payment[]): string | null {
   const serialLine = cart.value.lines.find(l => l.track_serial && (l.serials?.length ?? 0) !== l.qty)
   if (serialLine) {
     return `«${serialLine.name}» محتاج IMEI / سيريال لكل قطعة.`
+  }
+  if (missingCustomer.value) {
+    return 'اكتب اسم العميل الأول.'
   }
   if (paid < total.value) {
     return 'المدفوع أقل من المطلوب.'
@@ -590,7 +656,7 @@ defineShortcuts({
   f9: {
     usingInput: true,
     handler: () => {
-      if (cart.value.lines.length && !missingSerials.value.length && !payOpen.value && !receiptOpen.value) {
+      if (canPay.value && !payOpen.value && !receiptOpen.value) {
         payOpen.value = true
       }
     },

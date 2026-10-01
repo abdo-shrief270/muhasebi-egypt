@@ -21,11 +21,11 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
         Route::post('/', 'store')->middleware('throttle:10,1');
     });
 
-    Route::get('products/labels', [BarcodeController::class, 'variants'])->middleware('can:products.view');
+    Route::get('products/labels', [BarcodeController::class, 'variants'])->middleware(['can:products.view', 'feature:catalog.labels']);
     Route::post('products/barcodes', [BarcodeController::class, 'generate'])->middleware('can:products.manage');
 
     // products.manage (and products.view_cost to start from the cost) is checked by BulkPriceRequest.
-    Route::prefix('products/prices')->middleware('branch')->controller(PriceController::class)->group(function (): void {
+    Route::prefix('products/prices')->middleware(['branch', 'feature:catalog.bulk_prices'])->controller(PriceController::class)->group(function (): void {
         Route::post('preview', 'preview')->middleware('throttle:60,1');
         Route::post('/', 'apply')->middleware('throttle:20,1');
     });

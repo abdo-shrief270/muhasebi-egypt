@@ -18,6 +18,7 @@ use App\Modules\Services\Http\Resources\ServiceTransactionResource;
 use App\Modules\Services\Models\ServiceAccount;
 use App\Modules\Services\Models\ServiceTransaction;
 use App\Modules\Services\Support\DailyUsage;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Tenancy\CurrentBranch;
 use App\Support\Tenancy\CurrentTenant;
 use Carbon\CarbonImmutable;
@@ -29,6 +30,7 @@ final class ServiceAccountController
     public function __construct(
         private readonly CurrentTenant $tenant,
         private readonly CurrentBranch $branch,
+        private readonly FeatureAccess $features,
     ) {}
 
     /** The branch's accounts (active ones unless ?all=1), with today's use and the fee rules; and today's totals. */
@@ -39,6 +41,8 @@ final class ServiceAccountController
             ->with('feeRules')
             ->where('branch_id', $branchId)
             ->unless($request->boolean('all'), fn ($q) => $q->where('is_active', true))
+            // Airtime switched off by the owner: those lines aren't shown at the counter.
+            ->unless($this->features->enabled('services.airtime'), fn ($q) => $q->where('kind', AccountKind::Wallet->value))
             ->orderByDesc('is_active')
             // Wallets first: most of the counter's work.
             ->orderByRaw("kind = 'wallet' desc")
@@ -68,7 +72,7 @@ final class ServiceAccountController
             'label' => $k->label(),
             'providers' => array_map(fn (Provider $p) => ['value' => $p->value, 'label' => $p->label($k)], Provider::for($k)),
             'operations' => array_map(fn (OperationType $o) => ['value' => $o->value, 'label' => $o->label()], $k->operations()),
-        ], AccountKind::cases());
+        ], array_values(array_filter(AccountKind::cases(), fn (AccountKind $k) => $k !== AccountKind::Airtime || $this->features->enabled('services.airtime'))));
 
         return response()->json(['data' => [
             'kinds' => $kinds,
@@ -87,6 +91,9 @@ final class ServiceAccountController
 
     public function store(SaveAccountRequest $request, SaveAccountAction $action): JsonResponse
     {
+        if ($request->kind() === AccountKind::Airtime) {
+            $this->features->ensure('services.airtime');
+        }
         $account = $action->handle(
             $this->tenant->idOrFail(),
             $this->branch->idOrFail(),

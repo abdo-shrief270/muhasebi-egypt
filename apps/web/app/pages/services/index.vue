@@ -110,7 +110,7 @@
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2">
-              <UFormField :label="operation === 'topup' ? 'رقم الخط' : 'رقم محفظة العميل'">
+              <UFormField :label="operation === 'topup' ? 'رقم الخط' : 'رقم محفظة العميل'" :required="phoneRequired">
                 <UInput v-model="phone" type="tel" inputmode="tel" dir="ltr" class="w-full" placeholder="01xxxxxxxxx" />
               </UFormField>
               <UFormField label="اسم العميل">
@@ -308,7 +308,10 @@ const limitPassed = computed(() => {
   const a = account.value
   return !!a?.daily_limit && amountP.value > 0 && a.today_used + amountP.value > a.daily_limit
 })
-const canSave = computed(() => !!account.value && amountP.value > 0 && preview.value.balanceAfter >= 0 && !saving.value)
+// The owner's «رقم العميل إجباري».
+const phoneRequired = computed(() => store.hasFeature('services.require_customer_phone'))
+const canSave = computed(() => !!account.value && amountP.value > 0 && preview.value.balanceAfter >= 0 && !saving.value
+  && (!phoneRequired.value || phone.value.trim().length >= 10))
 
 function pickAccount(id: string) {
   accountId.value = id

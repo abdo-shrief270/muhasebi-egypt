@@ -14,7 +14,7 @@
           {{ formatMoney(totals.wallet) }}
         </p>
       </div>
-      <div class="app-card p-4">
+      <div v-if="store.hasFeature('services.airtime')" class="app-card p-4">
         <p class="text-sm text-(--ui-text-muted)">
           رصيد الشحن
         </p>

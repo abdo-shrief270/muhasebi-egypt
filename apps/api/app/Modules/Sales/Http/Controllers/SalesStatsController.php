@@ -6,6 +6,7 @@ namespace App\Modules\Sales\Http\Controllers;
 
 use App\Modules\Sales\Enums\PaymentMethod;
 use App\Modules\Services\Contracts\ServiceProfits;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Modules\ModuleAccess;
 use App\Support\Tenancy\CurrentTenant;
 use Carbon\CarbonImmutable;
@@ -22,10 +23,11 @@ final class SalesStatsController
 {
     private const TZ = 'Africa/Cairo';
 
-    public function __invoke(Request $request, CurrentTenant $tenant, ModuleAccess $modules): JsonResponse
+    public function __invoke(Request $request, CurrentTenant $tenant, ModuleAccess $modules, FeatureAccess $features): JsonResponse
     {
         $days = min(90, max(7, $request->integer('days', 14)));
-        $withProfit = (bool) $request->user()?->can('reports.profit');
+        // The owner's «المكسب في الرئيسية» switch hides profit from the home page for everyone (reports keep it).
+        $withProfit = (bool) $request->user()?->can('reports.profit') && $features->enabled('reports.home_profit');
         $tenantId = $tenant->idOrFail();
 
         $today = CarbonImmutable::now(self::TZ)->startOfDay();

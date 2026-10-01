@@ -11,7 +11,7 @@
           </UFormField>
         </div>
         <div v-if="canCredit" class="grid gap-4 sm:grid-cols-2">
-          <UFormField label="حد الآجل" hint="بالجنيه — فاضي = من غير حد">
+          <UFormField v-if="store.hasFeature('customers.credit_sales')" label="حد الآجل" hint="بالجنيه — فاضي = من غير حد">
             <UInput v-model="form.limit" type="number" min="0" step="any" inputmode="decimal" dir="ltr" class="w-full" />
           </UFormField>
           <UFormField v-if="!customer" label="عليه من قبل السيستم" hint="بالجنيه">
@@ -75,7 +75,9 @@ async function save() {
   try {
     const body: Record<string, unknown> = { name: form.name, phone: form.phone || null, notes: form.notes || null }
     if (canCredit.value) {
-      body.credit_limit = toPiasters(form.limit)
+      if (store.hasFeature('customers.credit_sales')) {
+        body.credit_limit = toPiasters(form.limit)
+      }
       if (!props.customer && form.opening) {
         body.opening_balance = toPiasters(form.opening)
       }

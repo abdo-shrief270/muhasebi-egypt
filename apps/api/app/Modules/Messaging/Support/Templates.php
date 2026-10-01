@@ -77,6 +77,17 @@ final class Templates
         ];
     }
 
+    /** The owner's switch a template belongs to (off = it isn't sent), if any. */
+    public static function feature(string $key): ?string
+    {
+        return match (true) {
+            str_starts_with($key, 'repair_') => 'repairs.status_whatsapp',
+            $key === 'sale_receipt' => 'sales.receipt_link',
+            $key === 'debt_reminder' => 'customers.debt_reminders',
+            default => null,
+        };
+    }
+
     public static function exists(string $key): bool
     {
         return isset(self::all()[$key]);

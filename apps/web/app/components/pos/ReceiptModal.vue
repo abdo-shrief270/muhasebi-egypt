@@ -13,9 +13,9 @@
       </div>
     </template>
     <template #footer>
-      <div class="grid w-full grid-cols-3 gap-2">
+      <div class="grid w-full gap-2" :class="canShare ? 'grid-cols-3' : 'grid-cols-2'">
         <UButton color="neutral" variant="outline" icon="i-lucide-printer" label="طباعة" class="justify-center" @click="print" />
-        <UButton color="neutral" variant="outline" icon="i-lucide-message-circle" label="WhatsApp" class="justify-center" :disabled="sale?.offline" @click="shareWhatsapp" />
+        <UButton v-if="canShare" color="neutral" variant="outline" icon="i-lucide-message-circle" label="WhatsApp" class="justify-center" :disabled="sale?.offline" @click="shareWhatsapp" />
         <UButton icon="i-lucide-plus" label="بيع جديد" class="justify-center" @click="open = false" />
       </div>
     </template>
@@ -41,6 +41,8 @@ const receipt = computed(() => props.sale ? receiptFromSale(props.sale, shop.val
 const qrUrl = computed(() => props.sale && !props.sale.offline && store.hasFeature('sales.receipt_link') ? receiptUrl(props.sale.public_token) : null)
 
 const messages = useMessages()
+// The receipt link + WhatsApp share are one owner switch («لينك وQR الفاتورة للعميل»).
+const canShare = computed(() => store.hasFeature('sales.receipt_link'))
 
 function shareWhatsapp() {
   if (!props.sale || props.sale.offline) {

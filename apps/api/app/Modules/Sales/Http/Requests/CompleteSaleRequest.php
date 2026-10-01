@@ -53,6 +53,8 @@ final class CompleteSaleRequest extends FormRequest
             // Queued on the POS while the internet was down: sold_at = when it was sold (device clock).
             'offline' => ['nullable', 'boolean'],
             'sold_at' => ['nullable', 'date'],
+            // The cashier saw the owner's "below cost" warning and goes on.
+            'confirm_below_cost' => ['nullable', 'boolean'],
         ];
     }
 

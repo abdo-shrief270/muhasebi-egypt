@@ -21,7 +21,7 @@
         v-model="term"
         size="sm"
         icon="i-lucide-user-search"
-        placeholder="العميل (اختياري) — دوّر بالاسم أو الموبايل"
+        :placeholder="store.hasFeature('sales.require_customer') ? 'العميل (مطلوب) — دوّر بالاسم أو الموبايل' : 'العميل (اختياري) — دوّر بالاسم أو الموبايل'"
         class="w-full"
         @keydown.esc="term = ''"
       />

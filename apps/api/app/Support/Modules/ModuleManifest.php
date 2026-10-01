@@ -24,6 +24,7 @@ final readonly class ModuleManifest
      * @param  list<string>|null  $trialFor  the shop types that get it on trial at registration, when only some of
      *                                       $shopTypes should (null = all of them)
      * @param  list<Feature>  $features  small switches the owner can turn on or off
+     * @param  string|null  $featuresIntro  one line above the module's switches on the «المميزات» page
      */
     public function __construct(
         public string $key,
@@ -39,6 +40,7 @@ final readonly class ModuleManifest
         public array $shopTypes = [],
         public ?array $trialFor = null,
         public array $features = [],
+        public ?string $featuresIntro = null,
     ) {}
 
     public function isOptional(): bool

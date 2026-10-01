@@ -19,7 +19,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'branch'])->prefix('inventory')->co
 });
 
 // Quick price check from anywhere in the app (scan or type).
-Route::middleware(['auth:sanctum', 'tenant', 'branch', 'can:products.view'])->get('inventory/price-check', PriceCheckController::class);
+Route::middleware(['auth:sanctum', 'tenant', 'branch', 'can:products.view', 'feature:inventory.price_check'])->get('inventory/price-check', PriceCheckController::class);
 
 // Find a unit by IMEI / serial (inventory.view, sales.sell or sales.refund — checked in the controller).
 Route::middleware(['auth:sanctum', 'tenant', 'branch'])->get('inventory/serials', SerialController::class);

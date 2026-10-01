@@ -79,6 +79,7 @@ import type { RepairFaultCategory } from '~/types/api'
 definePageMeta({ module: 'repairs', permission: 'repairs.settings' })
 
 const api = useApi()
+const store = useSessionStore()
 const toast = useToast()
 const { data, refresh } = await useAsyncData('fault-categories', () => api<{ data: RepairFaultCategory[] }>('/repairs/fault-categories'))
 const categories = computed(() => data.value?.data ?? [])
@@ -86,7 +87,10 @@ const categories = computed(() => data.value?.data ?? [])
 interface CommissionRow { user_id: string, name: string, type: 'none' | 'percent' | 'fixed', value: number | null, base: 'labor' | 'profit', input: string }
 const commissionTypes = [{ label: 'من غير عمولة', value: 'none' }, { label: 'نسبة', value: 'percent' }, { label: 'مبلغ للجهاز', value: 'fixed' }]
 const commissionBases = [{ label: 'من المصنعية', value: 'labor' }, { label: 'من المكسب', value: 'profit' }]
-const { data: commissionData } = await useAsyncData('repair-commissions', () => api<{ data: Omit<CommissionRow, 'input'>[] }>('/repairs/commissions'))
+// The owner's «عمولة الفنيين» switch: off, the section isn't there (and the API refuses it).
+const { data: commissionData } = await useAsyncData('repair-commissions', async () => store.hasFeature('repairs.commission')
+  ? await api<{ data: Omit<CommissionRow, 'input'>[] }>('/repairs/commissions')
+  : { data: [] })
 const commissions = ref<CommissionRow[]>([])
 watch(commissionData, (value) => {
   // Percent is kept in basis points (1500 = 15%), fixed in piasters: show both as people type them.

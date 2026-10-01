@@ -305,7 +305,7 @@ const moneyCards = computed(() => [
   ...(cash.value
     ? [
         { label: 'الكاش في الأدراج', value: cash.value.in_drawers, to: '/cash', icon: 'i-lucide-wallet', hint: `${cash.value.open_shifts.length} وردية مفتوحة` },
-        { label: 'مصروفات النهارده', value: cash.value.expenses_today, to: '/cash', icon: 'i-lucide-receipt', hint: null },
+        ...(store.hasFeature('cash.expenses') ? [{ label: 'مصروفات النهارده', value: cash.value.expenses_today, to: '/cash', icon: 'i-lucide-receipt', hint: null }] : []),
       ]
     : []),
   // Wallets / airtime profit, apart from the goods profit above (only with reports.profit and the module).

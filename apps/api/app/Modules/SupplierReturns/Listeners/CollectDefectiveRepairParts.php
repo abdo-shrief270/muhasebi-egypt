@@ -9,6 +9,7 @@ use App\Modules\SupplierReturns\Actions\AddToBinAction;
 use App\Modules\SupplierReturns\Contracts\ReturnReason;
 use App\Support\Events\DomainEvent;
 use App\Support\Events\ModuleListener;
+use App\Support\Modules\FeatureAccess;
 
 /** A repair part that turned out defective goes to the returns bin, with its source. */
 final class CollectDefectiveRepairParts extends ModuleListener
@@ -22,6 +23,10 @@ final class CollectDefectiveRepairParts extends ModuleListener
 
     protected function react(DomainEvent $event): void
     {
+        // The owner's «التالف يروح السلة لوحده» switch.
+        if (! app(FeatureAccess::class)->enabled('supplier_returns.auto_collect', $event->tenantId())) {
+            return;
+        }
         assert($event instanceof DefectivePartRemoved);
 
         $this->bin->fromDocument(

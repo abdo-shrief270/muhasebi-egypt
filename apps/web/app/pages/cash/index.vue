@@ -3,7 +3,7 @@
     <PageHeader title="الخزنة" :description="`ورديتك في فرع «${store.currentBranch?.name ?? ''}»: الكاش والفيزا والمصروفات لحد ما تقفل.`">
       <template v-if="shift">
         <UButton v-if="canExpense" color="neutral" variant="outline" icon="i-lucide-receipt" label="مصروف" @click="openMovement('expense')" />
-        <UDropdownMenu v-if="canManage" :items="moreItems">
+        <UDropdownMenu v-if="canManage && store.hasFeature('cash.deposits')" :items="moreItems">
           <UButton color="neutral" variant="outline" icon="i-lucide-arrow-left-right" label="إيداع / سحب" />
         </UDropdownMenu>
         <UButton icon="i-lucide-lock" label="قفل الوردية" @click="closeOpen = true" />
@@ -13,7 +13,16 @@
     <CashOpenShiftCard v-if="!shift && currentStatus !== 'pending'" @opened="refreshAll" />
 
     <template v-if="shift">
-      <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <!-- Blind close: the cashier counts at the close without being told what should be there. -->
+      <UAlert
+        v-if="shift.blind"
+        color="neutral"
+        variant="subtle"
+        icon="i-lucide-eye-off"
+        title="الوردية بتتقفل على العمياني"
+        description="مش هتشوف المفروض يكون في الدرج كام. وقت القفل اعد الكاش والفيزا والمحافظ واكتب اللي معاك بالظبط."
+      />
+      <div v-else class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div class="app-card col-span-2 p-4 lg:col-span-1">
           <p class="text-sm text-(--ui-text-muted)">
             الكاش في الدرج
@@ -123,7 +132,7 @@ definePageMeta({ permission: 'cash.shift' })
 const api = useApi()
 const store = useSessionStore()
 const canManage = computed(() => store.can('cash.manage'))
-const canExpense = computed(() => store.can('cash.expenses'))
+const canExpense = computed(() => store.can('cash.expenses') && store.hasFeature('cash.expenses'))
 const shopName = computed(() => store.session?.tenant.name ?? '')
 const branchKey = computed(() => store.session?.current_branch_id ?? '')
 

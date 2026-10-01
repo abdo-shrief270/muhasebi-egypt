@@ -150,7 +150,7 @@
           <UFormField label="ملاحظات" class="mt-4">
             <UTextarea v-model="form.notes" :rows="2" placeholder="خدش في الضهر، الشاشة متغيرة…" class="w-full" />
           </UFormField>
-          <UsedDevicesPhotoInput v-model="devicePhotos" class="mt-4" label="صور الجهاز" :max="options.max_device_photos" hint="اختياري: الوش والضهر وأي عيب." />
+          <UsedDevicesPhotoInput v-model="devicePhotos" class="mt-4" :label="photosRequired ? 'صور الجهاز (مطلوبة)' : 'صور الجهاز'" :max="options.max_device_photos" :hint="photosRequired ? 'صورة واحدة على الأقل: الوش والضهر وأي عيب.' : 'اختياري: الوش والضهر وأي عيب.'" />
         </UCard>
       </div>
 
@@ -186,7 +186,7 @@
           </div>
         </UCard>
         <UAlert v-if="error" color="error" variant="subtle" :title="error" :actions="needsShift ? [{ label: 'افتح وردية', to: '/cash' }] : []" />
-        <UButton type="submit" block size="xl" icon="i-lucide-check" label="اشتري واطبع الإقرار" :loading="saving" :disabled="!!imeiCheck?.in_stock || underAge" />
+        <UButton type="submit" block size="xl" icon="i-lucide-check" label="اشتري واطبع الإقرار" :loading="saving" :disabled="!!imeiCheck?.in_stock || underAge || (photosRequired && !devicePhotos.length)" />
       </div>
     </form>
 
@@ -242,6 +242,8 @@ const freeModel = ref(false)
 const idFront = ref<File[]>([])
 const idBack = ref<File[]>([])
 const devicePhotos = ref<File[]>([])
+// The owner's «صور الجهاز إجباري».
+const photosRequired = computed(() => store.hasFeature('used_devices.device_photos_required'))
 const tried = ref(false)
 
 // National ID: checked as it's typed; once valid, the API says whether this person sold here before.

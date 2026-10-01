@@ -18,6 +18,7 @@ use App\Modules\Cash\Http\Resources\CashShiftResource;
 use App\Modules\Cash\Models\CashMovement;
 use App\Modules\Cash\Models\CashShift;
 use App\Modules\Cash\Support\ShiftTotals;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Tenancy\CurrentBranch;
 use App\Support\Tenancy\CurrentTenant;
 use Carbon\CarbonImmutable;
@@ -83,8 +84,9 @@ final class CashController
         return (new CashShiftResource($action->handle($shift, $request->user() ?? abort(401), $request->counted(), $request->validated('note'))))->withDetail();
     }
 
-    public function movement(CashMovementRequest $request, RecordCashMovementAction $action): JsonResponse
+    public function movement(CashMovementRequest $request, RecordCashMovementAction $action, FeatureAccess $features): JsonResponse
     {
+        $features->ensure($request->validated('type') === MovementType::Expense->value ? 'cash.expenses' : 'cash.deposits');
         $movement = $action->handle(
             $this->branch->idOrFail(),
             $request->user() ?? abort(401),

@@ -38,6 +38,9 @@
               <UBadge v-if="s.is_open" color="primary" variant="subtle">
                 مفتوحة
               </UBadge>
+              <UBadge v-else-if="s.cash_difference === null" color="neutral" variant="subtle">
+                اتقفلت
+              </UBadge>
               <UBadge v-else-if="s.cash_difference === 0" color="success" variant="subtle" icon="i-lucide-check">
                 مظبوط
               </UBadge>

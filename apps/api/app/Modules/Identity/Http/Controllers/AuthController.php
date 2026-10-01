@@ -134,7 +134,9 @@ final class AuthController
             }
 
             foreach ($module->menu as $item) {
-                if ($item->ready && ($item->permission === null || in_array($item->permission, $granted, true))) {
+                if ($item->ready
+                    && ($item->permission === null || in_array($item->permission, $granted, true))
+                    && ($item->feature === null || $features->enabled($item->feature))) {
                     $menu[] = [...$item->toArray(), 'module' => $module->key];
                 }
             }
@@ -153,6 +155,8 @@ final class AuthController
                 'enabled_modules' => $access->enabledKeys(),
                 // The owner's switches: what the screens should offer.
                 'features' => $features->all(),
+                // The values set next to some switches (e.g. the return window in days).
+                'feature_settings' => $features->settings(),
                 'modules' => $modules,
                 'permissions' => $granted,
                 'menu' => $menu,

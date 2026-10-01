@@ -35,7 +35,7 @@
             </dd>
           </div>
         </dl>
-        <UFormField v-if="ticket.status === 'ready'" label="الضمان" hint="بالأيام — صفر = من غير ضمان">
+        <UFormField v-if="ticket.status === 'ready' && withWarranty" label="الضمان" hint="بالأيام — صفر = من غير ضمان">
           <div class="flex flex-wrap items-center gap-2">
             <UInput v-model="warranty" type="number" min="0" max="730" dir="ltr" class="w-24" />
             <UButton v-for="d in [0, 7, 14, 30, 90]" :key="d" size="xs" color="neutral" :variant="Number(warranty) === d ? 'soft' : 'outline'" :label="d ? `${d} يوم` : 'مفيش'" @click="warranty = String(d)" />
@@ -84,7 +84,9 @@ const error = ref<string | null>(null)
 const needsShift = ref(false)
 
 // آجل only for whoever may give credit (the customer always has an account on a ticket).
-const methods = computed(() => [...CASH_METHODS, ...(store.can('customers.credit') ? [{ value: 'credit', label: 'آجل' }] : [])])
+const methods = computed(() => [...CASH_METHODS, ...(store.can('customers.credit') && store.hasFeature('customers.credit_sales') ? [{ value: 'credit', label: 'آجل' }] : [])])
+// The owner's «الضمان على الصيانة»: off, devices go back without a warranty.
+const withWarranty = computed(() => store.hasFeature('repairs.warranty'))
 
 watch(open, (isOpen) => {
   if (isOpen) {
@@ -103,7 +105,7 @@ async function deliver(payments: { method: string, amount: number }[]) {
   try {
     const res = await api<{ data: RepairTicket }>(`/repairs/tickets/${props.ticket.id}/deliver`, {
       method: 'POST',
-      body: { payments, warranty_days: props.ticket.status === 'ready' ? Number(warranty.value) || 0 : 0 },
+      body: { payments, warranty_days: props.ticket.status === 'ready' && withWarranty.value ? Number(warranty.value) || 0 : 0 },
     })
     payOpen.value = false
     open.value = false

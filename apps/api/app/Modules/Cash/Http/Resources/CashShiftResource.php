@@ -6,6 +6,7 @@ namespace App\Modules\Cash\Http\Resources;
 
 use App\Modules\Cash\Models\CashShift;
 use App\Modules\Cash\Support\ShiftTotals;
+use App\Support\Modules\FeatureAccess;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,12 +25,22 @@ final class CashShiftResource extends JsonResource
         return $this;
     }
 
+    /** Blind close is on and the viewer is not someone who manages the cash. */
+    private function isBlindFor(Request $request): bool
+    {
+        $user = $request->user();
+
+        return ! (bool) $user?->can('cash.manage') && app(FeatureAccess::class)->enabled('cash.blind_close');
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        $totals = $this->isOpen() || $this->withDetail ? ShiftTotals::for($this->resource) : null;
+        // «قفل الوردية على العمياني»: the cashier counts without seeing what the drawer should hold.
+        $blind = $this->isBlindFor($request);
+        $totals = ! $blind && ($this->isOpen() || $this->withDetail) ? ShiftTotals::for($this->resource) : null;
 
         return [
             'id' => $this->id,
@@ -44,11 +55,12 @@ final class CashShiftResource extends JsonResource
             'closed_by_name' => $this->closed_by_name,
             'is_open' => $this->isOpen(),
             // Live while open; frozen at close.
-            'expected' => $this->expected ?? $totals['expected'] ?? null,
+            'expected' => $blind ? null : $this->expected ?? $totals['expected'] ?? null,
             'counted' => $this->counted,
-            'cash_difference' => $this->cash_difference,
+            'cash_difference' => $blind ? null : $this->cash_difference,
+            'blind' => $blind,
             'note' => $this->note,
-            'by_type' => $this->when($totals !== null, fn () => $totals['by_type'] ?? []),
+            'by_type' => $this->when($totals !== null || $blind, fn () => $totals['by_type'] ?? []),
             'movements' => $this->when($this->withDetail, fn () => CashMovementResource::collection(
                 $this->movements()->orderByDesc('seq')->limit(500)->get(),
             )),

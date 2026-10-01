@@ -114,6 +114,7 @@ export interface Session {
   enabled_modules: string[]
   /** feature switch key → on */
   features: Record<string, boolean>
+  feature_settings?: Record<string, number | string>
   permissions: string[]
   modules: { key: string, state: ModuleState, usable: boolean }[]
   menu: MenuEntry[]
@@ -635,6 +636,8 @@ export interface CashShift {
   expected: Record<CashMethod, number> | null
   counted: Record<CashMethod, number> | null
   cash_difference: number | null
+  /** «قفل الوردية على العمياني»: expected / difference hidden from this viewer */
+  blind?: boolean
   note: string | null
   by_type?: { type: string, label: string, method: CashMethod, amount: number, count: number }[]
   movements?: CashMovement[]

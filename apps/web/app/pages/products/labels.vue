@@ -127,7 +127,7 @@
 <script setup lang="ts">
 import type { LabelSize, LabelVariant } from '~/components/ProductLabel.vue'
 
-definePageMeta({ permission: 'products.view' })
+definePageMeta({ permission: 'products.view', feature: 'catalog.labels' })
 
 const api = useApi()
 const route = useRoute()

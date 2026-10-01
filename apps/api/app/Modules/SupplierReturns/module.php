@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\SupplierReturns\SupplierReturnsServiceProvider;
+use App\Support\Modules\Feature;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -20,5 +21,9 @@ return new ModuleManifest(
     ],
     provider: SupplierReturnsServiceProvider::class,
     shopTypes: ['repair', 'wholesale', 'importer'],
+    features: [
+        new Feature('supplier_returns.auto_collect', 'التالف يروح السلة لوحده', 'القطعة التالفة من مرتجع عميل أو قطعة صيانة بايظة تنزل سلة المرتجعات تلقائي. لو قفلته بتطلّعها من المخزون بإيدك.'),
+    ],
+    featuresIntro: 'سلة المرتجعات وأذونات الموردين.',
     sort: 220,
 );

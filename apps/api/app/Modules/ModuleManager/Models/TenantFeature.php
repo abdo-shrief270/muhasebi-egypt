@@ -13,9 +13,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $tenant_id
  * @property string $feature_key
  * @property bool $enabled
+ * @property string|null $value
  * @property string|null $updated_by_name
  */
-#[Fillable(['tenant_id', 'feature_key', 'enabled', 'updated_by_name'])]
+#[Fillable(['tenant_id', 'feature_key', 'enabled', 'value', 'updated_by_name'])]
 final class TenantFeature extends Model
 {
     use BelongsToTenant;

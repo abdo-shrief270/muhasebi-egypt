@@ -176,7 +176,7 @@
 <script setup lang="ts">
 import type { Brand, Category } from '~/types/api'
 
-definePageMeta({ permission: 'products.manage' })
+definePageMeta({ permission: 'products.manage', feature: 'catalog.bulk_prices' })
 
 interface PreviewRow {
   variant_id: string

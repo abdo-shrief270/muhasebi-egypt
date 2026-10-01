@@ -11,6 +11,8 @@ export interface MessageTemplate {
   default_body: string
   customized: boolean
   updated_by_name: string | null
+  /** The owner's switch this message belongs to (off = it isn't offered anywhere) */
+  feature?: string | null
 }
 
 type Vars = Record<string, string | null | undefined>

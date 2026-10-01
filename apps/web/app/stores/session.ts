@@ -19,6 +19,11 @@ export const useSessionStore = defineStore('session', () => {
     return session.value?.features?.[key] ?? false
   }
 
+  /** The value set next to a switch (e.g. the return window in days); null when it has none or is off. */
+  function featureSetting<T extends number | string = number | string>(key: string): T | null {
+    return hasFeature(key) ? (session.value?.feature_settings?.[key] as T | undefined) ?? null : null
+  }
+
   function can(permission: string): boolean {
     return session.value?.permissions.includes(permission) ?? false
   }
@@ -88,5 +93,5 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
-  return { session, isLoggedIn, isOwner, menu, currentBranch, hasModule, hasFeature, can, switchBranch, load, login, completeTwoFactor, register, logout }
+  return { session, isLoggedIn, isOwner, menu, currentBranch, hasModule, hasFeature, featureSetting, can, switchBranch, load, login, completeTwoFactor, register, logout }
 })

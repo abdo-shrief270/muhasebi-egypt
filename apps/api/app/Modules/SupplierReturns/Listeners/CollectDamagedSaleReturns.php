@@ -9,6 +9,7 @@ use App\Modules\SupplierReturns\Actions\AddToBinAction;
 use App\Modules\SupplierReturns\Contracts\ReturnReason;
 use App\Support\Events\DomainEvent;
 use App\Support\Events\ModuleListener;
+use App\Support\Modules\FeatureAccess;
 
 /** Units a customer brought back damaged (not restocked) go to the returns bin, with their source. */
 final class CollectDamagedSaleReturns extends ModuleListener
@@ -27,6 +28,10 @@ final class CollectDamagedSaleReturns extends ModuleListener
 
     protected function react(DomainEvent $event): void
     {
+        // The owner's «التالف يروح السلة لوحده» switch.
+        if (! app(FeatureAccess::class)->enabled('supplier_returns.auto_collect', $event->tenantId())) {
+            return;
+        }
         assert($event instanceof SaleRefunded);
 
         foreach ($event->damaged as $line) {

@@ -58,7 +58,7 @@ class FeatureSwitchesTest extends TestCase
     public function test_discounts_and_selling_beyond_stock(): void
     {
         $this->switch('sales.discounts', false);
-        $this->sell([['method' => 'cash', 'amount' => 40000]], ['discount' => 5000])->assertForbidden()->assertJsonPath('code', 'discount_not_allowed');
+        $this->sell([['method' => 'cash', 'amount' => 40000]], ['discount' => 5000])->assertForbidden()->assertJsonPath('code', 'feature_disabled');
         $this->sell([['method' => 'cash', 'amount' => 45000]])->assertCreated();
 
         // 20 chargers in stock, one sold.

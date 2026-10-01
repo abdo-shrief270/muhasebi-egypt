@@ -9,6 +9,7 @@ use App\Modules\Reports\Support\Labels;
 use App\Modules\Reports\Support\Report;
 use App\Modules\Reports\Support\ReportQuery;
 use App\Modules\Reports\Support\ReportResult;
+use App\Support\Modules\FeatureAccess;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -22,6 +23,12 @@ final class RepairsReport implements Report
     public function key(): string
     {
         return 'repairs';
+    }
+
+    /** The owner's «عمولة الفنيين» switch: off = no commission anywhere. */
+    private static function commissions(ReportQuery $query): bool
+    {
+        return app(FeatureAccess::class)->enabled('repairs.commission', $query->tenantId);
     }
 
     public function title(): string
@@ -85,7 +92,7 @@ final class RepairsReport implements Report
         if ($query->withProfit) {
             array_splice($summary, 3, 0, [
                 ['label' => 'المكسب (بعد القطع)', 'value' => (int) $totals->profit, 'type' => 'money'],
-                ['label' => 'عمولات الفنيين', 'value' => (int) $totals->commission, 'type' => 'money'],
+                ...(self::commissions($query) ? [['label' => 'عمولات الفنيين', 'value' => (int) $totals->commission, 'type' => 'money']] : []),
             ]);
         }
         $summary = array_map(fn ($s) => array_filter($s, fn ($v) => $v !== null), $summary);
@@ -152,7 +159,10 @@ final class RepairsReport implements Report
             new Column('revenue', 'الإجمالي', 'money'),
         ];
         if ($query->withProfit) {
-            array_push($columns, new Column('profit', 'المكسب', 'money'), new Column('margin', 'الهامش', 'percent'), new Column('commission', 'العمولة', 'money'));
+            array_push($columns, new Column('profit', 'المكسب', 'money'), new Column('margin', 'الهامش', 'percent'));
+            if (self::commissions($query)) {
+                $columns[] = new Column('commission', 'العمولة', 'money');
+            }
         }
         $columns[] = new Column('days', 'متوسط المدة', 'text');
 

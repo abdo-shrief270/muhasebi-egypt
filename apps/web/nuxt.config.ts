@@ -24,11 +24,9 @@ export default defineNuxtConfig({
       title: 'محاسبي',
       // viewport-fit=cover: the installed app draws under the notch / home bar (safe-area insets in main.css).
       viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
-      // Installable app (public/site.webmanifest). theme-color = the top bar (--ui-bg), light and dark;
-      // plugins/pwa.client.ts follows the theme the user picked in the app. Bump ?v= when the icons change.
+      // Installable app (public/site.webmanifest). The theme-color metas (light / dark, or the theme picked
+      // in the app) come from plugins/pwa.client.ts. Bump ?v= when the icons change.
       meta: [
-        { name: 'theme-color', media: '(prefers-color-scheme: light)', content: '#FFFFFF' },
-        { name: 'theme-color', media: '(prefers-color-scheme: dark)', content: '#111927' },
         { name: 'application-name', content: 'محاسبي' },
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },

@@ -96,15 +96,17 @@ export default defineNuxtPlugin(() => {
   }, true)
 
   // --- Title bar / status bar colour = the top bar ------------------------------------------
-  const syncThemeColor = () => nextTick(() => {
-    const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
-    const current = getComputedStyle(document.documentElement).getPropertyValue('--ui-bg').trim()
-    metas.forEach((meta) => {
-      meta.dataset.original ??= meta.content
-      meta.content = colorMode.preference === 'system' || !current ? meta.dataset.original : current
-    })
+  // Light / dark by the device, or the theme picked in the app (the first matching meta wins).
+  const THEME = { light: '#FFFFFF', dark: '#111927' } // --ui-bg in main.css
+  useHead({
+    meta: computed(() => {
+      const picked = colorMode.preference === 'dark' || colorMode.preference === 'light' ? THEME[colorMode.preference] : null
+      return [
+        { key: 'theme-light', name: 'theme-color', media: '(prefers-color-scheme: light)', content: picked ?? THEME.light },
+        { key: 'theme-dark', name: 'theme-color', media: '(prefers-color-scheme: dark)', content: picked ?? THEME.dark },
+      ]
+    }),
   })
-  watch(() => [colorMode.preference, colorMode.value], syncThemeColor, { immediate: true })
 
   // --- Service worker: offline shell + updates ----------------------------------------------
   if (import.meta.dev || !('serviceWorker' in navigator)) {

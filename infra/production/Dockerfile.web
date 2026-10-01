@@ -30,7 +30,11 @@ RUN npm ci --no-audit --no-fund --ignore-scripts
 COPY apps/site/ ./
 ARG SITE_URL=https://muhasebi.com
 ARG APP_URL=https://app.muhasebi.com
-ENV NUXT_PUBLIC_SITE_URL=$SITE_URL NUXT_PUBLIC_APP_URL=$APP_URL NUXT_PUBLIC_API_BASE=/api/v1
+# Search Console / Bing Webmaster "HTML tag" codes (only the content="…" value); empty = no tag.
+ARG GOOGLE_SITE_VERIFICATION=
+ARG BING_SITE_VERIFICATION=
+ENV NUXT_PUBLIC_SITE_URL=$SITE_URL NUXT_PUBLIC_APP_URL=$APP_URL NUXT_PUBLIC_API_BASE=/api/v1 \
+    NUXT_PUBLIC_GOOGLE_VERIFICATION=$GOOGLE_SITE_VERIFICATION NUXT_PUBLIC_BING_VERIFICATION=$BING_SITE_VERIFICATION
 RUN npx nuxi prepare && npx nuxi generate
 
 FROM caddy:2-alpine

@@ -221,12 +221,33 @@ const links = useAppLinks()
 const active = ref(showcases[0]!.key)
 const faqItems = faqs.map(f => ({ label: f.q, content: f.a }))
 
-useSeoMeta({
-  title: 'برنامج حسابات ومخزون وصيانة لمحلات الموبايلات',
-  titleTemplate: 'محاسبي | %s',
-  description: 'محاسبي: كاشير بالباركود وIMEI، مخزون وجرد، صيانة بتذاكر ورسايل واتساب، آجل العملاء والموردين، وتقارير المكسب. بيشتغل من غير نت. جرّب 14 يوم ببلاش.',
-  ogTitle: 'محاسبي — برنامج محلات الموبايلات',
-  ogDescription: 'الكاشير والمخزون والصيانة والآجل والتقارير في برنامج واحد، وبيشتغل من غير نت.',
-  ogImage: '/og.png',
+const { siteUrl, appUrl } = useSiteUrls()
+usePageSeo({
+  title: 'محاسبي | برنامج حسابات ومخزون وصيانة لمحلات الموبايلات',
+  description: 'محاسبي: برنامج كاشير بالباركود وIMEI، مخزون وجرد، صيانة بتذاكر ورسايل واتساب، آجل العملاء والموردين، شحن وتحويلات ومستعمل، وتقارير المكسب لمحلات الموبايلات في مصر. بيشتغل من غير نت. جرّب 14 يوم ببلاش.',
+  path: '/',
+  jsonLd: [
+    {
+      '@type': 'SoftwareApplication',
+      'name': 'محاسبي',
+      'alternateName': 'Muhasebi',
+      'applicationCategory': 'BusinessApplication',
+      'applicationSubCategory': 'Point of Sale',
+      'operatingSystem': 'Web, Android, iOS, Windows, macOS',
+      'inLanguage': 'ar-EG',
+      'url': siteUrl,
+      'installUrl': `${appUrl}/register`,
+      'image': `${siteUrl}/og.png`,
+      'screenshot': [`${siteUrl}/screens/dashboard.webp`, `${siteUrl}/screens/pos.webp`, `${siteUrl}/screens/repairs.webp`],
+      'description': 'برنامج حسابات ومخزون وصيانة لمحلات الموبايلات والإكسسوارات في مصر: كاشير بالباركود وIMEI، صيانة، آجل، شحن وتحويلات، مستعمل، وتقارير، وبيشتغل من غير نت.',
+      'featureList': features.map(f => f.title).join('، '),
+      'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'EGP', 'description': 'تجربة 14 يوم ببلاش، وبعدها اشتراك شهري أو سنوي', 'url': `${siteUrl}/pricing` },
+      'publisher': { '@id': `${siteUrl}/#org` },
+    },
+    {
+      '@type': 'FAQPage',
+      'mainEntity': faqs.map(f => ({ '@type': 'Question', 'name': f.q, 'acceptedAnswer': { '@type': 'Answer', 'text': f.a } })),
+    },
+  ],
 })
 </script>

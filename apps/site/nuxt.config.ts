@@ -9,7 +9,6 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'ar', dir: 'rtl' },
-      titleTemplate: '%s · محاسبي',
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'theme-color', content: '#0D9488' },
@@ -19,6 +18,9 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/icon-192.png' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/site.webmanifest' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap' },
@@ -51,6 +53,9 @@ export default defineNuxtConfig({
       appUrl: 'https://app.muhasebi.com',
       // This site's own address (sitemap, robots). NUXT_PUBLIC_SITE_URL at build time.
       siteUrl: 'https://muhasebi.com',
+      // Search Console / Bing Webmaster verification codes (NUXT_PUBLIC_GOOGLE_VERIFICATION, …) at build time.
+      googleVerification: '',
+      bingVerification: '',
       // Same-origin API on the website's domain (Caddy proxies /api/v1/public/plans).
       apiBase: '/api/v1',
     },
@@ -59,7 +64,7 @@ export default defineNuxtConfig({
   nitro: {
     prerender: {
       crawlLinks: true,
-      routes: ['/', '/pricing', '/docs', '/sitemap.xml', '/robots.txt'],
+      routes: ['/', '/pricing', '/docs', '/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-full.txt'],
     },
     // Dev only: the API on its own port.
     devProxy: { '/api': { target: 'http://localhost:8000/api', changeOrigin: true } },

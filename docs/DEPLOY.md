@@ -187,6 +187,12 @@ ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده 
 
 **الموقع التعريفي (muhasebi.com):** اعمل A record للدومين الأساسي (`@`) ولـ `www` على IP السيرفر (بدل صفحة الـ parking لو موجودة)، وبعدين `cd infra/production && ./setup-landing.sh` — بيسأل على الدومين، يتأكد من الـ DNS، يكتب `LANDING_DOMAIN` و`LANDING_SITE_ADDRESS` في `.env`، يضيف موقع nginx + شهادة certbot لو السيرفر عليه nginx، ينشر، ويتأكد إن الصفحة والأسعار شغالين. الموقع صفحات ثابتة (`apps/site`) والأسعار بتيجي من `/api/v1/public/plans` فبتتحدث لوحدها مع `config/billing.php`.
 
+**الظهور على جوجل:** الموقع جاهز للأرشفة (عنوان ووصف وcanonical لكل صفحة، بيانات schema.org، `sitemap.xml` بالصور، `robots.txt`، و`llms.txt` / `llms-full.txt` لمساعدات الذكاء الاصطناعي، والأسعار مكتوبة في الـ HTML وقت البناء). خطوة واحدة عليك:
+1. ادخل [Google Search Console](https://search.google.com/search-console) → Add property → **URL prefix** `https://muhasebi.com` → طريقة **HTML tag** → انسخ قيمة `content="…"` بس.
+2. حطها في `.env` كـ `GOOGLE_SITE_VERIFICATION=...` و`./deploy.sh`، وبعدين Verify.
+3. من Sitemaps ابعت `sitemap.xml`، ومن URL Inspection اطلب Indexing للصفحة الرئيسية و`/pricing`.
+4. (اختياري) [Bing Webmaster](https://www.bing.com/webmasters) نفس الكلام بـ `BING_SITE_VERIFICATION` (أو Import من Search Console).
+
 **أسهل طريقة:** `cd infra/production && ./setup-admin.sh` — بيسألك على دومين الإدارة والـ IPs المسموحة وبيانات InstaPay وإيميلك وكلمة السر، وبعدين يعمل كل اللي تحت لوحده (‏`.env`، موقع nginx + شهادة certbot لو السيرفر عليه nginx، النشر، حساب الإدارة، وربط تطبيق Authenticator) ويتأكد إن اللوحة شغالة. ينفع تشغّله تاني لتغيير أي حاجة.
 
 **لوحة الإدارة (دومين لوحدها):** اعمل DNS لدومين تاني (مثلاً `admin.example.com`) على نفس السيرفر، وحطه في `.env` كـ `ADMIN_DOMAIN`، واختياري `ADMIN_ALLOWED_IPS` (IPs أو نطاقات مفصولة بفاصلة) عشان محدش غيرك يوصل لها، وبعدين `./deploy.sh`. Caddy بيطلع لها شهادة HTTPS لوحده (ولو السيرفر عليه nginx: فيه `server` تاني للدومين ده في `nginx-site.conf` + `certbot --nginx -d admin.example.com`). الـ API بتاع الإدارة مش بيرد غير على الدومين ده؛ على دومين المحلات بيرجّع 404. الدخول: 5 محاولات غلط بتقفل 15 دقيقة، والجلسة بتخلص بعد `ADMIN_TOKEN_HOURS` (8 ساعات)، وكل حاجة بتتسجل في «سجل الإدارة».

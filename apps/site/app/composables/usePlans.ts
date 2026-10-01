@@ -4,15 +4,28 @@ export interface Plans { trial_days: number, yearly_months: number, vat_percent:
 
 /**
  * The live plans and prices from the API (config/billing.php), so the site never shows a stale price.
- * Fetched in the browser: the static build has no API to ask.
+ * At build time (prerender) they're fetched from the app's API so the prices are in the static HTML
+ * that search engines read; the browser then asks again on the site's own domain for today's prices.
  */
 export function usePlans() {
-  const apiBase = useRuntimeConfig().public.apiBase
-  return useFetch<{ data: Plans }>(`${apiBase}/public/plans`, {
-    key: 'plans',
-    server: false,
-    transform: r => r,
+  const { apiBase, appUrl } = useRuntimeConfig().public
+  const built = useNuxtData<{ data: Plans } | null>('plans').data
+  const result = useAsyncData<{ data: Plans } | null>('plans', () => {
+    if (import.meta.server) {
+      // No API during a build is fine: the page then fills in the browser.
+      return $fetch<{ data: Plans }>(`${appUrl.replace(/\/$/, '')}/api/v1/public/plans`, { timeout: 5000 }).catch(() => null)
+    }
+    // A failed refresh keeps the prices from the build rather than blanking the page.
+    const previous = built.value
+    return $fetch<{ data: Plans }>(`${apiBase}/public/plans`).catch((e) => {
+      if (previous) return previous
+      throw e
+    })
   })
+  if (import.meta.client) {
+    onMounted(() => result.refresh())
+  }
+  return result
 }
 
 /** Piasters → "449" / "4,490" (Latin digits, no decimals when whole). */

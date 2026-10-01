@@ -2,5 +2,14 @@
 export default defineEventHandler((event) => {
   const site = useRuntimeConfig().public.siteUrl.replace(/\/$/, '')
   setHeader(event, 'content-type', 'text/plain; charset=utf-8')
-  return `User-agent: *\nAllow: /\n\nSitemap: ${site}/sitemap.xml\n`
+  return [
+    'User-agent: *',
+    'Allow: /',
+    'Disallow: /api/',
+    '',
+    `Sitemap: ${site}/sitemap.xml`,
+    '',
+    `# A plain-text summary for AI assistants: ${site}/llms.txt (full guide: ${site}/llms-full.txt)`,
+    '',
+  ].join('\n')
 })

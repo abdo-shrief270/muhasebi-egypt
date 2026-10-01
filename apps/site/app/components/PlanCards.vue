@@ -17,10 +17,10 @@
       </div>
     </div>
 
-    <div v-if="pending || !data" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <UAlert v-if="error && !data" color="warning" variant="subtle" title="مقدرناش نجيب الأسعار دلوقتي" description="جرّب تحدّث الصفحة بعد شوية." />
+    <div v-else-if="!data" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <USkeleton v-for="i in 4" :key="i" class="h-96 rounded-2xl" />
     </div>
-    <UAlert v-else-if="error" color="warning" variant="subtle" title="مقدرناش نجيب الأسعار دلوقتي" description="جرّب تحدّث الصفحة بعد شوية." />
     <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div
         v-for="plan in data.data.plans"
@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 const links = useAppLinks()
-const { data, pending, error } = usePlans()
+const { data, error } = usePlans()
 const cycle = ref<'monthly' | 'yearly'>('monthly')
 const cycles = computed(() => {
   const free = 12 - (data.value?.data.yearly_months ?? 12)

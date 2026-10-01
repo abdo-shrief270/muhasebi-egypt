@@ -110,9 +110,25 @@ onMounted(() => {
   wide.value = window.matchMedia('(min-width: 1024px)').matches
 })
 
-useSeoMeta({
-  title: () => page.value.title,
-  description: () => page.value.summary,
-  ogImage: '/og.png',
+const { siteUrl } = useSiteUrls()
+const firstImage = page.value.blocks.find(b => b.t === 'img') as { src: string } | undefined
+usePageSeo({
+  title: `${page.value.title} — شرح محاسبي`,
+  description: page.value.summary,
+  path: `/docs/${page.value.slug}`,
+  type: 'article',
+  jsonLd: [
+    breadcrumbs([{ name: 'شرح البرنامج', path: '/docs' }, { name: page.value.title, path: `/docs/${page.value.slug}` }]),
+    {
+      '@type': 'TechArticle',
+      'headline': page.value.title,
+      'description': page.value.summary,
+      'inLanguage': 'ar-EG',
+      'url': `${siteUrl}/docs/${page.value.slug}`,
+      'image': firstImage ? `${siteUrl}${firstImage.src}` : `${siteUrl}/og.png`,
+      'about': { '@type': 'SoftwareApplication', 'name': 'محاسبي' },
+      'publisher': { '@id': `${siteUrl}/#org` },
+    },
+  ],
 })
 </script>

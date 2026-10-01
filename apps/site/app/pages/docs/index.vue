@@ -39,9 +39,10 @@
 <script setup lang="ts">
 import { docGroups, docs } from '~/data/docs'
 
-useSeoMeta({
-  title: 'شرح البرنامج',
-  description: 'شرح محاسبي خطوة بخطوة: الكاشير، البيع من غير نت، المخزون وIMEI، الصيانة، الآجل، الخزنة، التقارير والاشتراك.',
-  ogImage: '/og.png',
+usePageSeo({
+  title: 'شرح برنامج محاسبي خطوة بخطوة',
+  description: 'شرح محاسبي بالصور: الكاشير، البيع من غير نت، المخزون وIMEI، الصيانة، الآجل، الخزنة، الشحن والتحويلات، المستعمل، مرتجعات الموردين، التقارير والاشتراك.',
+  path: '/docs',
+  jsonLd: [breadcrumbs([{ name: 'شرح البرنامج', path: '/docs' }])],
 })
 </script>

@@ -186,7 +186,7 @@
           </div>
         </UCard>
         <UAlert v-if="error" color="error" variant="subtle" :title="error" :actions="needsShift ? [{ label: 'افتح وردية', to: '/cash' }] : []" />
-        <UButton type="submit" block size="xl" icon="i-lucide-check" label="اشتري واطبع الإقرار" :loading="saving" :disabled="imeiCheck?.in_stock || (parsedId && parsedId.age < 18)" />
+        <UButton type="submit" block size="xl" icon="i-lucide-check" label="اشتري واطبع الإقرار" :loading="saving" :disabled="!!imeiCheck?.in_stock || underAge" />
       </div>
     </form>
 
@@ -246,6 +246,7 @@ const tried = ref(false)
 
 // National ID: checked as it's typed; once valid, the API says whether this person sold here before.
 const parsedId = computed(() => latinDigits(form.national_id).length >= 14 ? parseNationalId(form.national_id) : null)
+const underAge = computed(() => !!parsedId.value?.valid && parsedId.value.age < 18)
 const nationalIdError = computed(() => parsedId.value && !parsedId.value.valid ? parsedId.value.error : (tried.value && !parsedId.value ? 'اكتب الرقم القومي (14 رقم).' : null))
 const idCheck = ref<NationalIdCheck | null>(null)
 watch(() => parsedId.value?.valid ? latinDigits(form.national_id) : null, async (nid) => {

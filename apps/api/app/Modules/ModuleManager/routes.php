@@ -15,4 +15,6 @@ Route::middleware(['auth:sanctum', 'tenant'])->prefix('modules')->group(function
 Route::middleware(['auth:sanctum', 'tenant', 'can:owner'])->prefix('features')->group(function (): void {
     Route::get('/', [FeatureController::class, 'index']);
     Route::put('{key}', [FeatureController::class, 'update'])->where('key', '[a-z_]+\\.[a-z_]+');
+    Route::delete('{key}', [FeatureController::class, 'reset'])->where('key', '[a-z_]+\\.[a-z_]+');
+    Route::delete('modules/{module}', [FeatureController::class, 'resetModule'])->where('module', '[a-z_]+');
 });

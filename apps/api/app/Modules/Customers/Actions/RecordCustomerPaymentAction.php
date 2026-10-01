@@ -29,14 +29,14 @@ final class RecordCustomerPaymentAction
         private readonly Auditor $audit,
     ) {}
 
-    public function handle(string $tenantId, string $branchId, Customer $customer, int $amount, PaymentMethod $method, ?string $note): CustomerTransaction
+    public function handle(string $tenantId, string $branchId, Customer $customer, int $amount, PaymentMethod $method, ?string $note, ?string $source = null): CustomerTransaction
     {
-        return DB::transaction(function () use ($tenantId, $branchId, $customer, $amount, $method, $note): CustomerTransaction {
+        return DB::transaction(function () use ($tenantId, $branchId, $customer, $amount, $method, $note, $source): CustomerTransaction {
             $locked = $this->ledger->lock($customer->id) ?? $customer;
             $transaction = $this->ledger->post($locked, CustomerTransactionType::Payment, -$amount, $branchId, method: $method, note: $note);
 
             $this->drawer->record($branchId, DrawerEntry::CustomerPayment, $method->value, $amount, 'customer_transaction', $transaction->id, "تحصيل من {$locked->name}");
-            $this->events->record(new CustomerPaid($tenantId, $locked->id, $branchId, $amount, $method->value));
+            $this->events->record(new CustomerPaid($tenantId, $locked->id, $branchId, $amount, $method->value, $source));
             $this->audit->record(
                 'customers.paid',
                 "حصّل من العميل «{$locked->name}» ".number_format($amount / 100, 2)." ج ({$method->label()})",

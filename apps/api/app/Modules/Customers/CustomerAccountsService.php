@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Customers;
 
+use App\Modules\Customers\Actions\RecordCustomerPaymentAction;
 use App\Modules\Customers\Contracts\CustomerAccounts;
 use App\Modules\Customers\Contracts\CustomerSummary;
 use App\Modules\Customers\Enums\CustomerTransactionType;
+use App\Modules\Customers\Enums\PaymentMethod;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Support\CustomerLedger;
 use App\Support\Exceptions\DomainRuleException;
@@ -20,6 +22,7 @@ final class CustomerAccountsService implements CustomerAccounts
         private readonly CustomerLedger $ledger,
         private readonly CurrentTenant $tenant,
         private readonly Auth $auth,
+        private readonly RecordCustomerPaymentAction $payments,
     ) {}
 
     public function find(string $customerId): ?CustomerSummary
@@ -78,6 +81,20 @@ final class CustomerAccountsService implements CustomerAccounts
         $customer = $this->ledger->lock($customerId) ?? throw new DomainRuleException('العميل مش موجود.', 'customer_not_found', 404);
 
         $this->ledger->post($customer, CustomerTransactionType::SaleReturn, -$amount, $branchId, 'sale_return', $returnId, $reference);
+    }
+
+    public function chargeInstallmentMarkup(string $customerId, int $amount, string $planId, string $reference, string $branchId): void
+    {
+        $customer = $this->ledger->lock($customerId) ?? throw new DomainRuleException('العميل مش موجود.', 'customer_not_found', 404);
+
+        $this->ledger->post($customer, CustomerTransactionType::InstallmentMarkup, $amount, $branchId, 'installment_plan', $planId, $reference);
+    }
+
+    public function collect(string $customerId, int $amount, string $method, string $branchId, ?string $note = null, ?string $source = null): string
+    {
+        $customer = Customer::query()->find($customerId) ?? throw new DomainRuleException('العميل مش موجود.', 'customer_not_found', 404);
+
+        return $this->payments->handle($this->tenant->idOrFail(), $branchId, $customer, $amount, PaymentMethod::from($method), $note, $source)->id;
     }
 
     public function touch(string $customerId): void

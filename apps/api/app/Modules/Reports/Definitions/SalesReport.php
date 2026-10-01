@@ -140,6 +140,11 @@ final class SalesReport implements Report
                 ->whereIn('branch_id', $query->branchIds())
                 ->whereIn('resolution', ['credit', 'refund'])
                 ->sum('accepted_value');
+            // Installment markup (فوايد) is income too: counted when the plan is made, like a credit sale.
+            $markup = (int) $query->inPeriod(DB::table('installment_plans'), 'created_at')
+                ->where('tenant_id', $query->tenantId)
+                ->whereIn('branch_id', $query->branchIds())
+                ->sum('markup');
             $totals['margin'] = Labels::margin($totals['profit'], $totals['net']);
             array_push(
                 $summary,
@@ -149,9 +154,14 @@ final class SalesReport implements Report
             if ($compensation > 0) {
                 $summary[] = ['label' => 'تعويض مرتجعات الموردين', 'value' => $compensation, 'type' => 'money', 'hint' => 'فلوس أو رصيد رجعلك عن التالف'];
             }
-            $summary[] = ['label' => 'صافي الربح', 'value' => $totals['profit'] - $expenses + $compensation, 'type' => 'money', 'hint' => $compensation > 0 ? 'مجمل الربح ناقص المصروفات زائد تعويض المرتجعات' : 'مجمل الربح ناقص المصروفات'];
+            if ($markup > 0) {
+                $summary[] = ['label' => 'فوايد التقسيط', 'value' => $markup, 'type' => 'money', 'hint' => 'على خطط التقسيط اللي اتعملت في الفترة'];
+            }
+            $extras = array_filter([$compensation > 0 ? 'تعويض المرتجعات' : null, $markup > 0 ? 'فوايد التقسيط' : null]);
+            $summary[] = ['label' => 'صافي الربح', 'value' => $totals['profit'] - $expenses + $compensation + $markup, 'type' => 'money', 'hint' => 'مجمل الربح ناقص المصروفات'.($extras ? ' زائد '.implode(' و', $extras) : '')];
             $notes[] = 'التكلفة = تكلفة البضاعة اللي اتباعت فعلاً (أول وارد أول صادر). التالف في المرتجع بيفضل تكلفة.';
             $notes[] = 'المصروفات = اللي اتسجّل من درج الورديات في الفترة.';
+            $notes[] = 'فوايد التقسيط = الزيادة اللي اتفقت عليها مع العميل في خطط التقسيط اللي اتعملت في الفترة.';
             $notes[] = 'تعويض مرتجعات الموردين = قيمة التالف اللي المورد قبله ورجّع فلوسه أو خصمه من حسابه في الفترة (البديل بيرجع المخزون بتكلفته).';
         }
 

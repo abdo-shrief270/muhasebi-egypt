@@ -25,7 +25,7 @@ final class DefaultRoles
                 'permissions' => [
                     'sales.sell', 'sales.view', 'products.view', 'inventory.view',
                     'customers.view', 'customers.manage', 'cash.shift', 'cash.expenses', 'messages.send',
-                    'repairs.view', 'repairs.create', 'repairs.deliver', 'services.manage', 'shop_orders.view',
+                    'repairs.view', 'repairs.create', 'repairs.deliver', 'services.manage', 'shop_orders.view', 'installments.collect',
                 ],
             ],
             'technician' => [

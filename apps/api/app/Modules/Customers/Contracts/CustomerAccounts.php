@@ -38,6 +38,26 @@ interface CustomerAccounts
     /** A return settled against the account instead of in cash. May take the balance below zero (store credit). */
     public function creditReturn(string $customerId, int $amount, string $returnId, string $reference, string $branchId): void;
 
+    /**
+     * The markup (فوايد) of an installment plan, added to what the customer owes. Agreed with the
+     * customer at signing, so it isn't held to the credit limit.
+     *
+     * @throws DomainRuleException customer_not_found (404)
+     */
+    public function chargeInstallmentMarkup(string $customerId, int $amount, string $planId, string $reference, string $branchId): void;
+
+    /**
+     * Money collected from the customer against their account, into the collector's drawer (cash
+     * needs an open shift) — the same as «تحصيل» on the customer page. $source tags the
+     * CustomerPaid event so the module that collected doesn't count it twice. Returns the
+     * customer transaction id.
+     *
+     * @param  string  $method  cash | card | wallet | instapay
+     *
+     * @throws DomainRuleException customer_not_found (404)
+     */
+    public function collect(string $customerId, int $amount, string $method, string $branchId, ?string $note = null, ?string $source = null): string;
+
     /** Marks the customer as seen (a cash sale with them selected), for sorting. */
     public function touch(string $customerId): void;
 }

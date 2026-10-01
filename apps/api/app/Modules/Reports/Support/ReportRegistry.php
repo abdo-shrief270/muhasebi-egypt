@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Reports\Support;
 
 use App\Modules\Reports\Definitions\ExpensesReport;
+use App\Modules\Reports\Definitions\InstallmentsReport;
 use App\Modules\Reports\Definitions\InventoryReport;
 use App\Modules\Reports\Definitions\OpenSupplierReturnsReport;
 use App\Modules\Reports\Definitions\PayablesReport;
@@ -33,6 +34,7 @@ final class ReportRegistry
         InventoryReport::class,
         UsedDevicesReport::class,
         ReceivablesReport::class,
+        InstallmentsReport::class,
         PayablesReport::class,
         SupplierReturnRateReport::class,
         OpenSupplierReturnsReport::class,

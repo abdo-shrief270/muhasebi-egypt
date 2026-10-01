@@ -11,6 +11,7 @@ enum CustomerTransactionType: string
     case Repair = 'repair';
     case Payment = 'payment';
     case SaleReturn = 'sale_return';
+    case InstallmentMarkup = 'installment_markup';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum CustomerTransactionType: string
             self::Repair => 'صيانة آجل',
             self::Payment => 'تحصيل',
             self::SaleReturn => 'مرتجع',
+            self::InstallmentMarkup => 'فوايد تقسيط',
         };
     }
 }

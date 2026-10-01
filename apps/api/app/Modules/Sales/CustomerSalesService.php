@@ -13,6 +13,18 @@ use Illuminate\Support\Carbon;
 
 final class CustomerSalesService implements CustomerSales
 {
+    public function creditOf(string $saleId): ?array
+    {
+        $sale = Sale::query()->find($saleId);
+
+        return $sale === null ? null : [
+            'customer_id' => $sale->customer_id,
+            'reference' => $sale->reference(),
+            'credit' => $sale->credit,
+            'branch_id' => $sale->branch_id,
+        ];
+    }
+
     public function forCustomer(string $customerId): array
     {
         return Sale::query()

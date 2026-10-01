@@ -74,6 +74,15 @@ final class Templates
             ], 'body' => implode("\n", [
                 'أهلاً أستاذ/ة {customer}،', 'حابين نفكّر حضرتك إن الحساب عندنا في {shop} عليه {balance}.', 'ياريت تعدّي علينا أو تحوّل على المحفظة / InstaPay في أقرب وقت. شكراً ليك 🙏',
             ])],
+            'installment_reminder' => ['label' => 'تذكير بقسط', 'group' => 'customers', 'variables' => [
+                'customer' => 'اسم العميل', 'shop' => 'اسم المحل', 'amount' => 'قيمة القسط', 'due' => 'ميعاد القسط', 'late' => 'التأخير', 'remaining' => 'الباقي من التقسيط', 'plan' => 'رقم التقسيط',
+            ], 'body' => implode("\n", [
+                'أهلاً أستاذ/ة {customer} 👋',
+                'بنفكّر حضرتك إن قسط {amount} من تقسيط {plan} عند {shop} ميعاده {due}.',
+                '{late}',
+                'الباقي من التقسيط: {remaining}',
+                'تقدر تدفع في المحل أو تحوّل على المحفظة / InstaPay. شكراً ليك 🙏',
+            ])],
         ];
     }
 
@@ -84,6 +93,7 @@ final class Templates
             str_starts_with($key, 'repair_') => 'repairs.status_whatsapp',
             $key === 'sale_receipt' => 'sales.receipt_link',
             $key === 'debt_reminder' => 'customers.debt_reminders',
+            $key === 'installment_reminder' => 'installments.reminders',
             default => null,
         };
     }

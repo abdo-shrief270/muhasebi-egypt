@@ -16,6 +16,14 @@ interface CustomerSales
      */
     public function forCustomer(string $customerId): array;
 
+    /**
+     * A sale's customer and what of it went on the customer's account (آجل), for the modules that
+     * plan how it's paid (installments). Null when there's no such sale in this shop.
+     *
+     * @return array{customer_id: string|null, reference: string, credit: int, branch_id: string}|null
+     */
+    public function creditOf(string $saleId): ?array;
+
     /** When the customer last bought, or null. */
     public function lastSaleAt(string $customerId): ?Carbon;
 }

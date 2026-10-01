@@ -17,6 +17,8 @@ final class CustomerPaid extends DomainEvent
         public readonly string $branchId,
         public readonly int $amount,
         public readonly string $paymentMethod,
+        /** The module that collected it through CustomerAccounts::collect() (it has counted it already), or null from the customer page. */
+        public readonly ?string $source = null,
     ) {}
 
     public function tenantId(): string

@@ -2,6 +2,7 @@
 
 use App\Support\Modules\Feature;
 use App\Support\Modules\FeatureSetting;
+use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
 
@@ -9,9 +10,12 @@ return new ModuleManifest(
     key: 'owner_app',
     name: 'تطبيق المالك',
     tier: ModuleTier::Optional,
-    description: 'إشعارات على موبايلك بالمهم: فرق الدرج، المرتجع، وملخص آخر اليوم.',
+    description: 'المحل في إيدك وإنت برّه: النهارده لحظة بلحظة، اللي بيحصل، وإشعارات بفرق الدرج والمرتجع وملخص آخر اليوم.',
     permissions: [
-        'owner_app.alerts' => 'تنبيهات المالك (فرق الدرج، المرتجع، ملخص اليوم)',
+        'owner_app.alerts' => 'تطبيق المالك: النهارده، اللي بيحصل، والتنبيهات',
+    ],
+    menu: [
+        new MenuItem('/owner', 'النهارده (المالك)', 'i-lucide-gauge', 'owner_app.alerts', group: 'reports'),
     ],
     features: [
         new Feature(

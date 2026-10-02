@@ -1062,3 +1062,32 @@ export interface InstallmentSummary {
   due_today: number
   collected_month: number
 }
+
+/** The owner app's «النهارده» (piasters; Cairo day). */
+export interface OwnerToday {
+  as_of: string
+  sales: { net: number, invoices: number, average: number, profit: number | null, discount: number, same_time_yesterday: number, last_week_day: number }
+  by_hour: { hour: number, today: number | null, yesterday: number }[]
+  returns: { count: number, amount: number }
+  expenses: number
+  open_shifts: { id: string, reference: string, user_name: string, branch: string | null, opened_at: string, expected_cash: number }[]
+  top_items: { name: string, qty: number, amount: number }[]
+  low_stock: number
+  repairs: { ready: number, in_progress: number, received_today: number, delivered_today: number } | null
+  installments: { late_amount: number, due_today: number } | null
+}
+
+/** One line of «اللي بيحصل». */
+export interface OwnerFeedItem {
+  id: string
+  kind: 'sale' | 'return' | 'expense' | 'withdrawal' | 'deposit' | 'shift_opened' | 'shift_closed' | 'price'
+  at: string
+  title: string
+  icon: string
+  tone: 'neutral' | 'warning' | 'error' | 'success'
+  amount: number | null
+  discount: number | null
+  user_name: string | null
+  branch: string | null
+  to: string | null
+}

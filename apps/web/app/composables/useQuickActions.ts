@@ -22,6 +22,7 @@ export function useQuickActions() {
 
   const actions: QuickAction[] = [
     { to: '/pos', label: 'بيع جديد', description: 'افتح الكاشير', icon: 'i-lucide-shopping-cart', permission: 'sales.sell' },
+    { to: '/owner', label: 'النهارده', description: 'المبيعات والأدراج واللي بيحصل دلوقتي', icon: 'i-lucide-gauge', permission: 'owner_app.alerts' },
     { run: () => priceCheck.show(), label: 'استعلام سعر', description: 'امسح أو دوّر: السعر والمخزون', icon: 'i-lucide-scan-barcode', permission: 'products.view', feature: 'inventory.price_check', kbd: 'F8' },
     { to: '/repairs/new', label: 'استلام جهاز', description: 'تذكرة صيانة جديدة', icon: 'i-lucide-wrench', permission: 'repairs.create' },
     { to: '/customers?owing=1', label: 'تحصيل آجل', description: 'اللي عليهم فلوس', icon: 'i-lucide-hand-coins', permission: 'customers.credit' },

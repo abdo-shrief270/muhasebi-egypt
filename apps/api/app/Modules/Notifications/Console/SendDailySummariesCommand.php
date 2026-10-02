@@ -45,7 +45,7 @@ final class SendDailySummariesCommand extends Command
                     $data['invoices'] > 0 ? 'ملخص النهارده: '.number_format($data['net'] / 100).' ج من '.$data['invoices'].' فاتورة' : 'ملخص النهارده: مفيش مبيعات',
                     implode("\n", $data['lines']),
                     'i-lucide-chart-column',
-                    '/reports/sales?period=today',
+                    '/owner',
                     'owner_app.alerts',
                 );
             });

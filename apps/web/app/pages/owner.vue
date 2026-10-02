@@ -13,6 +13,36 @@
       <USelect v-if="branchItems.length > 2" v-model="branch" :items="branchItems" class="w-44" aria-label="الفرع" />
     </div>
 
+    <!-- Requests waiting for an OK (live). -->
+    <UCard v-if="canApprove && approvals.length" :ui="{ body: 'p-0 sm:p-0' }" class="ring-2 ring-(--ui-warning)">
+      <template #header>
+        <p class="flex items-center gap-2 font-bold">
+          <UIcon name="i-lucide-shield-question" class="size-5 text-(--ui-warning)" />
+          مستنيين موافقتك (<span class="num">{{ approvals.length }}</span>)
+        </p>
+      </template>
+      <div v-for="a in approvals" :key="a.id" class="space-y-2 border-t border-(--ui-border) p-3 first:border-t-0" :class="highlight === a.id ? 'app-fresh' : ''">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="font-bold">
+              {{ a.summary }}
+            </p>
+            <p class="text-xs text-(--ui-text-muted)">
+              {{ a.kind_label }} · {{ a.requested_by_name }} · {{ timeAgo(a.created_at, now) }}
+            </p>
+          </div>
+          <p v-if="a.amount" class="shrink-0 font-bold num">
+            {{ formatMoney(a.amount) }}
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <UButton size="sm" icon="i-lucide-check" label="وافق" :loading="deciding === a.id" @click="decide(a, 'approve')" />
+          <UInput v-model="reasons[a.id]" size="sm" placeholder="سبب الرفض (اختياري)" class="min-w-0 flex-1" />
+          <UButton size="sm" color="neutral" variant="outline" icon="i-lucide-x" label="ارفض" :loading="deciding === a.id" @click="decide(a, 'deny')" />
+        </div>
+      </div>
+    </UCard>
+
     <template v-if="today">
       <!-- Sales so far against the same time yesterday. -->
       <div class="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -189,7 +219,7 @@
 </template>
 
 <script setup lang="ts">
-import type { OwnerFeedItem, OwnerToday } from '~/types/api'
+import type { ApprovalRequest, OwnerFeedItem, OwnerToday } from '~/types/api'
 
 definePageMeta({ module: 'owner_app', permission: 'owner_app.alerts' })
 
@@ -331,6 +361,70 @@ function toneClass(tone: OwnerFeedItem['tone']): string {
   }[tone]
 }
 
+// Requests waiting for an OK: loaded, then kept current over the WebSocket (and with the figures).
+const store = useSessionStore()
+const toast = useToast()
+const route = useRoute()
+const realtime = useRealtime()
+const canApprove = computed(() => store.can('owner_app.approve'))
+const approvals = ref<ApprovalRequest[]>([])
+const reasons = reactive<Record<string, string>>({})
+const deciding = ref<string | null>(null)
+const highlight = ref(typeof route.query.approval === 'string' ? route.query.approval : null)
+
+async function loadApprovals() {
+  if (canApprove.value) {
+    approvals.value = (await api<{ data: ApprovalRequest[] }>('/approvals').catch(() => ({ data: approvals.value }))).data
+  }
+}
+await loadApprovals()
+
+async function decide(a: ApprovalRequest, action: 'approve' | 'deny') {
+  deciding.value = a.id
+  try {
+    await api(`/approvals/${a.id}/${action}`, { method: 'POST', body: { reason: action === 'deny' ? reasons[a.id] || null : null } })
+    toast.add({ color: action === 'approve' ? 'success' : 'neutral', title: action === 'approve' ? `وافقت لـ ${a.requested_by_name}` : 'اترفض' })
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    deciding.value = null
+    approvals.value = approvals.value.filter(x => x.id !== a.id)
+  }
+}
+
+// Live: something happened in the shop → refresh (debounced); a request arrives / is answered → the list.
+let refreshTimer: ReturnType<typeof setTimeout> | undefined
+function soon() {
+  clearTimeout(refreshTimer)
+  refreshTimer = setTimeout(() => {
+    pollFeed()
+    refreshToday()
+  }, 1500)
+}
+const stops: (() => void)[] = []
+onMounted(async () => {
+  const tenant = store.session?.tenant.id
+  if (!tenant) {
+    return
+  }
+  stops.push(await realtime.listen(`tenants.${tenant}.owner`, 'activity', soon))
+  if (canApprove.value) {
+    stops.push(await realtime.listen<{ approval: ApprovalRequest }>(`tenants.${tenant}.approvals`, 'approval.requested', ({ approval }) => {
+      approvals.value = [approval, ...approvals.value.filter(x => x.id !== approval.id)]
+      highlight.value = approval.id
+    }))
+    stops.push(await realtime.listen<{ approval: ApprovalRequest }>(`tenants.${tenant}.approvals`, 'approval.decided', ({ approval }) => {
+      approvals.value = approvals.value.filter(x => x.id !== approval.id)
+    }))
+  }
+})
+onBeforeUnmount(() => {
+  stops.forEach(stop => stop())
+  clearTimeout(refreshTimer)
+})
+
 // Live while the page is visible: the feed every 20 s, the figures every 60 s (cached 30 s by the API).
 let ticks = 0
 const timer = setInterval(() => {
@@ -339,9 +433,14 @@ const timer = setInterval(() => {
     return
   }
   ticks++
+  // Over the WebSocket the screen already follows the shop; polling is only the safety net then.
+  if (realtime.connected.value && ticks % 3 !== 0) {
+    return
+  }
   pollFeed()
   if (ticks % 3 === 0) {
     refreshToday()
+    loadApprovals()
   }
 }, 20000)
 function onVisible() {

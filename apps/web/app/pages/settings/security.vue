@@ -15,6 +15,8 @@
 
     <SecurityPasswordCard />
 
+    <SecurityPinCard v-if="store.hasModule('owner_app') && store.can('owner_app.approve')" />
+
     <UCard>
       <template #header>
         <div>

@@ -11,6 +11,8 @@ use App\Modules\Inventory\Contracts\MovementType;
 use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
+use App\Modules\OwnerApp\Contracts\ApprovalKind;
+use App\Modules\OwnerApp\Contracts\Approvals;
 use App\Modules\Sales\Enums\PaymentMethod;
 use App\Modules\Sales\Enums\SaleStatus;
 use App\Modules\Sales\Events\SaleRefunded;
@@ -46,6 +48,7 @@ final class CreateSaleReturnAction
         private readonly Auditor $audit,
         private readonly Auth $auth,
         private readonly FeatureAccess $features,
+        private readonly Approvals $approvals,
     ) {}
 
     /**
@@ -152,6 +155,14 @@ final class CreateSaleReturnAction
                 // Restocked units stop counting as sold cost; damaged ones stay a cost (a loss).
                 $cost += $line['restock'] ? $item->unit_cost * $line['qty'] : 0;
             }
+
+            // Past the owner's limit, a return needs an OK (the owner's phone or a manager's PIN).
+            $this->approvals->require(
+                [[ApprovalKind::Return, $total, 'مرتجع '.number_format($total / 100, 2)." ج من {$sale->reference()}".($reason ? " — {$reason}" : '')]],
+                ['sale' => $sale->id, 'lines' => $lines, 'method' => $refundMethod->value],
+                $total,
+                $branchId,
+            );
 
             $return->update(['total' => $total, 'cost' => $cost]);
 

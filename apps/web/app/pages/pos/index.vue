@@ -506,6 +506,7 @@ function done(sale: Sale) {
 }
 
 // «حماية من البيع بخسارة» (warn): the API asks first; confirmed, the same cart is sent again.
+const approval = useApproval()
 const belowCostOpen = ref(false)
 const belowCostMessage = ref('')
 let belowCostPayments: Payment[] = []
@@ -513,7 +514,7 @@ function confirmBelowCost() {
   checkout(belowCostPayments, true)
 }
 
-async function checkout(payments: Payment[], confirmBelowCost = false) {
+async function checkout(payments: Payment[], confirmBelowCost = false, approvalId: string | null = null) {
   paying.value = true
   payError.value = null
   const body = {
@@ -533,13 +534,23 @@ async function checkout(payments: Payment[], confirmBelowCost = false) {
       return
     }
     // A slow answer counts as none: the sale is queued, and its id keeps it from being saved twice.
-    const res = await api<{ data: Sale }>('/sales', { method: 'POST', body, timeout: 15_000 })
+    const res = await api<{ data: Sale }>('/sales', { method: 'POST', body, timeout: 15_000, headers: approvalId ? { 'X-Approval-Id': approvalId } : undefined })
     belowCostOpen.value = false
     done(res.data)
   }
   catch (e) {
     if (isNetworkError(e)) {
       await queueOffline(body, payments)
+      return
+    }
+    // Past the owner's limits: an OK from the owner's phone or a manager's PIN, then the same cart again.
+    if (approvalNeeded(e)) {
+      paying.value = false
+      const id = await approval.ask(e)
+      if (id) {
+        return checkout(payments, confirmBelowCost, id)
+      }
+      payError.value = 'العملية دي محتاجة موافقة، وما اتوافقش عليها.'
       return
     }
     if (apiErrorCode(e) === 'below_cost_confirm') {

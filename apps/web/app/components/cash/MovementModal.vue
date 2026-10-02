@@ -1,7 +1,7 @@
 <template>
   <UModal v-model:open="open" :title="titles[type]" :description="`في الدرج دلوقتي ${formatMoney(inDrawer)}`">
     <template #body>
-      <form id="movement-form" class="space-y-4" @submit.prevent="save">
+      <form id="movement-form" class="space-y-4" @submit.prevent="save()">
         <div class="grid gap-4 sm:grid-cols-2">
           <UFormField label="المبلغ" hint="بالجنيه" required>
             <UInput v-model="form.amount" type="number" min="0" step="any" inputmode="decimal" dir="ltr" class="w-full" autofocus />
@@ -48,12 +48,15 @@ watch(open, (isOpen) => {
   }
 })
 
-async function save() {
+const approval = useApproval()
+
+async function save(approvalId: string | null = null) {
   saving.value = true
   error.value = null
   try {
     await api('/cash/movements', {
       method: 'POST',
+      headers: approvalId ? { 'X-Approval-Id': approvalId } : undefined,
       body: { type: props.type, amount: toPiasters(form.amount), category: props.type === 'expense' ? form.category : undefined, note: form.note || null },
     })
     toast.add({ color: 'success', title: 'اتسجّلت' })
@@ -61,6 +64,14 @@ async function save() {
     emit('saved')
   }
   catch (e) {
+    // Past the owner's limit: the owner's / a manager's OK, then the same movement again.
+    if (approvalNeeded(e)) {
+      saving.value = false
+      const id = await approval.ask(e)
+      if (id) {
+        return save(id)
+      }
+    }
     error.value = apiErrorMessage(e)
   }
   finally {

@@ -13,4 +13,12 @@ interface StaffDirectory
      * @return array<string, string> user id => name
      */
     public function withPermission(string $permission): array;
+
+    /**
+     * The active staff member with this permission whose approval PIN this is (a manager approving
+     * at the counter), or null.
+     *
+     * @return array{id: string, name: string}|null
+     */
+    public function matchPin(string $permission, string $pin): ?array;
 }

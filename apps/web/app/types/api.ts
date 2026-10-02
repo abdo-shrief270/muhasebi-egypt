@@ -115,6 +115,8 @@ export interface Session {
   /** feature switch key → on */
   features: Record<string, boolean>
   feature_settings?: Record<string, number | string>
+  /** Where Laravel Echo connects (Reverb); null = no live updates, screens poll. */
+  realtime?: { key: string, host: string, port: number, scheme: string } | null
   permissions: string[]
   modules: { key: string, state: ModuleState, usable: boolean }[]
   menu: MenuEntry[]
@@ -1090,4 +1092,32 @@ export interface OwnerFeedItem {
   user_name: string | null
   branch: string | null
   to: string | null
+}
+
+/** A cashier's request for the owner's / a manager's OK. */
+export interface ApprovalRequest {
+  id: string
+  kind: 'discount' | 'below_cost' | 'return' | 'withdrawal'
+  kind_label: string
+  summary: string
+  amount: number
+  branch_id: string | null
+  requested_by_name: string
+  status: 'pending' | 'approved' | 'denied' | 'expired'
+  via: 'app' | 'pin' | null
+  decided_by_name: string | null
+  decided_at: string | null
+  reason: string | null
+  used: boolean
+  expires_at: string
+  created_at: string
+}
+
+/** What the API answers (409 approval_required) when an action needs an OK. */
+export interface ApprovalNeeded {
+  kind: ApprovalRequest['kind']
+  kind_label: string
+  summary: string
+  amount: number
+  token: string
 }

@@ -143,7 +143,7 @@
 
     <UModal v-model:open="returnOpen" title="مرتجع من العميل" :description="`من ${sale.reference} — الفلوس بترجع بالسعر اللي اتدفع فعلاً.`">
       <template #body>
-        <form id="sale-return-form" class="space-y-3" @submit.prevent="saveReturn">
+        <form id="sale-return-form" class="space-y-3" @submit.prevent="saveReturn()">
           <div v-for="item in (sale.items ?? []).filter(i => i.qty > i.returned_qty)" :key="item.id" class="grid grid-cols-[1fr_80px_auto] items-center gap-3">
             <div class="min-w-0">
               <p class="truncate font-bold">
@@ -259,12 +259,15 @@ function openReturn() {
   returnOpen.value = true
 }
 
-async function saveReturn() {
+const approval = useApproval()
+
+async function saveReturn(approvalId: string | null = null) {
   returning.value = true
   returnError.value = null
   try {
     await api(`/sales/${sale.value!.id}/returns`, {
       method: 'POST',
+      headers: approvalId ? { 'X-Approval-Id': approvalId } : undefined,
       body: {
         refund_method: refundMethod.value,
         reason: reason.value || null,
@@ -280,6 +283,14 @@ async function saveReturn() {
     await refresh()
   }
   catch (e) {
+    // A big return: the owner's / a manager's OK, then the same return again.
+    if (approvalNeeded(e)) {
+      returning.value = false
+      const id = await approval.ask(e)
+      if (id) {
+        return saveReturn(id)
+      }
+    }
     returnError.value = apiErrorMessage(e)
   }
   finally {

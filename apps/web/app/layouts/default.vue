@@ -71,6 +71,8 @@
     <PriceCheck v-if="store.can('products.view')" />
     <PosOutboxPanel />
     <FeedbackModal />
+    <ApprovalsRequestModal />
+    <ApprovalsLiveInbox v-if="store.hasModule('owner_app')" />
     <InstallAppModal />
   </div>
 </template>

@@ -5,6 +5,7 @@ use App\Modules\Identity\Http\Controllers\AuthController;
 use App\Modules\Identity\Http\Controllers\BranchController;
 use App\Modules\Identity\Http\Controllers\PasswordController;
 use App\Modules\Identity\Http\Controllers\PermissionController;
+use App\Modules\Identity\Http\Controllers\PinController;
 use App\Modules\Identity\Http\Controllers\RoleController;
 use App\Modules\Identity\Http\Controllers\SessionController;
 use App\Modules\Identity\Http\Controllers\ShopProfileController;
@@ -40,7 +41,10 @@ Route::prefix('account')->middleware(['auth:sanctum', 'tenant'])->group(function
         Route::post('two-factor/recovery-codes', [TwoFactorController::class, 'recoveryCodes']);
         Route::delete('two-factor', [TwoFactorController::class, 'destroy']);
         Route::put('password', [PasswordController::class, 'update']);
+        Route::put('pin', [PinController::class, 'update']);
+        Route::delete('pin', [PinController::class, 'destroy']);
     });
+    Route::get('pin', [PinController::class, 'show']);
 
     Route::get('sessions', [SessionController::class, 'index']);
     Route::delete('sessions', [SessionController::class, 'destroyOthers']);

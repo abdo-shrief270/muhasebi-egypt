@@ -82,8 +82,9 @@ export const useSessionStore = defineStore('session', () => {
 
   async function logout(): Promise<void> {
     try {
-      // This device stops getting the user's notifications.
+      // This device stops getting the user's notifications and live updates.
       await usePush().disable().catch(() => {})
+      useRealtime().disconnect()
       await api('/auth/logout', { method: 'POST' })
     }
     finally {

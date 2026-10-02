@@ -216,6 +216,17 @@ nano .env      # الصق السطرين: VAPID_PUBLIC_KEY=… و VAPID_PRIVATE_
 ```
 بعدها أي حد يدخل «الإشعارات» من قايمة حسابه ويدوس «شغّل الإشعارات» على جهازه. **متغيّرش المفاتيح دي بعد كده**: لو اتغيّرت، الإشعارات بتقف على كل الأجهزة لحد ما كل واحد يشغّلها تاني. على الآيفون بتشتغل بس من التطبيق المنزّل على الشاشة الرئيسية (iOS 16.4 أو أحدث). ملخص آخر اليوم بيتبعت من الـ scheduler (`notifications:daily-summary` كل 10 دقايق بيشوف مين ساعته جت).
 
+## التحديث اللحظي (WebSockets) والموافقات
+شاشة المالك وطلبات الموافقة (خصم كبير، بيع تحت التكلفة، مرتجع أو مصروف فوق حد) بتوصل لحظياً عن طريق Reverb (حاوية `reverb` في الـ compose، وCaddy بيوجّه `/app/*` ليها). `init.sh` بيعمل المفاتيح؛ اتأكد إن `.env` فيه:
+```
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=…  REVERB_APP_KEY=…  REVERB_APP_SECRET=…   # مش فاضيين
+REVERB_HOST=<الدومين>   REVERB_PORT=443   REVERB_SCHEME=https
+```
+لو حاجة منهم ناقصة: `REVERB_APP_KEY=$(openssl rand -hex 16)` و`REVERB_APP_SECRET=$(openssl rand -hex 24)` و`REVERB_APP_ID` أي رقم، وبعدين `./deploy.sh`. التطبيق بيبعت الأحداث للحاوية جوه الشبكة (`REVERB_PUBLISH_*` في الـ compose)، والمتصفح بيتصل بـ `wss://<الدومين>/app/…`. لو nginx قدام Caddy، `nginx-site.conf` فيه الـ upgrade بتاع `/app/`. التأكد: `docker compose logs reverb --tail 20`، وفي المتصفح (DevTools ← Network ← WS) اتصال `app/…` شغال. لو Reverb واقع، الشاشات بترجع تعمل تحديث كل شوية لوحدها ومفيش حاجة بتقف.
+
+الموافقات نفسها بتتشغّل من «المميزات» ← تطبيق صاحب المحل (كلها مقفولة في الأول)، وكل مدير يحط رقمه السري (PIN) من «الأمان» عشان يوافق من جهاز الكاشير.
+
 ## مشاكل شائعة
 - **الموقع مش بيفتح / مفيش HTTPS:** اتأكد إن الـ A record بيشاور على السيرفر (`dig app.muhasebi.com`) وإن 80 و443 مفتوحين، وبص على `docker compose logs caddy`.
 - **Server Error:** `docker compose logs api --tail 100`.

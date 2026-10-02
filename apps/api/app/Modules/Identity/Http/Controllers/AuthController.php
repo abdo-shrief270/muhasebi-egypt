@@ -160,8 +160,31 @@ final class AuthController
                 'modules' => $modules,
                 'permissions' => $granted,
                 'menu' => $menu,
+                // Where the browser opens its WebSocket (Laravel Echo → Reverb); null = no live updates, poll.
+                'realtime' => self::realtime(),
             ],
         ]);
+    }
+
+    /**
+     * @return array{key: string, host: string, port: int, scheme: string}|null
+     */
+    private static function realtime(): ?array
+    {
+        $reverb = config('broadcasting.connections.reverb');
+        if (config('broadcasting.default') !== 'reverb' || empty($reverb['key'])) {
+            return null;
+        }
+
+        // What browsers connect to (the publish side may be an internal address).
+        $public = config('reverb.apps.apps.0.options', []);
+
+        return [
+            'key' => (string) $reverb['key'],
+            'host' => (string) ($public['host'] ?? ''),
+            'port' => (int) ($public['port'] ?? 443),
+            'scheme' => (string) ($public['scheme'] ?? 'https'),
+        ];
     }
 
     public function logout(Request $request): Response

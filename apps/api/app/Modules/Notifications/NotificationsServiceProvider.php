@@ -7,8 +7,10 @@ namespace App\Modules\Notifications;
 use App\Modules\Cash\Events\ShiftClosed;
 use App\Modules\Notifications\Console\GenerateVapidKeysCommand;
 use App\Modules\Notifications\Console\SendDailySummariesCommand;
+use App\Modules\Notifications\Contracts\Notifications;
 use App\Modules\Notifications\Listeners\NotifyOwner;
 use App\Modules\Notifications\Listeners\NotifyPartnerActivity;
+use App\Modules\Notifications\Support\Notifier;
 use App\Modules\Notifications\Support\PushSender;
 use App\Modules\Notifications\Support\WebPushSender;
 use App\Modules\Sales\Events\SaleRefunded;
@@ -28,6 +30,7 @@ final class NotificationsServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         $this->app->bind(PushSender::class, WebPushSender::class);
+        $this->app->bind(Notifications::class, Notifier::class);
     }
 
     public function boot(): void

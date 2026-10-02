@@ -12,6 +12,12 @@ final class Categories
 {
     /** @var array<string, array{label: string, description: string, permission: string, prefixes: list<string>, urgent?: bool}> */
     public const ALL = [
+        'approvals' => [
+            'label' => 'طلبات الموافقة',
+            'description' => 'كاشير محتاج موافقتك على خصم كبير أو مرتجع أو سحب من الدرج. بتوصل حتى في ساعات الهدوء.',
+            'permission' => 'owner_app.approve',
+            'prefixes' => ['approval.'],
+        ],
         'partners' => [
             'label' => 'المحلات الشريكة',
             'description' => 'طلبات جديدة، طلبات شراكة، والمحل التاني بيحرّك طلب.',

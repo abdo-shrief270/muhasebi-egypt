@@ -8,6 +8,11 @@ x-php: &php
     dockerfile: infra/production/Dockerfile.api
   image: muhasebi-api:latest
   env_file: .env
+  environment:
+    # The app publishes broadcasts straight to the reverb container; browsers use REVERB_HOST.
+    REVERB_PUBLISH_HOST: reverb
+    REVERB_PUBLISH_PORT: "8080"
+    REVERB_PUBLISH_SCHEME: http
   restart: unless-stopped
   volumes:
     - storage:/app/storage

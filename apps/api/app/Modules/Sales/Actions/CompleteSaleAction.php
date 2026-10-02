@@ -15,6 +15,8 @@ use App\Modules\Inventory\Contracts\SerialCount;
 use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
+use App\Modules\OwnerApp\Contracts\ApprovalKind;
+use App\Modules\OwnerApp\Contracts\Approvals;
 use App\Modules\Sales\Enums\PaymentMethod;
 use App\Modules\Sales\Enums\PriceLevel;
 use App\Modules\Sales\Enums\SaleStatus;
@@ -53,6 +55,7 @@ final class CompleteSaleAction
         private readonly Auditor $audit,
         private readonly Auth $auth,
         private readonly FeatureAccess $features,
+        private readonly Approvals $approvals,
     ) {}
 
     /**
@@ -142,9 +145,41 @@ final class CompleteSaleAction
         }
         $total = $subtotal - $discount;
 
-        // A sale made offline already happened: the owner's "below cost" rule can't stop it any more.
-        if ($soldAt === null && $this->features->enabled('sales.below_cost')) {
-            $this->guardBelowCost($branchId, $lines, $subtotal, $total, $belowCostConfirmed);
+        // A sale made offline already happened: the owner's limits can't stop it any more.
+        if ($soldAt === null) {
+            $lineDiscounts = array_sum(array_column($lines, 'discount'));
+            $gross = $subtotal + $lineDiscounts;
+            $percent = $gross > 0 ? intdiv(($discount + $lineDiscounts) * 100, $gross) : 0;
+            $below = $this->features->enabled('sales.below_cost') || $this->approvals->needed(ApprovalKind::BelowCost)
+                ? $this->belowCost($branchId, $lines, $subtotal, $total)
+                : [];
+            $names = implode('، ', array_column($below, 'name'));
+
+            // Past the owner's limits: one OK (the owner's phone or a manager's PIN) for every reason.
+            $approved = $this->approvals->require(
+                [
+                    ...($discount + $lineDiscounts > 0 ? [[ApprovalKind::Discount, $percent, "خصم {$percent}% (".number_format(($discount + $lineDiscounts) / 100, 2).' ج)']] : []),
+                    ...($below !== [] ? [[ApprovalKind::BelowCost, 1, "«{$names}» بأقل من تكلفته"]] : []),
+                ],
+                [
+                    'sale' => $saleId,
+                    'lines' => array_map(fn (array $l) => [$l['variant']->id, $l['qty'], $l['unit_price'], $l['discount']], $lines),
+                    'discount' => $discount,
+                    'total' => $total,
+                ],
+                $total,
+                $branchId,
+            );
+
+            // «حماية من البيع بخسارة»: refused, or — in "warn" mode — the cashier confirms. An OK covers it.
+            if ($below !== [] && ! $approved && $this->features->enabled('sales.below_cost')) {
+                if ($this->features->setting('sales.below_cost') === 'block') {
+                    throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته، والمحل مانع البيع بخسارة.", 'below_cost', context: ['lines' => $below]);
+                }
+                if (! $belowCostConfirmed) {
+                    throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته. متأكد؟", 'below_cost_confirm', 409, ['lines' => $below]);
+                }
+            }
         }
 
         if ($customerId === null && trim((string) $customerName) === '' && $this->features->enabled('sales.require_customer')) {
@@ -188,13 +223,13 @@ final class CompleteSaleAction
     }
 
     /**
-     * The owner's «حماية من البيع بخسارة»: a unit sold for less than the branch's average cost
-     * (after its line discount and its share of the invoice discount) is refused, or — in "warn"
-     * mode — needs the cashier to confirm.
+     * The lines that would sell for less than the branch's average cost (after their line discount
+     * and their share of the invoice discount).
      *
      * @param  list<array{variant: VariantSummary, qty: int, unit_price: int, discount: int, line_total: int, serials: list<string>|null}>  $lines
+     * @return list<array{variant_id: string, name: string}>
      */
-    private function guardBelowCost(string $branchId, array $lines, int $subtotal, int $total, bool $confirmed): void
+    private function belowCost(string $branchId, array $lines, int $subtotal, int $total): array
     {
         $costs = $this->stock->averageCosts($branchId, array_map(fn (array $l) => $l['variant']->id, $lines));
         $below = [];
@@ -205,16 +240,8 @@ final class CompleteSaleAction
                 $below[] = ['variant_id' => $line['variant']->id, 'name' => $line['variant']->displayName()];
             }
         }
-        if ($below === []) {
-            return;
-        }
-        $names = implode('، ', array_column($below, 'name'));
-        if ($this->features->setting('sales.below_cost') === 'block') {
-            throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته، والمحل مانع البيع بخسارة.", 'below_cost', context: ['lines' => $below]);
-        }
-        if (! $confirmed) {
-            throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته. متأكد؟", 'below_cost_confirm', 409, ['lines' => $below]);
-        }
+
+        return $below;
     }
 
     /**

@@ -1,4 +1,4 @@
-import type { InstallmentItem, RepairTicket, Sale } from '~/types/api'
+import type { InstallmentItem, OnlineOrderDetail, RepairTicket, Sale } from '~/types/api'
 import type { InstallmentReminderSubject } from '~/utils/installments'
 import type { ReturnNote } from '~/utils/supplierReturns'
 
@@ -79,7 +79,7 @@ export function useMessages() {
     return template ? renderTemplate(template.body, vars) : fallback()
   }
 
-  function open(key: string, phone: string | null, message: string, subject?: { type: 'repair_ticket' | 'sale' | 'customer' | 'supplier_return' | 'installment_plan', id: string }) {
+  function open(key: string, phone: string | null, message: string, subject?: { type: 'repair_ticket' | 'sale' | 'customer' | 'supplier_return' | 'installment_plan' | 'online_order', id: string }) {
     window.open(phone ? whatsappLink(phone, message) : `https://wa.me/?text=${encodeURIComponent(message)}`, '_blank')
     if (store.can('messages.send')) {
       api('/messages/log', { method: 'POST', body: { template: key, phone, subject_type: subject?.type, subject_id: subject?.id } }).catch(() => {})
@@ -138,5 +138,20 @@ export function useMessages() {
     open('installment_reminder', plan.customer_phone, text('installment_reminder', vars, () => installmentReminderText(vars)), { type: 'installment_plan', id: plan.id })
   }
 
-  return { templates, load, ticketText, sendTicket, sendSale, sendDebtReminder, sendReturnNote, sendInstallmentReminder }
+  /** An online order's status (or its cancellation, with the reason) to the customer. */
+  function sendOnlineOrder(order: OnlineOrderDetail) {
+    const key = `online_order_${order.status}`
+    const vars = {
+      customer: order.customer_name,
+      shop: shopName.value,
+      order: order.reference,
+      items: order.items.map(i => `• ${i.qty} × ${i.name}`).join('\n'),
+      total: formatMoney(order.total),
+      link: order.track_url,
+      reason: order.cancel_reason,
+    }
+    open(key, order.customer_phone || null, text(key, vars, () => onlineOrderText(order, shopName.value)), { type: 'online_order', id: order.id })
+  }
+
+  return { templates, load, ticketText, sendTicket, sendOnlineOrder, sendSale, sendDebtReminder, sendReturnNote, sendInstallmentReminder }
 }

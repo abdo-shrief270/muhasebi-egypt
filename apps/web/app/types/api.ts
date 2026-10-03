@@ -254,7 +254,7 @@ export interface Product {
 /** «المتجر الأونلاين» settings (GET/PUT /online-store/settings). Phones are E.164. */
 export interface OnlineStoreSettings {
   slug: string
-  mode: 'off' | 'whatsapp'
+  mode: 'off' | 'whatsapp' | 'orders'
   name: string
   tagline: string | null
   about: string | null
@@ -272,8 +272,62 @@ export interface OnlineStoreSettings {
   show_quantity: boolean
   logo: Record<string, string> | null
   cover: Record<string, string> | null
+  pickup: boolean
+  delivery: boolean
+  min_order: number
+  free_delivery_over: number | null
+  pay_cod: boolean
+  pay_transfer: boolean
+  transfer_instapay: string | null
+  transfer_wallet: string | null
   url: string
   updated_at: string
+}
+
+export interface DeliveryZone {
+  id: string
+  name: string
+  fee: number
+  is_active: boolean
+}
+
+export type OnlineOrderStatus = 'new' | 'confirmed' | 'preparing' | 'out_for_delivery' | 'ready' | 'delivered' | 'cancelled'
+
+/** An order placed on the shop's online store (WEB-00001). */
+export interface OnlineOrder {
+  id: string
+  number: number
+  reference: string
+  status: OnlineOrderStatus
+  status_label: string
+  next: { value: OnlineOrderStatus, label: string }[]
+  customer_id: string | null
+  customer_name: string
+  customer_phone: string
+  fulfilment: 'pickup' | 'delivery'
+  zone_name: string | null
+  payment: 'cod' | 'transfer'
+  has_proof: boolean
+  subtotal: number
+  delivery_fee: number
+  total: number
+  items_count: number | null
+  sale_id: string | null
+  sale_reference: string | null
+  token: string
+  created_at: string
+}
+
+export interface OnlineOrderDetail extends OnlineOrder {
+  branch_id: string | null
+  address: string | null
+  notes: string | null
+  consent: boolean | null
+  cancel_reason: string | null
+  fee_collected: boolean
+  track_url: string | null
+  items: { id: string, product_id: string, variant_id: string, name: string, qty: number, unit_price: number, line_total: number }[]
+  timeline: { status: OnlineOrderStatus, label: string, note: string | null, user_name: string | null, at: string }[]
 }
 
 /** A product photo: WebP at 320 / 800 / 1600 px wide (URL paths on the API's origin). */

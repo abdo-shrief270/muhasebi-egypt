@@ -18,7 +18,40 @@ export interface PublicStore {
   show_quantity: boolean
   logo: Images | null
   cover: Images | null
+  /** How to order (mode «orders» only). */
+  ordering: Ordering | null
   updated_at: string
+}
+
+export interface Ordering {
+  pickup: boolean
+  delivery: boolean
+  min_order: number
+  free_delivery_over: number | null
+  pay_cod: boolean
+  pay_transfer: boolean
+  transfer_instapay: string | null
+  transfer_wallet: string | null
+}
+
+export interface Zone { id: string, name: string, fee: number }
+
+export interface PlacedOrder {
+  reference: string
+  status: 'new' | 'confirmed' | 'preparing' | 'out_for_delivery' | 'ready' | 'delivered' | 'cancelled'
+  status_label: string
+  customer_name: string
+  fulfilment: 'pickup' | 'delivery'
+  zone_name: string | null
+  payment: 'cod' | 'transfer'
+  subtotal: number
+  delivery_fee: number
+  total: number
+  cancel_reason: string | null
+  items: { product_id: string, name: string, qty: number, unit_price: number, line_total: number }[]
+  timeline: { status: string, label: string, at: string }[]
+  created_at: string
+  token?: string
 }
 
 export type Availability = 'in' | 'low' | 'out'
@@ -59,6 +92,7 @@ export interface StoreHome {
   categories: { id: number, name: string, products: number }[]
   device_brands: { id: number | null, name: string, models: { id: number, name: string, products: number }[] }[]
   latest: ProductCard[]
+  zones: Zone[]
 }
 
 export interface ProductPage {

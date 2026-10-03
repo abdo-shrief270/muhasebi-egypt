@@ -44,6 +44,9 @@ export default defineNuxtConfig({
     '/**': { cache: { swr: true, maxAge: 60, varies: ['host', 'x-forwarded-host'] } },
     '/*/cart': { ssr: false },
     '/cart': { ssr: false },
+    // An order's tracking page: the customer's own, filled in the browser.
+    '/*/o/**': { ssr: false },
+    '/o/**': { ssr: false },
     // Data and media handlers cache themselves (or not at all: proxied images).
     '/api/**': { cache: false },
     '/*/sitemap.xml': { cache: false },

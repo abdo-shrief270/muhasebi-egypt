@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 /** WhatsApp message templates (the shop's wording over the built-in one) and the log of messages opened. */
 final class MessageController
 {
-    public const SUBJECTS = ['repair_ticket', 'sale', 'customer', 'supplier_return', 'installment_plan'];
+    public const SUBJECTS = ['repair_ticket', 'sale', 'customer', 'supplier_return', 'installment_plan', 'online_order'];
 
     public function __construct(
         private readonly CurrentTenant $tenant,

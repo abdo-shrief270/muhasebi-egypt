@@ -116,6 +116,20 @@
         <UInput v-model="cart.customer_phone" size="sm" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx" />
       </div>
 
+      <div v-if="cart.online_order" class="space-y-2 border-b border-(--ui-border) bg-(--ui-bg-elevated) p-3 text-sm">
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-shopping-bag" class="size-4 text-(--ui-primary)" />
+          <span class="flex-1 font-bold">طلب أونلاين <span class="num" dir="ltr">{{ cart.online_order.reference }}</span></span>
+          <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-unlink" label="فك الربط" @click="cart.online_order = null" />
+        </div>
+        <UCheckbox
+          v-if="cart.online_order.delivery_fee > 0"
+          v-model="cart.online_order.fee_collected"
+          :label="`استلمت مصاريف التوصيل (${formatMoney(cart.online_order.delivery_fee)}) كاش`"
+          description="بتدخل الدرج لوحدها مع الفاتورة."
+        />
+      </div>
+
       <ul class="flex-1 divide-y divide-(--ui-border) overflow-y-auto px-4">
         <li v-for="line in cart.lines" :key="line.variant_id" class="py-3">
           <div class="flex items-start justify-between gap-2">
@@ -197,6 +211,9 @@
           <span class="text-lg font-bold">المطلوب</span>
           <span class="text-3xl font-extrabold num">{{ formatMoney(total) }}</span>
         </div>
+        <p v-if="cart.online_order?.fee_collected && cart.online_order.delivery_fee" class="text-end text-sm text-(--ui-text-muted)">
+          + التوصيل <span class="num">{{ formatMoney(cart.online_order.delivery_fee) }}</span> كاش = <span class="num font-bold text-(--ui-text)">{{ formatMoney(total + cart.online_order.delivery_fee) }}</span>
+        </p>
         <div class="grid gap-2 pt-1" :class="canHold ? 'grid-cols-[auto_1fr]' : 'grid-cols-1'">
           <UButton v-if="canHold" size="xl" color="neutral" variant="outline" icon="i-lucide-pause" label="تعليق" :disabled="!cart.lines.length" @click="hold" />
           <UButton size="xl" icon="i-lucide-check" class="justify-center" :label="`دفع ${formatMoney(total)} (F9)`" :disabled="!canPay" @click="payOpen = true" />
@@ -230,7 +247,7 @@
 
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { CashShift, Category, Customer, PosItem, Sale } from '~/types/api'
+import type { CashShift, Category, Customer, OnlineOrderDetail, PosItem, Sale } from '~/types/api'
 
 definePageMeta({ permission: 'sales.sell' })
 
@@ -326,6 +343,48 @@ if (typeof route.query.customer === 'string' && canCustomers.value) {
   catch {
     // Not found / not allowed: sell without a customer.
   }
+}
+// «حوّل لفاتورة» from an online order: /pos?order=… fills the cart with its items (at the order's
+// prices) and customer. Whatever was in the cart is held first.
+if (typeof route.query.order === 'string') {
+  const orderId = route.query.order
+  try {
+    const order = (await api<{ data: OnlineOrderDetail }>(`/online-store/orders/${orderId}`)).data
+    if (order.sale_id || ['delivered', 'cancelled'].includes(order.status)) {
+      toast.add({ color: 'warning', title: order.sale_reference ? `الطلب ${order.reference} اتعمله فاتورة (${order.sale_reference}).` : `الطلب ${order.reference} ${order.status_label}.` })
+    }
+    else if (cart.value.online_order?.id !== order.id) {
+      if (cart.value.lines.length) {
+        hold()
+      }
+      const found = (await api<{ data: PosItem[] }>('/pos/items', { query: { 'ids[]': order.items.map(i => i.variant_id) } })).data
+      for (const item of order.items) {
+        const posItem = found.find(f => f.id === item.variant_id)
+        if (posItem) {
+          add({ ...posItem, price_retail: item.unit_price }, posItem.track_serial ? 1 : item.qty)
+        }
+      }
+      cart.value.price_level = 'retail'
+      cart.value.online_order = { id: order.id, reference: order.reference, delivery_fee: order.delivery_fee, fee_collected: order.delivery_fee > 0 }
+      if (order.customer_id && canCustomers.value) {
+        const c = (await api<{ data: Customer }>(`/customers/${order.customer_id}`).catch(() => null))?.data
+        if (c) {
+          cart.value.customer = { id: c.id, name: c.name, phone: c.phone, balance: c.balance, credit_limit: c.credit_limit }
+        }
+      }
+      if (!cart.value.customer) {
+        cart.value.customer_name = order.customer_name
+        cart.value.customer_phone = localPhone(order.customer_phone)
+      }
+      if (found.length < order.items.length) {
+        toast.add({ color: 'warning', title: 'فيه أصناف من الطلب مش موجودة دلوقتي؛ راجع السلة.' })
+      }
+    }
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  useRouter().replace({ query: { ...route.query, order: undefined } })
 }
 const priceLevels = computed(() => optionsData.value?.data.price_levels ?? [])
 const ALL = 0
@@ -527,6 +586,8 @@ async function checkout(payments: Payment[], confirmBelowCost = false, approvalI
     customer_phone: cart.value.customer ? null : cart.value.customer_phone || null,
     items: cart.value.lines.map(l => ({ variant_id: l.variant_id, qty: l.qty, unit_price: unitPrice(l), discount: l.discount, serials: l.track_serial ? l.serials : undefined })),
     payments,
+    online_order_id: cart.value.online_order?.id,
+    delivery_fee_collected: cart.value.online_order ? cart.value.online_order.fee_collected : undefined,
   }
   try {
     if (!online.value) {
@@ -575,6 +636,9 @@ async function checkout(payments: Payment[], confirmBelowCost = false, approvalI
 function offlineProblem(payments: Payment[]): string | null {
   const paid = payments.reduce((s, p) => s + p.amount, 0)
   const cash = payments.filter(p => p.method === 'cash').reduce((s, p) => s + p.amount, 0)
+  if (cart.value.online_order) {
+    return 'فاتورة الطلب الأونلاين محتاجة نت. استنى النت يرجع أو فك الربط.'
+  }
   if (payments.some(p => !CASH_METHODS.some(m => m.value === p.method))) {
     return 'البيع الآجل محتاج نت. خده كاش أو فيزا أو محفظة.'
   }

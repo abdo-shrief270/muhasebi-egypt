@@ -1,6 +1,8 @@
 <template>
   <div class="space-y-6">
-    <PageHeader title="المتجر الأونلاين" description="صفحة لمحلك بأصنافك وأسعارك ومخزونك من البرنامج. الزبون يدوّر بموديل موبايله ويطلب على واتساب." />
+    <PageHeader title="المتجر الأونلاين" description="صفحة لمحلك بأصنافك وأسعارك ومخزونك من البرنامج. الزبون يدوّر بموديل موبايله ويطلب، والطلب يوصلك هنا أو على واتساب.">
+      <UButton v-if="session.can('online_store.orders')" to="/online-store/orders" color="neutral" variant="outline" icon="i-lucide-shopping-bag" label="الطلبات" />
+    </PageHeader>
 
     <div v-if="settings" class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <form class="space-y-6" @submit.prevent="save()">
@@ -18,12 +20,47 @@
               v-model="form.mode"
               :items="[
                 { value: 'off', label: 'مقفول', description: 'محدش يقدر يفتح المتجر.' },
-                { value: 'whatsapp', label: 'شغال — الطلبات على واتساب', description: 'الزبون يملأ السلة ويبعتها رسالة على رقم الواتساب.' },
+                { value: 'orders', label: 'شغال — الطلبات توصل البرنامج', description: 'الزبون يطلب ويتابع طلبه، والطلب يوصلك إشعار وتحوّله لفاتورة بضغطة.' },
+                { value: 'whatsapp', label: 'شغال — الطلبات على واتساب بس', description: 'الزبون يملأ السلة ويبعتها رسالة على رقم الواتساب.' },
               ]"
             />
-            <UFormField label="رقم الواتساب اللي هتوصله الطلبات" :error="errors.whatsapp">
+            <UFormField :label="form.mode === 'orders' ? 'رقم الواتساب (الزبون يكلمك عليه)' : 'رقم الواتساب اللي هتوصله الطلبات'" :error="errors.whatsapp">
               <UInput v-model="form.whatsapp" dir="ltr" inputmode="tel" class="w-full" placeholder="01xxxxxxxxx" />
             </UFormField>
+          </div>
+        </UCard>
+
+        <UCard v-if="form.mode === 'orders'">
+          <template #header>
+            <h2 class="font-bold">
+              الاستلام والدفع
+            </h2>
+          </template>
+          <div class="space-y-5">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <USwitch v-model="form.pickup" label="استلام من المحل" />
+              <USwitch v-model="form.delivery" label="توصيل" description="بمصاريف لكل منطقة تحت." />
+              <UFormField label="أقل طلب (ج)" hint="0 = مفيش" :error="errors.min_order">
+                <UInput v-model="form.min_order" type="number" min="0" step="any" class="w-full" />
+              </UFormField>
+              <UFormField v-if="form.delivery" label="التوصيل ببلاش لو الطلب فوق (ج)" hint="اختياري" :error="errors.free_delivery_over">
+                <UInput v-model="form.free_delivery_over" type="number" min="0" step="any" class="w-full" />
+              </UFormField>
+            </div>
+            <OnlineStoreZones v-if="form.delivery" />
+            <USeparator />
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <USwitch v-model="form.pay_cod" label="كاش عند الاستلام" />
+              <USwitch v-model="form.pay_transfer" label="تحويل InstaPay / محفظة" description="الزبون يرفع صورة التحويل مع الطلب." />
+              <template v-if="form.pay_transfer">
+                <UFormField label="عنوان InstaPay" :error="errors.transfer_instapay">
+                  <UInput v-model="form.transfer_instapay" dir="ltr" class="w-full" maxlength="60" placeholder="elnour@instapay" />
+                </UFormField>
+                <UFormField label="رقم المحفظة" :error="errors.transfer_wallet">
+                  <UInput v-model="form.transfer_wallet" dir="ltr" inputmode="tel" class="w-full" placeholder="01xxxxxxxxx" />
+                </UFormField>
+              </template>
+            </div>
           </div>
         </UCard>
 
@@ -153,6 +190,8 @@ const form = reactive({
   slug: '', mode: 'off' as OnlineStoreSettings['mode'], whatsapp: '', name: '', color: '#0f766e', tagline: '', branch_id: '',
   show_out_of_stock: true, show_quantity: false, phone: '', hours: '', address: '', map_url: '', facebook: '', instagram: '',
   about: '', policy: '',
+  pickup: true, delivery: false, min_order: '', free_delivery_over: '',
+  pay_cod: true, pay_transfer: false, transfer_instapay: '', transfer_wallet: '',
 })
 
 function fill(s: OnlineStoreSettings) {
@@ -161,6 +200,9 @@ function fill(s: OnlineStoreSettings) {
     branch_id: s.branch_id ?? '', show_out_of_stock: s.show_out_of_stock, show_quantity: s.show_quantity,
     phone: localPhone(s.phone), hours: s.hours ?? '', address: s.address ?? '', map_url: s.map_url ?? '',
     facebook: s.facebook ?? '', instagram: s.instagram ?? '', about: s.about ?? '', policy: s.policy ?? '',
+    pickup: s.pickup, delivery: s.delivery, min_order: s.min_order ? String(s.min_order / 100) : '',
+    free_delivery_over: s.free_delivery_over !== null ? String(s.free_delivery_over / 100) : '',
+    pay_cod: s.pay_cod, pay_transfer: s.pay_transfer, transfer_instapay: s.transfer_instapay ?? '', transfer_wallet: localPhone(s.transfer_wallet),
   })
 }
 if (settings.value) {
@@ -185,6 +227,9 @@ async function save() {
         branch_id: form.branch_id || null, show_out_of_stock: form.show_out_of_stock, show_quantity: form.show_quantity,
         hours: nullable(form.hours), address: nullable(form.address), map_url: nullable(form.map_url),
         facebook: nullable(form.facebook), instagram: nullable(form.instagram), about: nullable(form.about), policy: nullable(form.policy),
+        pickup: form.pickup, delivery: form.delivery, min_order: toPiasters(form.min_order) ?? 0,
+        free_delivery_over: toPiasters(form.free_delivery_over), pay_cod: form.pay_cod, pay_transfer: form.pay_transfer,
+        transfer_instapay: nullable(form.transfer_instapay), transfer_wallet: nullable(form.transfer_wallet),
       },
     })
     settings.value = res.data
@@ -199,6 +244,9 @@ async function save() {
     }
     else if (code === 'whatsapp_required') {
       errors.value.whatsapp = apiErrorMessage(e)
+    }
+    else if (code === 'transfer_details_required') {
+      errors.value.transfer_instapay = apiErrorMessage(e)
     }
     else if (!Object.keys(errors.value).length) {
       error.value = apiErrorMessage(e)

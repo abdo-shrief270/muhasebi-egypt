@@ -16,6 +16,13 @@ interface BranchDirectory
      */
     public function accessibleBranches(Authenticatable $user): array;
 
+    /**
+     * Every active branch of the current shop (e.g. to name the other side of a transfer), main first.
+     *
+     * @return array<string, string> id => name
+     */
+    public function all(): array;
+
     /** The current shop's main branch (where work that isn't tied to a branch lands). */
     public function mainBranchId(): ?string;
 }

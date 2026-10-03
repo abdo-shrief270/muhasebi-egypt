@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\Notifications;
 
 use App\Modules\Cash\Events\ShiftClosed;
+use App\Modules\MultiBranch\Events\TransferShipped;
 use App\Modules\Notifications\Console\GenerateVapidKeysCommand;
 use App\Modules\Notifications\Console\SendDailySummariesCommand;
 use App\Modules\Notifications\Contracts\Notifications;
 use App\Modules\Notifications\Listeners\NotifyOnlineOrders;
 use App\Modules\Notifications\Listeners\NotifyOwner;
 use App\Modules\Notifications\Listeners\NotifyPartnerActivity;
+use App\Modules\Notifications\Listeners\NotifyTransfers;
 use App\Modules\Notifications\Support\Notifier;
 use App\Modules\Notifications\Support\PushSender;
 use App\Modules\Notifications\Support\WebPushSender;
@@ -28,6 +30,7 @@ final class NotificationsServiceProvider extends ModuleServiceProvider
         ShiftClosed::class => [NotifyOwner::class],
         SaleRefunded::class => [NotifyOwner::class],
         OnlineOrderPlaced::class => [NotifyOnlineOrders::class],
+        TransferShipped::class => [NotifyTransfers::class],
     ];
 
     public function register(): void

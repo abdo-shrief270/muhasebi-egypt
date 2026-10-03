@@ -29,6 +29,12 @@ final class BranchDirectoryService implements BranchDirectory
         return $branches;
     }
 
+    public function all(): array
+    {
+        return Branch::query()->where('is_active', true)->orderByDesc('is_main')->orderBy('name')
+            ->pluck('name', 'id')->map(fn ($n) => (string) $n)->all();
+    }
+
     public function mainBranchId(): ?string
     {
         return Branch::query()->where('is_main', true)->value('id');

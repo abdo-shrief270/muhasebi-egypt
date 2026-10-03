@@ -118,7 +118,7 @@ class ModuleLifecycleTest extends TestCase
         $this->assertTrue($modules['multi_branch']['trial_available']);
         $this->assertSame([false, false], [$modules['e_invoicing']['available'], $modules['e_invoicing']['trial_available']], 'still being built');
         $this->assertFalse($modules->has('imports'), 'for importers, not repair shops');
-        $this->assertNotContains('/transfers', array_column($modules['multi_branch']['menu'], 'to'), 'its screen is not built yet');
+        $this->assertContains('/transfers', array_column($modules['multi_branch']['menu'], 'to'));
         $this->assertSame('enabled', $modules['sales']['state']);
         $this->assertFalse($modules->has('identity'), 'platform modules are not shown to shops');
     }

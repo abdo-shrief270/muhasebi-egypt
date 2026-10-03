@@ -24,6 +24,12 @@ final class Categories
             'permission' => 'online_store.orders',
             'prefixes' => ['online_order.'],
         ],
+        'transfers' => [
+            'label' => 'التحويلات بين الفروع',
+            'description' => 'بضاعة خرجت من فرع لفرع تاني ومستنية تتستلم.',
+            'permission' => 'transfers.manage',
+            'prefixes' => ['transfer.'],
+        ],
         'partners' => [
             'label' => 'المحلات الشريكة',
             'description' => 'طلبات جديدة، طلبات شراكة، والمحل التاني بيحرّك طلب.',

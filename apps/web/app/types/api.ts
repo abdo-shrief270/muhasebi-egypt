@@ -1238,3 +1238,57 @@ export interface ApprovalNeeded {
   amount: number
   token: string
 }
+
+export type TransferStatus = 'requested' | 'shipped' | 'received' | 'cancelled'
+
+/** Goods moving between two of the shop's branches (TR-00001). */
+export interface StockTransfer {
+  id: string
+  number: number
+  reference: string
+  status: TransferStatus
+  status_label: string
+  from: { id: string, name: string }
+  to: { id: string, name: string }
+  units_requested: number
+  units_shipped: number
+  units_received: number
+  /** what was shipped cost (only with products.view_cost) */
+  value: number | null
+  can_ship: boolean
+  can_receive: boolean
+  notes: string | null
+  requested_by_name: string | null
+  created_at: string
+  shipped_by_name: string | null
+  shipped_at: string | null
+  received_by_name: string | null
+  received_at: string | null
+  cancel_reason: string | null
+  items?: StockTransferItem[]
+}
+
+export interface StockTransferItem {
+  id: string
+  variant_id: string
+  name: string
+  track_serial: boolean
+  qty_requested: number
+  qty_shipped: number
+  qty_received: number
+  unit_cost: number | null
+  serials: string[]
+  received_serials: string[]
+}
+
+/** A variant to add to a transfer, with what the sending branch has. */
+export interface TransferVariant {
+  id: string
+  display_name: string
+  barcode: string | null
+  category: { id: number, name: string }
+  track_serial: boolean
+  qty: number
+  serials: string[]
+  exact_barcode: boolean
+}

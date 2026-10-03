@@ -1292,3 +1292,83 @@ export interface TransferVariant {
   serials: string[]
   exact_barcode: boolean
 }
+
+export type ImportContactType = 'supplier' | 'agent' | 'shipping' | 'customs'
+
+/** Someone an importer deals with (EGP balance: > 0 = the shop owes them). */
+export interface ImportContact {
+  id: string
+  type: ImportContactType
+  type_label: string
+  name: string
+  country: string | null
+  city: string | null
+  phone: string | null
+  wechat: string | null
+  whatsapp: string | null
+  notes: string | null
+  balance: number
+  is_active: boolean
+}
+
+export interface ImportStatementLine {
+  id: number
+  type: 'shipment' | 'cost' | 'payment' | 'claim' | 'reversal'
+  type_label: string
+  amount: number
+  balance_after: number
+  ref_type: string | null
+  ref_id: string | null
+  note: string | null
+  user_name: string | null
+  created_at: string
+}
+
+export interface ImportPayment {
+  id: string
+  contact_id: string
+  shipment_id: string | null
+  amount: number
+  method: 'bank' | 'exchange' | 'agent' | 'cash' | 'wallet'
+  method_label: string
+  paid_on: string
+  received_by: string | null
+  reference: string | null
+  has_proof: boolean
+  note: string | null
+  user_name: string | null
+  reversed: boolean
+}
+
+export type ImportShipmentStatus = 'ordered' | 'shipped' | 'customs' | 'arrived' | 'received' | 'cancelled'
+
+export interface ImportShipment {
+  id: string
+  number: number
+  reference: string
+  status: ImportShipmentStatus
+  status_label: string
+  contact: { id: string, name: string | null }
+  branch: { id: string, name: string | null }
+  ordered_on: string
+  expected_on: string | null
+  late: boolean
+  allocation: 'value' | 'qty'
+  original_amount: string | null
+  goods_total: number
+  costs_total: number
+  total: number
+  notes: string | null
+  received_at: string | null
+  received_by_name: string | null
+  cancel_reason: string | null
+  created_at: string
+}
+
+export interface ImportShipmentDetail extends ImportShipment {
+  items: { id: string, variant_id: string, name: string, track_serial: boolean, qty: number, unit_price: number, line_total: number, received_qty: number, damaged_qty: number, landed_unit_cost: number, serials: string[] }[]
+  costs: { id: string, kind: string, kind_label: string, contact: { id: string, name: string | null } | null, amount: number, note: string | null }[]
+  payments: ImportPayment[]
+  paid: number
+  attachments: { id: string, kind: string, kind_label: string, name: string, mime: string, size: number, uploaded_by_name: string | null, created_at: string }[]
+}

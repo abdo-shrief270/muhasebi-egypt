@@ -21,8 +21,8 @@ class PublicPlansTest extends TestCase
         // Modules still being built are marked, so the site can say «قريباً».
         $repairs = collect($pro['modules'])->firstWhere('key', 'repairs');
         $this->assertTrue($repairs['available']);
-        $imports = collect($pro['modules'])->firstWhere('key', 'imports');
-        $this->assertFalse($imports['available']);
+        $this->assertTrue(collect($pro['modules'])->firstWhere('key', 'imports')['available']);
         $this->assertNotEmpty($res->json('data.modules'));
+        $this->assertFalse(collect($res->json('data.modules'))->firstWhere('key', 'e_invoicing')['available']);
     }
 }

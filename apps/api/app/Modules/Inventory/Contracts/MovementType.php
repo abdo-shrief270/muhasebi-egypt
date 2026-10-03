@@ -25,6 +25,8 @@ enum MovementType: string
     /** A damaged unit written off (serials only: the stock left when it was set aside). */
     case WriteOff = 'write_off';
     case UsedPurchase = 'used_purchase';
+    /** An import shipment received at its landed cost (Imports). */
+    case Import = 'import';
 
     public function label(): string
     {
@@ -44,6 +46,7 @@ enum MovementType: string
             self::SupplierReplacement => 'بديل من المورد',
             self::WriteOff => 'إعدام تالف',
             self::UsedPurchase => 'شراء مستعمل',
+            self::Import => 'استيراد',
         };
     }
 }

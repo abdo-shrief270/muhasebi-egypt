@@ -8,7 +8,7 @@ return new ModuleManifest(
     key: 'imports',
     name: 'الاستيراد',
     tier: ModuleTier::Optional,
-    description: 'جهات الاستيراد، الشحنات، التكلفة النهائية، الدفعات وكشوف الحساب.',
+    description: 'جهات الاستيراد، الشحنات بحالاتها، التكلفة النهائية للصنف بعد الشحن والجمارك، الدفعات وكشف حساب لكل جهة، ومطالبات النواقص والتالف.',
     dependsOn: ['inventory', 'suppliers'],
     permissions: [
         'imports.view' => 'عرض الاستيراد',
@@ -19,5 +19,4 @@ return new ModuleManifest(
     ],
     shopTypes: ['importer'],
     sort: 210,
-    available: false,
 );

@@ -1,5 +1,5 @@
 <template>
-  <div class="intake mx-auto bg-white text-black" :style="{ width }">
+  <div class="intake mx-auto bg-white text-black" :style="{ width: width ?? paper.width.value }">
     <div class="text-center">
       <p class="text-lg font-extrabold">
         {{ shop?.name }}
@@ -90,7 +90,8 @@
 import type { ReceiptShop, RepairTicket } from '~/types/api'
 
 /** What the customer takes home when leaving a device: 80mm thermal. */
-withDefaults(defineProps<{ ticket: RepairTicket, shop: ReceiptShop | null, width?: string }>(), { width: '72mm' })
+withDefaults(defineProps<{ ticket: RepairTicket, shop: ReceiptShop | null, width?: string }>(), { width: undefined })
+const paper = useThermalPaper()
 
 const tracking = computed(() => useSessionStore().hasFeature('repairs.public_tracking'))
 </script>

@@ -20,6 +20,13 @@ interface StorefrontCatalog
     public function categories(?array $onlyVariantIds = null): array;
 
     /**
+     * Every category of the shop by id (the store may show some under another name).
+     *
+     * @return array<int, string>
+     */
+    public function categoryNames(): array;
+
+    /**
      * Phone brands → models that have compatible products to show («اختار موبايلك»).
      *
      * @param  list<string>|null  $onlyVariantIds

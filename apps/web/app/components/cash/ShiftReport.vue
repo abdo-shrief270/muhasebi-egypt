@@ -1,5 +1,5 @@
 <template>
-  <div class="shift-report mx-auto bg-white text-black" :style="{ width }">
+  <div class="shift-report mx-auto bg-white text-black" :style="{ width: width ?? paper.width.value }">
     <div class="text-center">
       <p class="text-lg font-extrabold">
         {{ shopName }}
@@ -82,7 +82,8 @@
 import type { CashShift } from '~/types/api'
 
 /** The end-of-shift (Z) report: 80mm thermal, also shown on screen. */
-const props = withDefaults(defineProps<{ shift: CashShift, shopName: string, branchName?: string | null, width?: string }>(), { branchName: null, width: '72mm' })
+const props = withDefaults(defineProps<{ shift: CashShift, shopName: string, branchName?: string | null, width?: string }>(), { branchName: null })
+const paper = useThermalPaper()
 
 const rows = computed(() => CASH_METHODS.filter(m => m.value === 'cash' || (props.shift.expected?.[m.value] ?? 0) !== 0 || (props.shift.counted?.[m.value] ?? 0) !== 0))
 

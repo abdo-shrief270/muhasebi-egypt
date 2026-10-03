@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\OnlineStore\Http\Controllers;
 
+use App\Modules\Catalog\Contracts\StorefrontCatalog;
 use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\OnlineStore\Models\OnlineStore;
@@ -35,7 +36,7 @@ final class StoreSettingsController
         return response()->json(['data' => $this->present($this->store($shops, $branches))]);
     }
 
-    public function update(Request $request, ShopDirectory $shops, BranchDirectory $branches): JsonResponse
+    public function update(Request $request, ShopDirectory $shops, BranchDirectory $branches, StorefrontCatalog $categories): JsonResponse
     {
         $store = $this->store($shops, $branches);
         $tenantId = $this->tenant->idOrFail();
@@ -62,6 +63,11 @@ final class StoreSettingsController
             'show_latest' => ['sometimes', 'boolean'],
             'show_whatsapp' => ['sometimes', 'boolean'],
             'announcement' => ['nullable', 'string', 'max:160'],
+            'show_brand' => ['sometimes', 'boolean'],
+            'category_names' => ['nullable', 'array', 'max:200'],
+            'category_names.*' => ['nullable', 'string', 'max:60'],
+            'orders_from' => ['nullable', 'date_format:H:i', 'required_with:orders_until'],
+            'orders_until' => ['nullable', 'date_format:H:i', 'required_with:orders_from', 'different:orders_from'],
             'pickup' => ['sometimes', 'boolean'],
             'delivery' => ['sometimes', 'boolean'],
             'min_order' => ['sometimes', 'integer', 'min:0', 'max:100000000'],
@@ -109,6 +115,13 @@ final class StoreSettingsController
         }
         if ($after('pay_transfer') && $after('transfer_instapay') === null && $after('transfer_wallet') === null) {
             throw new DomainRuleException('اكتب عنوان InstaPay أو رقم المحفظة اللي الزبون هيحوّل عليه.', 'transfer_details_required');
+        }
+
+        if (array_key_exists('category_names', $data)) {
+            // Only real categories of this shop, and only names that differ (blank = the app's name).
+            $names = array_filter(array_map(fn ($n) => is_string($n) ? trim($n) : '', (array) $data['category_names']), fn (string $n) => $n !== '');
+            $known = $categories->categoryNames();
+            $data['category_names'] = array_filter($names, fn (string $n, $id) => isset($known[(int) $id]) && $known[(int) $id] !== $n, ARRAY_FILTER_USE_BOTH) ?: null;
         }
 
         $before = $store->mode;
@@ -183,6 +196,9 @@ final class StoreSettingsController
             'pay_transfer' => $store->pay_transfer,
             'transfer_instapay' => $store->transfer_instapay,
             'transfer_wallet' => $store->transfer_wallet,
+            'category_names' => (object) ($store->category_names ?? []),
+            'orders_from' => OnlineStore::hhmm($store->orders_from),
+            'orders_until' => OnlineStore::hhmm($store->orders_until),
             'url' => Slugs::url($store->slug),
         ];
     }

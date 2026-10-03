@@ -274,7 +274,13 @@ export interface OnlineStoreSettings {
   show_models: boolean
   show_latest: boolean
   show_whatsapp: boolean
+  show_brand: boolean
   announcement: string | null
+  /** what a category is called on the store, by category id */
+  category_names: Record<string, string>
+  /** HH:MM Cairo time, both null = any time */
+  orders_from: string | null
+  orders_until: string | null
   logo: Record<string, string> | null
   cover: Record<string, string> | null
   pickup: boolean
@@ -549,6 +555,8 @@ export interface ReceiptSettings {
   show_cashier?: boolean
   show_customer?: boolean
   show_serials?: boolean
+  /** thermal paper width in mm */
+  paper?: '80' | '58'
 }
 
 /** The shop's lines at the top / bottom of a receipt. */

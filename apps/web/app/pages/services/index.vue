@@ -217,7 +217,7 @@
 
     <ServicesReverseModal v-model:open="reverseOpen" :t="reversing" @reversed="onReversed" />
 
-    <PrintSheet v-if="printing && printed" page-size="80mm auto">
+    <PrintSheet v-if="printing && printed" :page-size="paper.page.value">
       <ServicesReceipt :t="printed" :shop-name="store.session?.tenant.name ?? ''" :branch-name="store.currentBranch?.name" />
     </PrintSheet>
   </div>
@@ -229,6 +229,7 @@ import type { CashShift, ServiceAccount, ServiceOperation, ServiceTransaction } 
 
 definePageMeta({ permission: 'services.manage' })
 
+const paper = useThermalPaper()
 const api = useApi()
 const store = useSessionStore()
 const toast = useToast()

@@ -17,7 +17,10 @@ final class ReceiptSettings
 
     public const SWITCHES = ['show_cashier', 'show_customer', 'show_serials'];
 
-    /** @return array{tax_number: string|null, commercial_register: string|null, footer: string, show_cashier: bool, show_customer: bool, show_serials: bool} */
+    /** The thermal printer's paper width (mm). */
+    public const PAPERS = ['80', '58'];
+
+    /** @return array{tax_number: string|null, commercial_register: string|null, footer: string, show_cashier: bool, show_customer: bool, show_serials: bool, paper: string} */
     public static function of(Tenant $tenant): array
     {
         $saved = (array) (($tenant->settings ?? [])['receipt'] ?? []);
@@ -29,10 +32,11 @@ final class ReceiptSettings
             'show_cashier' => (bool) ($saved['show_cashier'] ?? true),
             'show_customer' => (bool) ($saved['show_customer'] ?? true),
             'show_serials' => (bool) ($saved['show_serials'] ?? true),
+            'paper' => in_array($saved['paper'] ?? null, self::PAPERS, true) ? $saved['paper'] : '80',
         ];
     }
 
-    /** @param  array{tax_number?: string|null, commercial_register?: string|null, footer?: string|null, show_cashier?: bool, show_customer?: bool, show_serials?: bool}  $values  a switch left out keeps its value */
+    /** @param  array{tax_number?: string|null, commercial_register?: string|null, footer?: string|null, show_cashier?: bool, show_customer?: bool, show_serials?: bool, paper?: string}  $values  a switch (or the paper) left out keeps its value */
     public static function apply(Tenant $tenant, array $values): void
     {
         $settings = $tenant->settings ?? [];
@@ -45,6 +49,8 @@ final class ReceiptSettings
         foreach (self::SWITCHES as $switch) {
             $settings['receipt'][$switch] = (bool) ($values[$switch] ?? $current[$switch]);
         }
+        $paper = (string) ($values['paper'] ?? '');
+        $settings['receipt']['paper'] = in_array($paper, self::PAPERS, true) ? $paper : $current['paper'];
         $tenant->settings = $settings;
     }
 

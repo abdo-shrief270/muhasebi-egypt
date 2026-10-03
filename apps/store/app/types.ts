@@ -21,6 +21,7 @@ export interface PublicStore {
   show_models: boolean
   show_latest: boolean
   show_whatsapp: boolean
+  show_brand: boolean
   announcement: string | null
   logo: Images | null
   cover: Images | null
@@ -38,6 +39,9 @@ export interface Ordering {
   pay_transfer: boolean
   transfer_instapay: string | null
   transfer_wallet: string | null
+  /** When orders are taken (Cairo time), null = any time */
+  hours: { from: string, until: string } | null
+  open_now: boolean
 }
 
 export interface Zone { id: string, name: string, fee: number }

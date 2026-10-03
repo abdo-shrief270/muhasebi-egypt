@@ -30,7 +30,7 @@
     </template>
   </UModal>
 
-  <PrintSheet v-if="printing && sale" page-size="80mm auto">
+  <PrintSheet v-if="printing && sale" :page-size="paper.page.value">
     <PrintReceipt :data="receipt" :qr-url="qrUrl" :note="sale.offline ? OFFLINE_NOTE : null" />
   </PrintSheet>
 </template>
@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import type { Sale } from '~/types/api'
 
+const paper = useThermalPaper()
 const props = defineProps<{ sale: Sale | null }>()
 const open = defineModel<boolean>('open', { default: false })
 

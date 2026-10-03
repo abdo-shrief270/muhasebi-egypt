@@ -1,5 +1,5 @@
 <template>
-  <div class="receipt mx-auto bg-white text-black" :style="{ width }">
+  <div class="receipt mx-auto bg-white text-black" :style="{ width: width ?? paper.width.value }">
     <div class="text-center">
       <p class="text-lg font-extrabold">
         {{ shopName }}
@@ -56,7 +56,8 @@
 import type { ServiceTransaction } from '~/types/api'
 
 /** The customer's slip for a wallet transfer or a top-up: thermal 80mm. */
-withDefaults(defineProps<{ t: ServiceTransaction, shopName: string, branchName?: string | null, width?: string }>(), { branchName: null, width: '72mm' })
+withDefaults(defineProps<{ t: ServiceTransaction, shopName: string, branchName?: string | null, width?: string }>(), { branchName: null })
+const paper = useThermalPaper()
 
 function money(piasters: number): string {
   return (piasters / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })

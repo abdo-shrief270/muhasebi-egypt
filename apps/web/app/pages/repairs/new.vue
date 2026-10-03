@@ -137,7 +137,7 @@
       </div>
     </form>
 
-    <PrintSheet v-if="printing && created" page-size="80mm auto">
+    <PrintSheet v-if="printing && created" :page-size="paper.page.value">
       <RepairsIntakeReceipt :ticket="created" :shop="shop" />
     </PrintSheet>
   </div>
@@ -148,6 +148,7 @@ import type { CashMethod, PosCustomer, RepairOptions, RepairTicket } from '~/typ
 
 definePageMeta({ module: 'repairs', permission: 'repairs.create' })
 
+const paper = useThermalPaper()
 const api = useApi()
 const store = useSessionStore()
 const canCustomers = computed(() => store.can('customers.view'))

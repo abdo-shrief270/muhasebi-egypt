@@ -29,6 +29,11 @@ final class StorefrontCatalogService implements StorefrontCatalog
             ->values()->all();
     }
 
+    public function categoryNames(): array
+    {
+        return Category::query()->pluck('name', 'id')->map(fn ($n) => (string) $n)->all();
+    }
+
     public function deviceBrands(?array $onlyVariantIds = null): array
     {
         $counts = DB::table('device_model_product')

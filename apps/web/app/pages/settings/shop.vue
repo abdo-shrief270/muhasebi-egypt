@@ -26,6 +26,13 @@
             <UFormField label="آخر سطر في الإيصال" class="sm:col-span-2" :hint="`${form.footer.length}/200`" :error="errors.footer">
               <UTextarea v-model="form.footer" :rows="2" autoresize class="w-full" maxlength="200" placeholder="شكراً لزيارتك 🌷 · الضمان 14 يوم بالإيصال" />
             </UFormField>
+            <UFormField label="ورق الطابعة الحرارية" class="sm:col-span-2">
+              <URadioGroup
+                v-model="form.paper"
+                orientation="horizontal"
+                :items="[{ value: '80', label: '80 مم (العادي)' }, { value: '58', label: '58 مم (الصغير)' }]"
+              />
+            </UFormField>
             <div class="space-y-3 sm:col-span-2">
               <USwitch v-model="form.show_cashier" label="اطبع اسم الكاشير" />
               <USwitch v-model="form.show_customer" label="اطبع اسم العميل" />
@@ -63,7 +70,7 @@
           شكل الإيصال
         </p>
         <div class="rounded-(--ui-radius) border border-(--ui-border) bg-white p-3 shadow-(--app-shadow)">
-          <PrintReceipt :data="preview" width="100%" />
+          <PrintReceipt :data="preview" :width="form.paper === '58' ? '48mm' : '72mm'" />
         </div>
       </div>
     </div>
@@ -89,6 +96,7 @@ const form = reactive({
   show_cashier: tenant.receipt?.show_cashier ?? true,
   show_customer: tenant.receipt?.show_customer ?? true,
   show_serials: tenant.receipt?.show_serials ?? true,
+  paper: (tenant.receipt?.paper ?? '80') as '80' | '58',
 })
 
 const branches = computed<Branch[]>(() => store.session?.branches ?? [])
@@ -140,7 +148,7 @@ const preview = computed<ReceiptData>(() => ({
     address: branchForm.value?.address || null,
     receipt: {
       tax_number: form.tax_number || null, commercial_register: form.commercial_register || null, footer: form.footer.trim() || 'شكراً لزيارتك 🌷',
-      show_cashier: form.show_cashier, show_customer: form.show_customer, show_serials: form.show_serials,
+      show_cashier: form.show_cashier, show_customer: form.show_customer, show_serials: form.show_serials, paper: form.paper,
     },
   },
   branch: branches.value.length > 1 ? branches.value.find(b => b.id === branchId.value)?.name ?? null : null,

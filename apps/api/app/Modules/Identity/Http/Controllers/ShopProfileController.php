@@ -41,6 +41,7 @@ final class ShopProfileController
             'show_cashier' => ['sometimes', 'boolean'],
             'show_customer' => ['sometimes', 'boolean'],
             'show_serials' => ['sometimes', 'boolean'],
+            'paper' => ['sometimes', 'in:'.implode(',', ReceiptSettings::PAPERS)],
         ], [], [
             'name' => 'اسم المحل',
             'phone' => 'موبايل المحل',

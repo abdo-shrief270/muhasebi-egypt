@@ -66,6 +66,13 @@ final class PlaceOrderAction
         if (! $store->takesOrders()) {
             throw new DomainRuleException('المتجر ده بيستقبل الطلبات على واتساب بس.', 'store_not_taking_orders', 409);
         }
+        if (! $store->takingOrdersAt()) {
+            throw new DomainRuleException(
+                'المحل بيستقبل الطلبات من '.OnlineStore::hhmm($store->orders_from).' لـ '.OnlineStore::hhmm($store->orders_until).'. اطلب في المواعيد دي أو كلّمه على واتساب.',
+                'orders_closed_now',
+                409,
+            );
+        }
         if ($fulfilment === 'pickup' && ! $store->pickup || $fulfilment === 'delivery' && ! $store->delivery) {
             throw new DomainRuleException($fulfilment === 'pickup' ? 'المحل مش بيسلّم من عنده دلوقتي.' : 'المحل مش بيوصّل دلوقتي.', 'fulfilment_unavailable');
         }

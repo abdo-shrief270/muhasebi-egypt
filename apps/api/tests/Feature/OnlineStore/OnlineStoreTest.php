@@ -136,6 +136,31 @@ class OnlineStoreTest extends TestCase
         $this->putJson('/api/v1/online-store/settings', ['show_prices' => false])->assertUnprocessable()->assertJsonPath('code', 'orders_need_prices');
     }
 
+    public function test_brand_and_category_names_on_the_store(): void
+    {
+        $cases = $this->getJson('/api/v1/catalog/categories')->json('data');
+        $casesId = collect($cases)->firstWhere('name', 'جرابات')['id'];
+        $brand = $this->postJson('/api/v1/catalog/brands', ['name' => 'Zeta'])->assertCreated()->json('data.id');
+        $productId = $this->getJson('/api/v1/products?q=جراب')->json('data.0.id');
+        $this->patchJson("/api/v1/products/{$productId}", ['brand_id' => $brand])->assertOk();
+
+        // Unknown categories and names equal to the app's are dropped.
+        $saved = $this->open(['show_brand' => false, 'category_names' => [$casesId => 'كفرات', 999999 => 'x', 1 => '']]);
+        $this->assertSame([(string) $casesId => 'كفرات'], (array) $saved['category_names']);
+
+        $home = $this->getJson('/api/v1/public/stores/elnour')->json('data');
+        $this->assertContains('كفرات', array_column($home['categories'], 'name'));
+        $product = $this->getJson("/api/v1/public/stores/elnour/products/{$productId}")->json('data');
+        $this->assertSame(['كفرات', null], [$product['category']['name'], $product['brand']]);
+    }
+
+    public function test_receipt_paper(): void
+    {
+        $this->assertSame('80', $this->getJson('/api/v1/auth/me')->json('data.tenant.receipt.paper'));
+        $this->putJson('/api/v1/shop/profile', ['name' => 'محل 1', 'phone' => '01000000001', 'paper' => '57'])->assertUnprocessable();
+        $this->assertSame('58', $this->putJson('/api/v1/shop/profile', ['name' => 'محل 1', 'phone' => '01000000001', 'paper' => '58'])->assertOk()->json('data.receipt.paper'));
+    }
+
     public function test_receipt_switches(): void
     {
         $this->assertSame([true, true, true], array_values(array_intersect_key(

@@ -1,5 +1,5 @@
 <template>
-  <div class="receipt mx-auto bg-white text-black" :style="{ width }">
+  <div class="receipt mx-auto bg-white text-black" :style="{ width: width ?? paper.width.value }">
     <div class="text-center">
       <p class="text-lg font-extrabold">
         {{ data.shop?.name }}
@@ -95,7 +95,8 @@
 import type { ReceiptData } from '~/types/api'
 
 /** The customer's receipt: thermal 80mm / 58mm, also shown on the public receipt page. */
-withDefaults(defineProps<{ data: ReceiptData, qrUrl?: string | null, width?: string, note?: string | null }>(), { qrUrl: null, width: '72mm', note: null })
+withDefaults(defineProps<{ data: ReceiptData, qrUrl?: string | null, width?: string, note?: string | null }>(), { qrUrl: null, note: null })
+const paper = useThermalPaper()
 
 /** "1,250" or "1,250.50" — the currency is printed once, on the total. */
 function money(piasters: number): string {

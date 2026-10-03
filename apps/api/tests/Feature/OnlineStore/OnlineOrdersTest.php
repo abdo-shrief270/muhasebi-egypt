@@ -6,6 +6,7 @@ use App\Modules\Identity\Enums\ShopType;
 use App\Modules\Identity\PermissionResolver;
 use App\Modules\Notifications\Models\Notification;
 use App\Support\Events\EventRelay;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -109,6 +110,24 @@ class OnlineOrdersTest extends TestCase
         $this->withServerVariables(['REMOTE_ADDR' => '10.0.0.3']);
         $this->putJson('/api/v1/online-store/settings', ['mode' => 'whatsapp'])->assertOk();
         $this->order(['phone' => '01099998888'])->assertStatus(409)->assertJsonPath('code', 'store_not_taking_orders');
+    }
+
+    public function test_orders_only_in_the_shops_hours(): void
+    {
+        // 10:00 → 02:00 Cairo time (past midnight).
+        $this->putJson('/api/v1/online-store/settings', ['orders_from' => '10:00', 'orders_until' => '02:00'])->assertOk();
+        $this->travelTo(CarbonImmutable::parse('2026-10-05 05:00', 'Africa/Cairo'));
+        $this->assertFalse($this->getJson('/api/v1/public/stores/elnour')->json('data.store.ordering.open_now'));
+        $this->order()->assertStatus(409)->assertJsonPath('code', 'orders_closed_now');
+        $this->travelTo(CarbonImmutable::parse('2026-10-05 01:30', 'Africa/Cairo'));
+        $this->order()->assertCreated();
+        $this->travelTo(CarbonImmutable::parse('2026-10-05 12:00', 'Africa/Cairo'));
+        $this->assertSame(['from' => '10:00', 'until' => '02:00'], $this->getJson('/api/v1/public/stores/elnour')->json('data.store.ordering.hours'));
+        $this->order(['phone' => '01055556668'])->assertCreated();
+
+        $this->putJson('/api/v1/online-store/settings', ['orders_from' => '10:00'])->assertUnprocessable();
+        $this->putJson('/api/v1/online-store/settings', ['orders_from' => null, 'orders_until' => null])->assertOk();
+        $this->assertNull($this->getJson('/api/v1/public/stores/elnour')->json('data.store.ordering.hours'));
     }
 
     public function test_transfer_proof_is_private_and_the_same_checkout_is_saved_once(): void

@@ -195,7 +195,7 @@
       </template>
     </UModal>
 
-    <PrintSheet v-if="printing" page-size="80mm auto">
+    <PrintSheet v-if="printing" :page-size="paper.page.value">
       <PrintReceipt :data="receipt" :qr-url="store.hasFeature('sales.receipt_link') ? receiptUrl(sale.public_token) : null" />
     </PrintSheet>
   </div>
@@ -206,6 +206,7 @@ import type { Sale } from '~/types/api'
 
 definePageMeta({ permission: 'sales.view' })
 
+const paper = useThermalPaper()
 const api = useApi()
 const route = useRoute()
 const store = useSessionStore()

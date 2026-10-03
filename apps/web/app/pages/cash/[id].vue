@@ -44,7 +44,7 @@
     </div>
 
     <CashCloseShiftModal v-model:open="closeOpen" :shift="shift" @closed="() => refresh()" />
-    <PrintSheet v-if="printing" page-size="80mm auto">
+    <PrintSheet v-if="printing" :page-size="paper.page.value">
       <CashShiftReport :shift="shift" :shop-name="shopName" />
     </PrintSheet>
   </div>
@@ -55,6 +55,7 @@ import type { CashShift } from '~/types/api'
 
 definePageMeta({ permission: 'cash.shift' })
 
+const paper = useThermalPaper()
 const api = useApi()
 const route = useRoute()
 const store = useSessionStore()

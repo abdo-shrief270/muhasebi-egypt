@@ -6,6 +6,8 @@ namespace App\Modules\OnlineStore\Models;
 
 use App\Modules\OnlineStore\Support\StoreMedia;
 use App\Support\Tenancy\BelongsToTenant;
+use App\Support\Time\ShopDay;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -46,6 +48,10 @@ use Illuminate\Support\Carbon;
  * @property bool $show_latest «وصل جديد» on the home page
  * @property bool $show_whatsapp the «كلّمنا واتساب» buttons
  * @property string|null $announcement a line across the top of every page
+ * @property bool $show_brand the product's brand on its card and page
+ * @property array<string, string>|null $category_names what a category is called on the store, by category id
+ * @property string|null $orders_from HH:MM:SS Cairo time; with orders_until = when orders are taken
+ * @property string|null $orders_until
  * @property Carbon $updated_at
  */
 #[Fillable([
@@ -53,6 +59,7 @@ use Illuminate\Support\Carbon;
     'map_url', 'hours', 'policy', 'facebook', 'instagram', 'show_out_of_stock', 'show_quantity', 'logo', 'cover',
     'pickup', 'delivery', 'min_order', 'free_delivery_over', 'pay_cod', 'pay_transfer', 'transfer_instapay', 'transfer_wallet',
     'show_prices', 'show_models', 'show_latest', 'show_whatsapp', 'announcement',
+    'show_brand', 'category_names', 'orders_from', 'orders_until',
 ])]
 final class OnlineStore extends Model
 {
@@ -75,6 +82,8 @@ final class OnlineStore extends Model
             'show_models' => 'boolean',
             'show_latest' => 'boolean',
             'show_whatsapp' => 'boolean',
+            'show_brand' => 'boolean',
+            'category_names' => 'array',
         ];
     }
 
@@ -86,6 +95,26 @@ final class OnlineStore extends Model
     public function takesOrders(): bool
     {
         return $this->mode === 'orders';
+    }
+
+    /** Within the hours the shop takes orders (Cairo time); no hours = always. */
+    public function takingOrdersAt(?CarbonInterface $at = null): bool
+    {
+        if ($this->orders_from === null || $this->orders_until === null) {
+            return true;
+        }
+        $now = ($at ?? now())->copy()->setTimezone(ShopDay::TZ)->format('H:i:s');
+        $from = $this->orders_from;
+        $until = $this->orders_until;
+
+        // 10:00 → 23:00 is the same day; 18:00 → 02:00 runs past midnight.
+        return $from <= $until ? $now >= $from && $now < $until : $now >= $from || $now < $until;
+    }
+
+    /** "10:00" from the stored "10:00:00". */
+    public static function hhmm(?string $time): ?string
+    {
+        return $time === null ? null : substr($time, 0, 5);
     }
 
     /**
@@ -115,6 +144,7 @@ final class OnlineStore extends Model
             'show_models' => $this->show_models,
             'show_latest' => $this->show_latest,
             'show_whatsapp' => $this->show_whatsapp,
+            'show_brand' => $this->show_brand,
             'announcement' => $this->announcement,
             'logo' => StoreMedia::urls($this->tenant_id, 'logo', $this->logo),
             'cover' => StoreMedia::urls($this->tenant_id, 'cover', $this->cover),
@@ -127,6 +157,10 @@ final class OnlineStore extends Model
                 'pay_transfer' => $this->pay_transfer,
                 'transfer_instapay' => $this->pay_transfer ? $this->transfer_instapay : null,
                 'transfer_wallet' => $this->pay_transfer ? $this->transfer_wallet : null,
+                'hours' => $this->orders_from !== null && $this->orders_until !== null
+                    ? ['from' => self::hhmm($this->orders_from), 'until' => self::hhmm($this->orders_until)]
+                    : null,
+                'open_now' => $this->takingOrdersAt(),
             ] : null,
             'updated_at' => $this->updated_at->toIso8601String(),
         ];

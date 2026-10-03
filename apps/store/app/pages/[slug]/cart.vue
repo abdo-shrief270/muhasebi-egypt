@@ -143,13 +143,16 @@
           <span>احفظوا بياناتي عند {{ store.name }} للطلبات الجاية. <span class="text-muted">(تقدر تطلب مسحها في أي وقت)</span></span>
         </label>
 
+        <p v-if="!ordering.open_now && ordering.hours" class="rounded-xl bg-warn/10 px-3 py-2 text-sm text-warn">
+          المحل بيستقبل الطلبات من <span class="num" dir="ltr">{{ ordering.hours.from }}</span> لـ <span class="num" dir="ltr">{{ ordering.hours.until }}</span>. السلة هتفضل محفوظة لحد ما تطلب.
+        </p>
         <p v-if="belowMin" class="rounded-xl bg-warn/10 px-3 py-2 text-sm text-warn">
           أقل طلب {{ formatPrice(ordering.min_order) }}.
         </p>
         <p v-if="error" class="rounded-xl bg-bad/10 px-3 py-2 text-sm font-bold text-bad" role="alert">
           {{ error }}
         </p>
-        <button type="submit" class="btn-brand w-full py-3 text-base" :disabled="sending || belowMin || gone.size > 0">
+        <button type="submit" class="btn-brand w-full py-3 text-base" :disabled="sending || belowMin || gone.size > 0 || !ordering.open_now">
           {{ sending ? 'بنبعت الطلب…' : `اطلب (${formatPrice(total)})` }}
         </button>
         <p class="text-xs text-muted">

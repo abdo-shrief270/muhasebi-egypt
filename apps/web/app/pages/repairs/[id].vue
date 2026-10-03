@@ -370,7 +370,7 @@
     <RepairsStatusModal v-model:open="statusOpen" :ticket="ticket" :preset="statusPreset" @changed="onChanged" />
     <RepairsDeliverModal v-model:open="deliverOpen" :ticket="ticket" @delivered="onChanged" />
     <RepairsOutsourceModal v-model:open="outsourceOpen" :ticket="ticket" @saved="onOutsourced" />
-    <PrintSheet v-if="printing" page-size="80mm auto">
+    <PrintSheet v-if="printing" :page-size="paper.page.value">
       <RepairsIntakeReceipt :ticket="ticket" :shop="shop" />
     </PrintSheet>
   </div>
@@ -381,6 +381,7 @@ import type { PriceCheckItem, RepairOptions, RepairTicket, TicketStatus } from '
 
 definePageMeta({ module: 'repairs', permission: 'repairs.view' })
 
+const paper = useThermalPaper()
 const api = useApi()
 const route = useRoute()
 const store = useSessionStore()

@@ -122,7 +122,7 @@
       </template>
     </UModal>
 
-    <PrintSheet v-if="printing && closed" page-size="80mm auto">
+    <PrintSheet v-if="printing && closed" :page-size="paper.page.value">
       <CashShiftReport :shift="closed" :shop-name="shopName" :branch-name="store.currentBranch?.name" />
     </PrintSheet>
   </div>
@@ -134,6 +134,7 @@ import type { CashOptions, CashShift } from '~/types/api'
 
 definePageMeta({ permission: 'cash.shift' })
 
+const paper = useThermalPaper()
 const api = useApi()
 const store = useSessionStore()
 const canManage = computed(() => store.can('cash.manage'))

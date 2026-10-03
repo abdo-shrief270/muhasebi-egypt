@@ -33,7 +33,7 @@ final class Storefront
 
         return [
             'store' => $store->toPublic(),
-            'categories' => $this->catalog->categories($only),
+            'categories' => array_map(fn (array $c) => ['name' => $this->categoryName($store, $c['id'], $c['name'])] + $c, $this->catalog->categories($only)),
             'device_brands' => $store->show_models ? $this->catalog->deviceBrands($only) : [],
             'latest' => $store->show_latest
                 ? $this->withAvailability($store, $this->catalog->products(new StorefrontQuery(perPage: 12, onlyVariantIds: $only))['items'])
@@ -72,12 +72,12 @@ final class Storefront
         if (! $store->show_out_of_stock && max([0, ...array_values($qty)]) <= 0) {
             return null;
         }
-        $product['variants'] = array_map(fn (array $v) => $this->priced($store, [...$v, ...$this->availability($store, $qty[$v['id']] ?? 0)]), $product['variants']);
+        $product['variants'] = array_map(fn (array $v) => $this->presented($store, [...$v, ...$this->availability($store, $qty[$v['id']] ?? 0)]), $product['variants']);
         if (! $store->show_models) {
             $product['device_models'] = [];
         }
 
-        return $this->priced($store, [...$product, ...$this->availability($store, max([0, ...array_values($qty)]))]);
+        return $this->presented($store, [...$product, ...$this->availability($store, max([0, ...array_values($qty)]))]);
     }
 
     /** @return list<array{id: string, updated_at: string}> */
@@ -98,18 +98,25 @@ final class Storefront
             $best = max([0, ...array_map(fn (string $id) => $qty[$id] ?? 0, $item['variant_ids'])]);
             unset($item['variant_ids']);
 
-            return $this->priced($store, [...$item, ...$this->availability($store, $best)]);
+            return $this->presented($store, [...$item, ...$this->availability($store, $best)]);
         }, $items);
     }
 
     /**
-     * «اسأل عن السعر»: the owner hides prices, so none leave the server.
+     * A product / variant as the owner shows it: the store's own category name, no brand when it's
+     * hidden, and no price at all under «اسأل عن السعر» (none leaves the server).
      *
      * @param  array<string, mixed>  $row
      * @return array<string, mixed>
      */
-    private function priced(OnlineStore $store, array $row): array
+    private function presented(OnlineStore $store, array $row): array
     {
+        if (! $store->show_brand && array_key_exists('brand', $row)) {
+            $row['brand'] = null;
+        }
+        if (isset($row['category']['id'], $row['category']['name'])) {
+            $row['category']['name'] = $this->categoryName($store, (int) $row['category']['id'], (string) $row['category']['name']);
+        }
         if (! $store->show_prices) {
             foreach (['price', 'price_max'] as $key) {
                 if (array_key_exists($key, $row)) {
@@ -143,6 +150,11 @@ final class Storefront
     public function branch(OnlineStore $store): string
     {
         return (string) ($store->branch_id ?? $this->branches->mainBranchId());
+    }
+
+    private function categoryName(OnlineStore $store, int $id, string $name): string
+    {
+        return $store->category_names[(string) $id] ?? $name;
     }
 
     /** @return list<string>|null */

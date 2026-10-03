@@ -43,6 +43,13 @@
               <UFormField label="أقل طلب (ج)" hint="0 = مفيش" :error="errors.min_order">
                 <UInput v-model="form.min_order" type="number" min="0" step="any" class="w-full" />
               </UFormField>
+              <UFormField label="مواعيد استقبال الطلبات" hint="فاضي = طول اليوم" :error="errors.orders_from || errors.orders_until">
+                <div class="flex items-center gap-2">
+                  <UInput v-model="form.orders_from" type="time" class="flex-1" aria-label="من" />
+                  <span class="text-sm text-(--ui-text-muted)">لـ</span>
+                  <UInput v-model="form.orders_until" type="time" class="flex-1" aria-label="لحد" />
+                </div>
+              </UFormField>
               <UFormField v-if="form.delivery" label="التوصيل ببلاش لو الطلب فوق (ج)" hint="اختياري" :error="errors.free_delivery_over">
                 <UInput v-model="form.free_delivery_over" type="number" min="0" step="any" class="w-full" />
               </UFormField>
@@ -107,10 +114,24 @@
             </p>
             <USwitch v-model="form.show_models" label="«اختار موبايلك»" description="الزبون يدوّر بماركة وموديل موبايله، ويشوف الموبايلات اللي كل صنف بيركب عليها." />
             <USwitch v-model="form.show_latest" label="«وصل جديد» في الرئيسية" />
+            <USwitch v-model="form.show_brand" label="اعرض الماركة" description="ماركة الصنف (Anker، Oraimo…) تحت اسمه." />
             <USwitch v-model="form.show_whatsapp" label="زراير «كلّمنا واتساب» و«اطلبه على واتساب»" />
             <UFormField label="شريط إعلان فوق المتجر" hint="اختياري" :error="errors.announcement">
               <UInput v-model="form.announcement" class="w-full" maxlength="160" placeholder="توصيل ببلاش فوق 500 ج · خصم 10% على الجرابات" />
             </UFormField>
+            <UCollapsible v-if="categories.length" class="space-y-3">
+              <UButton color="neutral" variant="link" trailing-icon="i-lucide-chevron-down" label="أسامي الأقسام في المتجر" class="px-0" />
+              <template #content>
+                <p class="text-xs text-(--ui-text-muted)">
+                  لو عايز القسم يظهر للزبون باسم تاني (مثلاً «جرابات» تبقى «كفرات وجرابات»). الفاضي = نفس اسمه في البرنامج.
+                </p>
+                <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <UFormField v-for="c in categories" :key="c.id" :label="c.name">
+                    <UInput v-model="form.category_names[String(c.id)]" class="w-full" maxlength="60" :placeholder="c.name" />
+                  </UFormField>
+                </div>
+              </template>
+            </UCollapsible>
             <p class="text-sm text-(--ui-text-muted)">
               كل الأصناف الشغالة بتظهر بسعر «الأونلاين» لو حاطه، وإلا بسعر القطاعي. تقدر تخفي صنف أو تضيف صوره ووصفه من صفحة الصنف.
             </p>
@@ -182,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import type { OnlineStoreSettings } from '~/types/api'
+import type { Category, OnlineStoreSettings } from '~/types/api'
 
 definePageMeta({ permission: 'online_store.manage', module: 'online_store' })
 
@@ -192,6 +213,8 @@ const session = useSessionStore()
 const branches = computed(() => session.session?.branches ?? [])
 
 const { data } = await useAsyncData('online-store-settings', () => api<{ data: OnlineStoreSettings }>('/online-store/settings'))
+const { data: categoryData } = await useAsyncData('online-store-categories', () => api<{ data: Category[] }>('/catalog/categories').catch(() => ({ data: [] as Category[] })))
+const categories = computed(() => categoryData.value?.data ?? [])
 const settings = ref<OnlineStoreSettings | null>(data.value?.data ?? null)
 // The address with the name left out: https://….muhasebi.com or https://store.muhasebi.com/…
 const storeBase = computed(() => (settings.value ? settings.value.url.replace(settings.value.slug, '…') : ''))
@@ -200,7 +223,8 @@ const form = reactive({
   slug: '', mode: 'off' as OnlineStoreSettings['mode'], whatsapp: '', name: '', color: '#0f766e', tagline: '', branch_id: '',
   show_out_of_stock: true, show_quantity: false, phone: '', hours: '', address: '', map_url: '', facebook: '', instagram: '',
   about: '', policy: '',
-  show_prices: true, show_models: true, show_latest: true, show_whatsapp: true, announcement: '',
+  show_prices: true, show_models: true, show_latest: true, show_whatsapp: true, show_brand: true, announcement: '',
+  category_names: {} as Record<string, string>, orders_from: '', orders_until: '',
   pickup: true, delivery: false, min_order: '', free_delivery_over: '',
   pay_cod: true, pay_transfer: false, transfer_instapay: '', transfer_wallet: '',
 })
@@ -212,7 +236,8 @@ function fill(s: OnlineStoreSettings) {
     phone: localPhone(s.phone), hours: s.hours ?? '', address: s.address ?? '', map_url: s.map_url ?? '',
     facebook: s.facebook ?? '', instagram: s.instagram ?? '', about: s.about ?? '', policy: s.policy ?? '',
     show_prices: s.show_prices, show_models: s.show_models, show_latest: s.show_latest, show_whatsapp: s.show_whatsapp,
-    announcement: s.announcement ?? '',
+    show_brand: s.show_brand, announcement: s.announcement ?? '',
+    category_names: { ...s.category_names }, orders_from: s.orders_from ?? '', orders_until: s.orders_until ?? '',
     pickup: s.pickup, delivery: s.delivery, min_order: s.min_order ? String(s.min_order / 100) : '',
     free_delivery_over: s.free_delivery_over !== null ? String(s.free_delivery_over / 100) : '',
     pay_cod: s.pay_cod, pay_transfer: s.pay_transfer, transfer_instapay: s.transfer_instapay ?? '', transfer_wallet: localPhone(s.transfer_wallet),
@@ -241,7 +266,8 @@ async function save() {
         hours: nullable(form.hours), address: nullable(form.address), map_url: nullable(form.map_url),
         facebook: nullable(form.facebook), instagram: nullable(form.instagram), about: nullable(form.about), policy: nullable(form.policy),
         show_prices: form.show_prices, show_models: form.show_models, show_latest: form.show_latest, show_whatsapp: form.show_whatsapp,
-        announcement: nullable(form.announcement),
+        show_brand: form.show_brand, announcement: nullable(form.announcement), category_names: form.category_names,
+        orders_from: form.orders_from || null, orders_until: form.orders_until || null,
         pickup: form.pickup, delivery: form.delivery, min_order: toPiasters(form.min_order) ?? 0,
         free_delivery_over: toPiasters(form.free_delivery_over), pay_cod: form.pay_cod, pay_transfer: form.pay_transfer,
         transfer_instapay: nullable(form.transfer_instapay), transfer_wallet: nullable(form.transfer_wallet),

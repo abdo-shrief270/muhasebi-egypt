@@ -169,11 +169,12 @@ useSeoMeta({
   description,
   ogTitle: () => `${product.value.name} — ${formatPrice(product.value.price)}`,
   ogDescription: description,
-  ogType: 'product',
   ogUrl: url,
   ogImage: () => (product.value.image ? `${config.public.storeUrl}${product.value.image.urls['800']}` : undefined),
 })
 useHead(() => ({
+  // og:type "product" (Facebook / WhatsApp previews); useSeoMeta's typing only knows the generic ones.
+  meta: [{ property: 'og:type', content: 'product' }],
   link: [{ rel: 'canonical', href: url.value }],
   script: [{
     type: 'application/ld+json',

@@ -18,8 +18,8 @@ useHead(() => ({
   titleTemplate: (title?: string) => (title && title !== store.value.name ? `${title} | ${store.value.name}` : store.value.name),
   meta: [{ name: 'theme-color', content: store.value.color }],
   link: [
-    ...(store.value.logo ? [{ rel: 'icon', type: 'image/webp', href: store.value.logo['128'] }] : []),
-    { rel: 'sitemap', type: 'application/xml', href: `/${store.value.slug}/sitemap.xml` },
+    ...(store.value.logo ? [{ rel: 'icon' as const, type: 'image/webp', href: store.value.logo['128'] ?? '' }] : []),
+    { rel: 'sitemap' as const, type: 'application/xml', href: `/${store.value.slug}/sitemap.xml` },
   ],
 }))
 useSeoMeta({

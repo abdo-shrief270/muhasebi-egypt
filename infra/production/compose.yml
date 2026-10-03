@@ -41,6 +41,8 @@ services:
       # The public website: "example.com, www.example.com" (setup-landing.sh writes it).
       LANDING_SITE_ADDRESS: ${LANDING_SITE_ADDRESS:-http://landing.invalid}
       LANDING_DOMAIN: ${LANDING_DOMAIN:-landing.invalid}
+      # The shops' online stores: "store.example.com" (setup-store.sh writes it).
+      STORE_SITE_ADDRESS: ${STORE_SITE_ADDRESS:-http://store.invalid}
       ACME_EMAIL: ${ACME_EMAIL}
     ports:
       - "80:80"
@@ -72,6 +74,20 @@ services:
     command: ["php", "artisan", "schedule:work"]
     healthcheck:
       disable: true
+
+  # The shops' online stores (server-rendered Nuxt), reached through Caddy on STORE_DOMAIN.
+  store:
+    build:
+      context: ../..
+      dockerfile: infra/production/Dockerfile.store
+    image: muhasebi-store:latest
+    restart: unless-stopped
+    environment:
+      NUXT_API_INTERNAL: http://api/api/v1
+      NUXT_PUBLIC_STORE_URL: https://${STORE_DOMAIN:-store.invalid}
+      NUXT_PUBLIC_SITE_URL: https://${LANDING_DOMAIN:-muhasebi.com}
+    depends_on:
+      - api
 
   reverb:
     <<: *php

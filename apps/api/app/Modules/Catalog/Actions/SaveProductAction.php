@@ -50,7 +50,7 @@ final class SaveProductAction
                 $priceChanges ? ['price_changes' => $priceChanges] : [],
             );
 
-            return $product->load(['category', 'brand', 'variants', 'deviceModels.brand']);
+            return $product->load(['category', 'brand', 'variants', 'deviceModels.brand', 'images']);
         });
     }
 

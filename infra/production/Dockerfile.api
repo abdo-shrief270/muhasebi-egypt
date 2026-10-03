@@ -13,7 +13,7 @@ RUN composer dump-autoload --no-dev --optimize --classmap-authoritative --no-scr
 # ---- Runtime ----
 FROM dunglas/frankenphp:1-php8.4
 
-RUN install-php-extensions pdo_pgsql pgsql redis intl bcmath gmp zip pcntl opcache \
+RUN install-php-extensions pdo_pgsql pgsql redis intl bcmath gmp zip pcntl opcache gd exif \
  && cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 COPY infra/production/php.ini "$PHP_INI_DIR/conf.d/zz-muhasebi.ini"

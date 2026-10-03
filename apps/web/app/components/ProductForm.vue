@@ -83,6 +83,24 @@
       </div>
     </UCard>
 
+    <UCard v-if="store.hasModule('online_store')">
+      <template #header>
+        <h2 class="font-bold">
+          الصور والمتجر الأونلاين
+        </h2>
+      </template>
+      <div class="space-y-4">
+        <ProductsImages v-if="product" v-model="images" :product-id="product.id" />
+        <p v-else class="text-sm text-(--ui-text-muted)">
+          الصور بتتضاف بعد ما تحفظ الصنف.
+        </p>
+        <USwitch v-model="form.online_visible" label="يظهر في المتجر الأونلاين" description="لو قفلته الصنف مش هيظهر للزباين في المتجر." />
+        <UFormField label="الوصف للزبون" hint="اختياري">
+          <UTextarea v-model="form.online_description" :rows="3" class="w-full" placeholder="مثلاً: جراب سيليكون مقاوم للصدمات، بيحمي الكاميرا" />
+        </UFormField>
+      </div>
+    </UCard>
+
     <UCard>
       <UFormField label="ملاحظات">
         <UTextarea v-model="form.notes" :rows="2" class="w-full" />
@@ -102,6 +120,8 @@
 import type { Brand, Category, Product, QualityGrade } from '~/types/api'
 
 const props = defineProps<{ product?: Product }>()
+const images = ref(props.product?.images ?? [])
+const store = useSessionStore()
 const emit = defineEmits<{ saved: [product: Product] }>()
 
 const NONE = 0
@@ -158,6 +178,8 @@ const form = reactive({
   track_serial: p?.track_serial ?? false,
   is_active: p?.is_active ?? true,
   notes: p?.notes ?? '',
+  online_visible: p?.online_visible ?? true,
+  online_description: p?.online_description ?? '',
   device_model_ids: (p?.device_models ?? []).map(m => m.id) as number[] | number | undefined,
   variants: p?.variants.length ? p.variants.map(draftVariant) : [draftVariant()],
 })
@@ -180,6 +202,8 @@ async function save() {
     track_serial: form.track_serial,
     is_active: form.is_active,
     notes: form.notes || null,
+    online_visible: form.online_visible,
+    online_description: form.online_description || null,
     device_model_ids: Array.isArray(form.device_model_ids) ? form.device_model_ids : [],
     variants: form.variants.map(v => ({
       id: v.id,

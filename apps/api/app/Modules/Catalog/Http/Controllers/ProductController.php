@@ -10,6 +10,7 @@ use App\Modules\Catalog\Http\Resources\ProductResource;
 use App\Modules\Catalog\Http\Resources\ProductVariantResource;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\ProductVariant;
+use App\Support\Audit\Auditor;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class ProductController
 {
-    private const WITH = ['category', 'brand', 'variants', 'deviceModels.brand'];
+    private const WITH = ['category', 'brand', 'variants', 'deviceModels.brand', 'images'];
 
     public function __construct(private readonly CurrentTenant $tenant) {}
 
@@ -71,6 +72,20 @@ final class ProductController
             $request->deviceModelIds(),
             $product,
         ));
+    }
+
+    /** Show / hide products on the online store, several at once (the products list). */
+    public function online(Request $request, Auditor $audit): JsonResponse
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:500'],
+            'ids.*' => ['uuid', 'distinct'],
+            'visible' => ['required', 'boolean'],
+        ]);
+        $count = Product::query()->whereKey($data['ids'])->update(['online_visible' => $data['visible']]);
+        $audit->record('products.online_visibility', ($data['visible'] ? 'أظهر ' : 'خبّى ')."{$count} صنف ".($data['visible'] ? 'في' : 'من').' المتجر الأونلاين');
+
+        return response()->json(['data' => ['updated' => $count]]);
     }
 
     /** Exact barcode match, for scanners. */

@@ -26,12 +26,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $track_serial
  * @property bool $is_active
  * @property string|null $notes
+ * @property bool $online_visible
+ * @property string|null $online_description
+ * @property-read Collection<int, ProductImage> $images
  * @property-read Category $category
  * @property-read Brand|null $brand
  * @property-read Collection<int, ProductVariant> $variants
  * @property-read Collection<int, DeviceModel> $deviceModels
  */
-#[Fillable(['tenant_id', 'category_id', 'brand_id', 'name', 'sku', 'track_serial', 'is_active', 'notes'])]
+#[Fillable(['tenant_id', 'category_id', 'brand_id', 'name', 'sku', 'track_serial', 'is_active', 'notes', 'online_visible', 'online_description'])]
 final class Product extends Model
 {
     use BelongsToTenant, HasUuids;
@@ -39,6 +42,7 @@ final class Product extends Model
     protected $attributes = [
         'track_serial' => false,
         'is_active' => true,
+        'online_visible' => true,
     ];
 
     protected static function booted(): void
@@ -53,6 +57,7 @@ final class Product extends Model
         return [
             'track_serial' => 'boolean',
             'is_active' => 'boolean',
+            'online_visible' => 'boolean',
         ];
     }
 
@@ -70,6 +75,14 @@ final class Product extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    /**
+     * @return HasMany<ProductImage, $this>
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort');
     }
 
     /**

@@ -42,6 +42,8 @@ final class SaveProductRequest extends FormRequest
             'track_serial' => ['sometimes', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'online_visible' => ['sometimes', 'boolean'],
+            'online_description' => ['nullable', 'string', 'max:5000'],
 
             'device_model_ids' => ['sometimes', 'array', 'max:200'],
             'device_model_ids.*' => ['integer', 'distinct', Rule::exists('device_models', 'id')->where($ofTenant)],
@@ -122,8 +124,8 @@ final class SaveProductRequest extends FormRequest
      */
     public function productData(): array
     {
-        /** @var array{category_id?: int, brand_id?: int|null, name?: string, sku?: string|null, track_serial?: bool, is_active?: bool, notes?: string|null} */
-        return $this->safe()->only(['category_id', 'brand_id', 'name', 'sku', 'track_serial', 'is_active', 'notes']);
+        /** @var array{category_id?: int, brand_id?: int|null, name?: string, sku?: string|null, track_serial?: bool, is_active?: bool, notes?: string|null, online_visible?: bool, online_description?: string|null} */
+        return $this->safe()->only(['category_id', 'brand_id', 'name', 'sku', 'track_serial', 'is_active', 'notes', 'online_visible', 'online_description']);
     }
 
     /**

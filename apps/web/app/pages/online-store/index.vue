@@ -1,0 +1,220 @@
+<template>
+  <div class="space-y-6">
+    <PageHeader title="المتجر الأونلاين" description="صفحة لمحلك بأصنافك وأسعارك ومخزونك من البرنامج. الزبون يدوّر بموديل موبايله ويطلب على واتساب." />
+
+    <div v-if="settings" class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <form class="space-y-6" @submit.prevent="save()">
+        <UCard>
+          <template #header>
+            <h2 class="font-bold">
+              العنوان والحالة
+            </h2>
+          </template>
+          <div class="space-y-4">
+            <UFormField label="عنوان المتجر" :hint="`\u200E${storeBase}/…\u200E`" :error="errors.slug">
+              <UInput v-model="form.slug" dir="ltr" class="w-full" maxlength="40" placeholder="elnour" />
+            </UFormField>
+            <URadioGroup
+              v-model="form.mode"
+              :items="[
+                { value: 'off', label: 'مقفول', description: 'محدش يقدر يفتح المتجر.' },
+                { value: 'whatsapp', label: 'شغال — الطلبات على واتساب', description: 'الزبون يملأ السلة ويبعتها رسالة على رقم الواتساب.' },
+              ]"
+            />
+            <UFormField label="رقم الواتساب اللي هتوصله الطلبات" :error="errors.whatsapp">
+              <UInput v-model="form.whatsapp" dir="ltr" inputmode="tel" class="w-full" placeholder="01xxxxxxxxx" />
+            </UFormField>
+          </div>
+        </UCard>
+
+        <UCard>
+          <template #header>
+            <h2 class="font-bold">
+              الشكل
+            </h2>
+          </template>
+          <div class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <UFormField label="اسم المتجر" :error="errors.name">
+                <UInput v-model="form.name" class="w-full" maxlength="120" />
+              </UFormField>
+              <UFormField label="اللون">
+                <input v-model="form.color" type="color" class="h-9 w-16 cursor-pointer rounded-(--ui-radius) border border-(--ui-border) bg-(--ui-bg)" aria-label="لون المتجر">
+              </UFormField>
+            </div>
+            <UFormField label="جملة تحت الاسم" hint="اختياري" :error="errors.tagline">
+              <UInput v-model="form.tagline" class="w-full" maxlength="160" placeholder="إكسسوارات وقطع غيار أصلية — توصيل في المنصورة" />
+            </UFormField>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <OnlineStoreMediaField kind="logo" label="اللوجو" hint="مربع، 512×512 أو أكبر" :urls="settings.logo" @changed="settings = $event" />
+              <OnlineStoreMediaField kind="cover" label="صورة الغلاف" hint="عريضة، 1600×600 مثلاً" :urls="settings.cover" @changed="settings = $event" />
+            </div>
+          </div>
+        </UCard>
+
+        <UCard>
+          <template #header>
+            <h2 class="font-bold">
+              الأصناف والمخزون
+            </h2>
+          </template>
+          <div class="space-y-4">
+            <UFormField v-if="branches.length > 1" label="مخزون أنهي فرع يظهر" :error="errors.branch_id">
+              <USelect v-model="form.branch_id" :items="branches.map(b => ({ label: b.name, value: b.id }))" class="w-full" />
+            </UFormField>
+            <USwitch v-model="form.show_out_of_stock" label="اعرض الأصناف اللي خلصت" description="بتظهر مكتوب عليها «خلص» بدل ما تختفي." />
+            <USwitch v-model="form.show_quantity" label="اعرض العدد" description="الزبون يشوف الكمية بدل «متوفر / قرّب يخلص»." />
+            <p class="text-sm text-(--ui-text-muted)">
+              كل الأصناف الشغالة بتظهر بسعر «الأونلاين» لو حاطه، وإلا بسعر القطاعي. تقدر تخفي صنف أو تضيف صوره ووصفه من صفحة الصنف.
+            </p>
+          </div>
+        </UCard>
+
+        <UCard>
+          <template #header>
+            <h2 class="font-bold">
+              معلومات المحل
+            </h2>
+          </template>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UFormField label="التليفون" :error="errors.phone">
+              <UInput v-model="form.phone" dir="ltr" inputmode="tel" class="w-full" placeholder="01xxxxxxxxx" />
+            </UFormField>
+            <UFormField label="المواعيد" :error="errors.hours">
+              <UInput v-model="form.hours" class="w-full" maxlength="255" placeholder="كل يوم من 11 الصبح لـ 12 بالليل" />
+            </UFormField>
+            <UFormField label="العنوان" class="sm:col-span-2" :error="errors.address">
+              <UInput v-model="form.address" class="w-full" maxlength="255" />
+            </UFormField>
+            <UFormField label="لينك الخريطة" hint="من جوجل ماب ← مشاركة" class="sm:col-span-2" :error="errors.map_url">
+              <UInput v-model="form.map_url" dir="ltr" class="w-full" placeholder="https://maps.app.goo.gl/…" />
+            </UFormField>
+            <UFormField label="فيسبوك" :error="errors.facebook">
+              <UInput v-model="form.facebook" dir="ltr" class="w-full" placeholder="https://facebook.com/…" />
+            </UFormField>
+            <UFormField label="إنستجرام" :error="errors.instagram">
+              <UInput v-model="form.instagram" dir="ltr" class="w-full" placeholder="https://instagram.com/…" />
+            </UFormField>
+            <UFormField label="عن المحل" class="sm:col-span-2" :error="errors.about">
+              <UTextarea v-model="form.about" :rows="3" autoresize class="w-full" maxlength="3000" />
+            </UFormField>
+            <UFormField label="سياسة الاستبدال والاسترجاع" class="sm:col-span-2" :error="errors.policy">
+              <UTextarea v-model="form.policy" :rows="3" autoresize class="w-full" maxlength="3000" placeholder="الاستبدال خلال 14 يوم بالفاتورة والكرتونة." />
+            </UFormField>
+          </div>
+        </UCard>
+
+        <UAlert v-if="error" color="error" variant="subtle" :title="error" />
+        <div class="flex justify-end">
+          <UButton type="submit" size="lg" icon="i-lucide-check" label="احفظ" :loading="saving" />
+        </div>
+      </form>
+
+      <aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
+        <UCard>
+          <div class="space-y-3 text-center">
+            <UBadge :color="settings.mode === 'off' ? 'neutral' : 'success'" variant="subtle" :label="settings.mode === 'off' ? 'المتجر مقفول' : 'المتجر شغال'" />
+            <p class="break-all text-sm font-semibold" dir="ltr">
+              {{ settings.url }}
+            </p>
+            <div v-if="settings.mode !== 'off'" class="flex justify-center">
+              <PrintQrCode :value="settings.url" :size="160" />
+            </div>
+            <div class="flex flex-wrap justify-center gap-2">
+              <UButton :to="settings.url" target="_blank" icon="i-lucide-external-link" label="افتح المتجر" :disabled="settings.mode === 'off'" />
+              <UButton color="neutral" variant="outline" icon="i-lucide-copy" label="انسخ اللينك" @click="copy" />
+            </div>
+            <p class="text-xs text-(--ui-text-muted)">
+              حط اللينك في البايو بتاع فيسبوك وإنستجرام، واطبع الكود وحطه على الكاونتر.
+            </p>
+          </div>
+        </UCard>
+      </aside>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { OnlineStoreSettings } from '~/types/api'
+
+definePageMeta({ permission: 'online_store.manage', module: 'online_store' })
+
+const api = useApi()
+const toast = useToast()
+const session = useSessionStore()
+const branches = computed(() => session.session?.branches ?? [])
+
+const { data } = await useAsyncData('online-store-settings', () => api<{ data: OnlineStoreSettings }>('/online-store/settings'))
+const settings = ref<OnlineStoreSettings | null>(data.value?.data ?? null)
+const storeBase = computed(() => settings.value?.url.replace(/\/[^/]*$/, '') ?? '')
+
+const form = reactive({
+  slug: '', mode: 'off' as OnlineStoreSettings['mode'], whatsapp: '', name: '', color: '#0f766e', tagline: '', branch_id: '',
+  show_out_of_stock: true, show_quantity: false, phone: '', hours: '', address: '', map_url: '', facebook: '', instagram: '',
+  about: '', policy: '',
+})
+
+function fill(s: OnlineStoreSettings) {
+  Object.assign(form, {
+    slug: s.slug, mode: s.mode, whatsapp: localPhone(s.whatsapp), name: s.name, color: s.color, tagline: s.tagline ?? '',
+    branch_id: s.branch_id ?? '', show_out_of_stock: s.show_out_of_stock, show_quantity: s.show_quantity,
+    phone: localPhone(s.phone), hours: s.hours ?? '', address: s.address ?? '', map_url: s.map_url ?? '',
+    facebook: s.facebook ?? '', instagram: s.instagram ?? '', about: s.about ?? '', policy: s.policy ?? '',
+  })
+}
+if (settings.value) {
+  fill(settings.value)
+}
+
+const saving = ref(false)
+const error = ref<string | null>(null)
+const errors = ref<Record<string, string>>({})
+
+async function save() {
+  saving.value = true
+  error.value = null
+  errors.value = {}
+  const nullable = (v: string) => (v.trim() === '' ? null : v.trim())
+  try {
+    const res = await api<{ data: OnlineStoreSettings }>('/online-store/settings', {
+      method: 'PUT',
+      body: {
+        slug: form.slug.trim().toLowerCase(), mode: form.mode, name: form.name, color: form.color,
+        tagline: nullable(form.tagline), whatsapp: nullable(form.whatsapp), phone: nullable(form.phone),
+        branch_id: form.branch_id || null, show_out_of_stock: form.show_out_of_stock, show_quantity: form.show_quantity,
+        hours: nullable(form.hours), address: nullable(form.address), map_url: nullable(form.map_url),
+        facebook: nullable(form.facebook), instagram: nullable(form.instagram), about: nullable(form.about), policy: nullable(form.policy),
+      },
+    })
+    settings.value = res.data
+    fill(res.data)
+    toast.add({ color: 'success', title: 'اتحفظت إعدادات المتجر' })
+  }
+  catch (e) {
+    errors.value = apiValidationErrors(e)
+    const code = apiErrorCode(e)
+    if (code === 'slug_invalid' || code === 'slug_taken') {
+      errors.value.slug = apiErrorMessage(e)
+    }
+    else if (code === 'whatsapp_required') {
+      errors.value.whatsapp = apiErrorMessage(e)
+    }
+    else if (!Object.keys(errors.value).length) {
+      error.value = apiErrorMessage(e)
+    }
+  }
+  finally {
+    saving.value = false
+  }
+}
+
+async function copy() {
+  try {
+    await navigator.clipboard.writeText(settings.value?.url ?? '')
+    toast.add({ color: 'success', title: 'اتنسخ اللينك' })
+  }
+  catch {
+    toast.add({ color: 'error', title: 'مقدرناش ننسخ؛ انسخه بإيدك.' })
+  }
+}
+</script>

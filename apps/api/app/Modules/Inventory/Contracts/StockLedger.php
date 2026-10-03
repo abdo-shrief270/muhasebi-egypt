@@ -66,6 +66,11 @@ interface StockLedger
     public function quantities(string $branchId, array $variantIds): array;
 
     /**
+     * @return list<string> the variants with stock above zero in the branch (an online store hiding sold-out items)
+     */
+    public function inStock(string $branchId): array;
+
+    /**
      * @param  list<string>  $variantIds
      * @return list<string> the ones that have ever moved (in $branchId, or in any branch when null)
      */

@@ -1,0 +1,18 @@
+# The shops' online stores (apps/store): Nuxt server-rendered, behind Caddy on STORE_DOMAIN.
+# Build context: repository root.
+
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY apps/store/package.json apps/store/package-lock.json ./
+RUN npm ci --no-audit --no-fund --ignore-scripts
+COPY apps/store/ ./
+RUN npx nuxi prepare && npx nuxi build
+
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=3000
+COPY --from=build /app/.output ./.output
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://127.0.0.1:3000/robots.txt >/dev/null || exit 1
+CMD ["node", ".output/server/index.mjs"]

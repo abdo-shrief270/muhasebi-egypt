@@ -42,6 +42,11 @@ return [
         'subject' => env('VAPID_SUBJECT', 'mailto:support@muhasebi.com'),
     ],
 
+    // The online stores' site: {url}/{slug}.
+    'store' => [
+        'url' => env('STORE_URL', 'https://store.muhasebi.com'),
+    ],
+
     // Google Play app (Trusted Web Activity): its package and signing key fingerprint(s), comma separated.
     'twa' => [
         'package' => env('TWA_PACKAGE', ''),

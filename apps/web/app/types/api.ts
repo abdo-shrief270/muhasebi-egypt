@@ -241,11 +241,47 @@ export interface Product {
   track_serial: boolean
   is_active: boolean
   notes: string | null
+  online_visible: boolean
+  online_description: string | null
+  images?: ProductImage[]
   category: { id: number, name: string }
   brand: { id: number, name: string } | null
   variants: ProductVariant[]
   device_models: DeviceModel[]
   created_at: string
+}
+
+/** «المتجر الأونلاين» settings (GET/PUT /online-store/settings). Phones are E.164. */
+export interface OnlineStoreSettings {
+  slug: string
+  mode: 'off' | 'whatsapp'
+  name: string
+  tagline: string | null
+  about: string | null
+  color: string
+  branch_id: string | null
+  whatsapp: string | null
+  phone: string | null
+  address: string | null
+  map_url: string | null
+  hours: string | null
+  policy: string | null
+  facebook: string | null
+  instagram: string | null
+  show_out_of_stock: boolean
+  show_quantity: boolean
+  logo: Record<string, string> | null
+  cover: Record<string, string> | null
+  url: string
+  updated_at: string
+}
+
+/** A product photo: WebP at 320 / 800 / 1600 px wide (URL paths on the API's origin). */
+export interface ProductImage {
+  id: string
+  width: number
+  height: number
+  urls: Record<string, string>
 }
 
 export interface Paginated<T> {

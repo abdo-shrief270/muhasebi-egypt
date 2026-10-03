@@ -4,11 +4,16 @@ use App\Modules\Catalog\Http\Controllers\BarcodeController;
 use App\Modules\Catalog\Http\Controllers\CatalogListsController;
 use App\Modules\Catalog\Http\Controllers\PriceController;
 use App\Modules\Catalog\Http\Controllers\ProductController;
+use App\Modules\Catalog\Http\Controllers\ProductImageController;
 use App\Modules\Catalog\Http\Controllers\ProductImportController;
 use Illuminate\Support\Facades\Route;
 
+// Product photos are public (online store, shared links): no shop or login needed to read them.
+Route::get('public/media/{path}', [ProductImageController::class, 'media'])->where('path', 'products/[0-9a-f/-]+-[0-9]+\\.webp');
+
 Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
     Route::pattern('product', '[0-9a-fA-F-]{36}');
+    Route::pattern('image', '[0-9a-fA-F-]{36}');
     Route::pattern('category', '[0-9]+');
     Route::pattern('brand', '[0-9]+');
     Route::pattern('deviceModel', '[0-9]+');
@@ -40,6 +45,13 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
         // products.manage is checked by SaveProductRequest.
         Route::post('/', [ProductController::class, 'store']);
         Route::patch('{product}', [ProductController::class, 'update']);
+        // products.manage is checked in the controller.
+        Route::middleware('throttle:60,1')->group(function (): void {
+            Route::post('{product}/images', [ProductImageController::class, 'store']);
+            Route::put('{product}/images/order', [ProductImageController::class, 'order']);
+            Route::delete('{product}/images/{image}', [ProductImageController::class, 'destroy']);
+        });
+        Route::patch('online', [ProductController::class, 'online'])->middleware('can:products.manage');
     });
 
     Route::prefix('catalog')->name('catalog.')->controller(CatalogListsController::class)->group(function (): void {

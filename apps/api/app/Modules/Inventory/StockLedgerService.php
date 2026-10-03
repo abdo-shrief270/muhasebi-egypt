@@ -192,6 +192,11 @@ final class StockLedgerService implements StockLedger
         return (int) StockLevel::query()->where('branch_id', $branchId)->where('variant_id', $variantId)->value('qty');
     }
 
+    public function inStock(string $branchId): array
+    {
+        return StockLevel::query()->where('branch_id', $branchId)->where('qty', '>', 0)->pluck('variant_id')->map(fn ($id) => (string) $id)->all();
+    }
+
     public function quantities(string $branchId, array $variantIds): array
     {
         if ($variantIds === []) {

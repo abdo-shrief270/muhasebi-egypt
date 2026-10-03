@@ -1,0 +1,152 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\OnlineStore\Http\Controllers;
+
+use App\Modules\Identity\Contracts\BranchDirectory;
+use App\Modules\Identity\Contracts\ShopDirectory;
+use App\Modules\OnlineStore\Models\OnlineStore;
+use App\Modules\OnlineStore\Support\Slugs;
+use App\Modules\OnlineStore\Support\StoreMedia;
+use App\Support\Audit\Auditor;
+use App\Support\Exceptions\DomainRuleException;
+use App\Support\Tenancy\CurrentTenant;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Propaganistas\LaravelPhone\PhoneNumber;
+
+/**
+ * «المتجر الأونلاين» settings (online_store.manage): the address, the look, what it shows and how
+ * customers order. The store starts closed, filled from the shop's profile.
+ */
+final class StoreSettingsController
+{
+    public function __construct(
+        private readonly CurrentTenant $tenant,
+        private readonly Auditor $audit,
+        private readonly StoreMedia $media,
+    ) {}
+
+    public function show(ShopDirectory $shops, BranchDirectory $branches): JsonResponse
+    {
+        return response()->json(['data' => $this->present($this->store($shops, $branches))]);
+    }
+
+    public function update(Request $request, ShopDirectory $shops, BranchDirectory $branches): JsonResponse
+    {
+        $store = $this->store($shops, $branches);
+        $tenantId = $this->tenant->idOrFail();
+        $data = $request->validate([
+            'slug' => ['sometimes', 'string', 'max:40'],
+            'mode' => ['sometimes', Rule::in(OnlineStore::MODES)],
+            'name' => ['sometimes', 'string', 'max:120'],
+            'tagline' => ['nullable', 'string', 'max:160'],
+            'about' => ['nullable', 'string', 'max:3000'],
+            'color' => ['sometimes', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'branch_id' => ['nullable', 'uuid', Rule::exists('branches', 'id')->where('tenant_id', $tenantId)],
+            'whatsapp' => ['nullable', 'phone:EG'],
+            'phone' => ['nullable', 'phone:EG'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'map_url' => ['nullable', 'url:https', 'max:500'],
+            'hours' => ['nullable', 'string', 'max:255'],
+            'policy' => ['nullable', 'string', 'max:3000'],
+            'facebook' => ['nullable', 'url:https', 'max:255'],
+            'instagram' => ['nullable', 'url:https', 'max:255'],
+            'show_out_of_stock' => ['sometimes', 'boolean'],
+            'show_quantity' => ['sometimes', 'boolean'],
+        ], [], [
+            'slug' => 'عنوان المتجر', 'name' => 'اسم المتجر', 'whatsapp' => 'رقم الواتساب', 'phone' => 'التليفون',
+            'map_url' => 'لينك الخريطة', 'color' => 'اللون',
+        ]);
+
+        if (isset($data['slug'])) {
+            $data['slug'] = strtolower(trim($data['slug']));
+            if (! Slugs::valid($data['slug'])) {
+                throw new DomainRuleException('العنوان لازم يبقى من 3 لـ 40 حرف إنجليزي صغير أو رقم أو شرطة (-)، ومايكونش كلمة محجوزة.', 'slug_invalid');
+            }
+            if (OnlineStore::withoutTenancy()->where('slug', $data['slug'])->where('id', '!=', $store->id)->exists()) {
+                throw new DomainRuleException('العنوان ده محجوز لمحل تاني. جرّب عنوان تاني.', 'slug_taken');
+            }
+        }
+        foreach (['whatsapp', 'phone'] as $field) {
+            if (array_key_exists($field, $data) && $data[$field] !== null) {
+                $data[$field] = (new PhoneNumber($data[$field], 'EG'))->formatE164();
+            }
+        }
+        $mode = $data['mode'] ?? $store->mode;
+        $whatsapp = array_key_exists('whatsapp', $data) ? $data['whatsapp'] : $store->whatsapp;
+        if ($mode === 'whatsapp' && $whatsapp === null) {
+            throw new DomainRuleException('اكتب رقم الواتساب اللي هتوصله الطلبات.', 'whatsapp_required');
+        }
+
+        $before = $store->mode;
+        $store->fill($data)->save();
+        $this->audit->record(
+            'online_store.updated',
+            $before !== $store->mode
+                ? ($store->isOpen() ? "فتح المتجر الأونلاين ({$store->slug})" : 'قفل المتجر الأونلاين')
+                : 'عدّل إعدادات المتجر الأونلاين',
+            $store,
+        );
+
+        return response()->json(['data' => $this->present($store)]);
+    }
+
+    public function upload(Request $request, string $kind, ShopDirectory $shops, BranchDirectory $branches): JsonResponse
+    {
+        abort_unless(in_array($kind, ['logo', 'cover'], true), 404);
+        $request->validate(['image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192']], [], ['image' => 'الصورة']);
+        $store = $this->store($shops, $branches);
+        $this->media->put($store, $kind, $request->file('image'));
+
+        return response()->json(['data' => $this->present($store->refresh())]);
+    }
+
+    public function removeMedia(string $kind, ShopDirectory $shops, BranchDirectory $branches): JsonResponse
+    {
+        abort_unless(in_array($kind, ['logo', 'cover'], true), 404);
+        $store = $this->store($shops, $branches);
+        $this->media->remove($store, $kind);
+
+        return response()->json(['data' => $this->present($store->refresh())]);
+    }
+
+    /** The shop's store, made (closed) on first visit from its profile. */
+    private function store(ShopDirectory $shops, BranchDirectory $branches): OnlineStore
+    {
+        $existing = OnlineStore::query()->first();
+        if ($existing !== null) {
+            return $existing;
+        }
+        $tenantId = $this->tenant->idOrFail();
+        $shop = $shops->find($tenantId);
+        $slug = strtolower((string) $shop?->code);
+        if (! Slugs::valid($slug) || OnlineStore::withoutTenancy()->where('slug', $slug)->exists()) {
+            $slug = 'shop-'.Str::lower(Str::random(6));
+        }
+
+        return OnlineStore::create([
+            'tenant_id' => $tenantId,
+            'slug' => $slug,
+            'mode' => 'off',
+            'name' => $shop?->name ?? 'المتجر',
+            'branch_id' => $branches->mainBranchId(),
+            'whatsapp' => $shop?->phone ?: null,
+            'phone' => $shop?->phone ?: null,
+        ])->refresh();
+    }
+
+    /** @return array<string, mixed> */
+    private function present(OnlineStore $store): array
+    {
+        return [
+            ...$store->toPublic(),
+            'branch_id' => $store->branch_id,
+            'show_out_of_stock' => $store->show_out_of_stock,
+            'url' => rtrim((string) config('services.store.url'), '/').'/'.$store->slug,
+        ];
+    }
+}

@@ -94,7 +94,13 @@ export async function shrinkPhoto(file: File, maxSide = 1600, quality = 0.82): P
     const canvas = document.createElement('canvas')
     canvas.width = Math.round(bitmap.width * scale)
     canvas.height = Math.round(bitmap.height * scale)
-    canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    const ctx = canvas.getContext('2d')
+    // JPEG has no transparency: a cut-out product photo gets white behind it, not black.
+    if (ctx) {
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    }
     bitmap.close()
     const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', quality))
     if (!blob || blob.size >= file.size) {

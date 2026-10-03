@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* The shop's colour comes from its settings (--brand, set on the store layout). */
+@theme {
+  --font-sans: "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: var(--brand, #0f766e);
+  --color-ink: #111827;
+  --color-muted: #6b7280;
+  --color-line: #e5e7eb;
+  --color-soft: #f6f7f9;
+  --color-ok: #15803d;
+  --color-warn: #b45309;
+  --color-bad: #b91c1c;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-soft text-ink font-sans antialiased;
+}
+
+/* Latin digits in prices and counts. */
+.num {
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-colors disabled:opacity-60;
+}
+
+@utility btn-brand {
+  @apply btn bg-brand text-white hover:opacity-90;
+}
+
+@utility btn-line {
+  @apply btn border border-line bg-white hover:bg-soft;
+}
+
+@utility btn-wa {
+  @apply btn bg-[#25d366] text-white hover:opacity-90;
+}
+
+@utility card {
+  @apply rounded-2xl bg-white shadow-[0_1px_2px_rgb(0_0_0/0.05)] ring-1 ring-line/70;
+}
+
+@utility chip {
+  @apply inline-flex items-center rounded-full border border-line bg-white px-3 py-1.5 text-sm whitespace-nowrap hover:border-brand hover:text-brand;
+}
+
+@utility chip-on {
+  @apply border-brand bg-brand text-white hover:text-white;
+}
+
+@utility input {
+  @apply w-full rounded-xl border border-line bg-white px-3 py-2.5 text-base outline-none focus:border-brand focus:ring-2 focus:ring-brand/20;
+}

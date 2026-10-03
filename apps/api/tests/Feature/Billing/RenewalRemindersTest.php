@@ -18,7 +18,7 @@ class RenewalRemindersTest extends TestCase
 
     private function titles(string $tenantId): array
     {
-        return Notification::withoutTenancy()->where('tenant_id', $tenantId)->orderBy('created_at')->pluck('title')->all();
+        return Notification::withoutTenancy()->where('tenant_id', $tenantId)->orderBy('created_at')->orderBy('id')->pluck('title')->all();
     }
 
     public function test_reminders_before_and_after_the_end_once_each(): void
@@ -49,6 +49,8 @@ class RenewalRemindersTest extends TestCase
 
     public function test_paying_starts_a_new_round_and_late_shops_hear_it(): void
     {
+        // Midday in Cairo, so an hour either way stays on the same shop day.
+        $this->travelTo(CarbonImmutable::now('Africa/Cairo')->setTime(12, 0));
         $owner = $this->registerShop(ShopType::Accessories);
         $sub = app(Subscriptions::class)->for($owner->tenant_id);
         $sub->forceFill(['on_trial' => false, 'paid_until' => now()->addDays(3)])->save();

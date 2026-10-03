@@ -42,8 +42,10 @@ return [
         'subject' => env('VAPID_SUBJECT', 'mailto:support@muhasebi.com'),
     ],
 
-    // The online stores' site: {url}/{slug}.
+    // The online stores: each at a subdomain of `host` ({slug}.muhasebi.com), or — without a host —
+    // at {url}/{slug}. `url` may hold the shop's place as {slug} (https://{slug}.muhasebi.com).
     'store' => [
+        'host' => env('STORE_HOST', ''),
         'url' => env('STORE_URL', 'https://store.muhasebi.com'),
     ],
 

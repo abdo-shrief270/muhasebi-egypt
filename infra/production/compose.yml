@@ -41,8 +41,9 @@ services:
       # The public website: "example.com, www.example.com" (setup-landing.sh writes it).
       LANDING_SITE_ADDRESS: ${LANDING_SITE_ADDRESS:-http://landing.invalid}
       LANDING_DOMAIN: ${LANDING_DOMAIN:-landing.invalid}
-      # The shops' online stores: "store.example.com" (setup-store.sh writes it).
+      # The shops' online stores: "*.example.com" with STORE_TLS=on-demand (setup-store.sh writes them).
       STORE_SITE_ADDRESS: ${STORE_SITE_ADDRESS:-http://store.invalid}
+      STORE_TLS: ${STORE_TLS:-none}
       ACME_EMAIL: ${ACME_EMAIL}
     ports:
       - "80:80"
@@ -84,6 +85,7 @@ services:
     restart: unless-stopped
     environment:
       NUXT_API_INTERNAL: http://api/api/v1
+      NUXT_PUBLIC_STORE_HOST: ${STORE_HOST:-}
       NUXT_PUBLIC_STORE_URL: https://${STORE_DOMAIN:-store.invalid}
       NUXT_PUBLIC_SITE_URL: https://${LANDING_DOMAIN:-muhasebi.com}
     depends_on:

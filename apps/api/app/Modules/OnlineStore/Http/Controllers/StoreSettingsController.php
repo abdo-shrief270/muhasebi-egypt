@@ -146,7 +146,7 @@ final class StoreSettingsController
             ...$store->toPublic(),
             'branch_id' => $store->branch_id,
             'show_out_of_stock' => $store->show_out_of_stock,
-            'url' => rtrim((string) config('services.store.url'), '/').'/'.$store->slug,
+            'url' => Slugs::url($store->slug),
         ];
     }
 }

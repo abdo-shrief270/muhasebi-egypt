@@ -5,6 +5,20 @@
 		# X-Forwarded-Proto: https that nginx sets reaches Laravel unchanged.
 		trusted_proxies static {$TRUSTED_PROXIES:127.0.0.1/32}
 	}
+	# Shops' stores on subdomains ({slug}.<STORE_HOST>), when Caddy holds the certificates itself:
+	# one is fetched on a store's first visit, only after the API says that store exists.
+	on_demand_tls {
+		ask http://api/api/v1/public/stores-tls
+	}
+}
+
+# STORE_TLS: "none" (behind nginx, which holds a wildcard certificate) or "on-demand".
+(store-tls-none) {
+}
+(store-tls-on-demand) {
+	tls {
+		on_demand
+	}
 }
 
 # The domain (Caddy gets the HTTPS certificate itself), or ":80" behind nginx.
@@ -152,9 +166,11 @@
 	}
 }
 
-# The shops' online stores (STORE_DOMAIN/{slug}): the Nuxt server, plus product photos and store
-# logos straight from the API. Without a domain it answers nowhere.
+# The shops' online stores on subdomains (*.<STORE_HOST>, e.g. elnour.muhasebi.com): the Nuxt
+# server, plus product photos and store logos straight from the API. The app's, admin's and website's
+# own names are sites of their own above, so they never land here. Without a host it answers nowhere.
 {$STORE_SITE_ADDRESS:http://store.invalid} {
+	import store-tls-{$STORE_TLS:none}
 	encode zstd gzip
 
 	header {

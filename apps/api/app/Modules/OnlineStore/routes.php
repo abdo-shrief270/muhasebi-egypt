@@ -14,6 +14,9 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:online_store', 'can:online_
         Route::delete('media/{kind}', 'removeMedia')->whereIn('kind', ['logo', 'cover']);
     });
 
+// Caddy's on-demand TLS check for {slug}.<STORE_HOST> (?domain=…): 200 only for an open store.
+Route::get('public/stores-tls', [PublicStoreController::class, 'tlsCheck'])->middleware([ResolveStore::class, 'module:online_store', 'throttle:store']);
+
 // The public store (no login). The shop comes from the slug, then the module must be usable.
 Route::get('public/media/stores/{path}', [PublicStoreController::class, 'media'])
     ->where('path', '[0-9a-f-]{36}/(logo|cover)-[a-z0-9]{16}-[0-9]+\.webp')

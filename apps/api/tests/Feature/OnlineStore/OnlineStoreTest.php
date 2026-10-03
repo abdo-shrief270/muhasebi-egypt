@@ -19,6 +19,8 @@ class OnlineStoreTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Stores at a shared address unless a test says otherwise (never from the machine's .env).
+        config(['services.store.host' => '', 'services.store.url' => 'https://store.muhasebi.com']);
         Storage::fake('local');
         $this->openShopWithStock();
         app(PermissionResolver::class)->forget();
@@ -142,5 +144,24 @@ class OnlineStoreTest extends TestCase
     {
         Sanctum::actingAs($this->staff('cashier'));
         $this->getJson('/api/v1/online-store/settings')->assertForbidden();
+    }
+
+    public function test_stores_live_on_subdomains_of_the_store_host(): void
+    {
+        config(['services.store.host' => 'muhasebi.com', 'services.store.url' => 'https://{slug}.muhasebi.com']);
+        $this->assertSame('https://elnour.muhasebi.com', $this->open()['url']);
+
+        // Caddy's question before an HTTPS certificate: only open stores' subdomains.
+        $this->getJson('/api/v1/public/stores-tls?domain=elnour.muhasebi.com')->assertOk();
+        $this->getJson('/api/v1/public/stores-tls?domain=ELNOUR.muhasebi.com.')->assertOk();
+        foreach (['other.muhasebi.com', 'app.muhasebi.com', 'elnour.evil.com', 'muhasebi.com', 'a.elnour.muhasebi.com', ''] as $domain) {
+            $this->getJson('/api/v1/public/stores-tls?domain='.urlencode($domain))->assertNotFound();
+        }
+        // Names of the platform's own subdomains can't be taken.
+        foreach (['app', 'admin', 'www', 'api', 'mail'] as $reserved) {
+            $this->putJson('/api/v1/online-store/settings', ['slug' => $reserved])->assertUnprocessable()->assertJsonPath('code', 'slug_invalid');
+        }
+        $this->putJson('/api/v1/online-store/settings', ['mode' => 'off'])->assertOk();
+        $this->getJson('/api/v1/public/stores-tls?domain=elnour.muhasebi.com')->assertNotFound();
     }
 }

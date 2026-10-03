@@ -4,10 +4,12 @@
 services:
   caddy:
     environment:
-      SITE_ADDRESS: ":80"
+      # The app answers on its own name (a catch-all ":80" would sort before the stores' *.<STORE_HOST>).
+      SITE_ADDRESS: http://${DOMAIN}
       ADMIN_SITE_ADDRESS: http://${ADMIN_DOMAIN:-admin.invalid}
       LANDING_SITE_ADDRESS: http://${LANDING_DOMAIN:-landing.invalid}, http://www.${LANDING_DOMAIN:-landing.invalid}
-      STORE_SITE_ADDRESS: http://${STORE_DOMAIN:-store.invalid}
+      STORE_SITE_ADDRESS: http://*.${STORE_HOST:-store.invalid}
+      STORE_TLS: none
       TRUSTED_PROXIES: private_ranges
     ports: !override
       - "127.0.0.1:${EDGE_PORT:-8088}:80"

@@ -10,14 +10,13 @@
 <script setup lang="ts">
 const home = await useStoreHome()
 const route = useRoute()
-const config = useRuntimeConfig()
 const id = Number(route.params.id)
 const found = home.value.categories.find(c => c.id === id)
 if (!found) {
   throw createError({ statusCode: 404, fatal: true })
 }
 const category = found
-const url = `${config.public.storeUrl}/${home.value.store.slug}/c/${id}`
+const url = useStorePlace().url(`/c/${id}`)
 
 useSeoMeta({
   title: category.name,

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // One online store per shop: store.muhasebi.com/{slug}.
+        // One online store per shop: {slug}.muhasebi.com (or store.muhasebi.com/{slug} without a store host).
         Schema::create('online_stores', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('tenant_id')->unique()->constrained()->cascadeOnDelete();

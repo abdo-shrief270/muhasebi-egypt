@@ -34,7 +34,7 @@
 
     <section class="space-y-5">
       <div class="space-y-1">
-        <NuxtLink :to="`/${slug}/c/${product.category.id}`" class="text-sm font-semibold text-brand">
+        <NuxtLink :to="place.path(`/c/${product.category.id}`)" class="text-sm font-semibold text-brand">
           {{ product.category.name }}
         </NuxtLink>
         <h1 class="text-2xl font-extrabold leading-snug">
@@ -96,7 +96,7 @@
           بيركب على
         </p>
         <div class="flex flex-wrap gap-2">
-          <NuxtLink v-for="m in product.device_models" :key="m.id" :to="`/${slug}/m/${m.id}`" class="chip" dir="ltr">
+          <NuxtLink v-for="m in product.device_models" :key="m.id" :to="place.path(`/m/${m.id}`)" class="chip" dir="ltr">
             {{ m.full_name }}
           </NuxtLink>
         </div>
@@ -119,7 +119,7 @@ import type { ProductDetail, ProductVariant } from '~/types'
 
 const slug = useStoreSlug()
 const route = useRoute()
-const config = useRuntimeConfig()
+const place = useStorePlace()
 const home = await useStoreHome()
 const store = computed(() => home.value.store)
 const id = String(route.params.id)
@@ -156,7 +156,7 @@ function addToCart() {
   setTimeout(() => (added.value = false), 2000)
 }
 
-const url = computed(() => `${config.public.storeUrl}/${slug}/p/${product.value.id}`)
+const url = computed(() => place.url(`/p/${product.value.id}`))
 const orderNow = computed(() => whatsappLink(store.value.whatsapp ?? '', [
   `السلام عليكم، عايز أطلب من ${store.value.name}:`,
   `${qty.value} × ${product.value.name}${product.value.variants.length > 1 ? ` (${variantLabel(variant.value)})` : ''} — ${formatPrice(variant.value.price * qty.value)}`,
@@ -170,7 +170,7 @@ useSeoMeta({
   ogTitle: () => `${product.value.name} — ${formatPrice(product.value.price)}`,
   ogDescription: description,
   ogUrl: url,
-  ogImage: () => (product.value.image ? `${config.public.storeUrl}${product.value.image.urls['800']}` : undefined),
+  ogImage: () => (product.value.image ? place.media(product.value.image.urls['800'] ?? '') : undefined),
 })
 useHead(() => ({
   // og:type "product" (Facebook / WhatsApp previews); useSeoMeta's typing only knows the generic ones.
@@ -183,7 +183,7 @@ useHead(() => ({
       '@type': 'Product',
       'name': product.value.name,
       'description': product.value.description ?? undefined,
-      'image': product.value.images.map(i => `${config.public.storeUrl}${i.urls['800']}`),
+      'image': product.value.images.map(i => place.media(i.urls['800'] ?? '')),
       'category': product.value.category.name,
       ...(product.value.brand ? { brand: { '@type': 'Brand', 'name': product.value.brand } } : {}),
       'offers': {

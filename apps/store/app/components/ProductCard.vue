@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="`/${slug}/p/${product.id}`" class="card group flex flex-col overflow-hidden">
+  <NuxtLink :to="place.path(`/p/${product.id}`)" class="card group flex flex-col overflow-hidden">
     <div class="relative aspect-square bg-soft">
       <img
         v-if="product.image"
@@ -36,4 +36,5 @@
 import type { ProductCard } from '~/types'
 
 defineProps<{ product: ProductCard, slug: string }>()
+const place = useStorePlace()
 </script>

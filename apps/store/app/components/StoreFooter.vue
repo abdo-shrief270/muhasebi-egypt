@@ -8,7 +8,7 @@
         <p v-if="store.tagline" class="text-muted">
           {{ store.tagline }}
         </p>
-        <NuxtLink :to="`/${store.slug}/about`" class="font-semibold text-brand">
+        <NuxtLink :to="place.path('/about')" class="font-semibold text-brand">
           عن المحل وسياسة الاستبدال
         </NuxtLink>
       </div>
@@ -48,4 +48,5 @@ import type { PublicStore } from '~/types'
 
 defineProps<{ store: PublicStore }>()
 const config = useRuntimeConfig()
+const place = useStorePlace()
 </script>

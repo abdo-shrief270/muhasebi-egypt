@@ -19,7 +19,7 @@
 import type { NuxtError } from '#app'
 
 const props = defineProps<{ error: NuxtError }>()
-const slug = String(useRoute().params.slug ?? '')
-const home = slug && props.error.statusCode !== 404 ? `/${slug}` : '/'
+const place = useStorePlace()
+const home = place.slug && props.error.statusCode !== 404 ? place.path() : '/'
 useHead({ title: 'مش موجود' })
 </script>

@@ -8,7 +8,7 @@
       <p class="text-muted">
         السلة فاضية.
       </p>
-      <NuxtLink :to="`/${slug}`" class="btn-brand">
+      <NuxtLink :to="place.path()" class="btn-brand">
         كمّل تسوّق
       </NuxtLink>
     </div>
@@ -18,7 +18,7 @@
         <li v-for="line in cart.lines.value" :key="line.variantId" class="flex items-center gap-3 p-3">
           <img v-if="line.image" :src="line.image" alt="" width="64" height="64" class="size-16 shrink-0 rounded-xl bg-soft object-contain p-1">
           <div class="min-w-0 flex-1">
-            <NuxtLink :to="`/${slug}/p/${line.productId}`" class="line-clamp-2 text-sm font-semibold">
+            <NuxtLink :to="place.path(`/p/${line.productId}`)" class="line-clamp-2 text-sm font-semibold">
               {{ line.name }}
             </NuxtLink>
             <p v-if="line.variant" class="text-xs text-muted">
@@ -80,6 +80,7 @@
 import type { ProductDetail } from '~/types'
 
 const slug = useStoreSlug()
+const place = useStorePlace()
 const home = await useStoreHome()
 const store = computed(() => home.value.store)
 const cart = useCart(slug)

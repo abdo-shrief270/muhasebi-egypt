@@ -11,7 +11,7 @@
             </h2>
           </template>
           <div class="space-y-4">
-            <UFormField label="عنوان المتجر" :hint="`\u200E${storeBase}/…\u200E`" :error="errors.slug">
+            <UFormField label="عنوان المتجر" :hint="`\u200E${storeBase}\u200E`" :error="errors.slug">
               <UInput v-model="form.slug" dir="ltr" class="w-full" maxlength="40" placeholder="elnour" />
             </UFormField>
             <URadioGroup
@@ -146,7 +146,8 @@ const branches = computed(() => session.session?.branches ?? [])
 
 const { data } = await useAsyncData('online-store-settings', () => api<{ data: OnlineStoreSettings }>('/online-store/settings'))
 const settings = ref<OnlineStoreSettings | null>(data.value?.data ?? null)
-const storeBase = computed(() => settings.value?.url.replace(/\/[^/]*$/, '') ?? '')
+// The address with the name left out: https://….muhasebi.com or https://store.muhasebi.com/…
+const storeBase = computed(() => (settings.value ? settings.value.url.replace(settings.value.slug, '…') : ''))
 
 const form = reactive({
   slug: '', mode: 'off' as OnlineStoreSettings['mode'], whatsapp: '', name: '', color: '#0f766e', tagline: '', branch_id: '',

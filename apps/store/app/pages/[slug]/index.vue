@@ -39,7 +39,7 @@
         </button>
       </div>
       <div v-if="models.length" class="flex flex-wrap gap-2">
-        <NuxtLink v-for="m in models" :key="m.id" :to="`/${store.slug}/m/${m.id}`" class="chip">
+        <NuxtLink v-for="m in models" :key="m.id" :to="place.path(`/m/${m.id}`)" class="chip">
           {{ m.name }} <span class="num ms-1 text-xs text-muted">({{ m.products }})</span>
         </NuxtLink>
       </div>
@@ -50,7 +50,7 @@
         الأقسام
       </h2>
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <NuxtLink v-for="c in home.categories" :key="c.id" :to="`/${store.slug}/c/${c.id}`" class="card flex items-center justify-between px-4 py-3 font-semibold hover:ring-brand">
+        <NuxtLink v-for="c in home.categories" :key="c.id" :to="place.path(`/c/${c.id}`)" class="card flex items-center justify-between px-4 py-3 font-semibold hover:ring-brand">
           {{ c.name }}
           <span class="num text-xs text-muted">{{ c.products }}</span>
         </NuxtLink>
@@ -69,7 +69,7 @@
 <script setup lang="ts">
 const home = await useStoreHome()
 const store = computed(() => home.value.store)
-const config = useRuntimeConfig()
+const place = useStorePlace()
 const brand = ref<string | null>(home.value.device_brands[0]?.name ?? null)
 const models = computed(() => home.value.device_brands.find(b => b.name === brand.value)?.models ?? [])
 
@@ -81,18 +81,18 @@ useSeoMeta({
   ogTitle: () => store.value.name,
   ogDescription: description,
   ogType: 'website',
-  ogUrl: () => `${config.public.storeUrl}/${store.value.slug}`,
+  ogUrl: () => place.url(),
 })
 useHead(() => ({
-  link: [{ rel: 'canonical', href: `${config.public.storeUrl}/${store.value.slug}` }],
+  link: [{ rel: 'canonical', href: place.url() }],
   script: [{
     type: 'application/ld+json',
     innerHTML: JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Store',
       'name': store.value.name,
-      'url': `${config.public.storeUrl}/${store.value.slug}`,
-      ...(store.value.logo ? { image: `${config.public.storeUrl}${store.value.logo['512']}` } : {}),
+      'url': place.url(),
+      ...(store.value.logo ? { image: place.media(store.value.logo['512'] ?? '') } : {}),
       ...(store.value.phone ? { telephone: store.value.phone } : {}),
       ...(store.value.address ? { address: { '@type': 'PostalAddress', 'streetAddress': store.value.address, 'addressCountry': 'EG' } } : {}),
       ...(store.value.hours ? { openingHours: store.value.hours } : {}),

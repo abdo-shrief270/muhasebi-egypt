@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * The store's public, read-only API (store.muhasebi.com/{slug}): what the customer may see —
+ * The store's public, read-only API ({slug}.muhasebi.com): what the customer may see —
  * names, online prices, photos, availability. Never costs, barcodes, suppliers or stock counts
  * (unless the owner shows them).
  */
@@ -71,6 +71,15 @@ final class PublicStoreController
     public function index(Request $request): JsonResponse
     {
         return $this->cached(['data' => $this->storefront->index($this->store($request))]);
+    }
+
+    /**
+     * Caddy asks before getting an HTTPS certificate for a subdomain (on-demand TLS): yes only for
+     * an open store's ({slug}.muhasebi.com), so nobody can make it fetch certificates for anything.
+     */
+    public function tlsCheck(): JsonResponse
+    {
+        return response()->json(['ok' => true]);
     }
 
     /** Logo / cover, public and cached for a year (a new upload gets a new name). */

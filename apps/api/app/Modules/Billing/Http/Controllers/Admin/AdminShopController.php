@@ -63,13 +63,15 @@ final class AdminShopController
         $data = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             // a subscription status, or «beta»: shops in a free beta period
-            'status' => ['nullable', Rule::in([...array_column(SubscriptionStatus::cases(), 'value'), 'beta'])],
+            'status' => ['nullable', Rule::in([...array_column(SubscriptionStatus::cases(), 'value'), 'beta', 'expiring'])],
         ]);
         $status = $data['status'] ?? null;
         $page = Subscription::withoutTenancy()
             ->when(filled($data['q'] ?? null), fn ($q) => $q->whereIn('tenant_id', $this->shops->searchIds((string) $data['q'])))
             ->when($status === 'beta', fn ($q) => $q->where('beta_until', '>', now()))
-            ->when($status !== null && $status !== 'beta', fn ($q) => $q->withStatus(SubscriptionStatus::from($status)))
+            // «بيخلص قريب»: paid up but ending within a week — the shops to call.
+            ->when($status === 'expiring', fn ($q) => $q->whereNull('suspended_at')->whereBetween('paid_until', [now(), now()->addDays(7)]))
+            ->when($status !== null && ! in_array($status, ['beta', 'expiring'], true), fn ($q) => $q->withStatus(SubscriptionStatus::from($status)))
             ->orderBy('paid_until')
             ->paginate(30);
         $ids = $page->getCollection()->pluck('tenant_id')->all();

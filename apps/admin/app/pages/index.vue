@@ -46,7 +46,7 @@ const cards = computed(() => {
     { label: 'تحويلات مستنية', value: o.pending_payments, to: '/payments', tone: o.pending_payments ? 'text-(--ui-warning)' : '' },
     { label: 'الإيراد الشهري المتكرر', value: formatMoney(o.mrr), to: '/shops?status=active', tone: 'text-(--ui-success)' },
     { label: 'اتحصّل الشهر ده', value: formatMoney(o.collected_this_month), to: '/shops', tone: '' },
-    { label: 'بيخلص خلال أسبوع', value: o.expiring_soon, to: '/shops', tone: '' },
+    { label: 'بيخلص خلال أسبوع', value: o.expiring_soon, to: '/shops?status=expiring', tone: '' },
     { label: 'كل المحلات', value: o.shops, to: '/shops', tone: '' },
     { label: 'مشتركين', value: o.counts.active, to: '/shops?status=active', tone: 'text-(--ui-success)' },
     { label: 'تجربة', value: o.counts.trialing, to: '/shops?status=trialing', tone: 'text-(--ui-info)' },

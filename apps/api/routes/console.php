@@ -14,4 +14,7 @@ Schedule::command('customers:erase-inactive')->dailyAt('03:17')->withoutOverlapp
 Schedule::command('used-devices:purge-ids')->dailyAt('03:29')->withoutOverlapping();
 
 // Owner app: each shop's end-of-day summary, once its hour (owner_app.daily_summary) has come.
+// Renewal reminders to shop owners, mid-morning Cairo time (once per step and end date).
+Schedule::command('billing:remind')->dailyAt('08:07')->withoutOverlapping();
+
 Schedule::command('notifications:daily-summary')->everyTenMinutes()->withoutOverlapping();

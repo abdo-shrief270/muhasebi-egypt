@@ -24,6 +24,12 @@ final class Categories
             'permission' => 'online_store.orders',
             'prefixes' => ['online_order.'],
         ],
+        'billing' => [
+            'label' => 'تجديد الاشتراك',
+            'description' => 'قبل ما الاشتراك أو التجربة تخلص، ولو اتأخر التجديد.',
+            'permission' => 'owner',
+            'prefixes' => ['billing.'],
+        ],
         'transfers' => [
             'label' => 'التحويلات بين الفروع',
             'description' => 'بضاعة خرجت من فرع لفرع تاني ومستنية تتستلم.',

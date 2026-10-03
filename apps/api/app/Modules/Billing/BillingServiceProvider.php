@@ -6,6 +6,7 @@ namespace App\Modules\Billing;
 
 use App\Modules\Billing\Console\AdminTwoFactorCommand;
 use App\Modules\Billing\Console\CreateAdminCommand;
+use App\Modules\Billing\Console\SendRenewalRemindersCommand;
 use App\Modules\Billing\Console\SyncSubscriptionModulesCommand;
 use App\Modules\Billing\Models\PlatformAdmin;
 use App\Support\Modules\ModuleServiceProvider;
@@ -28,7 +29,7 @@ final class BillingServiceProvider extends ModuleServiceProvider
         Gate::define('platform-admin', fn (mixed $user): bool => $user instanceof PlatformAdmin && $user->is_active && $user->tokenCan('admin'));
 
         if ($this->app->runningInConsole()) {
-            $this->commands([CreateAdminCommand::class, AdminTwoFactorCommand::class, SyncSubscriptionModulesCommand::class]);
+            $this->commands([CreateAdminCommand::class, AdminTwoFactorCommand::class, SyncSubscriptionModulesCommand::class, SendRenewalRemindersCommand::class]);
         }
     }
 }

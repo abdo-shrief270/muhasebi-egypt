@@ -15,6 +15,8 @@ enum ApprovalKind: string
     case Return = 'return';
     /** Cash taken out of the drawer (withdrawal or expense) above the owner's amount (piasters). */
     case Withdrawal = 'withdrawal';
+    /** A credit (آجل) sale past the customer's limit (the measure: piasters over the limit). */
+    case CreditLimit = 'credit_limit';
 
     public function label(): string
     {
@@ -23,6 +25,7 @@ enum ApprovalKind: string
             self::BelowCost => 'بيع بخسارة',
             self::Return => 'مرتجع كبير',
             self::Withdrawal => 'سحب أو مصروف كبير من الدرج',
+            self::CreditLimit => 'آجل فوق حد العميل',
         };
     }
 

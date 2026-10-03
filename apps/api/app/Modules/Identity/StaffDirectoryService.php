@@ -38,6 +38,6 @@ final class StaffDirectoryService implements StaffDirectory
             ->get()
             ->first(fn (User $user) => Hash::check($pin, (string) $user->pin_hash) && $this->permissions->allows($user, $permission));
 
-        return $user === null ? null : ['id' => $user->id, 'name' => $user->name];
+        return $user === null ? null : ['id' => $user->id, 'name' => $user->name, 'two_factor' => $user->hasTwoFactor()];
     }
 }

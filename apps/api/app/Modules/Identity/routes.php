@@ -3,6 +3,7 @@
 use App\Modules\Identity\Http\Controllers\AuditLogController;
 use App\Modules\Identity\Http\Controllers\AuthController;
 use App\Modules\Identity\Http\Controllers\BranchController;
+use App\Modules\Identity\Http\Controllers\PasskeyController;
 use App\Modules\Identity\Http\Controllers\PasswordController;
 use App\Modules\Identity\Http\Controllers\PermissionController;
 use App\Modules\Identity\Http\Controllers\PinController;
@@ -11,6 +12,7 @@ use App\Modules\Identity\Http\Controllers\SessionController;
 use App\Modules\Identity\Http\Controllers\ShopProfileController;
 use App\Modules\Identity\Http\Controllers\ShopTypeController;
 use App\Modules\Identity\Http\Controllers\TwoFactorController;
+use App\Modules\Identity\Http\Controllers\UnlockController;
 use App\Modules\Identity\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +47,19 @@ Route::prefix('account')->middleware(['auth:sanctum', 'tenant'])->group(function
         Route::delete('pin', [PinController::class, 'destroy']);
     });
     Route::get('pin', [PinController::class, 'show']);
+
+    // «قفل التطبيق»: passkeys (fingerprint / face) and unlocking this device.
+    Route::get('passkeys', [PasskeyController::class, 'index']);
+    Route::middleware('throttle:10,1')->group(function (): void {
+        Route::post('passkeys/options', [PasskeyController::class, 'options']);
+        Route::post('passkeys', [PasskeyController::class, 'store']);
+    });
+    // Five wrong tries in a row sign the device out; the throttle only stops floods.
+    Route::middleware('throttle:20,1')->group(function (): void {
+        Route::post('unlock/options', [UnlockController::class, 'options']);
+        Route::post('unlock', [UnlockController::class, 'store']);
+    });
+    Route::delete('passkeys/{passkey}', [PasskeyController::class, 'destroy'])->whereUuid('passkey');
 
     Route::get('sessions', [SessionController::class, 'index']);
     Route::delete('sessions', [SessionController::class, 'destroyOthers']);

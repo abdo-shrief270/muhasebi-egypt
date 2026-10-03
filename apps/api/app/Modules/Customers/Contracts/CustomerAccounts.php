@@ -15,11 +15,12 @@ interface CustomerAccounts
     public function find(string $customerId): ?CustomerSummary;
 
     /**
-     * What the customer didn't pay now goes on their account.
+     * What the customer didn't pay now goes on their account. $overLimitApproved: the owner (or a
+     * manager) OK'd going past the customer's credit limit for this sale.
      *
      * @throws DomainRuleException customer_not_found (404), customer_inactive, credit_limit_exceeded
      */
-    public function chargeSale(string $customerId, int $amount, string $saleId, string $reference, string $branchId): void;
+    public function chargeSale(string $customerId, int $amount, string $saleId, string $reference, string $branchId, bool $overLimitApproved = false): void;
 
     /**
      * A repair bill (or what's left of it) on the customer's account.

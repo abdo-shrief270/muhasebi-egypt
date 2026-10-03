@@ -9,20 +9,10 @@ import type { ApprovalRequest } from '~/types/api'
  * For whoever may approve (owner, managers): a request arriving while the app is open pops a
  * toast with «وافق» / «ارفض» right away (WebSocket). The push notification covers a closed app.
  */
-const api = useApi()
 const store = useSessionStore()
 const toast = useToast()
 const realtime = useRealtime()
-
-async function decide(a: ApprovalRequest, action: 'approve' | 'deny') {
-  try {
-    await api(`/approvals/${a.id}/${action}`, { method: 'POST', body: {} })
-    toast.add({ color: action === 'approve' ? 'success' : 'neutral', title: action === 'approve' ? `وافقت لـ ${a.requested_by_name}` : `رفضت طلب ${a.requested_by_name}` })
-  }
-  catch (e) {
-    toast.add({ color: 'error', title: apiErrorMessage(e) })
-  }
-}
+const { decide } = useApprovalDecision()
 
 let stop: (() => void) | null = null
 onMounted(async () => {

@@ -30,9 +30,9 @@ final class CustomerAccountsService implements CustomerAccounts
         return Customer::query()->find($customerId)?->summary();
     }
 
-    public function chargeSale(string $customerId, int $amount, string $saleId, string $reference, string $branchId): void
+    public function chargeSale(string $customerId, int $amount, string $saleId, string $reference, string $branchId, bool $overLimitApproved = false): void
     {
-        $this->charge($customerId, $amount, CustomerTransactionType::Sale, 'sale', $saleId, $reference, $branchId);
+        $this->charge($customerId, $amount, CustomerTransactionType::Sale, 'sale', $saleId, $reference, $branchId, $overLimitApproved);
     }
 
     public function chargeRepair(string $customerId, int $amount, string $ticketId, string $reference, string $branchId): void
@@ -58,13 +58,13 @@ final class CustomerAccountsService implements CustomerAccounts
         return $customer->summary();
     }
 
-    private function charge(string $customerId, int $amount, CustomerTransactionType $type, string $refType, string $refId, string $reference, string $branchId): void
+    private function charge(string $customerId, int $amount, CustomerTransactionType $type, string $refType, string $refId, string $reference, string $branchId, bool $overLimitApproved = false): void
     {
         $customer = $this->ledger->lock($customerId) ?? throw new DomainRuleException('العميل مش موجود.', 'customer_not_found', 404);
         if (! $customer->is_active) {
             throw new DomainRuleException("حساب «{$customer->name}» موقوف.", 'customer_inactive');
         }
-        if ($customer->credit_limit !== null && $customer->balance + $amount > $customer->credit_limit) {
+        if (! $overLimitApproved && $customer->credit_limit !== null && $customer->balance + $amount > $customer->credit_limit) {
             $available = max(0, $customer->credit_limit - $customer->balance);
             throw new DomainRuleException(
                 "الآجل كده هيعدّي حد «{$customer->name}». المتاح ".number_format($available / 100, 2).' ج.',

@@ -145,43 +145,6 @@ final class CompleteSaleAction
         }
         $total = $subtotal - $discount;
 
-        // A sale made offline already happened: the owner's limits can't stop it any more.
-        if ($soldAt === null) {
-            $lineDiscounts = array_sum(array_column($lines, 'discount'));
-            $gross = $subtotal + $lineDiscounts;
-            $percent = $gross > 0 ? intdiv(($discount + $lineDiscounts) * 100, $gross) : 0;
-            $below = $this->features->enabled('sales.below_cost') || $this->approvals->needed(ApprovalKind::BelowCost)
-                ? $this->belowCost($branchId, $lines, $subtotal, $total)
-                : [];
-            $names = implode('، ', array_column($below, 'name'));
-
-            // Past the owner's limits: one OK (the owner's phone or a manager's PIN) for every reason.
-            $approved = $this->approvals->require(
-                [
-                    ...($discount + $lineDiscounts > 0 ? [[ApprovalKind::Discount, $percent, "خصم {$percent}% (".number_format(($discount + $lineDiscounts) / 100, 2).' ج)']] : []),
-                    ...($below !== [] ? [[ApprovalKind::BelowCost, 1, "«{$names}» بأقل من تكلفته"]] : []),
-                ],
-                [
-                    'sale' => $saleId,
-                    'lines' => array_map(fn (array $l) => [$l['variant']->id, $l['qty'], $l['unit_price'], $l['discount']], $lines),
-                    'discount' => $discount,
-                    'total' => $total,
-                ],
-                $total,
-                $branchId,
-            );
-
-            // «حماية من البيع بخسارة»: refused, or — in "warn" mode — the cashier confirms. An OK covers it.
-            if ($below !== [] && ! $approved && $this->features->enabled('sales.below_cost')) {
-                if ($this->features->setting('sales.below_cost') === 'block') {
-                    throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته، والمحل مانع البيع بخسارة.", 'below_cost', context: ['lines' => $below]);
-                }
-                if (! $belowCostConfirmed) {
-                    throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته. متأكد؟", 'below_cost_confirm', 409, ['lines' => $below]);
-                }
-            }
-        }
-
         if ($customerId === null && trim((string) $customerName) === '' && $this->features->enabled('sales.require_customer')) {
             throw new DomainRuleException('اختار العميل أو اكتب اسمه الأول.', 'customer_required');
         }
@@ -203,6 +166,52 @@ final class CompleteSaleAction
             throw new DomainRuleException('مش معاك صلاحية البيع الآجل.', 'credit_not_allowed', 403);
         }
 
+        // A sale made offline already happened: the owner's limits can't stop it any more.
+        $overLimitApproved = false;
+        if ($soldAt === null) {
+            $lineDiscounts = array_sum(array_column($lines, 'discount'));
+            $gross = $subtotal + $lineDiscounts;
+            $percent = $gross > 0 ? intdiv(($discount + $lineDiscounts) * 100, $gross) : 0;
+            $below = $this->features->enabled('sales.below_cost') || $this->approvals->needed(ApprovalKind::BelowCost)
+                ? $this->belowCost($branchId, $lines, $subtotal, $total)
+                : [];
+            $names = implode('، ', array_column($below, 'name'));
+            // آجل past the customer's limit: refused below (credit_limit_exceeded) unless OK'd.
+            $overLimit = $credit > 0 && $customer?->creditLimit !== null
+                ? max(0, $customer->balance + $credit - $customer->creditLimit)
+                : 0;
+
+            // Past the owner's limits: one OK (the owner's phone or a manager's PIN) for every reason.
+            $approved = $this->approvals->require(
+                [
+                    ...($discount + $lineDiscounts > 0 ? [[ApprovalKind::Discount, $percent, "خصم {$percent}% (".number_format(($discount + $lineDiscounts) / 100, 2).' ج)']] : []),
+                    ...($below !== [] ? [[ApprovalKind::BelowCost, 1, "«{$names}» بأقل من تكلفته"]] : []),
+                    ...($overLimit > 0 ? [[ApprovalKind::CreditLimit, $overLimit, "آجل على «{$customer->name}» فوق حده بـ ".number_format($overLimit / 100, 2).' ج']] : []),
+                ],
+                [
+                    'sale' => $saleId,
+                    'lines' => array_map(fn (array $l) => [$l['variant']->id, $l['qty'], $l['unit_price'], $l['discount']], $lines),
+                    'discount' => $discount,
+                    'total' => $total,
+                    'customer' => $customer?->id,
+                    'credit' => $credit,
+                ],
+                $total,
+                $branchId,
+            );
+            $overLimitApproved = $approved && $overLimit > 0;
+
+            // «حماية من البيع بخسارة»: refused, or — in "warn" mode — the cashier confirms. An OK covers it.
+            if ($below !== [] && ! $approved && $this->features->enabled('sales.below_cost')) {
+                if ($this->features->setting('sales.below_cost') === 'block') {
+                    throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته، والمحل مانع البيع بخسارة.", 'below_cost', context: ['lines' => $below]);
+                }
+                if (! $belowCostConfirmed) {
+                    throw new DomainRuleException("«{$names}» هيتباع بأقل من تكلفته. متأكد؟", 'below_cost_confirm', 409, ['lines' => $below]);
+                }
+            }
+        }
+
         $paid = array_sum(array_column($payments, 'amount'));
         $cash = array_sum(array_map(fn (array $p) => $p['method'] === PaymentMethod::Cash ? $p['amount'] : 0, $payments));
         if ($paid < $total) {
@@ -215,7 +224,7 @@ final class CompleteSaleAction
         }
 
         try {
-            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices);
+            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices, $overLimitApproved);
         } catch (UniqueConstraintViolationException $e) {
             // The same id arrived twice at once: the other request saved it.
             return ($saleId !== null ? Sale::query()->find($saleId) : null) ?? throw $e;
@@ -268,8 +277,9 @@ final class CompleteSaleAction
         int $credit,
         ?CarbonInterface $soldAt,
         array $keptPrices = [],
+        bool $overLimitApproved = false,
     ): Sale {
-        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices): Sale {
+        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices, $overLimitApproved): Sale {
             $user = $this->auth->guard('sanctum')->user();
 
             $sale = new Sale([
@@ -348,7 +358,7 @@ final class CompleteSaleAction
 
             if ($customer !== null) {
                 $credit > 0
-                    ? $this->customers->chargeSale($customer->id, $credit, $sale->id, $sale->reference(), $branchId)
+                    ? $this->customers->chargeSale($customer->id, $credit, $sale->id, $sale->reference(), $branchId, $overLimitApproved)
                     : $this->customers->touch($customer->id);
             }
 

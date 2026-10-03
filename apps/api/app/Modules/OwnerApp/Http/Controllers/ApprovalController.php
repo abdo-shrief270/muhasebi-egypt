@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\OwnerApp\Http\Controllers;
 
+use App\Modules\Identity\Contracts\AccountSecurity;
 use App\Modules\Identity\Contracts\StaffDirectory;
 use App\Modules\Notifications\Contracts\Notifications;
 use App\Modules\OwnerApp\Broadcasting\ApprovalDecided;
@@ -13,6 +14,7 @@ use App\Modules\OwnerApp\Models\ApprovalRequest;
 use App\Modules\OwnerApp\Support\ApprovalToken;
 use App\Support\Audit\Auditor;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Modules\FeatureAccess;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,6 +29,8 @@ final class ApprovalController
     public function __construct(
         private readonly CurrentTenant $tenant,
         private readonly Auditor $audit,
+        private readonly FeatureAccess $features,
+        private readonly AccountSecurity $security,
     ) {}
 
     /** The cashier asks. The same pending request again (a double tap) is returned, not repeated. */
@@ -106,6 +110,9 @@ final class ApprovalController
         $data = $this->token($request);
         $approver = $staff->matchPin('owner_app.approve', (string) $request->input('pin'))
             ?? throw new DomainRuleException('الـ PIN غلط، أو صاحبه مش معاه صلاحية الموافقة.', 'pin_incorrect');
+        if ($this->features->enabled('owner_app.approve_two_factor') && ! $approver['two_factor']) {
+            throw new DomainRuleException("«{$approver['name']}» لازم يفعّل التحقق بخطوتين الأول عشان يوافق.", 'two_factor_required', 403);
+        }
         $user = $request->user();
 
         $approval = DB::transaction(function () use ($data, $user, $approver): ApprovalRequest {
@@ -137,6 +144,9 @@ final class ApprovalController
     {
         $data = $request->validate(['reason' => ['nullable', 'string', 'max:300']]);
         $user = $request->user();
+        if ($status === 'approved') {
+            $this->ensureSure($approval);
+        }
 
         $approval = DB::transaction(function () use ($approval, $status, $data, $user): ApprovalRequest {
             $locked = ApprovalRequest::query()->lockForUpdate()->findOrFail($approval->id);
@@ -169,6 +179,22 @@ final class ApprovalController
         broadcast(new ApprovalDecided($approval->tenant_id, $approval->requested_by, $approval->toPublic()));
 
         return response()->json(['data' => $approval->toPublic()]);
+    }
+
+    /**
+     * The owner's switches on who may approve: two-factor sign-in on, and — past an amount — a fresh
+     * fingerprint / PIN on this device (403 step_up_required: the app asks, then tries again).
+     */
+    private function ensureSure(ApprovalRequest $approval): void
+    {
+        if ($this->features->enabled('owner_app.approve_two_factor') && ! $this->security->twoFactorEnabled()) {
+            throw new DomainRuleException('فعّل التحقق بخطوتين من «الأمان» الأول عشان توافق.', 'two_factor_required', 403);
+        }
+        if ($this->features->enabled('owner_app.approve_step_up')
+            && $approval->amount > (int) $this->features->setting('owner_app.approve_step_up') * 100
+            && ! $this->security->recentlyVerified()) {
+            throw new DomainRuleException('أكّد إنك إنت بالبصمة أو الـ PIN عشان توافق على المبلغ ده.', 'step_up_required', 403);
+        }
     }
 
     /**

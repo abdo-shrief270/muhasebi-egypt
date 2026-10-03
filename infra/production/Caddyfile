@@ -26,7 +26,7 @@
 	}
 
 	# Laravel API
-	@api path /api/* /up /broadcasting/*
+	@api path /api/* /up /broadcasting/* /.well-known/assetlinks.json
 	handle @api {
 		reverse_proxy api:80
 	}

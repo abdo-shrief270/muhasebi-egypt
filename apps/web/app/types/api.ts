@@ -1095,6 +1095,14 @@ export interface OwnerFeedItem {
 }
 
 /** A cashier's request for the owner's / a manager's OK. */
+export interface Passkey {
+  id: string
+  credential_id: string
+  name: string
+  created_at: string
+  last_used_at: string | null
+}
+
 export interface ApprovalRequest {
   id: string
   kind: 'discount' | 'below_cost' | 'return' | 'withdrawal'

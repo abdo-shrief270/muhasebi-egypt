@@ -204,7 +204,16 @@ ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده 
 ## التطبيق على الموبايل والكمبيوتر
 محاسبي بيتنزّل كتطبيق (PWA) من المتصفح نفسه: مفيش حاجة تتعمل على السيرفر غير HTTPS (Caddy بيعمله). الـ manifest في `apps/web/public/site.webmanifest` والأيقونات في `public/icons`؛ Caddy بيبعت الـ manifest بـ `application/manifest+json` ومن غير كاش، والأيقونات بكاش سنة (لو غيّرت اللوجو: `node scripts/pwa-icons.mjs` في `apps/web` وزوّد `?v=` في الـ manifest و`nuxt.config.ts`). كل نشر بيطلّع للي منزّلين التطبيق «فيه نسخة جديدة — حدّث». لو nginx قدام Caddy، هو بيمرر بس ومش محتاج حاجة.
 
-**Google Play بعدين (اختياري، لسه مش معمول):** ينفع نحط نفس التطبيق على Play Store كـ Trusted Web Activity من غير ما نكتب تطبيق أندرويد: `npx @bubblewrap/cli init --manifest https://<الدومين>/site.webmanifest` ثم `bubblewrap build` (بيطلّع `.aab` نرفعه على Play Console، بحساب مطوّر 25 دولار مرة واحدة). عشان التطبيق يفتح من غير شريط المتصفح لازم الدومين يثبت إنه بتاعنا: ملف `/.well-known/assetlinks.json` فيه اسم الـ package وبصمة SHA-256 بتاعة مفتاح التوقيع (من Play Console ← App signing). الملف ده يتحط في `apps/web/public/.well-known/assetlinks.json` (Caddy بيخدمه زي أي ملف ثابت؛ اتأكد بـ `curl https://<الدومين>/.well-known/assetlinks.json` إنه راجع JSON مش صفحة التطبيق). iPhone مالوش طريقة زي دي: هناك بيتنزّل من سفاري بـ «إضافة إلى الشاشة الرئيسية».
+**Google Play (اختياري):** نفس التطبيق يتحط على Play Store كـ Trusted Web Activity من غير ما نكتب تطبيق أندرويد:
+1. `npx @bubblewrap/cli init --manifest https://<الدومين>/site.webmanifest` (اسم الـ package مثلاً `com.muhasebi.app`)، ثم `bubblewrap build` بيطلّع `.aab` ترفعه على Play Console (حساب مطوّر 25 دولار مرة واحدة).
+2. من Play Console ← App signing خد بصمة SHA-256 بتاعة مفتاح التوقيع، وحطها في `.env` على السيرفر:
+   ```
+   TWA_PACKAGE=com.muhasebi.app
+   TWA_SHA256=AB:CD:…        # لو أكتر من بصمة افصلهم بفاصلة
+   ```
+3. `./deploy.sh`، واتأكد: `curl https://<الدومين>/.well-known/assetlinks.json` يرجّع JSON فيه الـ package (الـ API بيكتبه من `.env`). من غيره التطبيق بيفتح بشريط المتصفح فوق.
+
+iPhone مالوش طريقة زي دي: هناك بيتنزّل من سفاري بـ «إضافة إلى الشاشة الرئيسية».
 
 ## الإشعارات على الموبايل (Push)
 مرة واحدة على السيرفر:
@@ -226,6 +235,8 @@ REVERB_HOST=<الدومين>   REVERB_PORT=443   REVERB_SCHEME=https
 لو حاجة منهم ناقصة: `REVERB_APP_KEY=$(openssl rand -hex 16)` و`REVERB_APP_SECRET=$(openssl rand -hex 24)` و`REVERB_APP_ID` أي رقم، وبعدين `./deploy.sh`. التطبيق بيبعت الأحداث للحاوية جوه الشبكة (`REVERB_PUBLISH_*` في الـ compose)، والمتصفح بيتصل بـ `wss://<الدومين>/app/…`. لو nginx قدام Caddy، `nginx-site.conf` فيه الـ upgrade بتاع `/app/`. التأكد: `docker compose logs reverb --tail 20`، وفي المتصفح (DevTools ← Network ← WS) اتصال `app/…` شغال. لو Reverb واقع، الشاشات بترجع تعمل تحديث كل شوية لوحدها ومفيش حاجة بتقف.
 
 الموافقات نفسها بتتشغّل من «المميزات» ← تطبيق صاحب المحل (كلها مقفولة في الأول)، وكل مدير يحط رقمه السري (PIN) من «الأمان» عشان يوافق من جهاز الكاشير.
+
+**قفل التطبيق بالبصمة (passkeys):** بيشتغل لوحده على `APP_URL` (لازم HTTPS). لو التطبيق بيتفتح من أكتر من عنوان، اكتبهم في `WEBAUTHN_ORIGINS` (مفصولين بفاصلة)، و`WEBAUTHN_RP_ID` = الدومين نفسه. **متغيّرش الدومين** بعد ما الناس تسجّل بصماتها: البصمات مربوطة بيه، ولو اتغيّر كل واحد يسجّل بصمته تاني (الـ PIN بيفضل شغال).
 
 ## مشاكل شائعة
 - **الموقع مش بيفتح / مفيش HTTPS:** اتأكد إن الـ A record بيشاور على السيرفر (`dig app.muhasebi.com`) وإن 80 و443 مفتوحين، وبص على `docker compose logs caddy`.

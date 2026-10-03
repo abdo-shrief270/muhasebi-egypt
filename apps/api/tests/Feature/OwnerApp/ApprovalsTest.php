@@ -7,6 +7,7 @@ use App\Modules\Identity\Models\User;
 use App\Modules\Identity\PermissionResolver;
 use App\Modules\Notifications\Models\Notification;
 use App\Support\Audit\AuditEntry;
+use App\Support\Security\Totp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
@@ -165,5 +166,67 @@ class ApprovalsTest extends TestCase
         $this->postJson("/api/v1/approvals/{$asked['id']}/approve")->assertOk();
         Sanctum::actingAs($this->cashier);
         $sale(['X-Approval-Id' => $asked['id']])->assertCreated();
+    }
+
+    public function test_credit_past_the_customer_limit_can_be_approved_instead_of_refused(): void
+    {
+        Sanctum::actingAs($this->owner);
+        $customer = $this->postJson('/api/v1/customers', ['name' => 'كريم', 'phone' => '01012345678', 'credit_limit' => 20000])->assertCreated()->json('data');
+        $role = $this->inShop(fn () => Role::query()->where('key', 'cashier')->first());
+        $this->putJson("/api/v1/roles/{$role->id}", ['name' => $role->name, 'permissions' => [...$role->permissions, 'customers.credit']])->assertOk();
+        app(PermissionResolver::class)->forget();
+        $sale = fn (string $id, array $headers = []) => $this->withHeaders($headers)->postJson('/api/v1/sales', [
+            'id' => $id,
+            'items' => [['variant_id' => $this->v[1], 'qty' => 1]],
+            'customer_id' => $customer['id'],
+            'payments' => [['method' => 'cash', 'amount' => 15000], ['method' => 'credit', 'amount' => 30000]],
+        ]);
+
+        // Switch off: past the limit is refused as before.
+        Sanctum::actingAs($this->cashier);
+        $sale((string) Str::uuid7())->assertUnprocessable()->assertJsonPath('code', 'credit_limit_exceeded');
+
+        Sanctum::actingAs($this->owner);
+        $this->putJson('/api/v1/features/owner_app.approve_credit_limit', ['enabled' => true])->assertOk();
+        Sanctum::actingAs($this->cashier);
+        $id = (string) Str::uuid7();
+        $refused = $sale($id)->assertStatus(409)->assertJsonPath('code', 'approval_required')->json('approval');
+        $this->assertSame('credit_limit', $refused['kind']);
+        $this->assertStringContainsString('فوق حده بـ 100.00 ج', $refused['summary']);
+
+        Sanctum::actingAs($this->manager);
+        $this->putJson('/api/v1/account/pin', ['password' => 'password', 'pin' => '4826'])->assertOk();
+        Sanctum::actingAs($this->cashier);
+        $ok = $this->postJson('/api/v1/approvals/pin', ['token' => $refused['token'], 'pin' => '4826'])->assertCreated()->json('data');
+        $sale($id, ['X-Approval-Id' => $ok['id']])->assertCreated();
+        Sanctum::actingAs($this->owner);
+        $this->assertSame(30000, $this->getJson("/api/v1/customers/{$customer['id']}")->json('data.balance'));
+    }
+
+    public function test_the_owner_can_require_two_factor_and_a_fresh_fingerprint_for_big_approvals(): void
+    {
+        Sanctum::actingAs($this->owner);
+        $this->putJson('/api/v1/features/owner_app.approve_two_factor', ['enabled' => true])->assertOk();
+        $this->putJson('/api/v1/features/owner_app.approve_step_up', ['enabled' => true, 'value' => 300])->assertOk();
+        Sanctum::actingAs($this->manager);
+        $this->putJson('/api/v1/account/pin', ['password' => 'password', 'pin' => '4826'])->assertOk();
+
+        Sanctum::actingAs($this->cashier);
+        $id = (string) Str::uuid7();
+        $token = $this->discountedSale($id)->assertStatus(409)->json('approval.token');
+        // The manager's PIN alone isn't enough without two-factor sign-in on their account.
+        $this->postJson('/api/v1/approvals/pin', ['token' => $token, 'pin' => '4826'])->assertForbidden()->assertJsonPath('code', 'two_factor_required');
+        $asked = $this->postJson('/api/v1/approvals', ['token' => $token])->assertCreated()->json('data');
+
+        Sanctum::actingAs($this->owner);
+        $this->postJson("/api/v1/approvals/{$asked['id']}/approve")->assertForbidden()->assertJsonPath('code', 'two_factor_required');
+        $secret = $this->postJson('/api/v1/account/two-factor/setup', ['password' => 'password'])->assertOk()->json('data.secret');
+        $this->postJson('/api/v1/account/two-factor/confirm', ['code' => Totp::code($secret)])->assertOk();
+        // 360 ج > 300 ج: confirm it's really the owner first.
+        $this->postJson("/api/v1/approvals/{$asked['id']}/approve")->assertForbidden()->assertJsonPath('code', 'step_up_required');
+        // The PIN (or a passkey) on this device confirms it for a few minutes.
+        $this->putJson('/api/v1/account/pin', ['password' => 'password', 'pin' => '7391'])->assertOk();
+        $this->postJson('/api/v1/account/unlock', ['pin' => '7391'])->assertOk();
+        $this->postJson("/api/v1/approvals/{$asked['id']}/approve")->assertOk()->assertJsonPath('data.status', 'approved');
     }
 }

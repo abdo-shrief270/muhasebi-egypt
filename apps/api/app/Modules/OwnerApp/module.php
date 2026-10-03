@@ -44,6 +44,25 @@ return new ModuleManifest(
             setting: FeatureSetting::int('لو المبلغ أكتر من', 2000, 1, 1000000, 'ج'),
         ),
         new Feature(
+            'owner_app.approve_credit_limit',
+            'موافقة على الآجل فوق حد العميل',
+            'بدل ما البيع الآجل فوق حد العميل يترفض، الكاشير يطلب موافقتك أو PIN مدير.',
+            default: false,
+        ),
+        new Feature(
+            'owner_app.approve_two_factor',
+            'الموافقة بالتحقق بخطوتين بس',
+            'اللي يوافق (من الموبايل أو بالـ PIN) لازم يكون مفعّل التحقق بخطوتين على حسابه.',
+            default: false,
+        ),
+        new Feature(
+            'owner_app.approve_step_up',
+            'تأكيد بالبصمة للموافقات الكبيرة',
+            'موافقة على مبلغ أكبر من ده تطلب البصمة أو الـ PIN تاني على جهاز اللي بيوافق.',
+            default: false,
+            setting: FeatureSetting::int('لو المبلغ أكتر من', 5000, 1, 1000000, 'ج'),
+        ),
+        new Feature(
             'owner_app.cash_alert',
             'تنبيه بفرق الدرج',
             'إشعار لما وردية تتقفل بعجز أو زيادة أكبر من الحد ده.',

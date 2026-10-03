@@ -42,4 +42,17 @@ return [
         'subject' => env('VAPID_SUBJECT', 'mailto:support@muhasebi.com'),
     ],
 
+    // Google Play app (Trusted Web Activity): its package and signing key fingerprint(s), comma separated.
+    'twa' => [
+        'package' => env('TWA_PACKAGE', ''),
+        'fingerprints' => array_values(array_filter(array_map(trim(...), explode(',', (string) env('TWA_SHA256', ''))))),
+    ],
+
+    // Passkeys (unlocking the app with a fingerprint / face). rp_id = the app's host; origins = the
+    // pages allowed to use them (comma separated, default APP_URL).
+    'webauthn' => [
+        'rp_id' => env('WEBAUTHN_RP_ID', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+        'origins' => array_values(array_filter(array_map(trim(...), explode(',', (string) env('WEBAUTHN_ORIGINS', env('APP_URL', 'http://localhost')))))),
+    ],
+
 ];

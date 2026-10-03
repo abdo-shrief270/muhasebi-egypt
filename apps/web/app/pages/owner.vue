@@ -18,7 +18,7 @@
       <template #header>
         <p class="flex items-center gap-2 font-bold">
           <UIcon name="i-lucide-shield-question" class="size-5 text-(--ui-warning)" />
-          مستنيين موافقتك (<span class="num">{{ approvals.length }}</span>)
+          مستنيين موافقتك <UBadge color="warning" variant="subtle" class="num" :label="String(approvals.length)" />
         </p>
       </template>
       <div v-for="a in approvals" :key="a.id" class="space-y-2 border-t border-(--ui-border) p-3 first:border-t-0" :class="highlight === a.id ? 'app-fresh' : ''">
@@ -57,8 +57,8 @@
             <UIcon :name="delta.icon" class="size-4 align-middle" />
             {{ delta.text }}
           </p>
-          <div class="mt-4 flex h-20 items-end gap-0.5" role="img" :aria-label="`المبيعات بالساعة: ${peakLabel}`">
-            <div v-for="h in hours" :key="h.hour" class="relative flex-1" :title="`${h.hour}:00 — ${formatMoney(h.today ?? 0)} (إمبارح ${formatMoney(h.yesterday)})`">
+          <div class="mt-4 flex h-20 gap-0.5" role="img" :aria-label="`المبيعات بالساعة: ${peakLabel}`">
+            <div v-for="h in hours" :key="h.hour" class="relative h-full flex-1" :title="`${h.hour}:00 — ${formatMoney(h.today ?? 0)} (إمبارح ${formatMoney(h.yesterday)})`">
               <div class="absolute inset-x-0 bottom-0 rounded-t-sm bg-(--ui-border)" :style="{ height: `${pct(h.yesterday)}%` }" />
               <div v-if="h.today !== null" class="absolute inset-x-[15%] bottom-0 rounded-t-sm bg-primary" :style="{ height: `${pct(h.today)}%` }" />
             </div>
@@ -363,7 +363,6 @@ function toneClass(tone: OwnerFeedItem['tone']): string {
 
 // Requests waiting for an OK: loaded, then kept current over the WebSocket (and with the figures).
 const store = useSessionStore()
-const toast = useToast()
 const route = useRoute()
 const realtime = useRealtime()
 const canApprove = computed(() => store.can('owner_app.approve'))
@@ -379,18 +378,16 @@ async function loadApprovals() {
 }
 await loadApprovals()
 
+const decision = useApprovalDecision()
 async function decide(a: ApprovalRequest, action: 'approve' | 'deny') {
   deciding.value = a.id
   try {
-    await api(`/approvals/${a.id}/${action}`, { method: 'POST', body: { reason: action === 'deny' ? reasons[a.id] || null : null } })
-    toast.add({ color: action === 'approve' ? 'success' : 'neutral', title: action === 'approve' ? `وافقت لـ ${a.requested_by_name}` : 'اترفض' })
-  }
-  catch (e) {
-    toast.add({ color: 'error', title: apiErrorMessage(e) })
+    if (await decision.decide(a, action, action === 'deny' ? reasons[a.id] || null : null)) {
+      approvals.value = approvals.value.filter(x => x.id !== a.id)
+    }
   }
   finally {
     deciding.value = null
-    approvals.value = approvals.value.filter(x => x.id !== a.id)
   }
 }
 

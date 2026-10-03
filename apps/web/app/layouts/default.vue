@@ -74,6 +74,7 @@
     <ApprovalsRequestModal />
     <ApprovalsLiveInbox v-if="store.hasModule('owner_app')" />
     <InstallAppModal />
+    <SecurityLockScreen />
   </div>
 </template>
 

@@ -200,6 +200,7 @@ final class StoreSettingsController
             'orders_from' => OnlineStore::hhmm($store->orders_from),
             'orders_until' => OnlineStore::hhmm($store->orders_until),
             'url' => Slugs::url($store->slug),
+            'feed_url' => Slugs::url($store->slug).'/feed.xml',
         ];
     }
 }

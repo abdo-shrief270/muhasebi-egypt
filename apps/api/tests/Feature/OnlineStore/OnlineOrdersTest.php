@@ -183,6 +183,12 @@ class OnlineOrdersTest extends TestCase
             'payments' => [['method' => 'cash', 'amount' => 10000]],
             'online_order_id' => $id,
         ])->assertUnprocessable()->assertJsonPath('code', 'online_order_invoiced');
+
+        // The store's report: one order, invoiced, its goods and delivery fee; by zone and by item.
+        $report = $this->getJson('/api/v1/reports/online_store')->assertOk()->json('data');
+        $this->assertSame([1, 1, 0, 20000, 3000], array_column($report['summary'], 'value'));
+        $this->assertSame([['مدينة نصر', '100%']], array_map(fn ($r) => [$r['name'], $r['rate']], $this->getJson('/api/v1/reports/online_store?options[group]=zone')->json('data.rows')));
+        $this->assertSame([['جراب', 2, 2, 20000]], array_map(fn ($r) => [$r['name'], $r['ordered'], $r['delivered'], $r['sales']], $this->getJson('/api/v1/reports/online_store?options[group]=item')->json('data.rows')));
     }
 
     public function test_cancel_needs_a_reason_and_orders_are_kept_apart(): void

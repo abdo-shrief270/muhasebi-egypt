@@ -190,11 +190,30 @@
             </div>
             <div class="flex flex-wrap justify-center gap-2">
               <UButton :to="settings.url" target="_blank" icon="i-lucide-external-link" label="افتح المتجر" :disabled="settings.mode === 'off'" />
-              <UButton color="neutral" variant="outline" icon="i-lucide-copy" label="انسخ اللينك" @click="copy" />
+              <UButton color="neutral" variant="outline" icon="i-lucide-copy" label="انسخ اللينك" @click="copy()" />
             </div>
             <p class="text-xs text-(--ui-text-muted)">
               حط اللينك في البايو بتاع فيسبوك وإنستجرام، واطبع الكود وحطه على الكاونتر.
             </p>
+          </div>
+        </UCard>
+        <UCard v-if="settings.mode !== 'off'">
+          <div class="space-y-3 text-sm">
+            <h2 class="font-bold">
+              فيسبوك وإنستجرام وجوجل
+            </h2>
+            <p class="text-(--ui-text-muted)">
+              ده لينك بكل أصنافك بالأسعار والصور والتوفر. حطه مرة واحدة والأسعار والمخزون بيتحدثوا لوحدهم كل كام ساعة.
+            </p>
+            <p class="break-all rounded-(--ui-radius) bg-(--ui-bg-elevated) p-2 text-xs" dir="ltr">
+              {{ settings.feed_url }}
+            </p>
+            <UButton block color="neutral" variant="outline" icon="i-lucide-copy" label="انسخ لينك الأصناف" @click="copy(settings.feed_url)" />
+            <ul class="list-disc space-y-1 ps-5 text-xs text-(--ui-text-muted)">
+              <li><b>فيسبوك وإنستجرام:</b> Commerce Manager ← الكتالوج ← مصادر البيانات ← Data feed ← Scheduled feed، والصق اللينك.</li>
+              <li><b>جوجل:</b> Merchant Center ← المنتجات ← Feeds ← Scheduled fetch، والصق اللينك.</li>
+              <li>الأصناف اللي من غير صورة مش بتدخل، ولو الأسعار مقفولة اللينك بيبقى فاضي.</li>
+            </ul>
           </div>
         </UCard>
       </aside>
@@ -301,9 +320,9 @@ async function save() {
   }
 }
 
-async function copy() {
+async function copy(text?: string) {
   try {
-    await navigator.clipboard.writeText(settings.value?.url ?? '')
+    await navigator.clipboard.writeText(text ?? settings.value?.url ?? '')
     toast.add({ color: 'success', title: 'اتنسخ اللينك' })
   }
   catch {

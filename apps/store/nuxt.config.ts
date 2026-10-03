@@ -51,6 +51,8 @@ export default defineNuxtConfig({
     '/api/**': { cache: false },
     '/*/sitemap.xml': { cache: false },
     '/sitemap.xml': { cache: false },
+    '/*/feed.xml': { cache: false },
+    '/feed.xml': { cache: false },
     '/robots.txt': { cache: false },
   },
 

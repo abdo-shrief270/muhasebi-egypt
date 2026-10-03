@@ -57,6 +57,13 @@ interface StorefrontCatalog
     public function variants(array $variantIds): array;
 
     /**
+     * One row per variant on the store, for the Meta / Google product feed: at most $limit.
+     *
+     * @return list<array{id: string, product_id: string, title: string, description: string|null, brand: string|null, category: array{id: int, name: string}, price: int, image: array<string, string>|null, images: list<array<string, string>>, quality: string|null, updated_at: string|null}>
+     */
+    public function feed(int $limit): array;
+
+    /**
      * Everything on the store, for its sitemap / catalog feed.
      *
      * @return list<array{id: string, updated_at: string}>

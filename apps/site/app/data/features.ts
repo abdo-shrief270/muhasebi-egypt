@@ -81,6 +81,8 @@ export const features: Feature[] = [
   { icon: 'i-lucide-smartphone', title: 'المستعمل', text: 'اشتري موبايل مستعمل بالرقم القومي وصورة البطاقة وفحص الـ IMEI، وبيعه من الكاشير ومكسبه لوحده.', doc: 'used-devices' },
   { icon: 'i-lucide-undo-2', title: 'مرتجعات الموردين', text: 'التالف والمرتجع متفرز حسب المورد لوحده، وإذن مرتجع لكل مورد بضغطة.', doc: 'supplier-returns' },
   { icon: 'i-lucide-handshake', title: 'الطلبات بين المحلات', text: 'اطلب بضاعة أو ابعت صيانة لمحل صاحبك على السيستم، وتابعوا الطلب سوا.', doc: 'shop-orders' },
+  { icon: 'i-lucide-store', title: 'متجر أونلاين لمحلك', text: 'elnour.muhasebi.com بأصنافك وأسعارك ومخزونك الحقيقي: الزبون يدوّر بموديل موبايله ويطلب، والطلب يتحول لفاتورة بضغطة. ولينك لكتالوج فيسبوك وجوجل.', doc: 'online-store' },
+  { icon: 'i-lucide-bell-ring', title: 'المحل في جيبك', text: 'مبيعات النهارده لحظة بلحظة، تنبيه بفرق الدرج والمرتجعات، وموافقة على الخصم الكبير من موبايلك.', doc: 'owner-app' },
   { icon: 'i-lucide-git-branch', title: 'فروع وموظفين', text: 'كل فرع بمخزونه، وكل موظف بصلاحياته: الكاشير ميشوفش التكلفة، والفني يشوف تذاكره بس.', doc: 'team' },
   { icon: 'i-lucide-toggle-right', title: 'إنت اللي بتتحكم', text: 'افتح واقفل مميزات صغيرة زي الخصم والاستيراد والأسعار بين المحلات حسب طريقة شغلك.', doc: 'settings' },
   { icon: 'i-lucide-printer', title: 'طباعة من غير تعقيد', text: 'إيصالات حرارية 80مم، ليبلات باركود بأي مقاس، وتقارير A4.', doc: 'printing' },

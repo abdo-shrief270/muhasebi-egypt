@@ -49,6 +49,7 @@ Route::prefix('public/stores/{slug}')->where(['slug' => '[a-z0-9-]{3,40}'])->gro
             Route::get('products', 'products');
             Route::get('products/{product}', 'product')->whereUuid('product');
             Route::get('index', 'index');
+            Route::get('feed', 'feed');
         });
     Route::post('orders', [PublicOrderController::class, 'store'])
         ->middleware([ResolveStore::class, 'module:online_store', 'throttle:store-orders']);

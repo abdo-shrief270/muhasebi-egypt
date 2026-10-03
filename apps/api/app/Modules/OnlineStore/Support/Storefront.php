@@ -80,6 +80,34 @@ final class Storefront
         return $this->presented($store, [...$product, ...$this->availability($store, max([0, ...array_values($qty)]))]);
     }
 
+    /** The most rows a product feed carries (Meta / Google read it every few hours). */
+    public const FEED_LIMIT = 10000;
+
+    /**
+     * The Meta / Google product feed: a row per variant with its availability, as the owner shows
+     * the store (category names, brand). Nothing when prices are hidden — a feed needs a price.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function feed(OnlineStore $store): array
+    {
+        if (! $store->show_prices) {
+            return [];
+        }
+        $rows = $this->catalog->feed(self::FEED_LIMIT);
+        $qty = $this->stock->quantities($this->branch($store), array_column($rows, 'id'));
+        $out = [];
+        foreach ($rows as $row) {
+            $available = ($qty[$row['id']] ?? 0) > 0;
+            if (! $available && ! $store->show_out_of_stock) {
+                continue;
+            }
+            $out[] = $this->presented($store, [...$row, 'availability' => $available ? 'in' : 'out']);
+        }
+
+        return $out;
+    }
+
     /** @return list<array{id: string, updated_at: string}> */
     public function index(OnlineStore $store): array
     {

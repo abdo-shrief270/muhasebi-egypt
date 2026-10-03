@@ -7,6 +7,7 @@ namespace App\Modules\Reports\Support;
 use App\Modules\Reports\Definitions\ExpensesReport;
 use App\Modules\Reports\Definitions\InstallmentsReport;
 use App\Modules\Reports\Definitions\InventoryReport;
+use App\Modules\Reports\Definitions\OnlineStoreReport;
 use App\Modules\Reports\Definitions\OpenSupplierReturnsReport;
 use App\Modules\Reports\Definitions\PayablesReport;
 use App\Modules\Reports\Definitions\PaymentsReport;
@@ -31,6 +32,7 @@ final class ReportRegistry
         PaymentsReport::class,
         RepairsReport::class,
         ServicesReport::class,
+        OnlineStoreReport::class,
         InventoryReport::class,
         UsedDevicesReport::class,
         ReceivablesReport::class,

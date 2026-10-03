@@ -123,6 +123,42 @@ final class StorefrontCatalogService implements StorefrontCatalog
             ->all();
     }
 
+    public function feed(int $limit): array
+    {
+        $rows = [];
+        $this->shown(null)
+            ->with(['brand', 'category', 'images', 'variants' => fn ($v) => $v->where('is_active', true)])
+            ->orderBy('products.created_at')->orderBy('products.id')
+            ->chunk(200, function ($products) use (&$rows, $limit): bool {
+                foreach ($products as $p) {
+                    /** @var Product $p */
+                    $images = $p->images->map(fn (ProductImage $i) => $i->toPublic()['urls'])->values()->all();
+                    foreach ($p->variants as $v) {
+                        $rows[] = [
+                            'id' => $v->id,
+                            'product_id' => $p->id,
+                            'title' => $v->name ? "{$p->name} — {$v->name}" : $p->name,
+                            'description' => $p->online_description,
+                            'brand' => $p->brand?->name,
+                            'category' => ['id' => $p->category->id, 'name' => $p->category->name],
+                            'price' => (int) ($v->price_online ?? $v->price_retail),
+                            'image' => $images[0] ?? null,
+                            'images' => array_slice($images, 1, 9),
+                            'quality' => $v->quality_grade?->value,
+                            'updated_at' => $p->updated_at?->toIso8601String(),
+                        ];
+                        if (count($rows) >= $limit) {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            });
+
+        return $rows;
+    }
+
     public function index(): array
     {
         return $this->shown(null)->orderBy('name')->get(['products.id', 'products.updated_at'])

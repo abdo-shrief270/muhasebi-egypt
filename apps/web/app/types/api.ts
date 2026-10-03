@@ -292,6 +292,8 @@ export interface OnlineStoreSettings {
   transfer_instapay: string | null
   transfer_wallet: string | null
   url: string
+  /** the Meta / Google product feed */
+  feed_url: string
   updated_at: string
 }
 

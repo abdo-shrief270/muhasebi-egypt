@@ -161,6 +161,33 @@ class OnlineStoreTest extends TestCase
         $this->assertSame('58', $this->putJson('/api/v1/shop/profile', ['name' => 'محل 1', 'phone' => '01000000001', 'paper' => '58'])->assertOk()->json('data.receipt.paper'));
     }
 
+    public function test_the_product_feed(): void
+    {
+        $this->open();
+        $productId = $this->getJson('/api/v1/products?q=جراب')->json('data.0.id');
+        $feed = $this->getJson('/api/v1/public/stores/elnour/feed')->assertOk()->json('data');
+        $this->assertCount(2, $feed);
+        $case = collect($feed)->firstWhere('product_id', $productId);
+        $this->assertSame([$this->v[0], 'جراب', 10000, 'in', 'جرابات'], [$case['id'], $case['title'], $case['price'], $case['availability'], $case['category']['name']]);
+        $this->assertStringNotContainsString('CASE-1', json_encode($feed));
+        $this->assertStringEndsWith('/elnour/feed.xml', $this->getJson('/api/v1/online-store/settings')->json('data.feed_url'));
+
+        // No prices shown → nothing to feed; sold out and hidden → left out.
+        $this->putJson('/api/v1/online-store/settings', ['show_prices' => false])->assertOk();
+        $this->assertSame([], $this->getJson('/api/v1/public/stores/elnour/feed')->json('data'));
+        $this->putJson('/api/v1/online-store/settings', ['show_prices' => true, 'show_out_of_stock' => false])->assertOk();
+        $this->withHeaders(['X-Branch-Id' => $this->branchId])
+            ->postJson('/api/v1/inventory/adjustments', ['reason' => 'count', 'items' => [['variant_id' => $this->v[1], 'counted' => 0]]])->assertOk();
+        $this->assertSame([$this->v[0]], array_column($this->getJson('/api/v1/public/stores/elnour/feed')->json('data'), 'id'));
+    }
+
+    public function test_the_online_store_report(): void
+    {
+        $this->assertContains('online_store', array_column($this->getJson('/api/v1/reports')->json('data.reports'), 'key'));
+        $report = $this->getJson('/api/v1/reports/online_store?options[group]=item')->assertOk()->json('data');
+        $this->assertSame(0, $report['summary'][0]['value']);
+    }
+
     public function test_receipt_switches(): void
     {
         $this->assertSame([true, true, true], array_values(array_intersect_key(

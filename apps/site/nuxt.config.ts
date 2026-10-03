@@ -36,7 +36,7 @@ export default defineNuxtConfig({
       scan: true,
       // Icons named in data files (features, docs), which the scan doesn't see.
       icons: [
-        'lucide:shopping-cart', 'lucide:wifi-off', 'lucide:wrench', 'lucide:boxes', 'lucide:scan-line', 'lucide:truck',
+        'lucide:store', 'lucide:bell-ring', 'lucide:shopping-cart', 'lucide:wifi-off', 'lucide:wrench', 'lucide:boxes', 'lucide:scan-line', 'lucide:truck',
         'lucide:users', 'lucide:wallet', 'lucide:chart-column', 'lucide:message-circle', 'lucide:handshake', 'lucide:shield-check',
         'lucide:printer', 'lucide:toggle-right', 'lucide:git-branch', 'lucide:rocket', 'lucide:package', 'lucide:receipt-text',
         'lucide:tag', 'lucide:smartphone', 'lucide:credit-card', 'lucide:lock-keyhole', 'lucide:book-open', 'lucide:life-buoy',

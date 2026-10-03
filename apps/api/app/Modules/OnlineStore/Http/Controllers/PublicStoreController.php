@@ -73,6 +73,13 @@ final class PublicStoreController
         return $this->cached(['data' => $this->storefront->index($this->store($request))]);
     }
 
+    /** The Meta / Google product feed's rows (the store renders the XML). */
+    public function feed(Request $request): JsonResponse
+    {
+        return response()->json(['data' => $this->storefront->feed($this->store($request))])
+            ->header('Cache-Control', 'public, max-age=900');
+    }
+
     /**
      * Caddy asks before getting an HTTPS certificate for a subdomain (on-demand TLS): yes only for
      * an open store's ({slug}.muhasebi.com), so nobody can make it fetch certificates for anything.

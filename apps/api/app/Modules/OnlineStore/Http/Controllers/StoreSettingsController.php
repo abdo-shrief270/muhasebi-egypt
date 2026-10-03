@@ -57,9 +57,18 @@ final class StoreSettingsController
             'instagram' => ['nullable', 'url:https', 'max:255'],
             'show_out_of_stock' => ['sometimes', 'boolean'],
             'show_quantity' => ['sometimes', 'boolean'],
+            'pickup' => ['sometimes', 'boolean'],
+            'delivery' => ['sometimes', 'boolean'],
+            'min_order' => ['sometimes', 'integer', 'min:0', 'max:100000000'],
+            'free_delivery_over' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+            'pay_cod' => ['sometimes', 'boolean'],
+            'pay_transfer' => ['sometimes', 'boolean'],
+            'transfer_instapay' => ['nullable', 'string', 'max:60'],
+            'transfer_wallet' => ['nullable', 'phone:EG,mobile'],
         ], [], [
             'slug' => 'عنوان المتجر', 'name' => 'اسم المتجر', 'whatsapp' => 'رقم الواتساب', 'phone' => 'التليفون',
             'map_url' => 'لينك الخريطة', 'color' => 'اللون',
+            'min_order' => 'أقل طلب', 'free_delivery_over' => 'التوصيل ببلاش فوق', 'transfer_wallet' => 'رقم المحفظة', 'transfer_instapay' => 'عنوان InstaPay',
         ]);
 
         if (isset($data['slug'])) {
@@ -71,7 +80,7 @@ final class StoreSettingsController
                 throw new DomainRuleException('العنوان ده محجوز لمحل تاني. جرّب عنوان تاني.', 'slug_taken');
             }
         }
-        foreach (['whatsapp', 'phone'] as $field) {
+        foreach (['whatsapp', 'phone', 'transfer_wallet'] as $field) {
             if (array_key_exists($field, $data) && $data[$field] !== null) {
                 $data[$field] = (new PhoneNumber($data[$field], 'EG'))->formatE164();
             }
@@ -80,6 +89,18 @@ final class StoreSettingsController
         $whatsapp = array_key_exists('whatsapp', $data) ? $data['whatsapp'] : $store->whatsapp;
         if ($mode === 'whatsapp' && $whatsapp === null) {
             throw new DomainRuleException('اكتب رقم الواتساب اللي هتوصله الطلبات.', 'whatsapp_required');
+        }
+        $after = fn (string $field) => array_key_exists($field, $data) ? $data[$field] : $store->{$field};
+        if ($mode === 'orders') {
+            if (! $after('pickup') && ! $after('delivery')) {
+                throw new DomainRuleException('اختار الاستلام من المحل أو التوصيل (أو الاتنين).', 'fulfilment_required');
+            }
+            if (! $after('pay_cod') && ! $after('pay_transfer')) {
+                throw new DomainRuleException('اختار طريقة دفع واحدة على الأقل.', 'payment_required');
+            }
+        }
+        if ($after('pay_transfer') && $after('transfer_instapay') === null && $after('transfer_wallet') === null) {
+            throw new DomainRuleException('اكتب عنوان InstaPay أو رقم المحفظة اللي الزبون هيحوّل عليه.', 'transfer_details_required');
         }
 
         $before = $store->mode;
@@ -146,6 +167,14 @@ final class StoreSettingsController
             ...$store->toPublic(),
             'branch_id' => $store->branch_id,
             'show_out_of_stock' => $store->show_out_of_stock,
+            'pickup' => $store->pickup,
+            'delivery' => $store->delivery,
+            'min_order' => $store->min_order,
+            'free_delivery_over' => $store->free_delivery_over,
+            'pay_cod' => $store->pay_cod,
+            'pay_transfer' => $store->pay_transfer,
+            'transfer_instapay' => $store->transfer_instapay,
+            'transfer_wallet' => $store->transfer_wallet,
             'url' => Slugs::url($store->slug),
         ];
     }

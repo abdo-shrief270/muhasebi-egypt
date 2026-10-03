@@ -32,6 +32,17 @@ final class Templates
             'warranty' => 'الضمان لحد',
         ];
 
+        $order = [
+            'customer' => 'اسم العميل',
+            'shop' => 'اسم المحل',
+            'order' => 'رقم الطلب',
+            'items' => 'الأصناف',
+            'total' => 'الإجمالي',
+            'link' => 'لينك متابعة الطلب',
+            'reason' => 'سبب الإلغاء',
+        ];
+        $follow = 'تابع طلبك من هنا: {link}';
+
         return [
             'repair_received' => ['label' => 'استلام جهاز', 'group' => 'repairs', 'variables' => $repair, 'body' => implode("\n", [
                 self::HELLO, 'استلمنا جهازك {device} في {shop} (تذكرة {ticket}).', 'ميعاد التسليم المتوقع: {expected}.', self::TRACK,
@@ -56,6 +67,24 @@ final class Templates
             ])],
             'repair_delivered' => ['label' => 'بعد التسليم', 'group' => 'repairs', 'variables' => $repair, 'body' => implode("\n", [
                 self::HELLO, 'شكراً لتعاملك مع {shop} 🌷', 'الضمان لحد {warranty}.',
+            ])],
+            'online_order_confirmed' => ['label' => 'تأكيد الطلب', 'group' => 'online_store', 'variables' => $order, 'body' => implode("\n", [
+                self::HELLO, 'طلبك {order} من {shop} اتأكد ✅', '{items}', 'الإجمالي: {total}', $follow,
+            ])],
+            'online_order_preparing' => ['label' => 'الطلب بيتجهّز', 'group' => 'online_store', 'variables' => $order, 'body' => implode("\n", [
+                self::HELLO, 'بنجهّز طلبك {order} دلوقتي.', $follow,
+            ])],
+            'online_order_out_for_delivery' => ['label' => 'خرج للتوصيل', 'group' => 'online_store', 'variables' => $order, 'body' => implode("\n", [
+                self::HELLO, 'طلبك {order} خرج للتوصيل 🛵', 'جهّز {total} للمندوب.', $follow,
+            ])],
+            'online_order_ready' => ['label' => 'جاهز للاستلام', 'group' => 'online_store', 'variables' => $order, 'body' => implode("\n", [
+                self::HELLO, 'طلبك {order} جاهز تستلمه من {shop} ✅', 'المطلوب: {total}', $follow,
+            ])],
+            'online_order_delivered' => ['label' => 'بعد الاستلام', 'group' => 'online_store', 'variables' => $order, 'body' => implode("\n", [
+                self::HELLO, 'شكراً لطلبك من {shop} 🌷', 'لو احتجت أي حاجة احنا موجودين.',
+            ])],
+            'online_order_cancelled' => ['label' => 'إلغاء الطلب', 'group' => 'online_store', 'variables' => $order, 'body' => implode("\n", [
+                self::HELLO, 'آسفين، طلبك {order} من {shop} اتلغى.', 'السبب: {reason}', 'تقدر تطلب تاني أو تكلّمنا على الرقم ده.',
             ])],
             'sale_receipt' => ['label' => 'فاتورة بيع', 'group' => 'sales', 'variables' => [
                 'customer' => 'اسم العميل', 'shop' => 'اسم المحل', 'invoice' => 'رقم الفاتورة', 'total' => 'الإجمالي', 'link' => 'لينك الفاتورة',
@@ -109,6 +138,7 @@ final class Templates
             'repairs' => 'الصيانة',
             'sales' => 'المبيعات',
             'suppliers' => 'الموردين',
+            'online_store' => 'المتجر الأونلاين',
             default => 'العملاء',
         };
     }

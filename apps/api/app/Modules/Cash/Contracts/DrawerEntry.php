@@ -20,4 +20,6 @@ enum DrawerEntry: string
     case SupplierRefund = 'supplier_refund';
     /** A used device bought from a walk-in seller, paid out of the drawer (negative). */
     case UsedDevicePurchase = 'used_device_purchase';
+    /** The delivery fee of an online order, collected with its invoice (positive). */
+    case Delivery = 'delivery';
 }

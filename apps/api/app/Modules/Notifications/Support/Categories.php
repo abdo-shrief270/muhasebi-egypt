@@ -18,6 +18,12 @@ final class Categories
             'permission' => 'owner_app.approve',
             'prefixes' => ['approval.'],
         ],
+        'online_orders' => [
+            'label' => 'طلبات المتجر الأونلاين',
+            'description' => 'زبون طلب من متجرك الأونلاين.',
+            'permission' => 'online_store.orders',
+            'prefixes' => ['online_order.'],
+        ],
         'partners' => [
             'label' => 'المحلات الشريكة',
             'description' => 'طلبات جديدة، طلبات شراكة، والمحل التاني بيحرّك طلب.',

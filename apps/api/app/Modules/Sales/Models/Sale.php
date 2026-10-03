@@ -38,6 +38,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property string|null $cashier_name
  * @property string $public_token
+ * @property string|null $origin_type where it came from when not the counter (online_order)
+ * @property string|null $origin_id
  * @property Carbon $completed_at
  * @property-read Collection<int, SaleItem> $items
  * @property-read Collection<int, SalePayment> $payments
@@ -46,7 +48,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'id', 'tenant_id', 'branch_id', 'number', 'status', 'price_level', 'customer_id', 'customer_name', 'customer_phone', 'credit',
     'subtotal', 'discount', 'total', 'paid', 'change', 'cost_total', 'refunded', 'refunded_cost', 'notes',
-    'cashier_id', 'cashier_name', 'public_token', 'completed_at',
+    'cashier_id', 'cashier_name', 'public_token', 'completed_at', 'origin_type', 'origin_id',
 ])]
 final class Sale extends Model
 {

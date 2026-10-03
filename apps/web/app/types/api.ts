@@ -645,7 +645,7 @@ export type CashMethod = 'cash' | 'card' | 'wallet' | 'instapay'
 
 export interface CashMovement {
   id: string
-  type: 'sale' | 'sale_refund' | 'customer_payment' | 'repair' | 'supplier_payment' | 'used_device_purchase' | 'expense' | 'deposit' | 'withdrawal'
+  type: 'sale' | 'sale_refund' | 'customer_payment' | 'repair' | 'supplier_payment' | 'used_device_purchase' | 'delivery' | 'expense' | 'deposit' | 'withdrawal'
   type_label: string
   method: CashMethod
   method_label: string

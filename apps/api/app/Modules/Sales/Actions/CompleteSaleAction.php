@@ -15,6 +15,8 @@ use App\Modules\Inventory\Contracts\SerialCount;
 use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Inventory\Contracts\StockReference;
+use App\Modules\OnlineStore\Contracts\OnlineOrders;
+use App\Modules\OnlineStore\Contracts\OrderForSale;
 use App\Modules\OwnerApp\Contracts\ApprovalKind;
 use App\Modules\OwnerApp\Contracts\Approvals;
 use App\Modules\Sales\Enums\PaymentMethod;
@@ -56,6 +58,7 @@ final class CompleteSaleAction
         private readonly Auth $auth,
         private readonly FeatureAccess $features,
         private readonly Approvals $approvals,
+        private readonly OnlineOrders $onlineOrders,
     ) {}
 
     /**
@@ -65,6 +68,8 @@ final class CompleteSaleAction
      * @param  bool  $canCredit  customers.credit: part or all of the total on the customer's account
      * @param  CarbonInterface|null  $soldAt  when a sale queued offline was made (its completed_at); null = now
      * @param  bool  $belowCostConfirmed  the cashier saw the "below cost" warning and went on
+     * @param  string|null  $onlineOrderId  «حوّل لفاتورة»: the order's lines keep the price the customer was quoted, and the order closes with the sale
+     * @param  bool  $deliveryFeeCollected  the order's delivery fee came in with it (cash, into the drawer)
      *
      * The owner's switches (FeatureAccess) apply too: which discounts and price levels exist, a
      * customer on every sale, selling below cost, credit, and no selling beyond the stock.
@@ -85,6 +90,8 @@ final class CompleteSaleAction
         bool $canCredit = false,
         ?CarbonInterface $soldAt = null,
         bool $belowCostConfirmed = false,
+        ?string $onlineOrderId = null,
+        bool $deliveryFeeCollected = false,
     ): Sale {
         // The same sale sent twice (a retry after a timeout) is saved once.
         if ($saleId !== null && ($existing = Sale::query()->find($saleId)) !== null) {
@@ -107,6 +114,8 @@ final class CompleteSaleAction
         }
         $blockOutOfStock = $this->features->enabled('sales.block_out_of_stock');
 
+        $order = $onlineOrderId !== null ? $this->onlineOrders->forSale($onlineOrderId) : null;
+
         $variants = $this->catalog->find(array_column($items, 'variant_id'));
         // The owner's switch: no selling beyond the branch's stock.
         $inStock = $blockOutOfStock ? $this->stock->quantities($branchId, array_column($items, 'variant_id')) : [];
@@ -126,6 +135,10 @@ final class CompleteSaleAction
                 throw new DomainRuleException("«{$variant->displayName()}» مفيش منه كفاية في الفرع (الموجود ".max(0, $inStock[$variant->id] ?? 0).').', 'out_of_stock', context: ['variant_id' => $variant->id, 'available' => $inStock[$variant->id] ?? 0]);
             }
             $unitPrice = $variant->priceFor($priceLevel->value);
+            // An online order's item: the price the store quoted (its online price, maybe changed since).
+            if ($order !== null && $priceLevel === PriceLevel::Retail && isset($order->prices[$variant->id])) {
+                $unitPrice = $order->prices[$variant->id];
+            }
             $paidPrice = $item['unit_price'] ?? null;
             if ($paidPrice !== null && $paidPrice !== $unitPrice && in_array($paidPrice, $offlinePrices[$variant->id] ?? [], true)) {
                 $keptPrices[] = ['variant_id' => $variant->id, 'name' => $variant->displayName(), 'paid' => $paidPrice, 'current' => $unitPrice];
@@ -224,7 +237,7 @@ final class CompleteSaleAction
         }
 
         try {
-            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices, $overLimitApproved);
+            return $this->save($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices, $overLimitApproved, $order, $deliveryFeeCollected);
         } catch (UniqueConstraintViolationException $e) {
             // The same id arrived twice at once: the other request saved it.
             return ($saleId !== null ? Sale::query()->find($saleId) : null) ?? throw $e;
@@ -278,8 +291,10 @@ final class CompleteSaleAction
         ?CarbonInterface $soldAt,
         array $keptPrices = [],
         bool $overLimitApproved = false,
+        ?OrderForSale $order = null,
+        bool $deliveryFeeCollected = false,
     ): Sale {
-        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices, $overLimitApproved): Sale {
+        return DB::transaction(function () use ($tenantId, $branchId, $saleId, $lines, $payments, $discount, $priceLevel, $customer, $customerName, $customerPhone, $notes, $subtotal, $total, $paid, $change, $credit, $soldAt, $keptPrices, $overLimitApproved, $order, $deliveryFeeCollected): Sale {
             $user = $this->auth->guard('sanctum')->user();
 
             $sale = new Sale([
@@ -298,7 +313,11 @@ final class CompleteSaleAction
                 'credit' => $credit,
                 'change' => $change,
                 'cost_total' => 0,
-                'notes' => $notes,
+                'notes' => $notes ?? ($order !== null
+                    ? "طلب أونلاين {$order->reference}".($deliveryFeeCollected && $order->deliveryFee > 0 ? ' + توصيل '.number_format($order->deliveryFee / 100, 2).' ج' : '')
+                    : null),
+                'origin_type' => $order !== null ? 'online_order' : null,
+                'origin_id' => $order?->id,
                 'cashier_id' => $user?->getAuthIdentifier(),
                 'cashier_name' => $user?->getAttribute('name'),
                 'public_token' => Str::random(32),
@@ -354,6 +373,10 @@ final class CompleteSaleAction
             }
             foreach ($taken as $method => $amount) {
                 $this->drawer->record($branchId, DrawerEntry::Sale, $method, $amount, 'sale', $sale->id, $sale->reference(), requireShift: true);
+            }
+
+            if ($order !== null) {
+                $this->onlineOrders->invoiced($order->id, $sale->id, $sale->reference(), $branchId, $deliveryFeeCollected);
             }
 
             if ($customer !== null) {

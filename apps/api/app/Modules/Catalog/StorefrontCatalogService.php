@@ -97,6 +97,27 @@ final class StorefrontCatalogService implements StorefrontCatalog
         ];
     }
 
+    public function variants(array $variantIds): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        return ProductVariant::query()
+            ->whereIn('product_variants.id', $variantIds)
+            ->where('is_active', true)
+            ->whereIn('product_id', $this->shown(null)->select('products.id'))
+            ->with('product')
+            ->get()
+            ->mapWithKeys(fn (ProductVariant $v) => [$v->id => [
+                'id' => $v->id,
+                'product_id' => $v->product_id,
+                'name' => $v->name ? "{$v->product->name} — {$v->name}" : $v->product->name,
+                'price' => (int) ($v->price_online ?? $v->price_retail),
+            ]])
+            ->all();
+    }
+
     public function index(): array
     {
         return $this->shown(null)->orderBy('name')->get(['products.id', 'products.updated_at'])

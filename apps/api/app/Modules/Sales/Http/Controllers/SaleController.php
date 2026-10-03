@@ -82,6 +82,8 @@ final class SaleController
             canCredit: (bool) $request->user()?->can('customers.credit'),
             soldAt: $request->soldAt(),
             belowCostConfirmed: $request->boolean('confirm_below_cost'),
+            onlineOrderId: $request->validated('online_order_id'),
+            deliveryFeeCollected: $request->boolean('delivery_fee_collected'),
         );
 
         return $this->show($request, $sale->id)->response()->setStatusCode(201);

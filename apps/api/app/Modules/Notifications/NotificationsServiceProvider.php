@@ -8,11 +8,13 @@ use App\Modules\Cash\Events\ShiftClosed;
 use App\Modules\Notifications\Console\GenerateVapidKeysCommand;
 use App\Modules\Notifications\Console\SendDailySummariesCommand;
 use App\Modules\Notifications\Contracts\Notifications;
+use App\Modules\Notifications\Listeners\NotifyOnlineOrders;
 use App\Modules\Notifications\Listeners\NotifyOwner;
 use App\Modules\Notifications\Listeners\NotifyPartnerActivity;
 use App\Modules\Notifications\Support\Notifier;
 use App\Modules\Notifications\Support\PushSender;
 use App\Modules\Notifications\Support\WebPushSender;
+use App\Modules\OnlineStore\Events\OnlineOrderPlaced;
 use App\Modules\Sales\Events\SaleRefunded;
 use App\Modules\ShopOrders\Events\ShopConnectionRequested;
 use App\Modules\ShopOrders\Events\ShopOrderUpdated;
@@ -25,6 +27,7 @@ final class NotificationsServiceProvider extends ModuleServiceProvider
         ShopConnectionRequested::class => [NotifyPartnerActivity::class],
         ShiftClosed::class => [NotifyOwner::class],
         SaleRefunded::class => [NotifyOwner::class],
+        OnlineOrderPlaced::class => [NotifyOnlineOrders::class],
     ];
 
     public function register(): void

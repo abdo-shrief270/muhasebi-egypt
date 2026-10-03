@@ -55,6 +55,9 @@ final class CompleteSaleRequest extends FormRequest
             'sold_at' => ['nullable', 'date'],
             // The cashier saw the owner's "below cost" warning and goes on.
             'confirm_below_cost' => ['nullable', 'boolean'],
+            // «حوّل لفاتورة» from an online order: its prices, and its delivery fee into the drawer (cash).
+            'online_order_id' => ['nullable', 'uuid', 'prohibited_if:offline,true'],
+            'delivery_fee_collected' => ['nullable', 'boolean'],
         ];
     }
 

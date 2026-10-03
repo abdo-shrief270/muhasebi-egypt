@@ -20,13 +20,14 @@ final class ResolveStore
 {
     public function __construct(private readonly CurrentTenant $tenant) {}
 
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $when = 'open'): Response
     {
         $slug = $request->route('slug') !== null
             ? strtolower((string) $request->route('slug'))
             : Slugs::fromHost((string) $request->query('domain', ''));
         $store = $slug === null ? null : OnlineStore::withoutTenancy()->where('slug', $slug)->first();
-        if ($store === null || ! $store->isOpen()) {
+        // `any`: a placed order's tracking page outlives the store being closed.
+        if ($store === null || ($when !== 'any' && ! $store->isOpen())) {
             return response()->json(['message' => 'المتجر ده مش موجود أو مقفول دلوقتي.', 'code' => 'store_not_found'], 404);
         }
         $this->tenant->set($store->tenant_id);

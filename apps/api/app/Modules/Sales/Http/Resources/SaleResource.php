@@ -48,6 +48,7 @@ final class SaleResource extends JsonResource
             'notes' => $this->notes,
             'cashier_name' => $this->cashier_name,
             'public_token' => $this->public_token,
+            'origin' => $this->origin_type !== null ? ['type' => $this->origin_type, 'id' => $this->origin_id] : null,
             'completed_at' => $this->completed_at->toIso8601String(),
             'items_count' => $this->whenCounted('items'),
             'items' => $this->whenLoaded('items', fn () => $this->items->map(fn (SaleItem $i): array => [

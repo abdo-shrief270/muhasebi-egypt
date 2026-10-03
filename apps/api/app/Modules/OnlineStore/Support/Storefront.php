@@ -8,6 +8,7 @@ use App\Modules\Catalog\Contracts\StorefrontCatalog;
 use App\Modules\Catalog\Contracts\StorefrontQuery;
 use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Inventory\Contracts\StockLedger;
+use App\Modules\OnlineStore\Models\DeliveryZone;
 use App\Modules\OnlineStore\Models\OnlineStore;
 
 /**
@@ -35,6 +36,10 @@ final class Storefront
             'categories' => $this->catalog->categories($only),
             'device_brands' => $this->catalog->deviceBrands($only),
             'latest' => $this->withAvailability($store, $this->catalog->products(new StorefrontQuery(perPage: 12, onlyVariantIds: $only))['items']),
+            'zones' => $store->takesOrders() && $store->delivery
+                ? DeliveryZone::query()->where('is_active', true)->orderBy('sort')->orderBy('name')->get()
+                    ->map(fn (DeliveryZone $z) => ['id' => $z->id, 'name' => $z->name, 'fee' => $z->fee])->all()
+                : [],
         ];
     }
 
@@ -96,14 +101,25 @@ final class Storefront
         return $store->show_quantity ? ['availability' => $state, 'quantity' => max(0, $qty)] : ['availability' => $state];
     }
 
+    /**
+     * Each variant's stock in the store's branch.
+     *
+     * @param  list<string>  $variantIds
+     * @return array<string, int>
+     */
+    public function quantities(OnlineStore $store, array $variantIds): array
+    {
+        return $this->stock->quantities($this->branch($store), $variantIds);
+    }
+
+    public function branch(OnlineStore $store): string
+    {
+        return (string) ($store->branch_id ?? $this->branches->mainBranchId());
+    }
+
     /** @return list<string>|null */
     private function onlyInStock(OnlineStore $store): ?array
     {
         return $store->show_out_of_stock ? null : $this->stock->inStock($this->branch($store));
-    }
-
-    private function branch(OnlineStore $store): string
-    {
-        return (string) ($store->branch_id ?? $this->branches->mainBranchId());
     }
 }

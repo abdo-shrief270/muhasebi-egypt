@@ -3,7 +3,7 @@
 
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY apps/store/package.json apps/store/package-lock.json ./
+COPY apps/store/package.json apps/store/package-lock.json apps/store/.npmrc ./
 RUN npm ci --no-audit --no-fund --ignore-scripts
 COPY apps/store/ ./
 RUN npx nuxi prepare && npx nuxi build

@@ -16,6 +16,12 @@ export interface PublicStore {
   facebook: string | null
   instagram: string | null
   show_quantity: boolean
+  /** off = «اسأل عن السعر»: no prices (null below), no cart */
+  show_prices: boolean
+  show_models: boolean
+  show_latest: boolean
+  show_whatsapp: boolean
+  announcement: string | null
   logo: Images | null
   cover: Images | null
   /** How to order (mode «orders» only). */
@@ -62,8 +68,9 @@ export interface ProductCard {
   brand: string | null
   category: { id: number, name: string }
   image: { id: string, width: number, height: number, urls: Images } | null
-  price: number
-  price_max: number
+  /** null when the shop hides its prices */
+  price: number | null
+  price_max: number | null
   qualities: string[]
   availability: Availability
   quantity?: number
@@ -74,7 +81,7 @@ export interface ProductVariant {
   name: string | null
   quality: string | null
   quality_label: string | null
-  price: number
+  price: number | null
   availability: Availability
   quantity?: number
 }

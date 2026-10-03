@@ -46,7 +46,10 @@
       </div>
 
       <div class="flex items-end justify-between gap-3">
-        <p class="num text-3xl font-extrabold text-brand">
+        <p v-if="variant.price === null" class="text-xl font-extrabold text-muted">
+          اسأل عن السعر
+        </p>
+        <p v-else class="num text-3xl font-extrabold text-brand">
           {{ formatPrice(variant.price) }}
         </p>
         <p class="text-sm font-bold" :class="AVAILABILITY[variant.availability]!.class">
@@ -73,7 +76,7 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3">
+      <div v-if="store.show_prices" class="flex flex-wrap items-center gap-3">
         <div class="flex items-center rounded-xl border border-line bg-white">
           <button type="button" class="flex size-11 items-center justify-center" aria-label="أقل" @click="qty = Math.max(1, qty - 1)">
             <StoreIcon name="minus" :size="18" />
@@ -87,7 +90,11 @@
           <StoreIcon name="cart" :size="18" /> {{ added ? 'اتضاف للسلة ✓' : 'ضيف للسلة' }}
         </button>
       </div>
-      <a v-if="store.whatsapp && variant.availability !== 'out'" :href="orderNow" target="_blank" rel="noopener" class="btn-wa w-full">
+      <!-- Without prices WhatsApp is how a customer asks, so it stays whatever the other switch says. -->
+      <a v-if="store.whatsapp && !store.show_prices" :href="orderNow" target="_blank" rel="noopener" class="btn-wa w-full">
+        <StoreIcon name="whatsapp" :size="18" /> اسأل عن السعر على واتساب
+      </a>
+      <a v-else-if="store.whatsapp && store.show_whatsapp && variant.availability !== 'out'" :href="orderNow" target="_blank" rel="noopener" class="btn-wa w-full">
         <StoreIcon name="whatsapp" :size="18" /> اطلبه على واتساب
       </a>
 
@@ -149,7 +156,7 @@ function addToCart() {
     productId: product.value.id,
     name: product.value.name,
     variant: product.value.variants.length > 1 ? variantLabel(variant.value) : null,
-    price: variant.value.price,
+    price: variant.value.price ?? 0,
     image: product.value.image?.urls['320'] ?? null,
   }, qty.value)
   added.value = true
@@ -157,17 +164,19 @@ function addToCart() {
 }
 
 const url = computed(() => place.url(`/p/${product.value.id}`))
-const orderNow = computed(() => whatsappLink(store.value.whatsapp ?? '', [
-  `السلام عليكم، عايز أطلب من ${store.value.name}:`,
-  `${qty.value} × ${product.value.name}${product.value.variants.length > 1 ? ` (${variantLabel(variant.value)})` : ''} — ${formatPrice(variant.value.price * qty.value)}`,
-  url.value,
-].join('\n')))
+const orderNow = computed(() => {
+  const what = `${product.value.name}${product.value.variants.length > 1 ? ` (${variantLabel(variant.value)})` : ''}`
+  const lines = variant.value.price === null
+    ? [`السلام عليكم، عايز أعرف سعر ${what} من ${store.value.name}.`, url.value]
+    : [`السلام عليكم، عايز أطلب من ${store.value.name}:`, `${qty.value} × ${what} — ${formatPrice(variant.value.price * qty.value)}`, url.value]
+  return whatsappLink(store.value.whatsapp ?? '', lines.join('\n'))
+})
 
 const description = computed(() => (product.value.description ?? `${product.value.name} من ${store.value.name}`).slice(0, 160))
 useSeoMeta({
   title: () => product.value.name,
   description,
-  ogTitle: () => `${product.value.name} — ${formatPrice(product.value.price)}`,
+  ogTitle: () => (product.value.price === null ? product.value.name : `${product.value.name} — ${formatPrice(product.value.price)}`),
   ogDescription: description,
   ogUrl: url,
   ogImage: () => (product.value.image ? place.media(product.value.image.urls['800'] ?? '') : undefined),
@@ -186,16 +195,17 @@ useHead(() => ({
       'image': product.value.images.map(i => place.media(i.urls['800'] ?? '')),
       'category': product.value.category.name,
       ...(product.value.brand ? { brand: { '@type': 'Brand', 'name': product.value.brand } } : {}),
-      'offers': {
+      // No offer without a price (the shop hides its prices).
+      ...(product.value.price === null ? {} : { offers: {
         '@type': product.value.variants.length > 1 ? 'AggregateOffer' : 'Offer',
         'priceCurrency': 'EGP',
         ...(product.value.variants.length > 1
-          ? { lowPrice: product.value.price / 100, highPrice: product.value.price_max / 100, offerCount: product.value.variants.length }
+          ? { lowPrice: product.value.price / 100, highPrice: (product.value.price_max ?? product.value.price) / 100, offerCount: product.value.variants.length }
           : { price: product.value.price / 100 }),
         'availability': product.value.availability === 'out' ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
         'url': url.value,
         'seller': { '@type': 'Organization', 'name': store.value.name },
-      },
+      } }),
     }),
   }],
 }))

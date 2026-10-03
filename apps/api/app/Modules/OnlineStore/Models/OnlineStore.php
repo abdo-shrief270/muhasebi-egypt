@@ -41,12 +41,18 @@ use Illuminate\Support\Carbon;
  * @property bool $pay_transfer
  * @property string|null $transfer_instapay InstaPay address / phone
  * @property string|null $transfer_wallet wallet number (E.164)
+ * @property bool $show_prices off = «اسأل عن السعر» (no prices, no cart: the customer asks on WhatsApp)
+ * @property bool $show_models «اختار موبايلك» and the compatible models
+ * @property bool $show_latest «وصل جديد» on the home page
+ * @property bool $show_whatsapp the «كلّمنا واتساب» buttons
+ * @property string|null $announcement a line across the top of every page
  * @property Carbon $updated_at
  */
 #[Fillable([
     'tenant_id', 'slug', 'mode', 'name', 'tagline', 'about', 'color', 'branch_id', 'whatsapp', 'phone', 'address',
     'map_url', 'hours', 'policy', 'facebook', 'instagram', 'show_out_of_stock', 'show_quantity', 'logo', 'cover',
     'pickup', 'delivery', 'min_order', 'free_delivery_over', 'pay_cod', 'pay_transfer', 'transfer_instapay', 'transfer_wallet',
+    'show_prices', 'show_models', 'show_latest', 'show_whatsapp', 'announcement',
 ])]
 final class OnlineStore extends Model
 {
@@ -65,6 +71,10 @@ final class OnlineStore extends Model
             'free_delivery_over' => 'integer',
             'pay_cod' => 'boolean',
             'pay_transfer' => 'boolean',
+            'show_prices' => 'boolean',
+            'show_models' => 'boolean',
+            'show_latest' => 'boolean',
+            'show_whatsapp' => 'boolean',
         ];
     }
 
@@ -101,6 +111,11 @@ final class OnlineStore extends Model
             'facebook' => $this->facebook,
             'instagram' => $this->instagram,
             'show_quantity' => $this->show_quantity,
+            'show_prices' => $this->show_prices,
+            'show_models' => $this->show_models,
+            'show_latest' => $this->show_latest,
+            'show_whatsapp' => $this->show_whatsapp,
+            'announcement' => $this->announcement,
             'logo' => StoreMedia::urls($this->tenant_id, 'logo', $this->logo),
             'cover' => StoreMedia::urls($this->tenant_id, 'cover', $this->cover),
             'ordering' => $this->takesOrders() ? [

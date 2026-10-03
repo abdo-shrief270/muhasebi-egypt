@@ -19,12 +19,14 @@
           <option value="new">
             الأحدث
           </option>
-          <option value="price_asc">
-            السعر: الأقل الأول
-          </option>
-          <option value="price_desc">
-            السعر: الأعلى الأول
-          </option>
+          <template v-if="showPrices">
+            <option value="price_asc">
+              السعر: الأقل الأول
+            </option>
+            <option value="price_desc">
+              السعر: الأعلى الأول
+            </option>
+          </template>
           <option value="name">
             الاسم
           </option>
@@ -47,10 +49,13 @@
 </template>
 
 <script setup lang="ts">
-import type { ProductPage } from '~/types'
+import type { ProductPage, StoreHome } from '~/types'
 
 /** A filtered product list (category, model, search) driven by the page's query string. */
 const props = withDefaults(defineProps<{ filters: Record<string, string | number | undefined>, empty?: string }>(), { empty: 'مفيش أصناف بالشكل ده.' })
+// The store's home is already loaded by the layout: its switches decide the price sorts.
+const { data: home } = useNuxtData<{ data: StoreHome }>(`home:${useStoreSlug()}`)
+const showPrices = computed(() => home.value?.data.store.show_prices !== false)
 
 const route = useRoute()
 const slug = useStoreSlug()

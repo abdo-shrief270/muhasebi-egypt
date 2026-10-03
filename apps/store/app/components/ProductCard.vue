@@ -24,8 +24,11 @@
       <p class="line-clamp-2 text-sm font-semibold leading-snug">
         {{ product.name }}
       </p>
-      <p class="mt-auto pt-1 text-base font-extrabold text-brand">
-        <span v-if="product.price_max > product.price" class="text-xs font-semibold text-muted">من </span>
+      <p v-if="product.price === null" class="mt-auto pt-1 text-sm font-bold text-muted">
+        اسأل عن السعر
+      </p>
+      <p v-else class="mt-auto pt-1 text-base font-extrabold text-brand">
+        <span v-if="(product.price_max ?? 0) > product.price" class="text-xs font-semibold text-muted">من </span>
         <span class="num">{{ formatPrice(product.price) }}</span>
       </p>
     </div>

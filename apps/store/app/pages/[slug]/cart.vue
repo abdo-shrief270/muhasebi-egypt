@@ -271,7 +271,7 @@ onMounted(async () => {
   const variants = new Map(products.flatMap(p => p?.variants ?? []).map(v => [v.id, v]))
   for (const line of cart.lines.value) {
     const v = variants.get(line.variantId)
-    if (!v || v.availability === 'out') {
+    if (!v || v.availability === 'out' || v.price === null) {
       gone.value.add(line.variantId)
     }
     else if (v.price !== line.price) {

@@ -57,7 +57,7 @@
       </div>
     </section>
 
-    <section class="space-y-3" aria-labelledby="latest">
+    <section v-if="store.show_latest" class="space-y-3" aria-labelledby="latest">
       <h2 id="latest" class="text-lg font-extrabold">
         وصل جديد
       </h2>

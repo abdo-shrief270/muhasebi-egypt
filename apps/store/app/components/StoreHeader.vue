@@ -12,7 +12,8 @@
           <StoreIcon name="search" />
         </button>
       </form>
-      <NuxtLink :to="place.path('/cart')" class="relative ms-auto flex size-11 items-center justify-center rounded-xl hover:bg-soft sm:ms-0" aria-label="السلة">
+      <span v-if="!store.show_prices" class="ms-auto sm:hidden" />
+      <NuxtLink v-if="store.show_prices" :to="place.path('/cart')" class="relative ms-auto flex size-11 items-center justify-center rounded-xl hover:bg-soft sm:ms-0" aria-label="السلة">
         <StoreIcon name="cart" :size="22" />
         <span v-if="cart.count.value" class="num absolute -top-0.5 -end-0.5 min-w-5 rounded-full bg-brand px-1 text-center text-xs font-bold text-white">{{ cart.count.value }}</span>
       </NuxtLink>

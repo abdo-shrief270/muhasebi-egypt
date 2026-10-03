@@ -26,6 +26,11 @@
             <UFormField label="آخر سطر في الإيصال" class="sm:col-span-2" :hint="`${form.footer.length}/200`" :error="errors.footer">
               <UTextarea v-model="form.footer" :rows="2" autoresize class="w-full" maxlength="200" placeholder="شكراً لزيارتك 🌷 · الضمان 14 يوم بالإيصال" />
             </UFormField>
+            <div class="space-y-3 sm:col-span-2">
+              <USwitch v-model="form.show_cashier" label="اطبع اسم الكاشير" />
+              <USwitch v-model="form.show_customer" label="اطبع اسم العميل" />
+              <USwitch v-model="form.show_serials" label="اطبع IMEI / سيريال الأجهزة" description="مفيد للضمان؛ اقفله لو مش عايز الرقم يبان على الإيصال." />
+            </div>
           </div>
         </UCard>
 
@@ -81,6 +86,9 @@ const form = reactive({
   tax_number: tenant.receipt?.tax_number ?? '',
   commercial_register: tenant.receipt?.commercial_register ?? '',
   footer: tenant.receipt?.footer ?? '',
+  show_cashier: tenant.receipt?.show_cashier ?? true,
+  show_customer: tenant.receipt?.show_customer ?? true,
+  show_serials: tenant.receipt?.show_serials ?? true,
 })
 
 const branches = computed<Branch[]>(() => store.session?.branches ?? [])
@@ -130,13 +138,16 @@ const preview = computed<ReceiptData>(() => ({
     name: form.name || 'اسم المحل',
     phone: branchForm.value?.phone || form.phone,
     address: branchForm.value?.address || null,
-    receipt: { tax_number: form.tax_number || null, commercial_register: form.commercial_register || null, footer: form.footer.trim() || 'شكراً لزيارتك 🌷' },
+    receipt: {
+      tax_number: form.tax_number || null, commercial_register: form.commercial_register || null, footer: form.footer.trim() || 'شكراً لزيارتك 🌷',
+      show_cashier: form.show_cashier, show_customer: form.show_customer, show_serials: form.show_serials,
+    },
   },
   branch: branches.value.length > 1 ? branches.value.find(b => b.id === branchId.value)?.name ?? null : null,
   reference: 'INV-000128',
   completed_at: new Date().toISOString(),
   cashier_name: store.session?.user.name ?? null,
-  customer_name: null,
+  customer_name: 'محمد أحمد',
   subtotal: 57000,
   discount: 0,
   total: 57000,

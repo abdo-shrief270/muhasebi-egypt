@@ -35,10 +35,10 @@
       <div class="flex justify-between">
         <span>التاريخ</span><span class="num">{{ formatDate(data.completed_at, true) }}</span>
       </div>
-      <div v-if="data.cashier_name" class="flex justify-between">
+      <div v-if="data.cashier_name && data.shop?.receipt?.show_cashier !== false" class="flex justify-between">
         <span>الكاشير</span><span>{{ data.cashier_name }}</span>
       </div>
-      <div v-if="data.customer_name" class="flex justify-between">
+      <div v-if="data.customer_name && data.shop?.receipt?.show_customer !== false" class="flex justify-between">
         <span>العميل</span><span>{{ data.customer_name }}</span>
       </div>
     </div>
@@ -48,7 +48,7 @@
         <p class="font-bold">
           {{ item.name }}
         </p>
-        <p v-for="s in item.serials ?? []" :key="s" class="num" dir="ltr">
+        <p v-for="s in (data.shop?.receipt?.show_serials === false ? [] : item.serials ?? [])" :key="s" class="num" dir="ltr">
           IMEI {{ s }}
         </p>
         <div class="flex items-baseline justify-between gap-2">

@@ -1,5 +1,8 @@
 <template>
   <div :style="{ '--brand': store.color }" class="flex min-h-dvh flex-col">
+    <p v-if="store.announcement" class="bg-brand px-4 py-2 text-center text-sm font-bold text-white">
+      {{ store.announcement }}
+    </p>
     <StoreHeader :store="store" />
     <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-5">
       <NuxtPage />

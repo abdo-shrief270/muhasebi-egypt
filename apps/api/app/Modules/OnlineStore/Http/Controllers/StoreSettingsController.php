@@ -57,6 +57,11 @@ final class StoreSettingsController
             'instagram' => ['nullable', 'url:https', 'max:255'],
             'show_out_of_stock' => ['sometimes', 'boolean'],
             'show_quantity' => ['sometimes', 'boolean'],
+            'show_prices' => ['sometimes', 'boolean'],
+            'show_models' => ['sometimes', 'boolean'],
+            'show_latest' => ['sometimes', 'boolean'],
+            'show_whatsapp' => ['sometimes', 'boolean'],
+            'announcement' => ['nullable', 'string', 'max:160'],
             'pickup' => ['sometimes', 'boolean'],
             'delivery' => ['sometimes', 'boolean'],
             'min_order' => ['sometimes', 'integer', 'min:0', 'max:100000000'],
@@ -92,6 +97,9 @@ final class StoreSettingsController
         }
         $after = fn (string $field) => array_key_exists($field, $data) ? $data[$field] : $store->{$field};
         if ($mode === 'orders') {
+            if (! $after('show_prices')) {
+                throw new DomainRuleException('الطلبات في البرنامج محتاجة الأسعار تبان. اعرض الأسعار أو خلّي الطلبات على واتساب.', 'orders_need_prices');
+            }
             if (! $after('pickup') && ! $after('delivery')) {
                 throw new DomainRuleException('اختار الاستلام من المحل أو التوصيل (أو الاتنين).', 'fulfilment_required');
             }

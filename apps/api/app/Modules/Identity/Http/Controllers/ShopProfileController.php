@@ -38,6 +38,9 @@ final class ShopProfileController
             'tax_number' => ['nullable', 'string', 'max:30'],
             'commercial_register' => ['nullable', 'string', 'max:30'],
             'footer' => ['nullable', 'string', 'max:200'],
+            'show_cashier' => ['sometimes', 'boolean'],
+            'show_customer' => ['sometimes', 'boolean'],
+            'show_serials' => ['sometimes', 'boolean'],
         ], [], [
             'name' => 'اسم المحل',
             'phone' => 'موبايل المحل',

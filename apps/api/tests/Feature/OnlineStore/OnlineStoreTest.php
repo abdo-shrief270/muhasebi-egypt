@@ -110,6 +110,43 @@ class OnlineStoreTest extends TestCase
         $this->assertSame([], $this->getJson('/api/v1/public/stores/elnour/products')->json('data'));
     }
 
+    public function test_the_owner_shapes_what_the_store_shows(): void
+    {
+        $productId = $this->getJson('/api/v1/products?q=جراب')->json('data.0.id');
+        $brand = $this->postJson('/api/v1/catalog/brands', ['name' => 'Zeta'])->assertCreated()->json('data.id');
+        $model = $this->postJson("/api/v1/catalog/brands/{$brand}/models", ['name' => 'Z1'])->assertCreated()->json('data.id');
+        $this->patchJson("/api/v1/products/{$productId}", ['device_model_ids' => [$model]])->assertOk();
+        $this->open(['show_prices' => false, 'show_models' => false, 'show_latest' => false, 'show_whatsapp' => false, 'announcement' => 'توصيل ببلاش']);
+
+        $home = $this->getJson('/api/v1/public/stores/elnour')->assertOk()->json('data');
+        $this->assertSame([false, false, 'توصيل ببلاش'], [$home['store']['show_prices'], $home['store']['show_whatsapp'], $home['store']['announcement']]);
+        $this->assertSame([[], []], [$home['device_brands'], $home['latest']]);
+
+        // «اسأل عن السعر»: no price leaves the server, and it can't be guessed by filtering.
+        $list = $this->getJson('/api/v1/public/stores/elnour/products?sort=price_asc')->json('data');
+        $this->assertSame([null, null], array_column($list, 'price'));
+        $this->assertCount(2, $this->getJson('/api/v1/public/stores/elnour/products?min=20000')->json('data'));
+        $product = $this->getJson("/api/v1/public/stores/elnour/products/{$productId}")->json('data');
+        $this->assertSame([null, null, []], [$product['price'], $product['variants'][0]['price'], $product['device_models']]);
+        $this->assertStringNotContainsString('10000', json_encode($product));
+
+        // Orders in the app need the prices shown.
+        $this->putJson('/api/v1/online-store/settings', ['mode' => 'orders'])->assertUnprocessable()->assertJsonPath('code', 'orders_need_prices');
+        $this->putJson('/api/v1/online-store/settings', ['mode' => 'orders', 'show_prices' => true])->assertOk();
+        $this->putJson('/api/v1/online-store/settings', ['show_prices' => false])->assertUnprocessable()->assertJsonPath('code', 'orders_need_prices');
+    }
+
+    public function test_receipt_switches(): void
+    {
+        $this->assertSame([true, true, true], array_values(array_intersect_key(
+            $this->getJson('/api/v1/auth/me')->json('data.tenant.receipt'), array_flip(['show_cashier', 'show_customer', 'show_serials']),
+        )));
+        $receipt = $this->putJson('/api/v1/shop/profile', ['name' => 'محل 1', 'phone' => '01000000001', 'show_cashier' => false, 'show_serials' => false])->assertOk()->json('data.receipt');
+        $this->assertSame([false, true, false], [$receipt['show_cashier'], $receipt['show_customer'], $receipt['show_serials']]);
+        // Saving the profile without them keeps them.
+        $this->assertFalse($this->putJson('/api/v1/shop/profile', ['name' => 'محل 1', 'phone' => '01000000001', 'footer' => 'شكراً'])->assertOk()->json('data.receipt.show_cashier'));
+    }
+
     public function test_stores_are_kept_apart_and_closing_hides_them(): void
     {
         $this->open();

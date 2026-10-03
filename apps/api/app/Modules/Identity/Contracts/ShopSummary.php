@@ -14,7 +14,7 @@ final readonly class ShopSummary
         public string $name,
         public string $code,
         public string $phone,
-        /** what its receipts print: tax_number, commercial_register, footer */
+        /** what its receipts print: tax_number, commercial_register, footer, show_cashier / show_customer / show_serials */
         public array $receipt = [],
     ) {}
 }

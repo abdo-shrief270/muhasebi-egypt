@@ -92,7 +92,7 @@
         <UCard>
           <template #header>
             <h2 class="font-bold">
-              الأصناف والمخزون
+              اللي بيظهر في المتجر
             </h2>
           </template>
           <div class="space-y-4">
@@ -101,6 +101,16 @@
             </UFormField>
             <USwitch v-model="form.show_out_of_stock" label="اعرض الأصناف اللي خلصت" description="بتظهر مكتوب عليها «خلص» بدل ما تختفي." />
             <USwitch v-model="form.show_quantity" label="اعرض العدد" description="الزبون يشوف الكمية بدل «متوفر / قرّب يخلص»." />
+            <USwitch v-model="form.show_prices" label="اعرض الأسعار" description="لو قفلتها: مكتوب «اسأل عن السعر» والزبون يسألك على واتساب (من غير سلة)." :disabled="form.mode === 'orders'" />
+            <p v-if="form.mode === 'orders'" class="-mt-2 text-xs text-(--ui-text-muted)">
+              الطلبات في البرنامج محتاجة الأسعار تبان.
+            </p>
+            <USwitch v-model="form.show_models" label="«اختار موبايلك»" description="الزبون يدوّر بماركة وموديل موبايله، ويشوف الموبايلات اللي كل صنف بيركب عليها." />
+            <USwitch v-model="form.show_latest" label="«وصل جديد» في الرئيسية" />
+            <USwitch v-model="form.show_whatsapp" label="زراير «كلّمنا واتساب» و«اطلبه على واتساب»" />
+            <UFormField label="شريط إعلان فوق المتجر" hint="اختياري" :error="errors.announcement">
+              <UInput v-model="form.announcement" class="w-full" maxlength="160" placeholder="توصيل ببلاش فوق 500 ج · خصم 10% على الجرابات" />
+            </UFormField>
             <p class="text-sm text-(--ui-text-muted)">
               كل الأصناف الشغالة بتظهر بسعر «الأونلاين» لو حاطه، وإلا بسعر القطاعي. تقدر تخفي صنف أو تضيف صوره ووصفه من صفحة الصنف.
             </p>
@@ -190,6 +200,7 @@ const form = reactive({
   slug: '', mode: 'off' as OnlineStoreSettings['mode'], whatsapp: '', name: '', color: '#0f766e', tagline: '', branch_id: '',
   show_out_of_stock: true, show_quantity: false, phone: '', hours: '', address: '', map_url: '', facebook: '', instagram: '',
   about: '', policy: '',
+  show_prices: true, show_models: true, show_latest: true, show_whatsapp: true, announcement: '',
   pickup: true, delivery: false, min_order: '', free_delivery_over: '',
   pay_cod: true, pay_transfer: false, transfer_instapay: '', transfer_wallet: '',
 })
@@ -200,6 +211,8 @@ function fill(s: OnlineStoreSettings) {
     branch_id: s.branch_id ?? '', show_out_of_stock: s.show_out_of_stock, show_quantity: s.show_quantity,
     phone: localPhone(s.phone), hours: s.hours ?? '', address: s.address ?? '', map_url: s.map_url ?? '',
     facebook: s.facebook ?? '', instagram: s.instagram ?? '', about: s.about ?? '', policy: s.policy ?? '',
+    show_prices: s.show_prices, show_models: s.show_models, show_latest: s.show_latest, show_whatsapp: s.show_whatsapp,
+    announcement: s.announcement ?? '',
     pickup: s.pickup, delivery: s.delivery, min_order: s.min_order ? String(s.min_order / 100) : '',
     free_delivery_over: s.free_delivery_over !== null ? String(s.free_delivery_over / 100) : '',
     pay_cod: s.pay_cod, pay_transfer: s.pay_transfer, transfer_instapay: s.transfer_instapay ?? '', transfer_wallet: localPhone(s.transfer_wallet),
@@ -227,6 +240,8 @@ async function save() {
         branch_id: form.branch_id || null, show_out_of_stock: form.show_out_of_stock, show_quantity: form.show_quantity,
         hours: nullable(form.hours), address: nullable(form.address), map_url: nullable(form.map_url),
         facebook: nullable(form.facebook), instagram: nullable(form.instagram), about: nullable(form.about), policy: nullable(form.policy),
+        show_prices: form.show_prices, show_models: form.show_models, show_latest: form.show_latest, show_whatsapp: form.show_whatsapp,
+        announcement: nullable(form.announcement),
         pickup: form.pickup, delivery: form.delivery, min_order: toPiasters(form.min_order) ?? 0,
         free_delivery_over: toPiasters(form.free_delivery_over), pay_cod: form.pay_cod, pay_transfer: form.pay_transfer,
         transfer_instapay: nullable(form.transfer_instapay), transfer_wallet: nullable(form.transfer_wallet),
@@ -244,6 +259,9 @@ async function save() {
     }
     else if (code === 'whatsapp_required') {
       errors.value.whatsapp = apiErrorMessage(e)
+    }
+    else if (code === 'orders_need_prices') {
+      error.value = apiErrorMessage(e)
     }
     else if (code === 'transfer_details_required') {
       errors.value.transfer_instapay = apiErrorMessage(e)

@@ -28,7 +28,7 @@
         </li>
       </ul>
       <div class="flex flex-wrap items-start gap-2 sm:justify-end">
-        <a v-if="store.whatsapp" :href="whatsappLink(store.whatsapp, `السلام عليكم، جاي من متجر ${store.name}`)" target="_blank" rel="noopener" class="btn-wa">
+        <a v-if="store.whatsapp && store.show_whatsapp" :href="whatsappLink(store.whatsapp, `السلام عليكم، جاي من متجر ${store.name}`)" target="_blank" rel="noopener" class="btn-wa">
           <StoreIcon name="whatsapp" :size="18" /> كلّمنا واتساب
         </a>
         <a v-if="store.facebook" :href="store.facebook" target="_blank" rel="noopener" class="btn-line">فيسبوك</a>

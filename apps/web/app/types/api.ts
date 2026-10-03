@@ -270,6 +270,11 @@ export interface OnlineStoreSettings {
   instagram: string | null
   show_out_of_stock: boolean
   show_quantity: boolean
+  show_prices: boolean
+  show_models: boolean
+  show_latest: boolean
+  show_whatsapp: boolean
+  announcement: string | null
   logo: Record<string, string> | null
   cover: Record<string, string> | null
   pickup: boolean
@@ -540,6 +545,10 @@ export interface ReceiptSettings {
   tax_number: string | null
   commercial_register: string | null
   footer: string
+  /** printed unless switched off (older settings have no value: on) */
+  show_cashier?: boolean
+  show_customer?: boolean
+  show_serials?: boolean
 }
 
 /** The shop's lines at the top / bottom of a receipt. */

@@ -225,6 +225,52 @@
         <UCard>
           <template #header>
             <p class="font-bold">
+              الرصيد والنقاط
+            </p>
+          </template>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p class="text-(--ui-text-muted)">
+                الرصيد
+              </p>
+              <p class="num text-lg font-bold">
+                {{ formatMoney(detail.wallet.credit) }}
+              </p>
+            </div>
+            <div>
+              <p class="text-(--ui-text-muted)">
+                النقاط
+              </p>
+              <p class="num text-lg font-bold">
+                {{ detail.wallet.points }}
+              </p>
+            </div>
+          </div>
+          <form class="mt-3 space-y-3" @submit.prevent="grantWallet">
+            <div class="grid grid-cols-2 gap-3">
+              <UFormField label="ادّي">
+                <USelect v-model="gift.unit" :items="[{ label: 'رصيد (ج)', value: 'credit' }, { label: 'نقاط', value: 'points' }]" class="w-full" />
+              </UFormField>
+              <UFormField label="القيمة" hint="بالسالب = خصم">
+                <UInput v-model="gift.amount" type="number" step="any" dir="ltr" />
+              </UFormField>
+            </div>
+            <UFormField label="السبب">
+              <UInput v-model="gift.note" class="w-full" placeholder="مثلاً: تعويض عن عطل" />
+            </UFormField>
+            <UButton type="submit" block color="neutral" variant="outline" icon="i-lucide-gift" label="ضيف" :disabled="!Number(gift.amount) || !gift.note.trim()" :loading="busy === 'wallet'" />
+          </form>
+          <ul v-if="detail.wallet.history.length" class="mt-3 max-h-48 divide-y divide-(--ui-border) overflow-y-auto text-xs">
+            <li v-for="t in detail.wallet.history" :key="t.id" class="flex justify-between gap-2 py-1.5">
+              <span>{{ t.type_label }}<span v-if="t.note" class="text-(--ui-text-muted)"> — {{ t.note }}</span></span>
+              <span class="num" dir="ltr">{{ t.amount > 0 ? '+' : '' }}{{ t.unit === 'credit' ? formatMoney(t.amount) : `${t.amount} نقطة` }}</span>
+            </li>
+          </ul>
+        </UCard>
+
+        <UCard>
+          <template #header>
+            <p class="font-bold">
               فترة Beta مجانية
             </p>
             <p class="text-xs text-(--ui-text-muted)">
@@ -280,6 +326,7 @@ interface Detail {
   feedback: AdminFeedback[]
   requests: PaymentRequestInfo[]
   invoices: BillingInvoiceInfo[]
+  wallet: { credit: number, points: number, referred_by: string | null, history: { id: number, unit: 'credit' | 'points', type_label: string, amount: number, note: string | null }[] }
 }
 
 const api = useAdminApi()
@@ -313,6 +360,15 @@ const listPrice = computed(() => {
   // A year costs as many months as the plan's yearly price says (yearly_months).
   return form.cycle === 'yearly' ? monthly * Math.round(plan.yearly / plan.monthly) : monthly
 })
+
+const gift = reactive({ unit: 'credit' as 'credit' | 'points', amount: '', note: '' })
+function grantWallet() {
+  const amount = gift.unit === 'credit' ? toPiasters(gift.amount) ?? 0 : Math.round(Number(gift.amount))
+  return run('wallet', async () => {
+    await api(`/shops/${id}/wallet`, { method: 'POST', body: { unit: gift.unit, amount, note: gift.note.trim() } })
+    Object.assign(gift, { amount: '', note: '' })
+  }, 'اتضاف')
+}
 
 const busy = ref<string | null>(null)
 async function run(key: string, fn: () => Promise<unknown>, done: string) {

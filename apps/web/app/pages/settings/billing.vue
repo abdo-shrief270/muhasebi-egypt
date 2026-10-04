@@ -1,6 +1,6 @@
 <template>
   <div v-if="billing" class="space-y-6">
-    <PageHeader title="الاشتراك والفواتير" description="باقتك، والدفع بـ InstaPay، وفواتيرك." />
+    <PageHeader title="الاشتراك والفواتير" description="باقتك، والدفع بـ InstaPay أو من رصيدك، ونقاطك وكود الدعوة، وفواتيرك." />
 
     <!-- Current subscription -->
     <UCard>
@@ -56,6 +56,8 @@
       :title="`طلب الدفع (رقم العملية ${lastRejected.reference}) اترفض`"
       :description="lastRejected.rejection_reason ?? undefined"
     />
+
+    <BillingRewards :wallet="billing.wallet" :referral="billing.referral" :discounts="billing.discounts" :shop-name="shop.name" @changed="refreshAll" />
 
     <!-- Choose -->
     <section v-if="!pending" class="space-y-4">
@@ -126,16 +128,20 @@
           <template #header>
             <div class="flex items-center justify-between">
               <p class="font-bold">
-                ادفع بـ InstaPay
+                {{ quote && quote.due === 0 ? 'ادفع من رصيدك' : 'ادفع بـ InstaPay' }}
               </p>
               <p v-if="quote" class="num text-2xl font-extrabold">
-                {{ formatMoney(quote.total) }}
+                {{ formatMoney(quote.due) }}
               </p>
             </div>
           </template>
-          <ol class="list-inside list-decimal space-y-3 text-sm">
+          <div v-if="quote && quote.due === 0" class="space-y-3 text-sm">
+            <p>رصيدك بيغطي الاشتراك كله، والتجديد بيتم على طول من غير تحويل.</p>
+            <UButton block size="lg" icon="i-lucide-wallet" :label="`جدّد من الرصيد (${formatMoney(quote.credit_used)})`" :loading="sending" @click="payWithCredit" />
+          </div>
+          <ol v-else class="list-inside list-decimal space-y-3 text-sm">
             <li>
-              حوّل <b class="num">{{ quote ? formatMoney(quote.total) : '—' }}</b> من تطبيق InstaPay على:
+              حوّل <b class="num">{{ quote ? formatMoney(quote.due) : '—' }}</b> من تطبيق InstaPay على:
               <div v-if="billing.instapay.address" class="mt-2 flex items-center gap-2 rounded-(--ui-radius) bg-(--ui-bg-elevated) p-2">
                 <span class="num flex-1 font-bold" dir="ltr">{{ billing.instapay.address }}</span>
                 <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-copy" aria-label="نسخ" @click="copy(billing.instapay.address)" />
@@ -153,8 +159,14 @@
             <li>هنراجع التحويل ونفعّل الاشتراك، وتطلعلك فاتورة.</li>
           </ol>
           <div v-if="quote" class="mt-4 space-y-1 border-t border-(--ui-border) pt-3 text-sm">
-            <div v-for="(line, i) in quote.lines" :key="i" class="flex justify-between">
+            <div v-for="(line, i) in quote.lines" :key="i" class="flex justify-between" :class="line.amount < 0 ? 'text-(--ui-success)' : ''">
               <span>{{ line.description }}</span><span class="num">{{ formatMoney(line.amount) }}</span>
+            </div>
+            <div v-if="quote.credit_used" class="flex justify-between text-(--ui-success)">
+              <span>من رصيدك</span><span class="num">−{{ formatMoney(quote.credit_used) }}</span>
+            </div>
+            <div v-if="quote.discount || quote.credit_used" class="flex justify-between font-bold">
+              <span>المطلوب</span><span class="num">{{ formatMoney(quote.due) }}</span>
             </div>
             <p class="text-xs text-(--ui-text-muted)">
               شامل ضريبة القيمة المضافة (<span class="num">{{ formatMoney(quote.vat) }}</span>).
@@ -162,7 +174,7 @@
           </div>
         </UCard>
 
-        <UCard>
+        <UCard v-if="!quote || quote.due > 0">
           <form class="space-y-4" @submit.prevent="submit">
             <UFormField label="رقم العملية" required>
               <UInput v-model="form.reference" dir="ltr" class="w-full" placeholder="من رسالة InstaPay" />
@@ -280,10 +292,11 @@ function toggleExtra(key: string) {
   chosenExtras.value = chosenExtras.value.includes(key) ? chosenExtras.value.filter(k => k !== key) : [...chosenExtras.value, key]
 }
 
-interface Quote { total: number, vat: number, lines: { description: string, amount: number }[] }
+interface Quote { total: number, vat: number, price: number, discount: number, credit_used: number, due: number, lines: { description: string, amount: number }[] }
 const quote = ref<Quote | null>(null)
 const validExtras = computed(() => chosenExtras.value.filter(k => extras.value.some(m => m.key === k)))
-watch([planKey, cycle, validExtras], async () => {
+watch([planKey, cycle, validExtras], () => requote(), { immediate: true })
+async function requote() {
   if (!planKey.value) {
     return
   }
@@ -293,7 +306,29 @@ watch([planKey, cycle, validExtras], async () => {
   catch {
     quote.value = null
   }
-}, { immediate: true })
+}
+
+// Credit, points or a coupon changed: the page and the price follow.
+async function refreshAll() {
+  await refresh()
+  await requote()
+}
+
+async function payWithCredit() {
+  sending.value = true
+  try {
+    await api('/billing/pay-with-credit', { method: 'POST', body: { plan: planKey.value, cycle: cycle.value, modules: validExtras.value } })
+    toast.add({ color: 'success', title: 'اتجدد الاشتراك من رصيدك' })
+    await refreshAll()
+    await subscription.refresh()
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    sending.value = false
+  }
+}
 
 const form = reactive({ reference: '', sender_name: '', sender_phone: '' })
 const proof = ref<File | null>(null)

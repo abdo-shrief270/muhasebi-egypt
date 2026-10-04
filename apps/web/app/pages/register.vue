@@ -33,6 +33,10 @@
         </UFormField>
       </div>
 
+      <UFormField label="كود الدعوة" hint="اختياري" :description="form.referral_code ? 'هتاخد خصم على أول شهور من اشتراكك.' : 'لو محل صاحبك بعتلك كود.'">
+        <UInput v-model="form.referral_code" dir="ltr" class="w-full" maxlength="12" placeholder="ABC123" @update:model-value="v => form.referral_code = String(v).toUpperCase()" />
+      </UFormField>
+
       <UAlert v-if="error" color="error" variant="subtle" :title="error" />
 
       <UButton type="submit" block size="lg" :loading="loading" label="ابدأ التجربة" />
@@ -57,6 +61,7 @@
 definePageMeta({ layout: 'auth', guest: true })
 
 const store = useSessionStore()
+const route = useRoute()
 
 const form = reactive({
   shop_name: '',
@@ -65,6 +70,8 @@ const form = reactive({
   phone: '',
   password: '',
   password_confirmation: '',
+  // From an invite link: /register?ref=CODE
+  referral_code: typeof route.query.ref === 'string' ? route.query.ref.trim().toUpperCase().slice(0, 12) : '',
 })
 const loading = ref(false)
 const error = ref<string | null>(null)
@@ -77,7 +84,7 @@ async function submit() {
   loading.value = true
   error.value = null
   try {
-    await store.register({ ...form })
+    await store.register({ ...form, referral_code: form.referral_code.trim() || undefined })
     await navigateTo('/')
   }
   catch (e) {

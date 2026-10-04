@@ -1022,8 +1022,32 @@ export interface BillingInvoiceInfo {
   paid_at: string
 }
 
+export interface BillingWallet {
+  /** piasters */
+  credit: number
+  points: number
+  points_per_pound: number
+  min_convert: number
+  earn: { referral: number, early_renewal: number, yearly: number, onboarding: number }
+  history: { id: number, unit: 'credit' | 'points', type: string, type_label: string, amount: number, balance_after: number, note: string | null, created_at: string }[]
+}
+
+export interface BillingReferral {
+  code: string | null
+  link: string | null
+  welcome: { percent: number, months: number }
+  points: number
+  joined: number
+  paid: number
+}
+
+export interface BillingDiscount { id: string, source: 'coupon' | 'referral', code: string, kind: 'percent' | 'amount', value: number, months_left: number, label: string }
+
 export interface BillingOverview {
   subscription: SubscriptionInfo
+  wallet: BillingWallet
+  referral: BillingReferral
+  discounts: BillingDiscount[]
   plans: BillingPlan[]
   extra_modules: { key: string, name: string, monthly: number }[]
   yearly_months: number

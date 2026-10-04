@@ -98,7 +98,6 @@ apps/api/app/
 │   ├── Services/          # كروت الشحن + تحويلات المحافظ
 │   ├── Installments/      # التقسيط
 │   ├── MultiBranch/       # التحويلات بين الفروع + التقارير المجمّعة
-│   ├── EInvoicing/        # ETA
 │   └── ShopOrders/        # الطلبات بين المحلات (شركاء + طلبات)
 └── Support/               # Money, Tenancy, Phone, Numbering, Events (Outbox) …
 ```
@@ -590,16 +589,7 @@ final class RenderMessageAction
 ---
 
 ## 11. الـ Billing (تقنياً)
-```php
-interface PaymentGateway
-{
-    public function createCheckout(BillingInvoice $invoice, PaymentMethodType $method): CheckoutSession;
-    public function chargeSavedMethod(BillingInvoice $invoice, PaymentMethod $method): ChargeResult;
-    public function verifyWebhook(Request $request): WebhookEvent;   // HMAC
-}
-// Drivers: PaymobGateway, FawryGateway, ManualGateway (InstaPay/كاش مع مندوب)
-```
-- Webhooks: `POST /webhooks/{gateway}` ← تحقق HMAC ← `billing_events` بـ Unique على `gateway_ref` (Idempotent) ← Job يطبّق الدفع.
+- الدفع يدوي: صاحب المحل يبعت `PaymentRequest` (رقم تحويل InstaPay + صورة) ← أدمن المنصة يوافق ← `Subscriptions::activate()` بيكتب الفاتورة ويمد الاشتراك. مفيش بوابات دفع (اتشال Paymob و Fawry من الخطة).
 - **Scheduler يومي:** `billing:generate-invoices`، `billing:charge-due`، `billing:transition-states` (past_due ← restricted ← suspended)، `billing:send-reminders`.
 - الاشتراك = باقة (`plan_modules`) + Modules إضافية (`subscription_items` نوعها `module`). أي تغيير ← `billing.subscription_changed` ← ModuleManager يحدّث `tenant_modules.entitled`.
 - تجربة Module لوحده (مثلاً 14 يوم استيراد) من صفحة الـ Modules، وبعدها يا يشترك يا يبقى `read_only`.
@@ -772,13 +762,13 @@ pnpm add @nuxt/ui @pinia/nuxt @nuxtjs/i18n @vite-pwa/nuxt @vueuse/nuxt dexie lar
 - سلة المرتجعات، الفرز حسب المصدر، إذن المرتجع، الحالات والتأثير على الحسابات.
 
 ### الأسبوع 15–17 — الـ Billing
-- الباقات والحدود و Pennant، التجربة، Paymob + Fawry + Manual، الـ Webhooks، الفواتير، الـ Scheduler والتذكيرات، Filament للإدارة.
+- الباقات والحدود و Pennant، التجربة، الدفع اليدوي بـ InstaPay، الفواتير، الـ Scheduler والتذكيرات، Filament للإدارة.
 
 ### الأسبوع 18–21 — Beta
 - الأوفلاين الكامل (Outbox + Sync push/pull)، تحسين السرعة، 10–20 محل تجريبي، إصلاحات، Sentry، Backups، الـ Production.
 
 ### بعد الإطلاق
-- تطبيق المالك (Flutter)، المستعمل، الشحن والتحويلات، الفروع والتحويلات، QZ Tray، ETA، المتجر الأونلاين.
+- تطبيق المالك (Flutter)، المستعمل، الشحن والتحويلات، الفروع والتحويلات، QZ Tray، المتجر الأونلاين.
 
 ---
 

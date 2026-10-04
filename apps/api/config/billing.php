@@ -68,7 +68,6 @@ return [
         'services' => 7900,
         'installments' => 7900,
         'owner_app' => 7900,
-        'e_invoicing' => 19900,
         'online_store' => 14900,
         'multi_branch' => 29900,
         'shop_orders' => 0,

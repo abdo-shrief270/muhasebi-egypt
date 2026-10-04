@@ -7,8 +7,12 @@ use App\Modules\Identity\Models\User;
 use App\Modules\ModuleManager\Contracts\TenantModules;
 use App\Modules\ModuleManager\Models\TenantModule;
 use App\Modules\Repairs\Models\FaultCategory;
+use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleAccess;
+use App\Support\Modules\ModuleManifest;
+use App\Support\Modules\ModuleRegistry;
 use App\Support\Modules\ModuleState;
+use App\Support\Modules\ModuleTier;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -107,16 +111,30 @@ class ModuleLifecycleTest extends TestCase
         $this->postJson('/api/v1/modules/repairs/trial')->assertForbidden();
     }
 
+    /** A module whose screens aren't built yet (none in the codebase right now). */
+    private function registerComingSoon(): void
+    {
+        app(ModuleRegistry::class)->register(new ModuleManifest(
+            key: 'coming_soon',
+            name: 'قريباً',
+            tier: ModuleTier::Optional,
+            permissions: ['coming_soon.manage' => 'تجربة'],
+            menu: [new MenuItem('/coming-soon', 'قريباً', 'i-lucide-clock', 'coming_soon.manage', group: 'settings')],
+            available: false,
+        ));
+    }
+
     public function test_the_modules_page_lists_optional_and_core_modules_with_their_state(): void
     {
         $this->actingAsOwnerOf(ShopType::Repair);
+        $this->registerComingSoon();
 
         $modules = collect($this->getJson('/api/v1/modules')->assertOk()->json('data'))->keyBy('key');
 
         $this->assertSame('trial', $modules['repairs']['state']);
         $this->assertSame('not_entitled', $modules['multi_branch']['state']);
         $this->assertTrue($modules['multi_branch']['trial_available']);
-        $this->assertSame([false, false], [$modules['e_invoicing']['available'], $modules['e_invoicing']['trial_available']], 'still being built');
+        $this->assertSame([false, false], [$modules['coming_soon']['available'], $modules['coming_soon']['trial_available']], 'still being built');
         $this->assertFalse($modules->has('imports'), 'for importers, not repair shops');
         $this->assertContains('/transfers', array_column($modules['multi_branch']['menu'], 'to'));
         $this->assertSame('enabled', $modules['sales']['state']);
@@ -126,18 +144,19 @@ class ModuleLifecycleTest extends TestCase
     public function test_a_module_still_being_built_stays_off(): void
     {
         $owner = $this->actingAsOwnerOf(ShopType::Accessories);
+        $this->registerComingSoon();
 
-        $this->postJson('/api/v1/modules/e_invoicing/trial')->assertStatus(409)->assertJsonPath('code', 'module_coming_soon');
+        $this->postJson('/api/v1/modules/coming_soon/trial')->assertStatus(409)->assertJsonPath('code', 'module_coming_soon');
 
         // A shop that started a trial before the module was marked «قريباً» doesn't get it either.
-        TenantModule::withoutTenancy()->create(['tenant_id' => $owner->tenant_id, 'module_key' => 'e_invoicing', 'entitled' => false, 'state' => ModuleState::Trial, 'source' => 'trial', 'trial_started_at' => now(), 'trial_ends_at' => now()->addDays(14), 'enabled_at' => now()]);
+        TenantModule::withoutTenancy()->create(['tenant_id' => $owner->tenant_id, 'module_key' => 'coming_soon', 'entitled' => false, 'state' => ModuleState::Trial, 'source' => 'trial', 'trial_started_at' => now(), 'trial_ends_at' => now()->addDays(14), 'enabled_at' => now()]);
         app(ModuleAccess::class)->forget($owner->tenant_id);
 
         $me = $this->getJson('/api/v1/auth/me')->assertOk()->json('data');
-        $this->assertNotContains('e_invoicing', $me['enabled_modules']);
-        $this->assertNotContains('/settings/eta', array_column($me['menu'], 'to'));
-        $this->assertNotContains('e_invoicing.manage', $me['permissions']);
-        $this->assertFalse(collect($me['modules'])->firstWhere('key', 'e_invoicing')['available']);
+        $this->assertNotContains('coming_soon', $me['enabled_modules']);
+        $this->assertNotContains('/coming-soon', array_column($me['menu'], 'to'));
+        $this->assertNotContains('coming_soon.manage', $me['permissions']);
+        $this->assertFalse(collect($me['modules'])->firstWhere('key', 'coming_soon')['available']);
     }
 
     public function test_only_the_owner_sees_the_modules_page(): void

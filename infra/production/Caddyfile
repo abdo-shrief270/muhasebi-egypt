@@ -166,15 +166,14 @@
 	}
 }
 
-# The shops' online stores on subdomains (*.<STORE_HOST>, e.g. elnour.muhasebi.com): the Nuxt
-# server, plus product photos and store logos straight from the API. The app's, admin's and website's
-# own names are sites of their own above, so they never land here. Without a host it answers nowhere.
-{$STORE_SITE_ADDRESS:http://store.invalid} {
-	import store-tls-{$STORE_TLS:none}
+# What a shop's store answers with (its subdomain or its own domain): the Nuxt server, plus product
+# photos and store logos straight from the API.
+(store-site) {
 	encode zstd gzip
 
 	header {
-		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# No includeSubDomains: on a shop's own domain it would bind their other subdomains too.
+		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options "nosniff"
 		X-Frame-Options "SAMEORIGIN"
 		Referrer-Policy "strict-origin-when-cross-origin"
@@ -193,4 +192,20 @@
 			header_up X-Forwarded-For {client_ip}
 		}
 	}
+}
+
+# The shops' online stores on subdomains (*.<STORE_HOST>, e.g. elnour.muhasebi.com). The app's, admin's
+# and website's own names are sites of their own above, so they never land here. Without a host it
+# answers nowhere.
+{$STORE_SITE_ADDRESS:http://store.invalid} {
+	import store-tls-{$STORE_TLS:none}
+	import store-site
+}
+
+# Shops' own domains (www.elnour-mobile.com), any other name: "https://" with on-demand certificates
+# (the API's stores-tls says yes only for a verified domain of an open store), or "http://" behind
+# nginx (sync-store-domains.sh gets each one its certificate). Exact and wildcard names win over this.
+{$STORE_CUSTOM_ADDRESS:http://custom.invalid} {
+	import store-tls-{$STORE_TLS:none}
+	import store-site
 }

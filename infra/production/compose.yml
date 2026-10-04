@@ -44,6 +44,8 @@ services:
       # The shops' online stores: "*.example.com" with STORE_TLS=on-demand (setup-store.sh writes them).
       STORE_SITE_ADDRESS: ${STORE_SITE_ADDRESS:-http://store.invalid}
       STORE_TLS: ${STORE_TLS:-none}
+      # Shops' own domains: "https://" with STORE_TLS=on-demand (setup-store.sh writes it); off by default.
+      STORE_CUSTOM_ADDRESS: ${STORE_CUSTOM_ADDRESS:-http://custom.invalid}
       ACME_EMAIL: ${ACME_EMAIL}
     ports:
       - "80:80"

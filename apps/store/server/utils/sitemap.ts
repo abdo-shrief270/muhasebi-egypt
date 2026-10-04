@@ -18,7 +18,13 @@ export async function storeSitemap(event: H3Event, slug: string, base: string): 
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`
 }
 
-/** The store this request's host stands for (elnour.muhasebi.com → elnour), or null. */
+/** The store this request's host stands for (elnour.muhasebi.com → elnour, or the shop's own domain), or null. */
 export function hostSlug(event: H3Event): string | null {
   return slugFromHost(getRequestHost(event, { xForwardedHost: true }), String(useRuntimeConfig(event).public.storeHost ?? ''))
+    ?? (event.context.customSlug as string | undefined) ?? null
+}
+
+/** That store's address: https://<its own domain> or https://{slug}.<storeHost>. */
+export function hostOrigin(event: H3Event, slug: string): string {
+  return event.context.customSlug ? `https://${requestHostname(event)}` : `https://${slug}.${useRuntimeConfig(event).public.storeHost}`
 }

@@ -242,6 +242,15 @@
             </ul>
           </div>
         </UCard>
+
+        <UCard v-if="form.mode !== 'off'">
+          <template #header>
+            <h2 class="font-bold">
+              دومين خاص بيك
+            </h2>
+          </template>
+          <OnlineStoreDomain />
+        </UCard>
       </aside>
     </div>
   </div>

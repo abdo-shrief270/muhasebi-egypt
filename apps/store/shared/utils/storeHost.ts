@@ -24,3 +24,21 @@ export function slugFromHost(hostname: string, storeHost: string): string | null
   const label = host.slice(0, -(base.length + 1))
   return validSlug(label) ? label : null
 }
+
+/**
+ * Names that are never a shop's own domain: the shared store address, the store host itself, this
+ * server's own names (localhost, an IP, a container name without a dot). Any other name is a shop's
+ * own domain (the server checks it with the API before serving it).
+ */
+export function isPlatformHostname(hostname: string, storeHost: string, storeUrl: string): boolean {
+  const host = hostname.trim().toLowerCase().replace(/\.$/, '').replace(/:\d+$/, '')
+  const base = storeHost.trim().toLowerCase()
+  let shared = ''
+  try {
+    shared = new URL(storeUrl).hostname.toLowerCase()
+  }
+  catch {
+    // No shared address.
+  }
+  return !host.includes('.') || /^[\d.]+$/.test(host) || host.includes(':') || host === shared || (base !== '' && (host === base || host.endsWith(`.${base}`)))
+}

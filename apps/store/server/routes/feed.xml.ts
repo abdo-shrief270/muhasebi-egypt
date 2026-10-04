@@ -1,8 +1,8 @@
-// The product feed of the store on this subdomain (elnour.muhasebi.com/feed.xml), for Meta / Google.
+// The product feed of the store on this subdomain (elnour.muhasebi.com/feed.xml) or its own domain, for Meta / Google.
 export default defineCachedEventHandler(async (event) => {
   const slug = hostSlug(event)
   if (!slug) {
     throw createError({ statusCode: 404 })
   }
-  return storeFeed(event, slug, `https://${slug}.${useRuntimeConfig(event).public.storeHost}`)
+  return storeFeed(event, slug, hostOrigin(event, slug))
 }, { maxAge: 900, swr: true, getKey: event => `feed-host:${hostSlug(event)}`, varies: ['host', 'x-forwarded-host'] })

@@ -2,6 +2,7 @@
 
 use App\Modules\OnlineStore\Http\Controllers\CouponController;
 use App\Modules\OnlineStore\Http\Controllers\DeliveryZoneController;
+use App\Modules\OnlineStore\Http\Controllers\DomainController;
 use App\Modules\OnlineStore\Http\Controllers\OrderController;
 use App\Modules\OnlineStore\Http\Controllers\PublicOrderController;
 use App\Modules\OnlineStore\Http\Controllers\PublicStoreController;
@@ -24,6 +25,12 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:online_store', 'can:online_
             Route::post('zones', 'store');
             Route::patch('zones/{zone}', 'update')->whereUuid('zone');
             Route::delete('zones/{zone}', 'destroy')->whereUuid('zone');
+        });
+        Route::controller(DomainController::class)->group(function (): void {
+            Route::get('domain', 'show');
+            Route::put('domain', 'update');
+            Route::post('domain/verify', 'verify')->middleware('throttle:20,1');
+            Route::delete('domain', 'destroy');
         });
         Route::controller(CouponController::class)->group(function (): void {
             Route::get('coupons', 'index');
@@ -51,8 +58,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:online_store', 'can:online_
         Route::post('{booking}/status', 'move')->whereUuid('booking');
     });
 
-// Caddy's on-demand TLS check for {slug}.<STORE_HOST> (?domain=…): 200 only for an open store.
+// Caddy's on-demand TLS check for {slug}.<STORE_HOST> or a shop's verified domain (?domain=…): 200 only for an open store.
 Route::get('public/stores-tls', [PublicStoreController::class, 'tlsCheck'])->middleware([ResolveStore::class, 'module:online_store', 'throttle:store']);
+// The store server: which store is this host (subdomain or the shop's own domain)?
+Route::get('public/stores-host', [PublicStoreController::class, 'host'])->middleware([ResolveStore::class, 'module:online_store', 'throttle:store']);
 
 // The public store (no login). The shop comes from the slug, then the module must be usable.
 Route::get('public/media/stores/{path}', [PublicStoreController::class, 'media'])

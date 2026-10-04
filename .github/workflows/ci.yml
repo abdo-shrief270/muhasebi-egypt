@@ -129,7 +129,7 @@ jobs:
       - name: Build store image
         run: docker build -f infra/production/Dockerfile.store -t muhasebi-store:ci .
       - name: Validate Caddyfile
-        run: docker run --rm -e SITE_ADDRESS=app.example.com -e ADMIN_SITE_ADDRESS=admin.example.com -e LANDING_SITE_ADDRESS='example.com, www.example.com' -e LANDING_DOMAIN=example.com -e STORE_SITE_ADDRESS='*.example.com' -e STORE_TLS=on-demand -e ACME_EMAIL=ci@example.com --entrypoint caddy muhasebi-web:ci validate --config /etc/caddy/Caddyfile --adapter caddyfile
+        run: docker run --rm -e SITE_ADDRESS=app.example.com -e ADMIN_SITE_ADDRESS=admin.example.com -e LANDING_SITE_ADDRESS='example.com, www.example.com' -e LANDING_DOMAIN=example.com -e STORE_SITE_ADDRESS='*.example.com' -e STORE_TLS=on-demand -e STORE_CUSTOM_ADDRESS=https:// -e ACME_EMAIL=ci@example.com --entrypoint caddy muhasebi-web:ci validate --config /etc/caddy/Caddyfile --adapter caddyfile
       - name: Build backup image
         run: docker build -f infra/production/Dockerfile.backup -t muhasebi-backup:ci infra/production && docker run --rm muhasebi-backup:ci sh -c 'pg_dump --version && rclone version | head -n 1'
       - name: Shellcheck deploy scripts

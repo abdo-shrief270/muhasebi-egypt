@@ -7,7 +7,8 @@
 #     python3-certbot-dns-cloudflare, a Cloudflare API token), renewed by certbot by itself, and the
 #     nginx site for *.<host>;
 #   - Caddy alone: a certificate per store on its first visit (on-demand TLS, only for real stores).
-# Then deploys and checks a store subdomain answers. Safe to run again.
+# Shops' own domains: Caddy alone gets their certificates on demand; behind nginx it offers a cron
+# running sync-store-domains.sh. Then deploys and checks a store subdomain answers. Safe to run again.
 #
 # Usage: ./setup-store.sh
 set -euo pipefail
@@ -113,9 +114,12 @@ env_set STORE_URL "https://{slug}.$STORE_HOST"
 if [[ $NGINX_MODE == 1 ]]; then
   env_set STORE_SITE_ADDRESS "http://*.$STORE_HOST"
   env_set STORE_TLS none
+  env_set STORE_CUSTOM_ADDRESS "http://"
 else
   env_set STORE_SITE_ADDRESS "*.$STORE_HOST"
   env_set STORE_TLS on-demand
+  # Shops' own domains: any other name, a certificate on its first visit once the shop verified it.
+  env_set STORE_CUSTOM_ADDRESS "https://"
 fi
 chmod 600 .env
 ok ".env updated (old copy kept as .env.bak.*)"
@@ -187,6 +191,19 @@ elif [[ $NGINX_MODE == 0 ]]; then
   ok "Caddy only gets a certificate for a real store, so the test name can't answer over HTTPS. Open a shop's store to check."
 else
   warn "https://${probe} answered '${status:-nothing}'. Check: docker compose logs caddy store --tail 50"
+fi
+
+if [[ $NGINX_MODE == 1 ]]; then
+  bold "Shops' own domains"
+  echo "A shop can link its own domain (www.its-shop.com) from the app. Behind nginx each one needs its"
+  echo "certificate: sync-store-domains.sh does it for every verified domain that points here."
+  if yes_no "Run it every 10 minutes (cron)?" y; then
+    if ! python3 -c "import certbot_nginx" 2>/dev/null; then
+      $SUDO apt-get install -y -qq python3-certbot-nginx || warn "Install python3-certbot-nginx yourself."
+    fi
+    echo "*/10 * * * * root $(pwd)/sync-store-domains.sh --quiet >> /var/log/muhasebi-store-domains.log 2>&1" | $SUDO tee /etc/cron.d/muhasebi-store-domains >/dev/null
+    ok "cron: /etc/cron.d/muhasebi-store-domains (log: /var/log/muhasebi-store-domains.log)"
+  fi
 fi
 
 bold "Done"

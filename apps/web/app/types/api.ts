@@ -309,6 +309,15 @@ export interface DeliveryZone {
   is_active: boolean
 }
 
+export interface StoreDomain {
+  domain: string | null
+  verified: boolean
+  verified_at: string | null
+  /** what to add at the domain's DNS provider */
+  records: { type: 'TXT' | 'CNAME', name: string, value: string }[]
+  url: string
+}
+
 export interface RepairBooking {
   id: string
   reference: string

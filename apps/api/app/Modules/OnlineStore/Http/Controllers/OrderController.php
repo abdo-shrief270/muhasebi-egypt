@@ -9,7 +9,6 @@ use App\Modules\OnlineStore\Enums\OrderStatus;
 use App\Modules\OnlineStore\Models\OnlineOrder;
 use App\Modules\OnlineStore\Models\OnlineStore;
 use App\Modules\OnlineStore\Support\ProofStore;
-use App\Modules\OnlineStore\Support\Slugs;
 use App\Support\Text\SearchText;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -85,7 +84,7 @@ final class OrderController
 
         return [
             ...$order->load(['items', 'events'])->toApi(true),
-            'track_url' => $store !== null ? Slugs::url($store->slug).'/o/'.$order->token : null,
+            'track_url' => $store !== null ? $store->url().'/o/'.$order->token : null,
         ];
     }
 

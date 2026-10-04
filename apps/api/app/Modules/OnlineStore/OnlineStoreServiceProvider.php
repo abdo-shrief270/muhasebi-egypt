@@ -6,9 +6,12 @@ namespace App\Modules\OnlineStore;
 
 use App\Modules\Customers\Events\CustomerErased;
 use App\Modules\OnlineStore\Actions\RepairBookingActions;
+use App\Modules\OnlineStore\Console\ListDomainsCommand;
 use App\Modules\OnlineStore\Contracts\OnlineOrders;
 use App\Modules\OnlineStore\Contracts\RepairBookings;
 use App\Modules\OnlineStore\Listeners\AnonymiseCustomerOrders;
+use App\Modules\OnlineStore\Support\DomainDns;
+use App\Modules\OnlineStore\Support\SystemDomainDns;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -24,11 +27,16 @@ final class OnlineStoreServiceProvider extends ModuleServiceProvider
     {
         $this->app->bind(OnlineOrders::class, OnlineOrdersService::class);
         $this->app->bind(RepairBookings::class, RepairBookingActions::class);
+        $this->app->bind(DomainDns::class, SystemDomainDns::class);
     }
 
     public function boot(): void
     {
         parent::boot();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([ListDomainsCommand::class]);
+        }
 
         // The store's server forwards each customer's IP; this only stops floods of the read-only API.
         RateLimiter::for('store', fn (Request $request) => Limit::perMinute(300)->by('store:'.$request->ip()));

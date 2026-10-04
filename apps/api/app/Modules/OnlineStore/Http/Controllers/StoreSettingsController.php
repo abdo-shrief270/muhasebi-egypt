@@ -210,8 +210,8 @@ final class StoreSettingsController
             'repair_booking_note' => $store->repair_booking_note,
             // «احجز صيانة» can only be offered by a shop that uses the repairs module.
             'repairs_available' => app(ModuleAccess::class)->enabled('repairs'),
-            'url' => Slugs::url($store->slug),
-            'feed_url' => Slugs::url($store->slug).'/feed.xml',
+            'url' => $store->url(),
+            'feed_url' => $store->url().'/feed.xml',
         ];
     }
 }

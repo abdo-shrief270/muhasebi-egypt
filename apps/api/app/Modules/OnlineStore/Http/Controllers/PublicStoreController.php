@@ -81,8 +81,20 @@ final class PublicStoreController
     }
 
     /**
-     * Caddy asks before getting an HTTPS certificate for a subdomain (on-demand TLS): yes only for
-     * an open store's ({slug}.muhasebi.com), so nobody can make it fetch certificates for anything.
+     * The store server asks which store a host is (?domain=elnour.muhasebi.com or the shop's own
+     * domain), and where it should live: its own verified domain, if any.
+     */
+    public function host(Request $request): JsonResponse
+    {
+        $store = $this->store($request);
+
+        return response()->json(['data' => ['slug' => $store->slug, 'domain' => $store->domain()]])
+            ->header('Cache-Control', 'public, max-age=60');
+    }
+
+    /**
+     * Caddy asks before getting an HTTPS certificate for a subdomain or a shop's own domain
+     * (on-demand TLS): yes only for an open store's, so nobody can make it fetch certificates for anything.
      */
     public function tlsCheck(): JsonResponse
     {

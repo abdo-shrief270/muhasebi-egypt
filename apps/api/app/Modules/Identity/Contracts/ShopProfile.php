@@ -13,4 +13,11 @@ interface ShopProfile
      * @return list<string>
      */
     public function types(): array;
+
+    /**
+     * Every shop type a shop can pick: value => Arabic label.
+     *
+     * @return array<string, string>
+     */
+    public function allTypes(): array;
 }

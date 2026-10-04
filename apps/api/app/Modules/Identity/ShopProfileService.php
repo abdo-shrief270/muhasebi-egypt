@@ -19,4 +19,11 @@ final class ShopProfileService implements ShopProfile
 
         return array_map(fn (ShopType $t) => $t->value, $tenant->types());
     }
+
+    public function allTypes(): array
+    {
+        $types = array_filter(ShopType::cases(), fn (ShopType $t) => $t !== ShopType::AccessoriesAndRepair);
+
+        return array_combine(array_map(fn (ShopType $t) => $t->value, $types), array_map(fn (ShopType $t) => $t->label(), $types));
+    }
 }

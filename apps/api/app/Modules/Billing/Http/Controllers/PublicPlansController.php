@@ -17,9 +17,15 @@ final class PublicPlansController extends Controller
 {
     public function __invoke(BillingView $view, ModuleRegistry $registry): JsonResponse
     {
-        // A module whose screens aren't built yet is shown as «قريباً».
+        // A module whose screens aren't built yet is shown as «قريباً»; one the platform hid isn't listed,
+        // one it opened to every shop is marked free.
         $available = fn (string $key): bool => ! $registry->has($key) || $registry->get($key)->available;
-        $mark = fn (array $modules): array => array_map(fn (array $m) => [...$m, 'available' => $available($m['key'])], $modules);
+        $hidden = fn (string $key): bool => $registry->has($key) && $registry->get($key)->hidden;
+        $free = fn (string $key): bool => $registry->has($key) && $registry->get($key)->freeForAll;
+        $mark = fn (array $modules): array => array_values(array_map(
+            fn (array $m) => [...$m, 'available' => $available($m['key']), 'free' => $free($m['key'])],
+            array_filter($modules, fn (array $m) => ! $hidden($m['key'])),
+        ));
 
         return response()->json([
             'data' => [

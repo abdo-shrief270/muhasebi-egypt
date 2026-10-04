@@ -100,7 +100,8 @@ final class FeatureGate implements FeatureAccess
 
                 continue;
             }
-            $on[$key] = $choices[$key]['enabled'] ?? $feature->default;
+            // Forced by the platform admin for every shop, else the owner's choice, else the default.
+            $on[$key] = $feature->forced ?? $choices[$key]['enabled'] ?? $feature->default;
             if ($feature->setting !== null) {
                 $settings[$key] = $feature->setting->cast($choices[$key]['value'] ?? null);
             }

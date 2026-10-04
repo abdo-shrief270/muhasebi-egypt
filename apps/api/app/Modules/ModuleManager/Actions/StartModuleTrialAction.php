@@ -25,6 +25,9 @@ final class StartModuleTrialAction
     public function handle(string $tenantId, string $key): TenantModule
     {
         $module = $this->rules->optionalModule($key);
+        if (! $module->trialAllowed || $module->freeForAll) {
+            throw new DomainRuleException("قسم «{$module->name}» مالوش فترة تجربة دلوقتي.", 'module_trial_closed', 409);
+        }
         $this->rules->assertDependenciesUsable($module, $tenantId);
 
         return DB::transaction(function () use ($tenantId, $key, $module): TenantModule {
@@ -47,7 +50,7 @@ final class StartModuleTrialAction
                 'state' => ModuleState::Trial,
                 'source' => 'trial',
                 'trial_started_at' => $now,
-                'trial_ends_at' => $now->addDays(TenantModule::TRIAL_DAYS),
+                'trial_ends_at' => $now->addDays($module->trialDays ?? TenantModule::TRIAL_DAYS),
                 'enabled_at' => $now,
                 'disabled_at' => null,
             ])->save();

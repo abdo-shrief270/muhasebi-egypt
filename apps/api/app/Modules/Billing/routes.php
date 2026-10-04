@@ -3,6 +3,7 @@
 use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminCouponController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminFeedbackController;
+use App\Modules\Billing\Http\Controllers\Admin\AdminModuleController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminMonitoringController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
@@ -62,6 +63,14 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::post('coupons', 'store');
             Route::patch('coupons/{coupon}', 'update')->whereUuid('coupon');
             Route::post('shops/{tenant}/wallet', 'grant');
+        });
+
+        Route::controller(AdminModuleController::class)->group(function (): void {
+            Route::get('modules', 'index');
+            Route::patch('modules/{key}', 'update')->where('key', '[a-z_]+');
+            Route::patch('features/{key}', 'feature')->where('key', '[a-z_]+\\.[a-z_]+');
+            Route::get('shops/{tenant}/modules', 'shop');
+            Route::post('shops/{tenant}/modules/{key}', 'setShop')->where('key', '[a-z_]+');
         });
 
         Route::controller(AdminMonitoringController::class)->group(function (): void {

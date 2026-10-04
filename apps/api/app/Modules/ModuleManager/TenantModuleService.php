@@ -23,7 +23,8 @@ final class TenantModuleService implements TenantModules
     {
         foreach ($keys as $key) {
             // A module still being built keeps its one trial for when it's ready.
-            if (! $this->registry->get($key)->available) {
+            $module = $this->registry->get($key);
+            if (! $module->available || ! $module->trialAllowed || $module->freeForAll) {
                 continue;
             }
             $this->startTrial->handle($tenantId, $key);

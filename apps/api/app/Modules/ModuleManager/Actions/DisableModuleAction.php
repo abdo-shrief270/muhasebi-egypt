@@ -36,7 +36,9 @@ final class DisableModuleAction
                 ->lockForUpdate()
                 ->first();
 
-            if ($row === null || ! $row->effectiveState()->isUsable()) {
+            if ($row === null && $module->freeForAll) {
+                $row = new TenantModule(['tenant_id' => $tenantId, 'module_key' => $key, 'entitled' => false, 'source' => 'free', 'state' => ModuleState::Enabled]);
+            } elseif ($row === null || (! $module->freeForAll && ! $row->effectiveState()->isUsable()) || $row->state === ModuleState::Disabled) {
                 return $row;
             }
 

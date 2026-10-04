@@ -12,6 +12,8 @@ namespace App\Support\Modules;
  *
  * Defaults keep a shop's behaviour unchanged: a switch that removes something is on by default,
  * a new restriction is off. An optional typed setting (FeatureSetting) is edited next to it.
+ * `forced` (set by the platform admin): true = on for every shop, false = off for every shop and not
+ * listed; either way the owner can't change it.
  */
 final readonly class Feature
 {
@@ -21,7 +23,14 @@ final readonly class Feature
         public string $description,
         public bool $default = true,
         public ?FeatureSetting $setting = null,
+        public ?bool $forced = null,
     ) {}
+
+    /** A copy with some fields changed (the platform admin's overrides). */
+    public function with(mixed ...$changes): self
+    {
+        return new self(...[...get_object_vars($this), ...$changes]);
+    }
 
     /** @return array<string, mixed> */
     public function toArray(): array
@@ -32,6 +41,7 @@ final readonly class Feature
             'description' => $this->description,
             'default' => $this->default,
             'setting' => $this->setting?->toArray(),
+            'locked' => $this->forced !== null,
         ];
     }
 }

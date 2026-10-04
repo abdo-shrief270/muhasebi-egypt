@@ -33,8 +33,10 @@ final class ModuleResource extends JsonResource
             'state_label' => $state->label(),
             'available' => $module->available,
             'usable' => $module->available && $state->isUsable(),
-            'entitled' => $module->isOptional() ? (bool) $row?->entitled : true,
-            'trial_available' => $module->isOptional() && $module->available && $row?->trial_started_at === null && ! $state->isUsable(),
+            'entitled' => $module->isOptional() ? ((bool) $row?->entitled || $module->freeForAll) : true,
+            'free' => $module->freeForAll,
+            'trial_available' => $module->isOptional() && $module->available && $module->trialAllowed && ! $module->freeForAll && $row?->trial_started_at === null && ! $state->isUsable(),
+            'trial_days' => $module->trialDays ?? TenantModule::TRIAL_DAYS,
             'trial_ends_at' => $row?->trial_ends_at?->toIso8601String(),
             'menu' => array_map(fn (MenuItem $item): array => $item->toArray(), array_values(array_filter($module->menu, fn (MenuItem $item) => $item->ready))),
         ];

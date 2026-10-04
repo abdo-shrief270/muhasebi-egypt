@@ -34,6 +34,11 @@ final class ModuleGate implements ModuleAccess
 
         $row = $this->rows($tenantId ?? $this->tenant->idOrFail())[$key] ?? null;
 
+        // Open to every shop by the platform admin: on unless the owner hid it.
+        if ($module->freeForAll) {
+            return $row?->state === ModuleState::Disabled ? ModuleState::Disabled : ModuleState::Enabled;
+        }
+
         return $row?->effectiveState() ?? ModuleState::NotEntitled;
     }
 

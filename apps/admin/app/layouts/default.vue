@@ -30,6 +30,7 @@ const nav = [
   { to: '/payments', label: 'المدفوعات', icon: 'i-lucide-banknote' },
   { to: '/shops', label: 'المحلات', icon: 'i-lucide-store' },
   { to: '/coupons', label: 'الكوبونات', icon: 'i-lucide-ticket-percent' },
+  { to: '/modules', label: 'الأقسام والمميزات', icon: 'i-lucide-blocks' },
   { to: '/feedback', label: 'الملاحظات', icon: 'i-lucide-message-square-heart' },
   { to: '/errors', label: 'أخطاء الواجهة', icon: 'i-lucide-bug' },
   { to: '/server', label: 'السيرفر', icon: 'i-lucide-server' },

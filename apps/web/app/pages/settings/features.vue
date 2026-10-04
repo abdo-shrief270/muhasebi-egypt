@@ -61,6 +61,7 @@
               <span class="flex flex-wrap items-center gap-x-2 gap-y-1 font-semibold">
                 {{ f.label }}
                 <UBadge v-if="f.customized" color="primary" variant="soft" size="sm">متغيّرة</UBadge>
+                <UBadge v-if="f.locked" color="neutral" variant="soft" size="sm" icon="i-lucide-lock">مفتوحة لكل المحلات</UBadge>
               </span>
               <span class="mt-0.5 block text-sm text-(--ui-text-muted)">
                 {{ f.description }}
@@ -86,7 +87,7 @@
                 :id="`f-${f.key}`"
                 :model-value="f.enabled"
                 :loading="busy === f.key"
-                :disabled="busy !== null"
+                :disabled="busy !== null || f.locked"
                 :aria-label="f.label"
                 @update:model-value="v => save(f, { enabled: v })"
               />
@@ -154,6 +155,8 @@ interface FeatureInfo {
   setting: FeatureSettingInfo | null
   value: number | string | null
   customized: boolean
+  /** set for every shop by the platform: the owner can't change it */
+  locked: boolean
   updated_by_name: string | null
 }
 interface FeatureGroup { module: string, name: string, intro: string, features: FeatureInfo[] }

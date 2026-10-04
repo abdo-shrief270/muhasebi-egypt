@@ -25,6 +25,12 @@ final readonly class ModuleManifest
      *                                       $shopTypes should (null = all of them)
      * @param  list<Feature>  $features  small switches the owner can turn on or off
      * @param  string|null  $featuresIntro  one line above the module's switches on the «المميزات» page
+     *
+     * Set by the platform admin (ModuleRegistry overrides), never in a manifest:
+     * @param  bool  $trialAllowed  shops may start a free trial
+     * @param  int|null  $trialDays  the trial's length (null = TenantModule::TRIAL_DAYS)
+     * @param  bool  $freeForAll  every shop can use it, no subscription needed
+     * @param  bool  $hidden  off for everyone and not listed anywhere (not even «قريباً»)
      */
     public function __construct(
         public string $key,
@@ -41,7 +47,17 @@ final readonly class ModuleManifest
         public ?array $trialFor = null,
         public array $features = [],
         public ?string $featuresIntro = null,
+        public bool $trialAllowed = true,
+        public ?int $trialDays = null,
+        public bool $freeForAll = false,
+        public bool $hidden = false,
     ) {}
+
+    /** A copy with some fields changed (the platform admin's overrides). */
+    public function with(mixed ...$changes): self
+    {
+        return new self(...[...get_object_vars($this), ...$changes]);
+    }
 
     public function isOptional(): bool
     {
@@ -65,6 +81,6 @@ final readonly class ModuleManifest
      */
     public function isSuggestedFor(array $types): bool
     {
-        return $this->isOptional() && $this->available && array_intersect($this->trialFor ?? $this->shopTypes, $types) !== [];
+        return $this->isOptional() && $this->available && $this->trialAllowed && ! $this->freeForAll && array_intersect($this->trialFor ?? $this->shopTypes, $types) !== [];
     }
 }

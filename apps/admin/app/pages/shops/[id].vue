@@ -163,6 +163,37 @@
         <UCard :ui="{ body: 'p-0 sm:p-0' }">
           <template #header>
             <p class="font-bold">
+              أقسام المحل
+            </p>
+            <p class="text-xs text-(--ui-text-muted)">
+              «افتح» = القسم يشتغل للمحل ده من غير ما يدفعه، «اقفل» = يبقى للقراية بس، «تجربة» = تجربة جديدة حتى لو جرّبه قبل كده.
+            </p>
+          </template>
+          <ul class="divide-y divide-(--ui-border)">
+            <li v-for="m in shopModules" :key="m.key" class="flex flex-wrap items-center justify-between gap-2 p-3">
+              <div class="min-w-0">
+                <p class="font-medium">
+                  {{ m.name }}
+                  <UBadge v-if="m.status !== 'live'" size="sm" variant="subtle" color="neutral" :label="{ free: 'ببلاش للكل', coming_soon: 'قريباً', hidden: 'مخفي' }[m.status]" />
+                </p>
+                <p class="text-xs text-(--ui-text-muted)">
+                  <UBadge size="sm" variant="soft" :color="m.usable ? 'success' : 'neutral'" :label="m.state_label" />
+                  <span v-if="m.state === 'trial' && m.trial_ends_at" class="num"> لحد {{ formatDate(m.trial_ends_at) }}</span>
+                  <span v-if="m.source === 'admin'"> · فتحته الإدارة</span>
+                </p>
+              </div>
+              <div v-if="m.status === 'live'" class="flex gap-1">
+                <UButton v-if="!m.entitled" size="xs" variant="soft" label="افتح" :loading="busy === `m:${m.key}:open`" @click="moduleAction(m.key, 'open')" />
+                <UButton v-if="!m.usable" size="xs" variant="soft" color="neutral" label="تجربة" :loading="busy === `m:${m.key}:trial`" @click="moduleAction(m.key, 'trial')" />
+                <UButton v-if="m.usable" size="xs" variant="ghost" color="error" label="اقفل" :loading="busy === `m:${m.key}:close`" @click="moduleAction(m.key, 'close')" />
+              </div>
+            </li>
+          </ul>
+        </UCard>
+
+        <UCard :ui="{ body: 'p-0 sm:p-0' }">
+          <template #header>
+            <p class="font-bold">
               الفواتير
             </p>
           </template>
@@ -368,6 +399,25 @@ function grantWallet() {
     await api(`/shops/${id}/wallet`, { method: 'POST', body: { unit: gift.unit, amount, note: gift.note.trim() } })
     Object.assign(gift, { amount: '', note: '' })
   }, 'اتضاف')
+}
+
+interface ShopModule {
+  key: string
+  name: string
+  status: 'live' | 'free' | 'coming_soon' | 'hidden'
+  state: string
+  state_label: string
+  usable: boolean
+  entitled: boolean
+  source: string | null
+  trial_ends_at: string | null
+}
+const { data: modulesData } = await useAsyncData(`admin-shop-modules-${id}`, () => api<{ data: ShopModule[] }>(`/shops/${id}/modules`))
+const shopModules = computed(() => modulesData.value?.data ?? [])
+function moduleAction(key: string, action: 'open' | 'close' | 'trial') {
+  return run(`m:${key}:${action}`, async () => {
+    modulesData.value = await api<{ data: ShopModule[] }>(`/shops/${id}/modules/${key}`, { method: 'POST', body: { action } })
+  }, { open: 'اتفتح القسم للمحل', close: 'اتقفل القسم', trial: 'بدأت التجربة' }[action])
 }
 
 const busy = ref<string | null>(null)

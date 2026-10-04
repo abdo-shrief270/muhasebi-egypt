@@ -40,6 +40,19 @@ final class EnableModuleAction
 
             $trialRunning = $row?->trial_ends_at?->isFuture() ?? false;
 
+            if ($module->freeForAll) {
+                $row ??= new TenantModule(['tenant_id' => $tenantId, 'module_key' => $key, 'entitled' => false, 'source' => 'free']);
+                if ($row->exists && $row->state === ModuleState::Disabled) {
+                    $row->fill(['state' => ModuleState::Enabled, 'enabled_at' => now(), 'disabled_at' => null])->save();
+                    $this->audit->record('modules.enabled', "أظهر قسم «{$module->name}»", $row, tenantId: $tenantId);
+                    $this->events->record(new ModuleEnabled($tenantId, $key, 'free'));
+                    $this->access->forget($tenantId);
+                    DB::afterCommit(fn () => $this->access->forget($tenantId));
+                }
+
+                return $row;
+            }
+
             if ($row === null || (! $row->entitled && ! $trialRunning)) {
                 throw new DomainRuleException(
                     "قسم «{$module->name}» مش ضمن اشتراكك. جرّبه أو ضيفه للاشتراك.",

@@ -7,6 +7,7 @@ namespace App\Modules\ModuleManager\Http\Controllers;
 use App\Modules\ModuleManager\FeatureGate;
 use App\Modules\ModuleManager\Models\TenantFeature;
 use App\Support\Audit\Auditor;
+use App\Support\Exceptions\DomainRuleException;
 use App\Support\Modules\Feature;
 use App\Support\Modules\FeatureAccess;
 use App\Support\Modules\FeatureSetting;
@@ -54,10 +55,10 @@ final class FeatureController
                         ...$f->toArray(),
                         'enabled' => $enabled,
                         'value' => $value,
-                        'customized' => $enabled !== $f->default || ($f->setting !== null && $value !== $f->setting->default),
+                        'customized' => $f->forced === null && $enabled !== $f->default || ($f->setting !== null && $value !== $f->setting->default),
                         'updated_by_name' => $overrides[$f->key]['by'] ?? null,
                     ];
-                }, $module->features),
+                }, array_values(array_filter($module->features, fn (Feature $f) => $f->forced !== false))),
             ];
         }
 
@@ -150,6 +151,10 @@ final class FeatureController
     {
         $feature = $this->registry->feature($key) ?? abort(404);
         abort_unless($this->modules->enabled($this->registry->features()[$key]['module']), 404);
+        abort_if($feature->forced === false, 404);
+        if ($feature->forced === true && request()->has('enabled')) {
+            throw new DomainRuleException("«{$feature->label}» مفتوحة لكل المحلات ومش بتتقفل.", 'feature_locked', 409);
+        }
 
         return $feature;
     }

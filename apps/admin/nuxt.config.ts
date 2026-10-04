@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   icon: {
     clientBundle: {
       scan: true,
-      icons: ['lucide:layout-dashboard', 'lucide:banknote', 'lucide:store', 'lucide:sun', 'lucide:moon', 'lucide:log-out', 'lucide:shield', 'lucide:history', 'lucide:message-square-heart', 'lucide:bug', 'lucide:ticket-percent', 'lucide:server'],
+      icons: ['lucide:layout-dashboard', 'lucide:banknote', 'lucide:store', 'lucide:sun', 'lucide:moon', 'lucide:log-out', 'lucide:shield', 'lucide:history', 'lucide:message-square-heart', 'lucide:bug', 'lucide:ticket-percent', 'lucide:server', 'lucide:blocks', 'lucide:search', 'lucide:pencil', 'lucide:rotate-ccw', 'lucide:circle-check', 'lucide:gift', 'lucide:clock', 'lucide:eye-off'],
     },
   },
 

@@ -7,6 +7,7 @@ namespace App\Modules\Imports\Http\Controllers;
 use App\Modules\Imports\Actions\PaymentActions;
 use App\Modules\Imports\Models\ImportPayment;
 use App\Modules\Imports\Support\ImportFiles;
+use App\Support\Tenancy\CurrentBranch;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ final class PaymentController
 {
     public function __construct(private readonly PaymentActions $actions) {}
 
-    public function store(Request $request, CurrentTenant $tenant): JsonResponse
+    public function store(Request $request, CurrentTenant $tenant, CurrentBranch $branch): JsonResponse
     {
         $tenantId = $tenant->idOrFail();
         $data = $request->validate([
@@ -30,6 +31,8 @@ final class PaymentController
             'received_by' => ['nullable', 'string', 'max:120'],
             'reference' => ['nullable', 'string', 'max:120'],
             'note' => ['nullable', 'string', 'max:500'],
+            // Cash / wallet: out of the payer's shift drawer in this branch (default), or not (from the safe).
+            'from_drawer' => ['nullable', 'boolean'],
             'proof' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ], [], ['amount' => 'المبلغ', 'method' => 'طريقة الدفع', 'paid_on' => 'التاريخ', 'proof' => 'صورة الإيصال']);
 
@@ -42,6 +45,8 @@ final class PaymentController
             'received_by' => $data['received_by'] ?? null,
             'reference' => $data['reference'] ?? null,
             'note' => $data['note'] ?? null,
+            'branch_id' => $branch->id(),
+            'from_drawer' => $request->boolean('from_drawer', true),
         ], $request->file('proof'));
 
         return response()->json(['data' => $payment->toApi()], 201);

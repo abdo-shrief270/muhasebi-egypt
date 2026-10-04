@@ -11,6 +11,13 @@
         <UFormField label="الطريقة" class="sm:col-span-2">
           <USelect v-model="form.method" :items="[...IMPORT_PAYMENT_METHODS]" class="w-full" />
         </UFormField>
+        <UCheckbox
+          v-if="IMPORT_DRAWER_METHODS.includes(form.method)"
+          v-model="form.from_drawer"
+          class="sm:col-span-2"
+          label="طالعة من درج الوردية"
+          description="شيلها لو الفلوس من الخزنة أو من برّه الدرج."
+        />
         <UFormField v-if="shipments.length" label="للشحنة" hint="اختياري" class="sm:col-span-2">
           <USelect v-model="form.shipment_id" :items="[{ value: 'none', label: 'دفعة على الحساب' }, ...shipments.map(s => ({ value: s.id, label: s.reference }))]" class="w-full" />
         </UFormField>
@@ -48,11 +55,11 @@ const open = defineModel<boolean>('open', { default: false })
 
 const api = useApi()
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Cairo' })
-const form = reactive({ amount: '', paid_on: today(), method: 'bank', shipment_id: 'none', received_by: '', reference: '', note: '' })
+const form = reactive({ amount: '', paid_on: today(), method: 'bank', shipment_id: 'none', received_by: '', reference: '', note: '', from_drawer: true })
 const proof = ref<Blob | null>(null)
 watch(open, (isOpen) => {
   if (isOpen) {
-    Object.assign(form, { amount: '', paid_on: today(), method: 'bank', shipment_id: props.shipmentId ?? 'none', received_by: '', reference: '', note: '' })
+    Object.assign(form, { amount: '', paid_on: today(), method: 'bank', shipment_id: props.shipmentId ?? 'none', received_by: '', reference: '', note: '', from_drawer: true })
     proof.value = null
     error.value = null
     errors.value = {}
@@ -75,6 +82,7 @@ async function save() {
   body.append('amount', String(toPiasters(form.amount) ?? 0))
   body.append('paid_on', form.paid_on)
   body.append('method', form.method)
+  body.append('from_drawer', IMPORT_DRAWER_METHODS.includes(form.method) && form.from_drawer ? '1' : '0')
   if (form.shipment_id !== 'none') {
     body.append('shipment_id', form.shipment_id)
   }

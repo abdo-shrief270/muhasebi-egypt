@@ -24,6 +24,21 @@ export const IMPORT_PAYMENT_METHODS: { value: string, label: string }[] = [
   { value: 'wallet', label: 'محفظة' },
 ]
 
+/** How a shipment's costs are spread over its items. */
+export const IMPORT_ALLOCATIONS: { value: 'value' | 'qty' | 'weight', label: string }[] = [
+  { value: 'value', label: 'بالقيمة' },
+  { value: 'qty', label: 'بالعدد' },
+  { value: 'weight', label: 'بالوزن' },
+]
+
+/** Payment methods that can come out of the shift drawer. */
+export const IMPORT_DRAWER_METHODS = ['cash', 'wallet']
+
+/** Grams as kilograms («12.5 كجم»). */
+export function formatWeight(grams: number | null): string {
+  return grams ? `${new Intl.NumberFormat('ar-EG-u-nu-latn', { maximumFractionDigits: 3 }).format(grams / 1000)} كجم` : '—'
+}
+
 export const IMPORT_ATTACHMENT_KINDS: { value: string, label: string }[] = [
   { value: 'invoice', label: 'فاتورة' },
   { value: 'packing', label: 'قايمة التعبئة' },
@@ -84,8 +99,8 @@ export function splitCosts(total: number, weights: number[]): number[] {
 }
 
 /** Landed unit cost per line — like LandedCost::compute(): claimed shortages don't weigh on the good units. */
-export function landedCosts(lines: { qty: number, unitPrice: number, received: number }[], costs: number, allocation: 'value' | 'qty', claimed: boolean): number[] {
-  const shares = splitCosts(costs, lines.map(l => (allocation === 'qty' ? l.qty : l.qty * l.unitPrice)))
+export function landedCosts(lines: { qty: number, unitPrice: number, received: number, weight?: number | null }[], costs: number, allocation: 'value' | 'qty' | 'weight', claimed: boolean): number[] {
+  const shares = splitCosts(costs, lines.map(l => (allocation === 'qty' ? l.qty : allocation === 'weight' ? (l.weight ?? 0) : l.qty * l.unitPrice)))
   return lines.map((l, i) => {
     if (l.received <= 0) {
       return 0

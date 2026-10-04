@@ -22,9 +22,12 @@
           <UInput v-model="form.expected_on" type="date" class="w-full" />
         </UFormField>
         <UFormField label="المصاريف بتتوزع على الأصناف">
-          <URadioGroup v-model="form.allocation" orientation="horizontal" :items="[{ value: 'value', label: 'بالقيمة' }, { value: 'qty', label: 'بالعدد' }]" />
+          <URadioGroup v-model="form.allocation" orientation="horizontal" :items="IMPORT_ALLOCATIONS" />
         </UFormField>
       </div>
+      <p v-if="form.allocation === 'weight'" class="mt-3 text-sm text-(--ui-text-muted)">
+        اكتب وزن كل سطر كله بالكيلو (من قايمة التعبئة)، والمصاريف بتتقسم على الوزن.
+      </p>
       <p v-if="!suppliers.length" class="mt-3 text-sm text-(--ui-text-muted)">
         مفيش موردين لسه. <ULink to="/imports/contacts" class="font-bold text-primary">ضيف جهة</ULink> الأول.
       </p>
@@ -56,6 +59,9 @@
             <th class="w-36 p-2 text-start">
               سعر الشراء (ج)
             </th>
+            <th v-if="form.allocation === 'weight'" class="w-32 p-2 text-start">
+              الوزن (كجم)
+            </th>
             <th class="w-28 p-2 text-start">
               الإجمالي
             </th>
@@ -73,6 +79,9 @@
             <td class="p-2">
               <UInput v-model="line.price" type="number" min="0" step="any" dir="ltr" class="w-full" :aria-label="`سعر ${line.name}`" />
             </td>
+            <td v-if="form.allocation === 'weight'" class="p-2">
+              <UInput v-model="line.weight" type="number" min="0" step="any" dir="ltr" class="w-full" :aria-label="`وزن ${line.name} كله`" placeholder="السطر كله" />
+            </td>
             <td class="num p-2">
               {{ formatMoney(lineTotal(line)) }}
             </td>
@@ -83,7 +92,7 @@
         </tbody>
         <tfoot>
           <tr class="border-t border-(--ui-border) font-extrabold">
-            <td class="p-2" colspan="3">
+            <td class="p-2" :colspan="form.allocation === 'weight' ? 4 : 3">
               إجمالي البضاعة
             </td>
             <td class="num p-2" colspan="2">
@@ -123,12 +132,12 @@ const form = reactive({
   branch_id: store.session?.current_branch_id ?? branches.value[0]?.id,
   ordered_on: today,
   expected_on: '',
-  allocation: 'value' as 'value' | 'qty',
+  allocation: 'value' as 'value' | 'qty' | 'weight',
   original_amount: '',
   notes: '',
 })
 
-interface Line { id: string, name: string, qty: string, price: string }
+interface Line { id: string, name: string, qty: string, price: string, weight: string }
 const lines = ref<Line[]>([])
 const lineTotal = (l: Line) => (Number(l.qty) || 0) * (toPiasters(l.price) ?? 0)
 const total = computed(() => lines.value.reduce((s, l) => s + lineTotal(l), 0))
@@ -151,7 +160,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 
 function add(v: { id: string, display_name: string }) {
   if (!lines.value.some(l => l.id === v.id)) {
-    lines.value.push({ id: v.id, name: v.display_name, qty: '1', price: '' })
+    lines.value.push({ id: v.id, name: v.display_name, qty: '1', price: '', weight: '' })
   }
   term.value = ''
   results.value = []
@@ -171,7 +180,12 @@ async function save() {
         expected_on: form.expected_on || null,
         original_amount: form.original_amount.trim() || null,
         notes: form.notes.trim() || null,
-        items: lines.value.map(l => ({ variant_id: l.id, qty: Number(l.qty) || 0, unit_price: toPiasters(l.price) ?? 0 })),
+        items: lines.value.map(l => ({
+          variant_id: l.id,
+          qty: Number(l.qty) || 0,
+          unit_price: toPiasters(l.price) ?? 0,
+          weight: form.allocation === 'weight' ? Math.round((Number(l.weight) || 0) * 1000) : null,
+        })),
       },
     })
     await navigateTo(`/imports/shipments/${res.data.id}`)

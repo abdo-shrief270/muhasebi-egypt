@@ -209,14 +209,16 @@ final class ShipmentController
             'branch_id' => [$required, 'uuid', Rule::exists('branches', 'id')->where('tenant_id', $tenantId)->where('is_active', true)],
             'ordered_on' => [$required, 'date'],
             'expected_on' => ['nullable', 'date'],
-            'allocation' => ['sometimes', 'in:value,qty'],
+            'allocation' => ['sometimes', 'in:value,qty,weight'],
             'original_amount' => ['nullable', 'string', 'max:60'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => [$required, 'array', 'min:1', 'max:500'],
             'items.*.variant_id' => ['required', 'uuid', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:1000000'],
             'items.*.unit_price' => ['required', 'integer', 'min:0', 'max:100000000000'],
-        ], [], ['contact_id' => 'المورد', 'branch_id' => 'الفرع', 'items' => 'الأصناف', 'items.*.qty' => 'الكمية', 'items.*.unit_price' => 'السعر']);
+            // The line's total weight in grams.
+            'items.*.weight' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
+        ], [], ['contact_id' => 'المورد', 'branch_id' => 'الفرع', 'items' => 'الأصناف', 'items.*.qty' => 'الكمية', 'items.*.unit_price' => 'السعر', 'items.*.weight' => 'الوزن']);
     }
 
     /**
@@ -230,10 +232,10 @@ final class ShipmentController
 
     /**
      * @param  array<string, mixed>  $data
-     * @return list<array{variant_id: string, qty: int, unit_price: int}>
+     * @return list<array{variant_id: string, qty: int, unit_price: int, weight: int|null}>
      */
     private function items(array $data): array
     {
-        return array_values(array_map(fn (array $i) => ['variant_id' => (string) $i['variant_id'], 'qty' => (int) $i['qty'], 'unit_price' => (int) $i['unit_price']], $data['items']));
+        return array_values(array_map(fn (array $i) => ['variant_id' => (string) $i['variant_id'], 'qty' => (int) $i['qty'], 'unit_price' => (int) $i['unit_price'], 'weight' => isset($i['weight']) ? (int) $i['weight'] : null], $data['items']));
     }
 }

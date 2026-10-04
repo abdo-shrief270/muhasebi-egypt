@@ -41,7 +41,7 @@ final class ShipmentActions
 
     /**
      * @param  array{contact_id: string, branch_id: string, ordered_on: string, expected_on: ?string, allocation: string, original_amount: ?string, notes: ?string}  $header
-     * @param  list<array{variant_id: string, qty: int, unit_price: int}>  $items
+     * @param  list<array{variant_id: string, qty: int, unit_price: int, weight?: int|null}>  $items
      */
     public function create(string $tenantId, array $header, array $items): ImportShipment
     {
@@ -57,6 +57,7 @@ final class ShipmentActions
                 'costs_total' => 0,
             ]);
             $this->replaceItems($shipment, $items);
+            $this->ensureWeights($shipment);
 
             return $shipment->load(['items', 'costs']);
         });
@@ -66,7 +67,7 @@ final class ShipmentActions
      * Header and items while it isn't received; the supplier's statement follows the change.
      *
      * @param  array<string, mixed>  $header
-     * @param  list<array{variant_id: string, qty: int, unit_price: int}>|null  $items
+     * @param  list<array{variant_id: string, qty: int, unit_price: int, weight?: int|null}>|null  $items
      */
     public function update(ImportShipment $shipment, array $header, ?array $items): ImportShipment
     {
@@ -82,6 +83,7 @@ final class ShipmentActions
             if ($items !== null) {
                 $this->replaceItems($shipment, $items);
             }
+            $this->ensureWeights($shipment);
 
             return $shipment->load(['items', 'costs']);
         });
@@ -156,7 +158,7 @@ final class ShipmentActions
             }
 
             $landed = LandedCost::compute(
-                array_map(fn (array $r) => ['qty' => $r['item']->qty, 'unit_price' => $r['item']->unit_price, 'received' => $r['received']], $rows),
+                array_map(fn (array $r) => ['qty' => $r['item']->qty, 'unit_price' => $r['item']->unit_price, 'weight' => $r['item']->weight, 'received' => $r['received']], $rows),
                 $shipment->costs_total,
                 $shipment->allocation,
                 $claim,
@@ -217,7 +219,7 @@ final class ShipmentActions
         });
     }
 
-    /** @param  list<array{variant_id: string, qty: int, unit_price: int}>  $items */
+    /** @param  list<array{variant_id: string, qty: int, unit_price: int, weight?: int|null}>  $items */
     private function replaceItems(ImportShipment $shipment, array $items): void
     {
         $variants = $this->catalog->find(array_column($items, 'variant_id'));
@@ -232,12 +234,25 @@ final class ShipmentActions
                 'track_serial' => $variant->trackSerial,
                 'qty' => $item['qty'],
                 'unit_price' => $item['unit_price'],
+                'weight' => $item['weight'] ?? null,
             ]);
             $total += $item['qty'] * $item['unit_price'];
         }
         // The supplier's statement carries the goods' value: post only the difference.
         $this->ledger->post($shipment->contact_id, 'shipment', $total - $shipment->goods_total, 'import_shipment', $shipment->id, $shipment->goods_total === 0 ? $shipment->reference() : "تعديل {$shipment->reference()}");
         $shipment->update(['goods_total' => $total]);
+    }
+
+    /** Spreading the costs by weight needs every line's weight. */
+    private function ensureWeights(ImportShipment $shipment): void
+    {
+        if ($shipment->allocation !== 'weight') {
+            return;
+        }
+        $missing = $shipment->items()->where(fn ($q) => $q->whereNull('weight')->orWhere('weight', 0))->value('name');
+        if ($missing !== null) {
+            throw new DomainRuleException("المصاريف بتتوزع بالوزن: اكتب وزن «{$missing}».", 'shipment_weight_missing');
+        }
     }
 
     private function lockOpen(ImportShipment $shipment): ImportShipment

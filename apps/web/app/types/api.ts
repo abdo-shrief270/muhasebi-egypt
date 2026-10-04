@@ -718,7 +718,7 @@ export type CashMethod = 'cash' | 'card' | 'wallet' | 'instapay'
 
 export interface CashMovement {
   id: string
-  type: 'sale' | 'sale_refund' | 'customer_payment' | 'repair' | 'supplier_payment' | 'used_device_purchase' | 'delivery' | 'expense' | 'deposit' | 'withdrawal'
+  type: 'sale' | 'sale_refund' | 'customer_payment' | 'repair' | 'supplier_payment' | 'used_device_purchase' | 'delivery' | 'import_payment' | 'expense' | 'deposit' | 'withdrawal'
   type_label: string
   method: CashMethod
   method_label: string
@@ -1338,6 +1338,7 @@ export interface ImportPayment {
   note: string | null
   user_name: string | null
   reversed: boolean
+  from_drawer: boolean
 }
 
 export type ImportShipmentStatus = 'ordered' | 'shipped' | 'customs' | 'arrived' | 'received' | 'cancelled'
@@ -1353,7 +1354,7 @@ export interface ImportShipment {
   ordered_on: string
   expected_on: string | null
   late: boolean
-  allocation: 'value' | 'qty'
+  allocation: 'value' | 'qty' | 'weight'
   original_amount: string | null
   goods_total: number
   costs_total: number
@@ -1366,7 +1367,7 @@ export interface ImportShipment {
 }
 
 export interface ImportShipmentDetail extends ImportShipment {
-  items: { id: string, variant_id: string, name: string, track_serial: boolean, qty: number, unit_price: number, line_total: number, received_qty: number, damaged_qty: number, landed_unit_cost: number, serials: string[] }[]
+  items: { id: string, variant_id: string, name: string, track_serial: boolean, qty: number, unit_price: number, line_total: number, weight: number | null, received_qty: number, damaged_qty: number, landed_unit_cost: number, serials: string[] }[]
   costs: { id: string, kind: string, kind_label: string, contact: { id: string, name: string | null } | null, amount: number, note: string | null }[]
   payments: ImportPayment[]
   paid: number

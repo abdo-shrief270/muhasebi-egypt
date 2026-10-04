@@ -91,6 +91,9 @@
               <th class="p-3 text-end">
                 الكمية
               </th>
+              <th v-if="s.allocation === 'weight'" class="p-3 text-end">
+                الوزن
+              </th>
               <th class="p-3 text-end">
                 السعر
               </th>
@@ -117,6 +120,9 @@
               </td>
               <td class="num p-3 text-end">
                 {{ item.qty }}
+              </td>
+              <td v-if="s.allocation === 'weight'" class="num p-3 text-end">
+                {{ formatWeight(item.weight) }}
               </td>
               <td class="num p-3 text-end">
                 {{ formatMoney(item.unit_price) }}
@@ -206,7 +212,7 @@
       <ul class="divide-y divide-(--ui-border) text-sm">
         <li v-for="p in s.payments" :key="p.id" class="flex flex-wrap items-center gap-3 px-4 py-2" :class="p.reversed ? 'opacity-50 line-through' : ''">
           <span class="num">{{ formatDate(p.paid_on) }}</span>
-          <span class="flex-1">{{ p.method_label }}<template v-if="p.reference"> · <span class="num" dir="ltr">{{ p.reference }}</span></template></span>
+          <span class="flex-1">{{ p.method_label }}<template v-if="p.from_drawer"> (من الدرج)</template><template v-if="p.reference"> · <span class="num" dir="ltr">{{ p.reference }}</span></template></span>
           <span class="num font-bold">{{ formatMoney(p.amount) }}</span>
         </li>
       </ul>
@@ -217,7 +223,7 @@
       <template #body>
         <div class="space-y-4">
           <p class="text-sm text-(--ui-text-muted)">
-            اكتب اللي وصل سليم والتالف لكل صنف (الباقي يتحسب ناقص). التكلفة النهائية = سعر الشراء + نصيب الصنف من المصاريف ({{ s.allocation === 'qty' ? 'بالعدد' : 'بالقيمة' }}).
+            اكتب اللي وصل سليم والتالف لكل صنف (الباقي يتحسب ناقص). التكلفة النهائية = سعر الشراء + نصيب الصنف من المصاريف ({{ IMPORT_ALLOCATIONS.find(a => a.value === s?.allocation)?.label }}).
           </p>
           <div v-for="(item, i) in s.items" :key="item.id" class="space-y-2 rounded-(--ui-radius) border border-(--ui-border) p-3">
             <div class="flex flex-wrap items-center gap-3 text-sm">
@@ -349,7 +355,7 @@ watch(receiveOpen, (isOpen) => {
 })
 const receivedOf = (id: string, trackSerial: boolean) => (trackSerial ? receipt[id]?.serials.length ?? 0 : Number(receipt[id]?.received) || 0)
 const preview = computed(() => landedCosts(
-  (s.value?.items ?? []).map(i => ({ qty: i.qty, unitPrice: i.unit_price, received: receivedOf(i.id, i.track_serial) })),
+  (s.value?.items ?? []).map(i => ({ qty: i.qty, unitPrice: i.unit_price, weight: i.weight, received: receivedOf(i.id, i.track_serial) })),
   s.value?.costs_total ?? 0,
   s.value?.allocation ?? 'value',
   claim.value,

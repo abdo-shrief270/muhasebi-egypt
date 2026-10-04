@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Imports\Actions;
 
+use App\Modules\Cash\Contracts\CashDrawer;
+use App\Modules\Cash\Contracts\DrawerEntry;
 use App\Modules\Imports\Models\ImportContact;
 use App\Modules\Imports\Models\ImportPayment;
 use App\Modules\Imports\Models\ImportShipment;
@@ -18,7 +20,8 @@ use Illuminate\Support\Str;
 
 /**
  * Money sent to an import contact (bank, money-transfer company, through an agent…), in EGP. It
- * comes off their statement; a mistake is reversed (a counter line), never edited.
+ * comes off their statement; a mistake is reversed (a counter line), never edited. Cash / wallet
+ * money can come out of the payer's shift drawer (`from_drawer`); reversing it puts it back.
  */
 final class PaymentActions
 {
@@ -26,14 +29,21 @@ final class PaymentActions
         private readonly ContactLedger $ledger,
         private readonly ImportFiles $files,
         private readonly Auditor $audit,
+        private readonly CashDrawer $drawer,
     ) {}
 
-    /** @param  array{contact_id: string, shipment_id: ?string, amount: int, method: string, paid_on: string, received_by: ?string, reference: ?string, note: ?string}  $data */
+    /** Methods that can be paid out of a shift drawer, and the drawer method they're recorded as. */
+    public const DRAWER_METHODS = ['cash' => 'cash', 'wallet' => 'wallet'];
+
+    /** @param  array{contact_id: string, shipment_id: ?string, amount: int, method: string, paid_on: string, received_by: ?string, reference: ?string, note: ?string, branch_id: ?string, from_drawer: bool}  $data */
     public function pay(Authenticatable $user, string $tenantId, array $data, ?UploadedFile $proof): ImportPayment
     {
         $contact = ImportContact::query()->find($data['contact_id']) ?? throw new DomainRuleException('الجهة دي مش موجودة.', 'contact_not_found', 404);
         if ($data['shipment_id'] !== null && ! ImportShipment::query()->whereKey($data['shipment_id'])->exists()) {
             throw new DomainRuleException('الشحنة دي مش موجودة.', 'shipment_not_found', 404);
+        }
+        if ($data['from_drawer'] && (! isset(self::DRAWER_METHODS[$data['method']]) || $data['branch_id'] === null)) {
+            $data['from_drawer'] = false;
         }
         $id = (string) Str::uuid7();
         $proofName = $proof !== null ? $this->files->putProof($tenantId, $id, $proof) : null;
@@ -43,6 +53,9 @@ final class PaymentActions
             $payment->id = $id;
             $payment->save();
             $this->ledger->post($contact->id, 'payment', -$payment->amount, 'import_payment', $payment->id, ImportPayment::METHODS[$payment->method].($payment->reference ? " ({$payment->reference})" : ''));
+            if ($payment->from_drawer) {
+                $this->drawer->record((string) $payment->branch_id, DrawerEntry::ImportPayment, self::DRAWER_METHODS[$payment->method], -$payment->amount, 'import_payment', $payment->id, "دفعة لـ {$contact->name}");
+            }
             $this->audit->record('imports.payment', 'دفع '.number_format($payment->amount / 100, 2)." ج لـ «{$contact->name}»", $payment);
 
             return $payment;
@@ -58,6 +71,10 @@ final class PaymentActions
             }
             $payment->update(['reversed_at' => now()]);
             $this->ledger->post($payment->contact_id, 'reversal', $payment->amount, 'import_payment', $payment->id, "إلغاء دفعة: {$reason}");
+            if ($payment->from_drawer) {
+                // The money goes back into the drawer it came out of (on the reverser's open shift there).
+                $this->drawer->record((string) $payment->branch_id, DrawerEntry::ImportPayment, self::DRAWER_METHODS[$payment->method], $payment->amount, 'import_payment', $payment->id, "إلغاء دفعة: {$reason}");
+            }
             $this->audit->record('imports.payment_reversed', 'لغى دفعة '.number_format($payment->amount / 100, 2)." ج: {$reason}", $payment);
 
             return $payment;

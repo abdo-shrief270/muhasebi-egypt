@@ -10,8 +10,10 @@ use App\Modules\Identity\Models\User;
 use App\Modules\Identity\PermissionResolver;
 use App\Modules\Imports\Support\LandedCost;
 use App\Modules\Inventory\Contracts\StockLedger;
+use App\Modules\Notifications\Models\Notification;
 use App\Support\Events\EventRelay;
 use App\Support\Tenancy\CurrentTenant;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -197,5 +199,83 @@ class ImportsTest extends TestCase
         Sanctum::actingAs($cashier);
         app(PermissionResolver::class)->forget();
         $this->getJson('/api/v1/imports/summary')->assertForbidden();
+    }
+
+    public function test_costs_spread_by_weight(): void
+    {
+        $factory = $this->contact('supplier', 'Shenzhen Co');
+        $body = [
+            'contact_id' => $factory, 'branch_id' => $this->branch, 'ordered_on' => '2026-10-01', 'allocation' => 'weight',
+            'items' => [['variant_id' => $this->v['case'], 'qty' => 10, 'unit_price' => 1000, 'weight' => 1000], ['variant_id' => $this->v['charger'], 'qty' => 10, 'unit_price' => 1000]],
+        ];
+        // Every line needs its weight.
+        $this->postJson('/api/v1/imports/shipments', $body)->assertStatus(422)->assertJsonPath('code', 'shipment_weight_missing');
+        $body['items'][1]['weight'] = 3000;
+        $s = $this->postJson('/api/v1/imports/shipments', $body)->assertCreated()->json('data');
+        $this->assertSame([1000, 3000], array_column($s['items'], 'weight'));
+
+        // 400 ج shipping: 100 on the light line (1 kg), 300 on the heavy one (3 kg).
+        $this->postJson("/api/v1/imports/shipments/{$s['id']}/costs", ['kind' => 'shipping', 'amount' => 40000])->assertOk();
+        $lines = array_map(fn (array $i) => ['item_id' => $i['id'], 'received' => $i['qty'], 'damaged' => 0], $s['items']);
+        $done = $this->postJson("/api/v1/imports/shipments/{$s['id']}/receive", ['lines' => $lines, 'claim' => false])->assertOk()->json('data');
+        $this->assertSame([1000 + 1000, 1000 + 3000], array_column($done['items'], 'landed_unit_cost'));
+    }
+
+    public function test_cash_paid_out_of_the_drawer_and_back_on_reversal(): void
+    {
+        $factory = $this->contact('supplier', 'Shenzhen Co');
+        $pay = fn (array $extra = []) => $this->postJson('/api/v1/imports/payments', [
+            'contact_id' => $factory, 'amount' => 20000, 'method' => 'cash', 'paid_on' => '2026-10-02', ...$extra,
+        ], ['X-Branch-Id' => $this->branch]);
+
+        // Cash out of the drawer needs an open shift…
+        $pay()->assertStatus(409)->assertJsonPath('code', 'shift_not_open');
+        // …unless it comes from the safe.
+        $this->assertFalse($pay(['from_drawer' => false])->assertCreated()->json('data.from_drawer'));
+
+        $this->postJson('/api/v1/cash/shifts', ['opening_cash' => 50000], ['X-Branch-Id' => $this->branch])->assertCreated();
+        $payment = $pay()->assertCreated()->json('data');
+        $this->assertTrue($payment['from_drawer']);
+        $cash = fn () => $this->getJson('/api/v1/cash/current', ['X-Branch-Id' => $this->branch])->json('data.expected.cash');
+        $this->assertSame(30000, $cash());
+        $this->assertSame(-40000, $this->balance($factory));
+
+        // Reversed: the money goes back into the drawer and onto the statement.
+        $this->postJson("/api/v1/imports/payments/{$payment['id']}/reverse", ['reason' => 'غلط'])->assertOk();
+        $this->assertSame(50000, $cash());
+        $this->assertSame(-20000, $this->balance($factory));
+
+        // Bank transfers never touch the drawer.
+        $this->assertFalse($pay(['method' => 'bank'])->assertCreated()->json('data.from_drawer'));
+        $this->assertSame(50000, $cash());
+    }
+
+    public function test_late_shipments_are_alerted_once_per_expected_date(): void
+    {
+        $factory = $this->contact('supplier', 'Shenzhen Co');
+        $this->travelTo(CarbonImmutable::parse('2026-10-10 12:00', 'Africa/Cairo'));
+        $s = $this->postJson('/api/v1/imports/shipments', [
+            'contact_id' => $factory, 'branch_id' => $this->branch, 'ordered_on' => '2026-10-01', 'expected_on' => '2026-10-12',
+            'items' => [['variant_id' => $this->v['case'], 'qty' => 1, 'unit_price' => 1000]],
+        ])->assertCreated()->json('data');
+        $titles = fn () => Notification::withoutTenancy()->where('tenant_id', $this->owner->tenant_id)->where('type', 'imports.late')->pluck('title')->all();
+
+        $this->artisan('imports:late-alerts')->assertSuccessful();
+        $this->assertSame([], $titles(), 'not late yet');
+
+        $this->travelTo(CarbonImmutable::parse('2026-10-14 12:00', 'Africa/Cairo'));
+        $this->artisan('imports:late-alerts')->assertSuccessful();
+        $this->artisan('imports:late-alerts')->assertSuccessful();
+        $this->assertSame(['الشحنة IMP-00001 متأخرة'], $titles());
+
+        // A new expected date, missed again: alerted again. Received: never.
+        $this->putJson("/api/v1/imports/shipments/{$s['id']}", ['expected_on' => '2026-10-15'])->assertOk();
+        $this->travelTo(CarbonImmutable::parse('2026-10-17 12:00', 'Africa/Cairo'));
+        $this->artisan('imports:late-alerts')->assertSuccessful();
+        $this->assertCount(2, $titles());
+        $this->postJson("/api/v1/imports/shipments/{$s['id']}/receive", ['lines' => [['item_id' => $s['items'][0]['id'], 'received' => 1, 'damaged' => 0]], 'claim' => false])->assertOk();
+        $this->putJson("/api/v1/imports/shipments/{$s['id']}", ['expected_on' => '2026-10-16'])->assertStatus(422);
+        $this->artisan('imports:late-alerts')->assertSuccessful();
+        $this->assertCount(2, $titles());
     }
 }

@@ -22,4 +22,6 @@ enum DrawerEntry: string
     case UsedDevicePurchase = 'used_device_purchase';
     /** The delivery fee of an online order, collected with its invoice (positive). */
     case Delivery = 'delivery';
+    /** Cash paid to an import contact (supplier, shipping, customs…) out of the drawer (negative); its reversal puts it back. */
+    case ImportPayment = 'import_payment';
 }

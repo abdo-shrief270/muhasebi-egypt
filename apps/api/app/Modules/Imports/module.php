@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Imports\ImportsServiceProvider;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -17,6 +18,7 @@ return new ModuleManifest(
     menu: [
         new MenuItem('/imports', 'الاستيراد', 'i-lucide-ship', 'imports.view', group: 'stock'),
     ],
+    provider: ImportsServiceProvider::class,
     shopTypes: ['importer'],
     sort: 210,
 );

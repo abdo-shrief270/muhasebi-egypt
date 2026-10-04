@@ -36,6 +36,12 @@ final class Categories
             'permission' => 'transfers.manage',
             'prefixes' => ['transfer.'],
         ],
+        'imports' => [
+            'label' => 'شحنات الاستيراد',
+            'description' => 'شحنة عدّت ميعاد وصولها المتوقع ولسه ما اتستلمتش.',
+            'permission' => 'imports.view',
+            'prefixes' => ['imports.'],
+        ],
         'partners' => [
             'label' => 'المحلات الشريكة',
             'description' => 'طلبات جديدة، طلبات شراكة، والمحل التاني بيحرّك طلب.',

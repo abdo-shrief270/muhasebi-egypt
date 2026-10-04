@@ -13,8 +13,11 @@ Schedule::command('customers:erase-inactive')->dailyAt('03:17')->withoutOverlapp
 // Erased used-device sellers: their national ID and card photos go when the anti-theft retention period ends.
 Schedule::command('used-devices:purge-ids')->dailyAt('03:29')->withoutOverlapping();
 
-// Owner app: each shop's end-of-day summary, once its hour (owner_app.daily_summary) has come.
 // Renewal reminders to shop owners, mid-morning Cairo time (once per step and end date).
 Schedule::command('billing:remind')->dailyAt('08:07')->withoutOverlapping();
 
+// Import shipments past their expected arrival (once per expected date).
+Schedule::command('imports:late-alerts')->dailyAt('07:13')->withoutOverlapping();
+
+// Owner app: each shop's end-of-day summary, once its hour (owner_app.daily_summary) has come.
 Schedule::command('notifications:daily-summary')->everyTenMinutes()->withoutOverlapping();

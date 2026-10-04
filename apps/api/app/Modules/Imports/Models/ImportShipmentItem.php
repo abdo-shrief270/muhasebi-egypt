@@ -16,12 +16,13 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool $track_serial
  * @property int $qty
  * @property int $unit_price EGP piasters
+ * @property int|null $weight the line's total weight in grams (allocation by weight)
  * @property int $received_qty good units into stock
  * @property int $damaged_qty arrived broken (not stocked)
  * @property int $landed_unit_cost
  * @property list<string>|null $serials
  */
-#[Fillable(['tenant_id', 'shipment_id', 'variant_id', 'name', 'track_serial', 'qty', 'unit_price', 'received_qty', 'damaged_qty', 'landed_unit_cost', 'serials'])]
+#[Fillable(['tenant_id', 'shipment_id', 'variant_id', 'name', 'track_serial', 'qty', 'unit_price', 'weight', 'received_qty', 'damaged_qty', 'landed_unit_cost', 'serials'])]
 final class ImportShipmentItem extends Model
 {
     use BelongsToTenant, HasUuids;
@@ -34,6 +35,7 @@ final class ImportShipmentItem extends Model
             'track_serial' => 'boolean',
             'qty' => 'integer',
             'unit_price' => 'integer',
+            'weight' => 'integer',
             'received_qty' => 'integer',
             'damaged_qty' => 'integer',
             'landed_unit_cost' => 'integer',

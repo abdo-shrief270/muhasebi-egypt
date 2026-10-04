@@ -119,7 +119,7 @@
         <ul class="divide-y divide-(--ui-border)">
           <li v-for="p in contact.payments" :key="p.id" class="flex flex-wrap items-center gap-3 px-4 py-3 text-sm" :class="p.reversed ? 'opacity-50 line-through' : ''">
             <span class="num">{{ formatDate(p.paid_on) }}</span>
-            <span class="flex-1">{{ p.method_label }}<template v-if="p.reference"> · <span class="num" dir="ltr">{{ p.reference }}</span></template><template v-if="p.received_by"> · {{ p.received_by }}</template></span>
+            <span class="flex-1">{{ p.method_label }}<template v-if="p.from_drawer"> (من الدرج)</template><template v-if="p.reference"> · <span class="num" dir="ltr">{{ p.reference }}</span></template><template v-if="p.received_by"> · {{ p.received_by }}</template></span>
             <span class="num font-bold">{{ formatMoney(p.amount) }}</span>
             <UButton v-if="p.has_proof" size="xs" color="neutral" variant="ghost" icon="i-lucide-image" aria-label="صورة الإيصال" @click="proofOf = p.id" />
             <UButton v-if="canManage && !p.reversed" size="xs" color="error" variant="ghost" icon="i-lucide-undo-2" aria-label="الغي الدفعة" @click="reversing = p" />

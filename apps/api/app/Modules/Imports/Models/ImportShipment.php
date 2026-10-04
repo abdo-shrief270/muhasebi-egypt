@@ -24,7 +24,7 @@ use Illuminate\Support\Carbon;
  * @property ShipmentStatus $status
  * @property Carbon $ordered_on
  * @property Carbon|null $expected_on
- * @property string $allocation value | qty
+ * @property string $allocation value | qty | weight
  * @property string|null $original_amount
  * @property int $goods_total
  * @property int $costs_total
@@ -32,11 +32,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $received_at
  * @property string|null $received_by_name
  * @property string|null $cancel_reason
+ * @property Carbon|null $late_alerted_for the expected date the «late» alert went out for
  * @property Carbon $created_at
  */
 #[Fillable([
     'tenant_id', 'number', 'contact_id', 'branch_id', 'status', 'ordered_on', 'expected_on', 'allocation', 'original_amount',
-    'goods_total', 'costs_total', 'notes', 'received_at', 'received_by_name', 'cancel_reason',
+    'goods_total', 'costs_total', 'notes', 'received_at', 'received_by_name', 'cancel_reason', 'late_alerted_for',
 ])]
 final class ImportShipment extends Model
 {
@@ -52,6 +53,7 @@ final class ImportShipment extends Model
             'goods_total' => 'integer',
             'costs_total' => 'integer',
             'received_at' => 'datetime',
+            'late_alerted_for' => 'date',
         ];
     }
 

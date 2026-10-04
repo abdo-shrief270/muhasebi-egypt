@@ -25,9 +25,11 @@ use Illuminate\Support\Carbon;
  * @property string|null $note
  * @property string|null $user_name
  * @property Carbon|null $reversed_at
+ * @property string|null $branch_id the branch whose drawer it came out of
+ * @property bool $from_drawer cash out of the payer's shift drawer
  * @property Carbon $created_at
  */
-#[Fillable(['tenant_id', 'contact_id', 'shipment_id', 'amount', 'method', 'paid_on', 'received_by', 'reference', 'proof', 'note', 'user_name', 'reversed_at'])]
+#[Fillable(['tenant_id', 'contact_id', 'shipment_id', 'amount', 'method', 'paid_on', 'received_by', 'reference', 'proof', 'note', 'user_name', 'reversed_at', 'branch_id', 'from_drawer'])]
 final class ImportPayment extends Model
 {
     use BelongsToTenant, HasUuids;
@@ -36,7 +38,7 @@ final class ImportPayment extends Model
 
     protected function casts(): array
     {
-        return ['amount' => 'integer', 'paid_on' => 'date', 'reversed_at' => 'datetime'];
+        return ['amount' => 'integer', 'paid_on' => 'date', 'reversed_at' => 'datetime', 'from_drawer' => 'boolean'];
     }
 
     /** @return array<string, mixed> */
@@ -56,6 +58,7 @@ final class ImportPayment extends Model
             'note' => $this->note,
             'user_name' => $this->user_name,
             'reversed' => $this->reversed_at !== null,
+            'from_drawer' => $this->from_drawer,
         ];
     }
 }

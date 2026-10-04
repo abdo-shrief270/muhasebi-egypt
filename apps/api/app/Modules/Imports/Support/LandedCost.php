@@ -6,19 +6,23 @@ namespace App\Modules\Imports\Support;
 
 /**
  * The landed cost of each item of a shipment: its price plus its share of the shipment's costs
- * (by value or by quantity; shares in whole piasters adding up exactly), spread over the good
+ * (by value, by quantity or by weight; shares in whole piasters adding up exactly), spread over the good
  * units that arrived. Units missing or damaged: when claimed from the supplier their price comes
  * back, so only the share of costs falls on the good units; when not, they cost the good ones too.
  */
 final class LandedCost
 {
     /**
-     * @param  list<array{qty: int, unit_price: int, received: int}>  $lines
+     * @param  list<array{qty: int, unit_price: int, received: int, weight?: int|null}>  $lines
      * @return list<array{share: int, unit_cost: int}> in the same order
      */
     public static function compute(array $lines, int $costs, string $allocation, bool $claimed): array
     {
-        $weights = array_map(fn (array $l) => $allocation === 'qty' ? $l['qty'] : $l['qty'] * $l['unit_price'], $lines);
+        $weights = array_map(fn (array $l) => match ($allocation) {
+            'qty' => $l['qty'],
+            'weight' => (int) ($l['weight'] ?? 0),
+            default => $l['qty'] * $l['unit_price'],
+        }, $lines);
         $shares = self::split($costs, $weights);
 
         return array_map(function (array $line, int $share) use ($claimed): array {

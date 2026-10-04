@@ -57,7 +57,7 @@ final class ShipmentView
             ...$this->row($s),
             'items' => $s->items->map(fn (ImportShipmentItem $i) => [
                 'id' => $i->id, 'variant_id' => $i->variant_id, 'name' => $i->name, 'track_serial' => $i->track_serial,
-                'qty' => $i->qty, 'unit_price' => $i->unit_price, 'line_total' => $i->qty * $i->unit_price,
+                'qty' => $i->qty, 'unit_price' => $i->unit_price, 'line_total' => $i->qty * $i->unit_price, 'weight' => $i->weight,
                 'received_qty' => $i->received_qty, 'damaged_qty' => $i->damaged_qty, 'landed_unit_cost' => $i->landed_unit_cost,
                 'serials' => $i->serials ?? [],
             ])->values()->all(),

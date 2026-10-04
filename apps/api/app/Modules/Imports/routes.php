@@ -33,7 +33,8 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:imports'])->prefix('imports
             Route::post('{shipment}/attachments', 'upload')->whereUuid('shipment')->middleware('throttle:30,1');
             Route::delete('{shipment}/attachments/{attachment}', 'removeAttachment')->whereUuid(['shipment', 'attachment']);
         });
-        Route::post('payments', [PaymentController::class, 'store'])->middleware('throttle:30,1');
+        // Cash can come out of the payer's drawer in their branch.
+        Route::post('payments', [PaymentController::class, 'store'])->middleware(['branch', 'throttle:30,1']);
         Route::post('payments/{payment}/reverse', [PaymentController::class, 'reverse'])->whereUuid('payment');
     });
 });

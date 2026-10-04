@@ -31,5 +31,7 @@ final class OnlineStoreServiceProvider extends ModuleServiceProvider
         RateLimiter::for('store', fn (Request $request) => Limit::perMinute(300)->by('store:'.$request->ip()));
         // Placing orders: a few per customer, so nobody floods the shop with fake ones.
         RateLimiter::for('store-orders', fn (Request $request) => Limit::perMinutes(10, 20)->by('store-orders:'.$request->ip()));
+        // Guessing codes: a few tries per client.
+        RateLimiter::for('store-coupons', fn (Request $request) => Limit::perMinutes(10, 15)->by('store-coupons:'.$request->ip()));
     }
 }

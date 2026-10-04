@@ -117,10 +117,36 @@
           <img v-if="proofUrl" :src="proofUrl" alt="صورة التحويل" class="mx-auto max-h-48 rounded-lg">
         </div>
 
+        <div v-if="ordering.coupons || coupon" class="space-y-2">
+          <button v-if="!couponOpen && !coupon" type="button" class="text-sm font-bold text-brand" @click="couponOpen = true">
+            عندك كود خصم؟
+          </button>
+          <div v-else-if="!coupon" class="flex gap-2">
+            <input v-model="couponCode" class="input num flex-1 uppercase" dir="ltr" maxlength="32" placeholder="الكود" aria-label="كود الخصم" @keydown.enter.prevent="applyCoupon()">
+            <button type="button" class="btn-line px-4" :disabled="checkingCoupon || couponCode.trim().length < 3" @click="applyCoupon()">
+              {{ checkingCoupon ? '…' : 'طبّق' }}
+            </button>
+          </div>
+          <p v-if="coupon" class="flex items-center justify-between rounded-xl bg-ok/10 px-3 py-2 text-sm text-ok">
+            <span><b class="num" dir="ltr">{{ coupon.code }}</b> — {{ coupon.label }}</span>
+            <button type="button" class="text-xs underline" @click="dropCoupon()">
+              شيله
+            </button>
+          </p>
+          <p v-if="couponError" class="text-sm text-warn">
+            {{ couponError }}
+          </p>
+        </div>
+
         <dl class="space-y-1 border-t border-line pt-3 text-sm">
           <div class="flex justify-between">
             <dt>الأصناف</dt><dd class="num">
               {{ formatPrice(cart.total.value) }}
+            </dd>
+          </div>
+          <div v-if="coupon" class="flex justify-between text-ok">
+            <dt>الخصم</dt><dd class="num">
+              − {{ formatPrice(coupon.discount) }}
             </dd>
           </div>
           <div v-if="delivery" class="flex justify-between">
@@ -245,7 +271,45 @@ const fee = computed(() => {
   }
   return o?.free_delivery_over != null && cart.total.value >= o.free_delivery_over ? 0 : zone.value.fee
 })
-const total = computed(() => cart.total.value + fee.value)
+const total = computed(() => cart.total.value - (coupon.value?.discount ?? 0) + fee.value)
+
+// A discount code: checked against the goods' total now, and again by the shop with its own prices.
+const couponOpen = ref(false)
+const couponCode = ref('')
+const coupon = ref<{ code: string, label: string, discount: number } | null>(null)
+const couponError = ref<string | null>(null)
+const checkingCoupon = ref(false)
+async function applyCoupon(code = couponCode.value) {
+  if (code.trim().length < 3) {
+    return
+  }
+  checkingCoupon.value = true
+  couponError.value = null
+  try {
+    coupon.value = (await $fetch<{ data: { code: string, label: string, discount: number } }>(`/api/stores/${slug}/coupon`, {
+      method: 'POST',
+      body: { code: code.trim(), subtotal: cart.total.value },
+    })).data
+  }
+  catch (e) {
+    coupon.value = null
+    couponError.value = (e as { data?: { message?: string } }).data?.message ?? 'جرّب تاني.'
+  }
+  finally {
+    checkingCoupon.value = false
+  }
+}
+function dropCoupon() {
+  coupon.value = null
+  couponCode.value = ''
+  couponError.value = null
+}
+// The cart changed: the discount follows (or the code stops applying).
+watch(() => cart.total.value, () => {
+  if (coupon.value) {
+    applyCoupon(coupon.value.code)
+  }
+})
 const belowMin = computed(() => !!ordering.value && cart.total.value < ordering.value.min_order)
 const freeHint = computed(() => {
   const over = ordering.value?.free_delivery_over
@@ -323,6 +387,9 @@ async function placeOrder() {
   }
   form.append('consent', consent.value ? '1' : '0')
   form.append('website', website.value)
+  if (coupon.value) {
+    form.append('coupon_code', coupon.value.code)
+  }
   cart.lines.value.forEach((l, i) => {
     form.append(`items[${i}][variant_id]`, l.variantId)
     form.append(`items[${i}][qty]`, String(l.qty))
@@ -353,6 +420,9 @@ async function placeOrder() {
     }
     if (data?.code === 'items_unavailable') {
       gone.value = new Set(data.context?.variant_ids ?? [])
+    }
+    if (data?.code?.startsWith('coupon_')) {
+      coupon.value = null
     }
     error.value = data?.message ?? 'النت فصل أو المتجر مش بيرد. جرّب تاني.'
   }

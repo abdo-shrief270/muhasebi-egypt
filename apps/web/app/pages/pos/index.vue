@@ -192,6 +192,10 @@
           <span class="text-(--ui-text-muted)">الإجمالي</span>
           <span class="num">{{ formatMoney(subtotal) }}</span>
         </div>
+        <div v-if="!canInvoiceDiscount && cart.discount" class="flex justify-between text-sm text-(--ui-success)">
+          <span>كود الخصم <span class="num" dir="ltr">{{ cart.online_order?.coupon_code }}</span></span>
+          <span class="num">− {{ formatMoney(cart.discount) }}</span>
+        </div>
         <div v-if="canInvoiceDiscount" class="flex items-center justify-between gap-2 text-sm">
           <span class="text-(--ui-text-muted)">خصم على الفاتورة</span>
           <UInput
@@ -277,8 +281,10 @@ watchEffect(() => {
   if (!canPriceLevel.value && cart.value.price_level !== 'retail') {
     cart.value.price_level = 'retail'
   }
-  if (!canInvoiceDiscount.value && cart.value.discount) {
-    cart.value.discount = 0
+  // Without the discount: only an online order's coupon stays.
+  const coupon = cart.value.online_order?.discount ?? 0
+  if (!canInvoiceDiscount.value && cart.value.discount !== coupon) {
+    cart.value.discount = coupon
   }
   if (!canLineDiscount.value) {
     cart.value.lines.forEach((l) => {
@@ -365,7 +371,9 @@ if (typeof route.query.order === 'string') {
         }
       }
       cart.value.price_level = 'retail'
-      cart.value.online_order = { id: order.id, reference: order.reference, delivery_fee: order.delivery_fee, fee_collected: order.delivery_fee > 0 }
+      // The order's coupon becomes the invoice discount (no discount permission needed for it).
+      cart.value.discount = order.discount
+      cart.value.online_order = { id: order.id, reference: order.reference, delivery_fee: order.delivery_fee, fee_collected: order.delivery_fee > 0, discount: order.discount, coupon_code: order.coupon_code }
       if (order.customer_id && canCustomers.value) {
         const c = (await api<{ data: Customer }>(`/customers/${order.customer_id}`).catch(() => null))?.data
         if (c) {

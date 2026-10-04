@@ -60,6 +60,11 @@
                 {{ formatMoney(order.subtotal) }}
               </dd>
             </div>
+            <div v-if="order.discount" class="flex justify-between text-(--ui-success)">
+              <dt>كود الخصم <span class="num" dir="ltr">{{ order.coupon_code }}</span></dt><dd class="num">
+                − {{ formatMoney(order.discount) }}
+              </dd>
+            </div>
             <div v-if="order.fulfilment === 'delivery'" class="flex justify-between">
               <dt>التوصيل</dt><dd class="num">
                 {{ order.delivery_fee ? formatMoney(order.delivery_fee) : 'ببلاش' }}

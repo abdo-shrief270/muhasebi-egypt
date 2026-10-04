@@ -98,9 +98,13 @@ final class CompleteSaleAction
             return $existing;
         }
 
+        $order = $onlineOrderId !== null ? $this->onlineOrders->forSale($onlineOrderId) : null;
+        // An online order's coupon was the shop's offer: invoicing it needs no discount permission or OK.
+        $extraDiscount = max(0, $discount - ($order?->discount ?? 0));
+
         $hasLineDiscount = array_filter($items, fn (array $i) => $i['discount'] > 0) !== [];
         // Switched off by the owner: nobody may (the owner included), whatever their permissions.
-        if ($discount > 0) {
+        if ($extraDiscount > 0) {
             $this->features->ensure('sales.discounts');
         }
         if ($hasLineDiscount) {
@@ -109,12 +113,10 @@ final class CompleteSaleAction
         if ($priceLevel !== PriceLevel::Retail) {
             $this->features->ensure('sales.price_levels');
         }
-        if (($discount > 0 || $hasLineDiscount || $priceLevel !== PriceLevel::Retail) && ! $canDiscount) {
+        if (($extraDiscount > 0 || $hasLineDiscount || $priceLevel !== PriceLevel::Retail) && ! $canDiscount) {
             throw new DomainRuleException('مش معاك صلاحية الخصم أو تغيير مستوى السعر.', 'discount_not_allowed', 403);
         }
         $blockOutOfStock = $this->features->enabled('sales.block_out_of_stock');
-
-        $order = $onlineOrderId !== null ? $this->onlineOrders->forSale($onlineOrderId) : null;
 
         $variants = $this->catalog->find(array_column($items, 'variant_id'));
         // The owner's switch: no selling beyond the branch's stock.
@@ -184,7 +186,7 @@ final class CompleteSaleAction
         if ($soldAt === null) {
             $lineDiscounts = array_sum(array_column($lines, 'discount'));
             $gross = $subtotal + $lineDiscounts;
-            $percent = $gross > 0 ? intdiv(($discount + $lineDiscounts) * 100, $gross) : 0;
+            $percent = $gross > 0 ? intdiv(($extraDiscount + $lineDiscounts) * 100, $gross) : 0;
             $below = $this->features->enabled('sales.below_cost') || $this->approvals->needed(ApprovalKind::BelowCost)
                 ? $this->belowCost($branchId, $lines, $subtotal, $total)
                 : [];
@@ -197,7 +199,7 @@ final class CompleteSaleAction
             // Past the owner's limits: one OK (the owner's phone or a manager's PIN) for every reason.
             $approved = $this->approvals->require(
                 [
-                    ...($discount + $lineDiscounts > 0 ? [[ApprovalKind::Discount, $percent, "خصم {$percent}% (".number_format(($discount + $lineDiscounts) / 100, 2).' ج)']] : []),
+                    ...($extraDiscount + $lineDiscounts > 0 ? [[ApprovalKind::Discount, $percent, "خصم {$percent}% (".number_format(($extraDiscount + $lineDiscounts) / 100, 2).' ج)']] : []),
                     ...($below !== [] ? [[ApprovalKind::BelowCost, 1, "«{$names}» بأقل من تكلفته"]] : []),
                     ...($overLimit > 0 ? [[ApprovalKind::CreditLimit, $overLimit, "آجل على «{$customer->name}» فوق حده بـ ".number_format($overLimit / 100, 2).' ج']] : []),
                 ],

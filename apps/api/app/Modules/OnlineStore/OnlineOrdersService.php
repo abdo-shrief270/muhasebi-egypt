@@ -32,6 +32,7 @@ final class OnlineOrdersService implements OnlineOrders
             reference: $order->reference(),
             prices: $order->items->mapWithKeys(fn (OnlineOrderItem $i) => [$i->variant_id => $i->unit_price])->all(),
             deliveryFee: $order->delivery_fee,
+            discount: $order->discount,
         );
     }
 

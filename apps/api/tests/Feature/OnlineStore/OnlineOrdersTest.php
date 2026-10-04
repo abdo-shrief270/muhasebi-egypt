@@ -215,4 +215,61 @@ class OnlineOrdersTest extends TestCase
         $order = $this->getJson('/api/v1/online-store/orders')->json('data.0');
         $this->assertSame(['عميل محذوف', ''], [$order['customer_name'], $order['customer_phone']]);
     }
+
+    public function test_coupons_from_the_cart_to_the_invoice(): void
+    {
+        $this->assertFalse($this->getJson('/api/v1/public/stores/elnour')->json('data.store.ordering.coupons'));
+        $coupons = $this->postJson('/api/v1/online-store/coupons', [
+            'code' => ' ramadan10 ', 'kind' => 'percent', 'value' => 10, 'max_discount' => 1500, 'min_order' => 15000, 'max_uses' => 2,
+        ])->assertCreated()->json('data');
+        $this->assertSame(['RAMADAN10', 'خصم 10% (لحد 15 ج)', true], [$coupons[0]['code'], $coupons[0]['label'], $coupons[0]['once_per_phone']]);
+        $this->postJson('/api/v1/online-store/coupons', ['code' => 'RAMADAN10', 'kind' => 'amount', 'value' => 100])->assertUnprocessable()->assertJsonValidationErrors('code');
+        $this->postJson('/api/v1/online-store/coupons', ['code' => 'BIG', 'kind' => 'percent', 'value' => 95])->assertUnprocessable()->assertJsonValidationErrors('value');
+        $this->assertTrue($this->getJson('/api/v1/public/stores/elnour')->json('data.store.ordering.coupons'));
+
+        // The cart asks: 10% of 100 ج is under the minimum; of 200 ج it's 20 ج, capped at 15 ج.
+        $check = fn (string $code, int $subtotal) => $this->postJson('/api/v1/public/stores/elnour/coupon', ['code' => $code, 'subtotal' => $subtotal]);
+        $check('ramadan10', 10000)->assertUnprocessable()->assertJsonPath('code', 'coupon_min_order');
+        $this->assertSame(1500, $check('ramadan10', 20000)->assertOk()->json('data.discount'));
+        $check('NOPE', 20000)->assertUnprocessable()->assertJsonPath('code', 'coupon_invalid');
+
+        // The order: 2 × 100 ج − 15 ج + 30 ج delivery.
+        $placed = $this->order(['coupon_code' => 'Ramadan10'])->assertCreated()->json('data');
+        $this->assertSame(['RAMADAN10', 1500, 21500], [$placed['coupon_code'], $placed['discount'], $placed['total']]);
+        // Once per phone; another phone uses it up.
+        $this->order(['coupon_code' => 'RAMADAN10'])->assertUnprocessable()->assertJsonPath('code', 'coupon_used_by_phone');
+        $other = $this->order(['phone' => '01055557777', 'coupon_code' => 'RAMADAN10'])->assertCreated()->json('data');
+        $this->order(['phone' => '01055558888', 'coupon_code' => 'RAMADAN10'])->assertUnprocessable()->assertJsonPath('code', 'coupon_used_up');
+        $this->assertFalse($this->getJson('/api/v1/public/stores/elnour')->json('data.store.ordering.coupons'));
+
+        // Cancelled: its use comes back.
+        $orders = collect($this->getJson('/api/v1/online-store/orders')->json('data'))->keyBy('reference');
+        $this->postJson("/api/v1/online-store/orders/{$orders[$other['reference']]['id']}/status", ['status' => 'cancelled', 'reason' => 'الزبون لغى'])->assertOk();
+        $this->assertSame(1, $this->getJson('/api/v1/online-store/coupons')->json('data.0.uses'));
+        $this->assertTrue($this->getJson('/api/v1/public/stores/elnour')->json('data.store.ordering.coupons'));
+
+        // A used code can't be deleted, only switched off.
+        $couponId = $this->getJson('/api/v1/online-store/coupons')->json('data.0.id');
+        $this->deleteJson("/api/v1/online-store/coupons/{$couponId}")->assertUnprocessable()->assertJsonPath('code', 'coupon_used');
+
+        // A cashier without the discount permission invoices it: the coupon is the invoice discount.
+        $id = $orders[$placed['reference']]['id'];
+        $this->withHeaders(['X-Branch-Id' => $this->branchId]);
+        Sanctum::actingAs($this->staff('cashier'));
+        app(PermissionResolver::class)->forget();
+        $this->openShift();
+        $sale = fn (int $discount) => $this->postJson('/api/v1/sales', [
+            'items' => [['variant_id' => $this->v[0], 'qty' => 2]],
+            'discount' => $discount,
+            'payments' => [['method' => 'cash', 'amount' => 20000 - $discount]],
+            'online_order_id' => $id,
+        ]);
+        $sale(2000)->assertForbidden()->assertJsonPath('code', 'discount_not_allowed');
+        $this->assertSame(18500, $sale(1500)->assertCreated()->json('data.total'));
+
+        Sanctum::actingAs($this->owner);
+        app(PermissionResolver::class)->forget();
+        $report = collect($this->getJson('/api/v1/reports/online_store')->json('data.summary'))->pluck('value', 'label');
+        $this->assertSame([18500, 1500], [$report['مبيعات المتجر'], $report['خصم الكوبونات']]);
+    }
 }

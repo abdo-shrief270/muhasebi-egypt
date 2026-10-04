@@ -71,6 +71,15 @@
           </div>
         </UCard>
 
+        <UCard v-if="form.mode === 'orders'">
+          <template #header>
+            <h2 class="font-bold">
+              أكواد الخصم
+            </h2>
+          </template>
+          <OnlineStoreCoupons />
+        </UCard>
+
         <UCard>
           <template #header>
             <h2 class="font-bold">

@@ -33,6 +33,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $proof
  * @property int $subtotal
  * @property int $delivery_fee
+ * @property string|null $coupon_id
+ * @property string|null $coupon_code
+ * @property int $discount the coupon's, off the goods
  * @property int $total
  * @property string $token
  * @property bool|null $consent
@@ -45,7 +48,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'tenant_id', 'branch_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone', 'fulfilment',
-    'zone_id', 'zone_name', 'address', 'notes', 'payment', 'proof', 'subtotal', 'delivery_fee', 'total', 'token',
+    'zone_id', 'zone_name', 'address', 'notes', 'payment', 'proof', 'subtotal', 'delivery_fee', 'total', 'token', 'coupon_id', 'coupon_code', 'discount',
     'consent', 'cancel_reason', 'sale_id', 'sale_reference', 'fee_collected',
 ])]
 final class OnlineOrder extends Model
@@ -61,6 +64,7 @@ final class OnlineOrder extends Model
             'number' => 'integer',
             'subtotal' => 'integer',
             'delivery_fee' => 'integer',
+            'discount' => 'integer',
             'total' => 'integer',
             'consent' => 'boolean',
             'fee_collected' => 'boolean',
@@ -105,6 +109,8 @@ final class OnlineOrder extends Model
             'zone_name' => $this->zone_name,
             'payment' => $this->payment,
             'subtotal' => $this->subtotal,
+            'coupon_code' => $this->coupon_code,
+            'discount' => $this->discount,
             'delivery_fee' => $this->delivery_fee,
             'total' => $this->total,
             'cancel_reason' => $this->cancel_reason,
@@ -140,6 +146,8 @@ final class OnlineOrder extends Model
             'payment' => $this->payment,
             'has_proof' => $this->proof !== null,
             'subtotal' => $this->subtotal,
+            'coupon_code' => $this->coupon_code,
+            'discount' => $this->discount,
             'delivery_fee' => $this->delivery_fee,
             'total' => $this->total,
             'items_count' => $this->relationLoaded('items') ? $this->items->sum('qty') : null,

@@ -27,7 +27,8 @@ export interface Cart {
   customer_phone: string
   held_at?: string
   /** «حوّل لفاتورة» from an online order: its prices are on the lines; its delivery fee goes into the drawer as cash. */
-  online_order?: { id: string, reference: string, delivery_fee: number, fee_collected: boolean } | null
+  /** discount / coupon_code: the order's coupon, the invoice discount even without sales.discount. */
+  online_order?: { id: string, reference: string, delivery_fee: number, fee_collected: boolean, discount?: number, coupon_code?: string | null } | null
 }
 
 const emptyCart = (): Cart => ({ id: crypto.randomUUID(), lines: [], discount: 0, price_level: 'retail', customer: null, customer_name: '', customer_phone: '' })

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\OnlineStore\Actions;
 
 use App\Modules\OnlineStore\Enums\OrderStatus;
+use App\Modules\OnlineStore\Models\OnlineCoupon;
 use App\Modules\OnlineStore\Models\OnlineOrder;
 use App\Modules\OnlineStore\Support\OrderTimeline;
 use App\Support\Audit\Auditor;
@@ -39,6 +40,10 @@ final class MoveOrderAction
             $order->update(['status' => $to, 'cancel_reason' => $to === OrderStatus::Cancelled ? $reason : $order->cancel_reason]);
             $this->timeline->add($order, $to, $reason);
             if ($to === OrderStatus::Cancelled) {
+                // A cancelled order gives its coupon use back.
+                if ($order->coupon_id !== null) {
+                    OnlineCoupon::query()->whereKey($order->coupon_id)->where('uses', '>', 0)->decrement('uses');
+                }
                 $this->audit->record('online_store.order_cancelled', "لغى الطلب الأونلاين {$order->reference()}: {$reason}", $order);
             }
 

@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Modules\OnlineStore\Http\Controllers;
 
 use App\Modules\OnlineStore\Actions\PlaceOrderAction;
+use App\Modules\OnlineStore\Models\OnlineCoupon;
 use App\Modules\OnlineStore\Models\OnlineOrder;
 use App\Modules\OnlineStore\Models\OnlineStore;
+use App\Support\Exceptions\DomainRuleException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Propaganistas\LaravelPhone\PhoneNumber;
 
-/** The customer's side: placing an order on the store, and its tracking page /o/{token}. */
+/** The customer's side: a coupon in the cart, placing an order on the store, and its tracking page /o/{token}. */
 final class PublicOrderController
 {
     public function store(Request $request, PlaceOrderAction $place): JsonResponse
@@ -30,6 +32,7 @@ final class PublicOrderController
             'items' => ['required', 'array', 'min:1', 'max:30'],
             'items.*.variant_id' => ['required', 'uuid', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:50'],
+            'coupon_code' => ['nullable', 'string', 'max:32'],
             // Honeypot: a field people never see; bots fill it.
             'website' => ['nullable', 'max:0'],
         ], [], [
@@ -49,10 +52,34 @@ final class PublicOrderController
             proof: $request->file('proof'),
             consent: (bool) ($data['consent'] ?? false),
             items: array_values(array_map(fn (array $i) => ['variant_id' => (string) $i['variant_id'], 'qty' => (int) $i['qty']], $data['items'])),
+            couponCode: $data['coupon_code'] ?? null,
         );
 
         return response()->json(['data' => [...$order->load(['items', 'events'])->toPublic(), 'token' => $order->token]], 201)
             ->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * «عندك كود خصم؟»: the discount on the cart's goods (the store's own prices, as the client
+     * shows them). The order checks it again with the server's prices and the phone.
+     */
+    public function coupon(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'code' => ['required', 'string', 'max:32'],
+            'subtotal' => ['required', 'integer', 'min:0', 'max:100000000000'],
+        ], [], ['code' => 'الكود']);
+        if (! $this->onlineStore($request)->takesOrders()) {
+            throw new DomainRuleException('المتجر ده بيستقبل الطلبات على واتساب بس.', 'store_not_taking_orders', 409);
+        }
+        $coupon = OnlineCoupon::query()->where('code', OnlineCoupon::normalize($data['code']))->first()
+            ?? throw new DomainRuleException('الكود ده مش صح.', 'coupon_invalid');
+
+        return response()->json(['data' => [
+            'code' => $coupon->code,
+            'label' => $coupon->label(),
+            'discount' => $coupon->discountFor((int) $data['subtotal']),
+        ]])->header('Cache-Control', 'no-store');
     }
 
     public function show(Request $request, string $slug, string $token): JsonResponse

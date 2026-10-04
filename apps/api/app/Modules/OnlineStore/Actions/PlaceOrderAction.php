@@ -9,6 +9,7 @@ use App\Modules\Customers\Contracts\CustomerAccounts;
 use App\Modules\OnlineStore\Enums\OrderStatus;
 use App\Modules\OnlineStore\Events\OnlineOrderPlaced;
 use App\Modules\OnlineStore\Models\DeliveryZone;
+use App\Modules\OnlineStore\Models\OnlineCoupon;
 use App\Modules\OnlineStore\Models\OnlineOrder;
 use App\Modules\OnlineStore\Models\OnlineStore;
 use App\Modules\OnlineStore\Support\OrderTimeline;
@@ -24,7 +25,7 @@ use Illuminate\Support\Str;
 
 /**
  * A customer orders on the store. Prices, the delivery fee and what's available come from the
- * server (never the cart); nothing leaves stock until the shop makes the invoice. With the
+ * server (never the cart), and so does a coupon's discount; nothing leaves stock until the shop makes the invoice. With the
  * customer's consent they become (or are matched to) a customer of the shop.
  */
 final class PlaceOrderAction
@@ -58,6 +59,7 @@ final class PlaceOrderAction
         ?UploadedFile $proof,
         bool $consent,
         array $items,
+        ?string $couponCode = null,
     ): OnlineOrder {
         // The same checkout sent twice (a retry after a timeout) is saved once.
         if ($orderId !== null && ($existing = OnlineOrder::query()->find($orderId)) !== null) {
@@ -121,12 +123,19 @@ final class PlaceOrderAction
             throw new DomainRuleException('أقل طلب '.number_format($store->min_order / 100, 2).' ج.', 'below_min_order', context: ['min_order' => $store->min_order]);
         }
         $fee = $zone === null || ($store->free_delivery_over !== null && $subtotal >= $store->free_delivery_over) ? 0 : $zone->fee;
+        $couponCode = $couponCode !== null && trim($couponCode) !== '' ? OnlineCoupon::normalize($couponCode) : null;
+        if ($couponCode !== null) {
+            // Checked here for a quick answer, and again under the lock below.
+            $this->couponDiscount($couponCode, $subtotal, $phone, lock: false);
+        }
 
         $id = $orderId ?? (string) Str::uuid7();
         $proofName = $proof !== null ? $this->proofs->put($store->tenant_id, $id, $proof) : null;
 
         try {
-            return DB::transaction(function () use ($store, $id, $name, $phone, $fulfilment, $zone, $address, $notes, $payment, $proofName, $consent, $lines, $subtotal, $fee): OnlineOrder {
+            return DB::transaction(function () use ($store, $id, $name, $phone, $fulfilment, $zone, $address, $notes, $payment, $proofName, $consent, $lines, $subtotal, $fee, $couponCode): OnlineOrder {
+                [$coupon, $discount] = $couponCode !== null ? $this->couponDiscount($couponCode, $subtotal, $phone, lock: true) : [null, 0];
+                $coupon?->increment('uses');
                 $customer = $consent ? $this->customers->findOrCreate($name, $phone, true) : null;
                 $order = new OnlineOrder([
                     'tenant_id' => $store->tenant_id,
@@ -145,7 +154,10 @@ final class PlaceOrderAction
                     'proof' => $proofName,
                     'subtotal' => $subtotal,
                     'delivery_fee' => $fee,
-                    'total' => $subtotal + $fee,
+                    'coupon_id' => $coupon?->id,
+                    'coupon_code' => $coupon?->code,
+                    'discount' => $discount,
+                    'total' => $subtotal - $discount + $fee,
                     'token' => Str::random(32),
                     'consent' => $consent,
                 ]);
@@ -178,5 +190,18 @@ final class PlaceOrderAction
             // The same id arrived twice at once: the other request saved it.
             return OnlineOrder::query()->find($id) ?? throw $e;
         }
+    }
+
+    /** @return array{0: OnlineCoupon, 1: int} the coupon and its discount on these goods */
+    private function couponDiscount(string $code, int $subtotal, string $phone, bool $lock): array
+    {
+        $coupon = OnlineCoupon::query()->where('code', $code)->when($lock, fn ($q) => $q->lockForUpdate())->first()
+            ?? throw new DomainRuleException('الكود ده مش صح.', 'coupon_invalid');
+        $discount = $coupon->discountFor($subtotal);
+        if ($coupon->once_per_phone && OnlineOrder::query()->where('coupon_id', $coupon->id)->where('customer_phone', $phone)->where('status', '<>', OrderStatus::Cancelled)->exists()) {
+            throw new DomainRuleException('استخدمت الكود ده قبل كده.', 'coupon_used_by_phone');
+        }
+
+        return [$coupon, $discount];
     }
 }

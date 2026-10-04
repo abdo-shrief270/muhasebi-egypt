@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\OnlineStore\Http\Controllers\CouponController;
 use App\Modules\OnlineStore\Http\Controllers\DeliveryZoneController;
 use App\Modules\OnlineStore\Http\Controllers\OrderController;
 use App\Modules\OnlineStore\Http\Controllers\PublicOrderController;
@@ -22,6 +23,12 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:online_store', 'can:online_
             Route::post('zones', 'store');
             Route::patch('zones/{zone}', 'update')->whereUuid('zone');
             Route::delete('zones/{zone}', 'destroy')->whereUuid('zone');
+        });
+        Route::controller(CouponController::class)->group(function (): void {
+            Route::get('coupons', 'index');
+            Route::post('coupons', 'store');
+            Route::patch('coupons/{coupon}', 'update')->whereUuid('coupon');
+            Route::delete('coupons/{coupon}', 'destroy')->whereUuid('coupon');
         });
     });
 
@@ -53,6 +60,8 @@ Route::prefix('public/stores/{slug}')->where(['slug' => '[a-z0-9-]{3,40}'])->gro
         });
     Route::post('orders', [PublicOrderController::class, 'store'])
         ->middleware([ResolveStore::class, 'module:online_store', 'throttle:store-orders']);
+    Route::post('coupon', [PublicOrderController::class, 'coupon'])
+        ->middleware([ResolveStore::class, 'module:online_store', 'throttle:store-coupons']);
     // A placed order stays trackable even after the store closes.
     Route::get('orders/{token}', [PublicOrderController::class, 'show'])->where('token', '[A-Za-z0-9]{32}')
         ->middleware([ResolveStore::class.':any', 'module:online_store', 'throttle:store']);

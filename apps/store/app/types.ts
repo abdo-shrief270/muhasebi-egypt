@@ -42,6 +42,8 @@ export interface Ordering {
   /** When orders are taken (Cairo time), null = any time */
   hours: { from: string, until: string } | null
   open_now: boolean
+  /** There's a discount code to use: the cart shows «عندك كود خصم؟». */
+  coupons?: boolean
 }
 
 export interface Zone { id: string, name: string, fee: number }
@@ -55,6 +57,8 @@ export interface PlacedOrder {
   zone_name: string | null
   payment: 'cod' | 'transfer'
   subtotal: number
+  coupon_code?: string | null
+  discount?: number
   delivery_fee: number
   total: number
   cancel_reason: string | null

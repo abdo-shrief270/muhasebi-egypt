@@ -304,6 +304,22 @@ export interface DeliveryZone {
   is_active: boolean
 }
 
+export interface OnlineCoupon {
+  id: string
+  code: string
+  kind: 'percent' | 'amount'
+  value: number
+  label: string
+  min_order: number
+  max_discount: number | null
+  starts_on: string | null
+  ends_on: string | null
+  max_uses: number | null
+  uses: number
+  once_per_phone: boolean
+  is_active: boolean
+}
+
 export type OnlineOrderStatus = 'new' | 'confirmed' | 'preparing' | 'out_for_delivery' | 'ready' | 'delivered' | 'cancelled'
 
 /** An order placed on the shop's online store (WEB-00001). */
@@ -322,6 +338,8 @@ export interface OnlineOrder {
   payment: 'cod' | 'transfer'
   has_proof: boolean
   subtotal: number
+  coupon_code: string | null
+  discount: number
   delivery_fee: number
   total: number
   items_count: number | null

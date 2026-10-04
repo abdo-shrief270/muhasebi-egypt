@@ -161,6 +161,8 @@ final class OnlineStore extends Model
                     ? ['from' => self::hhmm($this->orders_from), 'until' => self::hhmm($this->orders_until)]
                     : null,
                 'open_now' => $this->takingOrdersAt(),
+                // The cart shows «عندك كود خصم؟» only when there's one to use.
+                'coupons' => OnlineCoupon::query()->usable()->exists(),
             ] : null,
             'updated_at' => $this->updated_at->toIso8601String(),
         ];

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\OnlineStore\Contracts;
 
-/** An online order as the POS invoices it: the prices the customer was quoted and the delivery fee. */
+/** An online order as the POS invoices it: the prices the customer was quoted, its coupon discount and the delivery fee. */
 final readonly class OrderForSale
 {
     /**
@@ -15,5 +15,7 @@ final readonly class OrderForSale
         public string $reference,
         public array $prices,
         public int $deliveryFee,
+        /** The coupon's discount: becomes the invoice discount, without the cashier needing the discount permission. */
+        public int $discount = 0,
     ) {}
 }

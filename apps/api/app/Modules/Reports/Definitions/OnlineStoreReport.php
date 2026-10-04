@@ -72,15 +72,19 @@ final class OnlineStoreReport implements Report
         $all = $orders()->selectRaw("count(*) as orders,
             count(*) filter (where o.status = 'delivered') as delivered,
             count(*) filter (where o.status = 'cancelled') as cancelled,
-            coalesce(sum(o.subtotal) filter (where o.status = 'delivered'), 0) as sales,
+            coalesce(sum(o.subtotal - o.discount) filter (where o.status = 'delivered'), 0) as sales,
+            coalesce(sum(o.discount) filter (where o.status = 'delivered'), 0) as coupons,
             coalesce(sum(o.delivery_fee) filter (where o.status = 'delivered'), 0) as fees")->first();
         $summary = [
             ['label' => 'الطلبات', 'value' => (int) $all->orders, 'type' => 'int'],
             ['label' => 'اتحولت لفواتير', 'value' => (int) $all->delivered, 'type' => 'int', 'hint' => $this->rate((int) $all->delivered, (int) $all->orders).' من الطلبات'],
             ['label' => 'اتلغت', 'value' => (int) $all->cancelled, 'type' => 'int'],
-            ['label' => 'مبيعات المتجر', 'value' => (int) $all->sales, 'type' => 'money', 'hint' => 'الأصناف في الطلبات اللي اتسلّمت'],
+            ['label' => 'مبيعات المتجر', 'value' => (int) $all->sales, 'type' => 'money', 'hint' => 'الأصناف في الطلبات اللي اتسلّمت، بعد خصم الكوبونات'],
             ['label' => 'مصاريف التوصيل', 'value' => (int) $all->fees, 'type' => 'money'],
         ];
+        if ((int) $all->coupons > 0) {
+            $summary[] = ['label' => 'خصم الكوبونات', 'value' => (int) $all->coupons, 'type' => 'money'];
+        }
 
         if ($group === 'item') {
             return $this->byItem($query, $orders, $summary);
@@ -89,7 +93,7 @@ final class OnlineStoreReport implements Report
         $measures = "count(*) as orders,
             count(*) filter (where o.status = 'delivered') as delivered,
             count(*) filter (where o.status = 'cancelled') as cancelled,
-            coalesce(sum(o.subtotal) filter (where o.status = 'delivered'), 0) as sales,
+            coalesce(sum(o.subtotal - o.discount) filter (where o.status = 'delivered'), 0) as sales,
             coalesce(sum(o.delivery_fee) filter (where o.status = 'delivered'), 0) as fees";
         $day = ReportQuery::localDay('o.created_at');
         $rows = $group === 'zone'

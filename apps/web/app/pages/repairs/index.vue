@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <PageHeader title="الصيانة" description="الأجهزة اللي عندك: مين مستني إيه، وإيه اللي جاهز يتسلّم.">
       <UButton v-if="store.can('repairs.settings')" to="/repairs/settings" color="neutral" variant="outline" icon="i-lucide-list-checks" label="قوايم الأعطال" />
-      <UButton v-if="store.can('repairs.create')" to="/repairs/new" icon="i-lucide-plus" label="استلام جهاز" />
+      <UButton v-if="store.can('repairs.create')" to="/repairs/quick" icon="i-lucide-plus" label="استلام جهاز" />
     </PageHeader>
 
     <div class="flex flex-wrap gap-2">

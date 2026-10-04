@@ -135,6 +135,10 @@ export interface ModuleInfo {
   available: boolean
   entitled: boolean
   trial_available: boolean
+  /** length of the trial the platform offers for it */
+  trial_days: number
+  /** opened to every shop by the platform, no subscription needed */
+  free: boolean
   trial_ends_at: string | null
   menu: Omit<MenuEntry, 'module'>[]
 }
@@ -947,6 +951,9 @@ export interface RepairOptions {
   statuses: { value: TicketStatus, label: string }[]
   technicians: { id: string, name: string }[]
   faults: RepairFaultCategory[]
+  /** what the shop received most in the last 90 days (the quick intake shows them first) */
+  recent_devices: { device_model_id: number | null, device_name: string }[]
+  top_faults: number[]
 }
 
 export interface RepairSummary { open: number, ready: number, unnotified: number, overdue: number, abandoned: number, mine: number }

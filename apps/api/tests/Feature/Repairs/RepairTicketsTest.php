@@ -55,6 +55,17 @@ class RepairTicketsTest extends TestCase
         return $this->inShop(fn () => app(StockLedger::class)->quantity($this->branchId, $variantId));
     }
 
+    public function test_the_options_put_what_the_shop_receives_most_first(): void
+    {
+        $this->receive(['device_name' => 'iPhone 11', 'fault_ids' => [$this->faults[1]], 'deposits' => []])->assertCreated();
+        $this->receive(['device_name' => 'iPhone 11', 'fault_ids' => [$this->faults[1]], 'deposits' => []])->assertCreated();
+        $this->receive(['deposits' => []])->assertCreated();
+
+        $options = $this->getJson('/api/v1/repairs/options')->assertOk()->json('data');
+        $this->assertSame(['iPhone 11', 'Samsung Galaxy A54'], array_column($options['recent_devices'], 'device_name'));
+        $this->assertSame([$this->faults[1], $this->faults[0]], $options['top_faults']);
+    }
+
     public function test_intake_records_the_device_customer_faults_and_deposit(): void
     {
         $ticket = $this->receive()->assertCreated()->json('data');

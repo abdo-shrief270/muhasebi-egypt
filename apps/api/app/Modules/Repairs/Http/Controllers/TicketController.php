@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 final class TicketController
@@ -92,7 +93,36 @@ final class TicketController
             'statuses' => array_map(fn (TicketStatus $s) => ['value' => $s->value, 'label' => $s->label()], TicketStatus::cases()),
             'technicians' => array_map(fn (string $id, string $name) => ['id' => $id, 'name' => $name], array_keys($t = $this->staff->withPermission('repairs.update_status')), $t),
             'faults' => FaultCategoryResource::collection(FaultCategory::query()->with('types')->orderBy('sort')->get()),
+            ...$this->frequent(),
         ]]);
+    }
+
+    /**
+     * What this shop receives most (last 90 days): devices and fault types, so the quick intake shows
+     * them first.
+     *
+     * @return array{recent_devices: list<array{device_model_id: int|null, device_name: string}>, top_faults: list<int>}
+     */
+    private function frequent(): array
+    {
+        $since = now()->subDays(90);
+        $devices = RepairTicket::query()
+            ->where('received_at', '>=', $since)
+            ->selectRaw('device_model_id, device_name, count(*) as n')
+            ->groupBy('device_model_id', 'device_name')
+            ->orderByDesc('n')->limit(12)
+            ->toBase()->get()
+            ->map(fn (object $r) => ['device_model_id' => $r->device_model_id === null ? null : (int) $r->device_model_id, 'device_name' => (string) $r->device_name])
+            ->all();
+        $faults = DB::table('repair_tickets')
+            ->where('tenant_id', $this->tenant->idOrFail())
+            ->where('received_at', '>=', $since)
+            ->crossJoin(DB::raw('jsonb_array_elements(repair_tickets.reported_faults::jsonb) as f'))
+            ->selectRaw("(f->>'id')::bigint as fault_id, count(*) as n")
+            ->groupByRaw("f->>'id'")->orderByDesc('n')->orderBy('fault_id')->limit(16)
+            ->pluck('fault_id')->map(fn ($id) => (int) $id)->all();
+
+        return ['recent_devices' => array_values($devices), 'top_faults' => array_values($faults)];
     }
 
     public function show(RepairTicket $ticket): TicketResource

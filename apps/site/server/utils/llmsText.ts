@@ -1,6 +1,8 @@
 import type { DocBlock } from '../../app/data/docs'
 import { docGroups, docs } from '../../app/data/docs'
+import { articles } from '../../app/data/articles'
 import { faqs, features } from '../../app/data/features'
+import { solutions } from '../../app/data/solutions'
 
 /** Guide text without the bits of HTML it uses (<b>, <kbd>). */
 const plain = (html: string) => html.replace(/<kbd>(.*?)<\/kbd>/g, '`$1`').replace(/<b>(.*?)<\/b>/g, '**$1**').replace(/<[^>]+>/g, '')
@@ -34,7 +36,15 @@ export function llmsSummary(site: string, app: string): string {
 
 ${features.map(f => `- **${f.title}**: ${f.text}`).join('\n')}
 
+## لكل نوع محل
+
+${solutions.map(x => `- [برنامج ${x.label}](${site}/for/${x.slug}): ${x.description}`).join('\n')}
+
 ${groups.join('\n\n')}
+
+## مقالات
+
+${articles.map(a => `- [${a.title}](${site}/blog/${a.slug}): ${a.description}`).join('\n')}
 
 ## Optional
 

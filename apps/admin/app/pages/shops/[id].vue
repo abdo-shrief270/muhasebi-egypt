@@ -8,6 +8,7 @@
         </h1>
         <p class="text-sm text-(--ui-text-muted)">
           <span class="num" dir="ltr">{{ detail.shop.code }}</span> · {{ detail.shop.types }} · سجّل {{ formatDate(detail.shop.created_at) }}
+          <span v-if="detail.shop.acquisition" dir="ltr"> · من {{ [detail.shop.acquisition.source, detail.shop.acquisition.medium, detail.shop.acquisition.campaign].filter(Boolean).join(' / ') }}</span>
         </p>
       </div>
       <UBadge :color="subscriptionStatusColor(sub.status)" variant="subtle" size="lg">

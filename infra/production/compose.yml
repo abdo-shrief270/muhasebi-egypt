@@ -33,6 +33,13 @@ services:
         APP_VERSION: ${APP_VERSION:-}
         GOOGLE_SITE_VERIFICATION: ${GOOGLE_SITE_VERIFICATION:-}
         BING_SITE_VERIFICATION: ${BING_SITE_VERIFICATION:-}
+        GA_ID: ${GA_ID:-}
+        META_PIXEL_ID: ${META_PIXEL_ID:-}
+        CONTACT_WHATSAPP: ${CONTACT_WHATSAPP:-}
+        FACEBOOK_URL: ${FACEBOOK_URL:-}
+        INSTAGRAM_URL: ${INSTAGRAM_URL:-}
+        TIKTOK_URL: ${TIKTOK_URL:-}
+        YOUTUBE_URL: ${YOUTUBE_URL:-}
     image: muhasebi-web:latest
     restart: unless-stopped
     environment:

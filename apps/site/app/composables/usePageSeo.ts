@@ -10,10 +10,12 @@ export function usePageSeo(opts: {
   jsonLd?: Record<string, unknown>[]
   type?: 'website' | 'article'
   noindex?: boolean
+  /** a screenshot (site path) for link previews; the default card otherwise */
+  image?: string
 }) {
   const { siteUrl } = useSiteUrls()
   const url = `${siteUrl}${opts.path === '/' ? '/' : opts.path.replace(/\/$/, '')}`
-  const image = `${siteUrl}/og.png`
+  const image = `${siteUrl}${opts.image ?? '/og.png'}`
 
   useSeoMeta({
     title: opts.title,
@@ -23,9 +25,9 @@ export function usePageSeo(opts: {
     ogUrl: url,
     ogType: opts.type ?? 'website',
     ogImage: image,
-    ogImageWidth: 1200,
-    ogImageHeight: 630,
-    ogImageAlt: 'محاسبي — برنامج محلات الموبايلات',
+    ogImageWidth: opts.image ? 1600 : 1200,
+    ogImageHeight: opts.image ? 1000 : 630,
+    ogImageAlt: opts.image ? opts.title : 'محاسبي — برنامج محلات الموبايلات',
     twitterTitle: opts.title,
     twitterDescription: opts.description,
     twitterImage: image,

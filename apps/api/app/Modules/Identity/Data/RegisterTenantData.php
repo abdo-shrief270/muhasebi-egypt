@@ -19,5 +19,7 @@ final readonly class RegisterTenantData
         public string $branchName,
         /** The invite code of the shop that brought it (another shop's code), if any. */
         public ?string $referralCode = null,
+        /** @var array<string, string> where the owner came from: source, medium, campaign, content, term */
+        public array $acquisition = [],
     ) {}
 }

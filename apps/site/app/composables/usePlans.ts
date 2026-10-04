@@ -13,7 +13,9 @@ export function usePlans() {
   const result = useAsyncData<{ data: Plans } | null>('plans', () => {
     if (import.meta.server) {
       // No API during a build is fine: the page then fills in the browser.
-      return $fetch<{ data: Plans }>(`${appUrl.replace(/\/$/, '')}/api/v1/public/plans`, { timeout: 5000 }).catch(() => null)
+      return $fetch<{ data: Plans }>(`${appUrl.replace(/\/$/, '')}/api/v1/public/plans`, { timeout: 5000 })
+        .then(r => (Array.isArray(r?.data?.plans) ? r : null))   // anything but the plans JSON = none
+        .catch(() => null)
     }
     // A failed refresh keeps the prices from the build rather than blanking the page.
     const previous = built.value

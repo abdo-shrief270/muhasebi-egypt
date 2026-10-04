@@ -76,6 +76,16 @@ const form = reactive({
 const loading = ref(false)
 const error = ref<string | null>(null)
 
+// The campaign the owner came from (utm_* from the website or an ad link), kept on the new shop.
+function acquisition(): Record<string, string> | undefined {
+  const out: Record<string, string> = {}
+  for (const k of ['source', 'medium', 'campaign', 'content', 'term'] as const) {
+    const v = route.query[`utm_${k}`]
+    if (typeof v === 'string' && v.trim()) out[k] = v.trim().slice(0, 80)
+  }
+  return Object.keys(out).length ? out : undefined
+}
+
 async function submit() {
   if (!form.shop_types.length) {
     error.value = 'اختار نوع المحل (نوع واحد على الأقل).'
@@ -84,7 +94,7 @@ async function submit() {
   loading.value = true
   error.value = null
   try {
-    await store.register({ ...form, referral_code: form.referral_code.trim() || undefined })
+    await store.register({ ...form, referral_code: form.referral_code.trim() || undefined, acquisition: acquisition() })
     await navigateTo('/')
   }
   catch (e) {

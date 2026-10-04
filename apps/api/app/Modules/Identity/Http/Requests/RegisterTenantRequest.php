@@ -37,6 +37,9 @@ final class RegisterTenantRequest extends FormRequest
             'device_name' => ['nullable', 'string', 'max:120'],
             // Another shop's invite code (its shop code): a welcome discount for this one, points for that one.
             'referral_code' => ['nullable', 'string', 'max:12', Rule::exists('tenants', 'code')],
+            // The campaign the owner came from (utm_* carried from the website / an ad link).
+            'acquisition' => ['nullable', 'array:source,medium,campaign,content,term'],
+            'acquisition.*' => ['nullable', 'string', 'max:80'],
         ];
     }
 
@@ -87,6 +90,7 @@ final class RegisterTenantRequest extends FormRequest
             password: $this->string('password')->toString(),
             branchName: $this->filled('branch_name') ? $this->string('branch_name')->toString() : 'الفرع الرئيسي',
             referralCode: $this->filled('referral_code') ? $this->string('referral_code')->toString() : null,
+            acquisition: array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : null, (array) $this->input('acquisition', [])), fn ($v) => $v !== null && $v !== ''),
         );
     }
 }

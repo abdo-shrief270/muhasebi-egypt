@@ -1,13 +1,19 @@
+import { articles } from '../../app/data/articles'
 import { docs } from '../../app/data/docs'
+import { solutions } from '../../app/data/solutions'
 
 // Prerendered at build time (nitro.prerender.routes): every page with the build date as lastmod
 // and its screenshots as image entries (Google Images).
 export default defineEventHandler((event) => {
   const site = useRuntimeConfig().public.siteUrl.replace(/\/$/, '')
   const lastmod = new Date().toISOString().slice(0, 10)
-  const pages: { path: string, priority: string, images: string[] }[] = [
+  const pages: { path: string, priority: string, images: string[], lastmod?: string }[] = [
     { path: '/', priority: '1.0', images: ['/screens/dashboard.webp', '/screens/pos.webp', '/screens/repairs.webp', '/screens/inventory.webp'] },
     { path: '/pricing', priority: '0.9', images: [] },
+    { path: '/for', priority: '0.8', images: [] },
+    ...solutions.map(s => ({ path: `/for/${s.slug}`, priority: '0.9', images: s.shots.map(x => x.src) })),
+    { path: '/blog', priority: '0.7', images: [] },
+    ...articles.map(a => ({ path: `/blog/${a.slug}`, priority: '0.7', images: [a.image], lastmod: a.updated ?? a.published })),
     { path: '/docs', priority: '0.8', images: [] },
     ...docs.map(d => ({
       path: `/docs/${d.slug}`,
@@ -21,7 +27,7 @@ export default defineEventHandler((event) => {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${pages.map(p => `  <url>
     <loc>${esc(site + p.path)}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <lastmod>${p.lastmod ?? lastmod}</lastmod>
     <priority>${p.priority}</priority>${p.images.map(src => `
     <image:image><image:loc>${esc(site + src)}</image:loc></image:image>`).join('')}
   </url>`).join('\n')}

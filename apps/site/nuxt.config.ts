@@ -42,7 +42,7 @@ export default defineNuxtConfig({
         'lucide:tag', 'lucide:smartphone', 'lucide:credit-card', 'lucide:lock-keyhole', 'lucide:book-open', 'lucide:life-buoy',
         'lucide:percent', 'lucide:store', 'lucide:undo-2', 'lucide:arrow-left-right', 'lucide:user-cog', 'lucide:file-spreadsheet',
         'lucide:bell', 'lucide:qr-code', 'lucide:hand-coins', 'lucide:settings', 'lucide:sparkles', 'lucide:check', 'lucide:clock',
-        'lucide:monitor-smartphone', 'lucide:sun', 'lucide:moon', 'lucide:menu', 'lucide:arrow-left', 'lucide:lightbulb', 'lucide:triangle-alert', 'lucide:calendar-clock', 'lucide:gauge',
+        'lucide:monitor-smartphone', 'lucide:sun', 'lucide:moon', 'lucide:menu', 'lucide:arrow-left', 'lucide:lightbulb', 'lucide:triangle-alert', 'lucide:calendar-clock', 'lucide:gauge', 'lucide:headphones', 'lucide:circle-alert', 'lucide:facebook', 'lucide:instagram', 'lucide:youtube', 'lucide:music-2', 'lucide:newspaper', 'lucide:clock-3',
       ],
     },
   },
@@ -56,6 +56,15 @@ export default defineNuxtConfig({
       // Search Console / Bing Webmaster verification codes (NUXT_PUBLIC_GOOGLE_VERIFICATION, …) at build time.
       googleVerification: '',
       bingVerification: '',
+      // Measurement (NUXT_PUBLIC_GA_ID = G-…, NUXT_PUBLIC_META_PIXEL_ID); empty = nothing loaded.
+      gaId: '',
+      metaPixelId: '',
+      // Contact and social pages (NUXT_PUBLIC_WHATSAPP = 2010…, NUXT_PUBLIC_FACEBOOK_URL, …); empty = hidden.
+      whatsapp: '',
+      facebookUrl: '',
+      instagramUrl: '',
+      tiktokUrl: '',
+      youtubeUrl: '',
       // Same-origin API on the website's domain (Caddy proxies /api/v1/public/plans).
       apiBase: '/api/v1',
     },
@@ -64,7 +73,7 @@ export default defineNuxtConfig({
   nitro: {
     prerender: {
       crawlLinks: true,
-      routes: ['/', '/pricing', '/docs', '/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-full.txt'],
+      routes: ['/', '/pricing', '/docs', '/for', '/blog', '/sitemap.xml', '/robots.txt', '/llms.txt', '/llms-full.txt'],
     },
     // Dev only: the API on its own port.
     devProxy: { '/api': { target: 'http://localhost:8000/api', changeOrigin: true } },

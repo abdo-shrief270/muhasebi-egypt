@@ -146,6 +146,8 @@ export interface AdminShop {
   created_at: string
   last_sign_in_at: string | null
   last_seen_at: string | null
+  /** the campaign it signed up from (utm) */
+  acquisition?: { source?: string, medium?: string, campaign?: string } | null
 }
 
 export type AdminPayment = PaymentRequestInfo & { shop: AdminShop | null }

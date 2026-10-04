@@ -14,6 +14,61 @@
       </NuxtLink>
     </div>
 
+    <UCard :ui="{ body: 'p-0 sm:p-0' }">
+      <template #header>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p class="font-bold">
+              مصادر التسجيل
+            </p>
+            <p class="text-xs text-(--ui-text-muted)">
+              المحلات الجديدة حسب الحملة اللي جت منها (utm من الموقع أو الإعلان)، وكام واحد فيهم دفع.
+            </p>
+          </div>
+          <USelect v-model="days" :items="[{ label: 'آخر 7 أيام', value: 7 }, { label: 'آخر 30 يوم', value: 30 }, { label: 'آخر 90 يوم', value: 90 }]" class="w-36" />
+        </div>
+      </template>
+      <table class="w-full text-sm">
+        <thead class="bg-(--ui-bg-elevated) text-(--ui-text-muted)">
+          <tr>
+            <th class="p-3 text-start">
+              المصدر
+            </th>
+            <th class="p-3 text-start">
+              الحملة
+            </th>
+            <th class="p-3 text-end">
+              سجّلوا
+            </th>
+            <th class="p-3 text-end">
+              دفعوا
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="r in sources" :key="`${r.source}-${r.medium}-${r.campaign}`" class="border-t border-(--ui-border)">
+            <td class="p-3 font-medium" dir="ltr">
+              {{ r.source === 'direct' ? 'مباشر / مش معروف' : r.source }}<span v-if="r.medium" class="text-(--ui-text-muted)"> / {{ r.medium }}</span>
+            </td>
+            <td class="p-3" dir="ltr">
+              {{ r.campaign || '—' }}
+            </td>
+            <td class="num p-3 text-end font-bold">
+              {{ r.shops }}
+            </td>
+            <td class="num p-3 text-end">
+              {{ r.paying }} <span class="text-xs text-(--ui-text-muted)">({{ Math.round(r.paying * 100 / Math.max(r.shops, 1)) }}%)</span>
+            </td>
+          </tr>
+          <tr v-if="!sources.length">
+            <td colspan="4" class="p-6 text-center text-(--ui-text-muted)">
+              مفيش تسجيلات في المدة دي.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </UCard>
+
     <section class="space-y-3">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-bold">
@@ -37,6 +92,9 @@ const api = useAdminApi()
 const { data, refresh } = await useAsyncData('admin-overview', () => api<{ data: AdminOverview }>('/overview'))
 const { data: paymentsData, refresh: refreshPayments } = await useAsyncData('admin-pending', () => api<{ data: AdminPayment[] }>('/payments', { query: { status: 'pending' } }))
 const overview = computed(() => data.value?.data)
+const days = ref(30)
+const { data: sourcesData } = await useAsyncData('admin-acquisition', () => api<{ data: { rows: { source: string, medium: string, campaign: string, shops: number, paying: number }[] } }>('/acquisition', { query: { days: days.value } }), { watch: [days] })
+const sources = computed(() => sourcesData.value?.data.rows ?? [])
 const payments = computed(() => (paymentsData.value?.data ?? []).slice(0, 10))
 const reload = () => Promise.all([refresh(), refreshPayments()])
 

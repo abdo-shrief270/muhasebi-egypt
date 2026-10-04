@@ -61,6 +61,29 @@ final class AdminShopController
         ]]);
     }
 
+    /** Shops that signed up in the last N days by the campaign they came from, and how many paid since. */
+    public function acquisition(Request $request): JsonResponse
+    {
+        $days = (int) $request->validate(['days' => ['nullable', 'integer', 'min:1', 'max:365']])['days'] ?: 30;
+        $rows = $this->shops->signupsBySource(now()->subDays($days));
+        $paying = BillingInvoice::withoutTenancy()
+            ->whereIn('tenant_id', array_merge(...array_map(fn (array $r) => $r['tenant_ids'], $rows ?: [['tenant_ids' => []]])))
+            ->where('total', '>', 0)
+            ->whereNotIn('method', ['beta'])
+            ->distinct()->pluck('tenant_id')->flip();
+
+        return response()->json(['data' => [
+            'days' => $days,
+            'rows' => array_map(fn (array $r) => [
+                'source' => $r['source'],
+                'medium' => $r['medium'],
+                'campaign' => $r['campaign'],
+                'shops' => $r['shops'],
+                'paying' => count(array_filter($r['tenant_ids'], fn (string $id) => $paying->has($id))),
+            ], $rows),
+        ]]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $data = $request->validate([

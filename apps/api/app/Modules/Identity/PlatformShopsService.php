@@ -62,6 +62,19 @@ final class PlatformShopsService implements PlatformShops
             'created_at' => $t->created_at?->toIso8601String() ?? '',
             'last_sign_in_at' => $iso($logins[$t->id] ?? $devices->get($t->id)?->signed_in),
             'last_seen_at' => $iso($devices->get($t->id)?->seen ?? $devices->get($t->id)?->signed_in),
+            'acquisition' => $t->settings['acquisition'] ?? null,
         ]])->all();
+    }
+
+    public function signupsBySource(Carbon $since): array
+    {
+        return DB::table('tenants')
+            ->where('created_at', '>=', $since)
+            ->selectRaw("coalesce(nullif(settings->'acquisition'->>'source', ''), 'direct') as source, coalesce(settings->'acquisition'->>'medium', '') as medium, coalesce(settings->'acquisition'->>'campaign', '') as campaign, count(*) as shops, json_agg(id) as ids")
+            ->groupBy('source', 'medium', 'campaign')
+            ->orderByDesc('shops')
+            ->get()
+            ->map(fn (object $r) => ['source' => $r->source, 'medium' => $r->medium, 'campaign' => $r->campaign, 'shops' => (int) $r->shops, 'tenant_ids' => json_decode($r->ids, true)])
+            ->all();
     }
 }

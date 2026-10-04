@@ -33,6 +33,10 @@ useHead({
           'url': siteUrl,
           'logo': `${siteUrl}/icon-512.png`,
           'areaServed': { '@type': 'Country', 'name': 'Egypt' },
+          'sameAs': [verification.facebookUrl, verification.instagramUrl, verification.tiktokUrl, verification.youtubeUrl].filter(Boolean),
+          ...(verification.whatsapp
+            ? { contactPoint: { '@type': 'ContactPoint', 'contactType': 'sales', 'telephone': `+${String(verification.whatsapp).replace(/\D/g, '')}`, 'availableLanguage': ['ar'], 'areaServed': 'EG' } }
+            : {}),
         },
         {
           '@type': 'WebSite',

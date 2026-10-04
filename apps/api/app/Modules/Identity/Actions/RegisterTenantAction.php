@@ -39,6 +39,9 @@ final class RegisterTenantAction
         return DB::transaction(function () use ($data): User {
             $tenant = new Tenant(['name' => $data->shopName, 'phone' => $data->phone]);
             $tenant->setTypes($data->shopTypes);
+            if ($data->acquisition !== []) {
+                $tenant->settings = [...($tenant->settings ?? []), 'acquisition' => $data->acquisition];
+            }
             $tenant->save();
             $types = array_map(fn (ShopType $t) => $t->value, $tenant->types());
 

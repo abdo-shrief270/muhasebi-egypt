@@ -20,22 +20,30 @@ final class Alerts
 
     public function send(string $text): bool
     {
+        return $this->deliver($text) === null;
+    }
+
+    /** Sends the message; null when Telegram took it, else why not (Telegram's own description). */
+    public function deliver(string $text): ?string
+    {
         $text = '['.config('app.name').'] '.mb_substr($text, 0, 3500);
         if (! $this->configured()) {
             Log::warning('alert: '.$text);
 
-            return false;
+            return 'TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are not set';
         }
         try {
-            return Http::timeout(4)->asForm()->post('https://api.telegram.org/bot'.config('services.telegram.bot_token').'/sendMessage', [
+            $response = Http::timeout(4)->asForm()->post('https://api.telegram.org/bot'.config('services.telegram.bot_token').'/sendMessage', [
                 'chat_id' => config('services.telegram.chat_id'),
                 'text' => $text,
                 'disable_web_page_preview' => 'true',
-            ])->successful();
+            ]);
+
+            return $response->successful() ? null : (string) ($response->json('description') ?? 'HTTP '.$response->status());
         } catch (\Throwable $e) {
             Log::warning('alert not sent: '.$e->getMessage());
 
-            return false;
+            return $e->getMessage();
         }
     }
 }

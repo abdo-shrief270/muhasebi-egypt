@@ -50,10 +50,15 @@ ok ".env updated (old copy kept as .env.bak.*)"
 
 bold "2/3  Restart and test"
 docker compose up -d >/dev/null
-for _ in $(seq 1 30); do
-  docker compose exec -T api php artisan monitoring:check --test && break
+echo "Waiting for the app to come up (queue and scheduler heartbeats take up to a minute)…"
+for _ in $(seq 1 40); do
+  docker compose exec -T api php artisan monitoring:check >/dev/null 2>&1 && break
   sleep 3
 done
+docker compose exec -T api php artisan list monitoring >/dev/null 2>&1 \
+  || die "This server runs an older version without monitoring. Deploy first (./deploy.sh), then run this again."
+docker compose exec -T api php artisan monitoring:check --test \
+  || die "The test message didn't go through (the reason is above). Fix it and run ./setup-monitoring.sh again."
 ok "Check Telegram for «تنبيهات محاسبي شغالة»."
 
 bold "3/3  Watching from cron"

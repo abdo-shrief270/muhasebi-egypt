@@ -55,4 +55,18 @@ class MonitoringTest extends TestCase
         $this->travel(10)->minutes();
         $this->assertStringContainsString('آخر نبض من 10 دقيقة', $this->getJson('/api/v1/health')->assertStatus(503)->json('checks.scheduler.detail'));
     }
+
+    public function test_the_test_alert_says_why_telegram_refused_it(): void
+    {
+        config(['services.telegram.bot_token' => '123:abc', 'services.telegram.chat_id' => '42']);
+        Http::fake(['api.telegram.org/*' => Http::sequence()
+            ->push(['ok' => false, 'description' => 'Bad Request: chat not found'], 400)
+            ->push(['ok' => true])]);
+        $this->artisan('monitoring:check --test')
+            ->expectsOutputToContain('Telegram refused it: Bad Request: chat not found')
+            ->expectsOutputToContain('press Start')
+            ->assertFailed();
+
+        $this->artisan('monitoring:check --test')->expectsOutputToContain('Sent.')->assertSuccessful();
+    }
 }

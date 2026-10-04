@@ -26,7 +26,18 @@ final class MonitoringTestAlert extends Command
 
                 return self::FAILURE;
             }
-            $this->info($alerts->send('✅ تنبيهات محاسبي شغالة.') ? 'Sent.' : 'Telegram refused it (check the token / chat id).');
+            $error = $alerts->deliver('✅ تنبيهات محاسبي شغالة.');
+            if ($error !== null) {
+                $this->error("Telegram refused it: {$error}");
+                $this->line(str_contains($error, 'chat not found')
+                    ? 'Open your bot in Telegram and press Start (or send it any message), then try again.'
+                    : 'Check the bot token (from @BotFather) and the chat id.');
+
+                return self::FAILURE;
+            }
+            $this->info('Sent.');
+
+            return self::SUCCESS;
         }
 
         return $result['ok'] ? self::SUCCESS : self::FAILURE;

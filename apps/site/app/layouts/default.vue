@@ -1,5 +1,12 @@
 <template>
   <div class="min-h-screen flex flex-col">
+    <div v-if="offer" class="bg-primary px-4 py-2 text-center text-sm font-bold text-white">
+      {{ offer.text }}
+      <template v-if="offer.code">
+        — كود <span class="num rounded bg-white/20 px-1.5 py-0.5" dir="ltr">{{ offer.code }}</span> في صفحة الاشتراك
+      </template>
+      <a :href="links.register" class="ms-2 underline underline-offset-4">سجّل دلوقتي</a>
+    </div>
     <header class="sticky top-0 z-40 border-b border-(--ui-border) bg-(--ui-bg)/85 backdrop-blur">
       <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
         <NuxtLink to="/" class="flex items-center gap-2 text-xl font-extrabold" aria-label="محاسبي — الرئيسية">
@@ -127,6 +134,15 @@ const nav = [
   { to: '/blog', label: 'مقالات' },
 ]
 const { track } = useTracking()
+// The campaign bar; past its last day it disappears without a rebuild (checked in the browser too).
+const offerConfig = useRuntimeConfig().public
+const offerLive = (until: string) => !until || new Date().toISOString().slice(0, 10) <= until
+const offer = ref(offerConfig.offerText && offerLive(String(offerConfig.offerUntil))
+  ? { text: String(offerConfig.offerText), code: String(offerConfig.offerCode ?? '') }
+  : null)
+onMounted(() => {
+  if (offer.value && !offerLive(String(offerConfig.offerUntil))) offer.value = null
+})
 const contact = useRuntimeConfig().public
 const whatsappHref = contact.whatsapp ? `https://wa.me/${String(contact.whatsapp).replace(/\D/g, '')}?text=${encodeURIComponent('السلام عليكم، عايز أعرف أكتر عن برنامج محاسبي')}` : null
 const socials = [

@@ -16,6 +16,9 @@
             <UButton :to="links.register" size="xl" icon="i-lucide-rocket" label="جرّب 14 يوم ببلاش" />
             <UButton to="/docs" size="xl" color="neutral" variant="outline" icon="i-lucide-book-open" label="اتفرج على الشرح" />
           </div>
+          <p class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-(--ui-text-muted)">
+            <span v-for="r in reassurance" :key="r" class="flex items-center gap-1"><UIcon name="i-lucide-shield-check" class="size-4 text-primary" />{{ r }}</span>
+          </p>
           <ul class="grid grid-cols-2 gap-2 text-sm font-bold">
             <li v-for="p in heroPoints" :key="p" class="flex items-center gap-2">
               <UIcon name="i-lucide-check" class="size-4 text-primary" />{{ p }}
@@ -30,6 +33,28 @@
             <img src="/screens/m-pos.webp" alt="الكاشير على الموبايل" width="390" height="844" loading="lazy">
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Who it's for -->
+    <section class="mx-auto max-w-6xl px-4 pt-20">
+      <div class="mx-auto mb-8 max-w-2xl text-center">
+        <h2 class="text-3xl font-extrabold">
+          محلك بيشتغل في إيه؟
+        </h2>
+        <p class="mt-3 text-(--ui-text-muted)">
+          نفس البرنامج، وكل محل بيفتح الأقسام اللي تناسب شغله.
+        </p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <NuxtLink v-for="s in solutions" :key="s.slug" :to="`/for/${s.slug}`" class="group rounded-2xl border border-(--ui-border) p-4 text-center transition hover:-translate-y-0.5 hover:border-primary">
+          <span class="mx-auto mb-3 inline-flex size-12 items-center justify-center rounded-xl bg-(--app-primary-soft)">
+            <UIcon :name="s.icon" class="size-6 text-primary" />
+          </span>
+          <p class="font-extrabold group-hover:text-primary">
+            {{ s.label }}
+          </p>
+        </NuxtLink>
       </div>
     </section>
 
@@ -152,6 +177,44 @@
       </div>
     </section>
 
+    <!-- Before / after -->
+    <section class="mx-auto max-w-5xl px-4 py-20">
+      <h2 class="mb-3 text-center text-3xl font-extrabold">
+        الكشكول والإكسل، ولا محاسبي؟
+      </h2>
+      <p class="mb-10 text-center text-(--ui-text-muted)">
+        نفس الشغل اللي بتعمله كل يوم، من غير الحسابات اللي في دماغك.
+      </p>
+      <div class="overflow-hidden rounded-2xl border border-(--ui-border)">
+        <table class="w-full text-sm sm:text-base">
+          <thead class="bg-(--ui-bg-muted)">
+            <tr>
+              <th class="p-3 text-start font-bold" />
+              <th class="p-3 text-start font-bold text-(--ui-text-muted)">
+                الكشكول / الإكسل
+              </th>
+              <th class="p-3 text-start font-extrabold text-primary">
+                محاسبي
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in comparison" :key="row.what" class="border-t border-(--ui-border)">
+              <td class="p-3 font-bold">
+                {{ row.what }}
+              </td>
+              <td class="p-3 text-(--ui-text-muted)">
+                <UIcon name="i-lucide-x" class="me-1 size-4 align-[-3px] text-error" />{{ row.before }}
+              </td>
+              <td class="p-3">
+                <UIcon name="i-lucide-check" class="me-1 size-4 align-[-3px] text-primary" />{{ row.after }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- How -->
     <section class="mx-auto max-w-6xl px-4 py-20">
       <h2 class="mb-12 text-center text-3xl font-extrabold">
@@ -188,6 +251,12 @@
         <div class="mt-6 text-center">
           <UButton to="/pricing" variant="link" trailing-icon="i-lucide-arrow-left" label="تفاصيل الأسعار والأقسام الإضافية" />
         </div>
+        <div class="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-center gap-3 rounded-2xl border border-dashed border-primary/40 bg-(--ui-bg) p-5 text-center">
+          <UIcon name="i-lucide-gift" class="size-6 text-primary" />
+          <p class="text-sm sm:text-base">
+            <b>جيب محل صاحبك:</b> هو ياخد خصم 20% أول 3 شهور، وانت تاخد 500 نقطة (= 50 ج من اشتراكك) أول ما يدفع.
+          </p>
+        </div>
       </div>
     </section>
 
@@ -215,7 +284,8 @@
 </template>
 
 <script setup lang="ts">
-import { faqs, features, heroPoints, showcases, steps } from '~/data/features'
+import { comparison, faqs, features, heroPoints, reassurance, showcases, steps } from '~/data/features'
+import { solutions } from '~/data/solutions'
 
 const links = useAppLinks()
 const active = ref(showcases[0]!.key)

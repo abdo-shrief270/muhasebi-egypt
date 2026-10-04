@@ -40,6 +40,9 @@ services:
         INSTAGRAM_URL: ${INSTAGRAM_URL:-}
         TIKTOK_URL: ${TIKTOK_URL:-}
         YOUTUBE_URL: ${YOUTUBE_URL:-}
+        OFFER_TEXT: ${OFFER_TEXT:-}
+        OFFER_CODE: ${OFFER_CODE:-}
+        OFFER_UNTIL: ${OFFER_UNTIL:-}
     image: muhasebi-web:latest
     restart: unless-stopped
     environment:

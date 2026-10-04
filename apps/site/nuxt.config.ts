@@ -65,6 +65,11 @@ export default defineNuxtConfig({
       instagramUrl: '',
       tiktokUrl: '',
       youtubeUrl: '',
+      // A campaign bar on every page (NUXT_PUBLIC_OFFER_TEXT, _CODE = a coupon from the admin panel,
+      // _UNTIL = YYYY-MM-DD, hidden after it); empty text = no bar.
+      offerText: '',
+      offerCode: '',
+      offerUntil: '',
       // Same-origin API on the website's domain (Caddy proxies /api/v1/public/plans).
       apiBase: '/api/v1',
     },

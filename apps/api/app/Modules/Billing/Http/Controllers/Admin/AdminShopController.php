@@ -21,6 +21,7 @@ use App\Support\Audit\Auditor;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /** Platform admins: the shops, their subscriptions, and activating / extending / suspending them. */
@@ -51,6 +52,7 @@ final class AdminShopController
             'beta' => Subscription::withoutTenancy()->where('beta_until', '>', now())->count(),
             ...$this->inbox->counts(),
             'pending_payments' => PaymentRequest::withoutTenancy()->where('status', 'pending')->count(),
+            'server_errors_open' => DB::table('server_errors')->whereNull('resolved_at')->count(),
             'expiring_soon' => Subscription::withoutTenancy()->whereNull('suspended_at')->whereBetween('paid_until', [now(), now()->addDays(7)])->count(),
             'mrr' => $mrr,
             'collected_this_month' => (int) BillingInvoice::withoutTenancy()->where('paid_at', '>=', now()->startOfMonth())->sum('total'),

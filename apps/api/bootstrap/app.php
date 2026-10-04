@@ -3,6 +3,7 @@
 use App\Modules\Identity\Http\Middleware\ResolveBranch;
 use App\Support\Modules\EnsureFeatureEnabled;
 use App\Support\Modules\EnsureModuleEnabled;
+use App\Support\Monitoring\ServerErrors;
 use App\Support\Tenancy\ResolveTenant;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -42,6 +43,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(before: ResolveBranch::class, prepend: ResolveTenant::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Every uncaught server error: grouped for the admins (أخطاء السيرفر) and an alert to the team.
+        $exceptions->report(function (Throwable $e): void {
+            app(ServerErrors::class)->capture($e);
+        });
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );

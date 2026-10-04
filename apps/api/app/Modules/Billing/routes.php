@@ -3,6 +3,7 @@
 use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminCouponController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminFeedbackController;
+use App\Modules\Billing\Http\Controllers\Admin\AdminMonitoringController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
 use App\Modules\Billing\Http\Controllers\BillingController;
@@ -61,6 +62,12 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::post('coupons', 'store');
             Route::patch('coupons/{coupon}', 'update')->whereUuid('coupon');
             Route::post('shops/{tenant}/wallet', 'grant');
+        });
+
+        Route::controller(AdminMonitoringController::class)->group(function (): void {
+            Route::get('health', 'health');
+            Route::get('server-errors', 'errors');
+            Route::post('server-errors/{error}/resolve', 'resolve')->whereUuid('error');
         });
 
         Route::controller(AdminFeedbackController::class)->group(function (): void {

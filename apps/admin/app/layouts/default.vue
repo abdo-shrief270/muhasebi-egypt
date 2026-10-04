@@ -32,6 +32,7 @@ const nav = [
   { to: '/coupons', label: 'الكوبونات', icon: 'i-lucide-ticket-percent' },
   { to: '/feedback', label: 'الملاحظات', icon: 'i-lucide-message-square-heart' },
   { to: '/errors', label: 'أخطاء الواجهة', icon: 'i-lucide-bug' },
+  { to: '/server', label: 'السيرفر', icon: 'i-lucide-server' },
   { to: '/activity', label: 'السجل', icon: 'i-lucide-history' },
 ]
 const isActive = (to: string) => (to === '/' ? route.path === '/' : route.path.startsWith(to))

@@ -36,6 +36,17 @@ return [
     ],
 
     // Web Push (VAPID) for the app's notifications: `php artisan notifications:vapid-keys` makes a pair.
+    // Alerts to the platform team (server errors, health): a Telegram bot and the chat it writes to.
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN', ''),
+        'chat_id' => env('TELEGRAM_CHAT_ID', ''),
+    ],
+
+    // /api/v1/health: below this much free disk it fails.
+    'monitoring' => [
+        'min_free_percent' => (int) env('MONITOR_MIN_FREE_PERCENT', 10),
+    ],
+
     'webpush' => [
         'public_key' => env('VAPID_PUBLIC_KEY'),
         'private_key' => env('VAPID_PRIVATE_KEY'),

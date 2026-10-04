@@ -12,6 +12,7 @@ use App\Modules\OnlineStore\Support\Slugs;
 use App\Modules\OnlineStore\Support\StoreMedia;
 use App\Support\Audit\Auditor;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Modules\ModuleAccess;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -76,6 +77,8 @@ final class StoreSettingsController
             'pay_transfer' => ['sometimes', 'boolean'],
             'transfer_instapay' => ['nullable', 'string', 'max:60'],
             'transfer_wallet' => ['nullable', 'phone:EG,mobile'],
+            'repair_booking' => ['sometimes', 'boolean'],
+            'repair_booking_note' => ['nullable', 'string', 'max:255'],
         ], [], [
             'slug' => 'عنوان المتجر', 'name' => 'اسم المتجر', 'whatsapp' => 'رقم الواتساب', 'phone' => 'التليفون',
             'map_url' => 'لينك الخريطة', 'color' => 'اللون',
@@ -115,6 +118,10 @@ final class StoreSettingsController
         }
         if ($after('pay_transfer') && $after('transfer_instapay') === null && $after('transfer_wallet') === null) {
             throw new DomainRuleException('اكتب عنوان InstaPay أو رقم المحفظة اللي الزبون هيحوّل عليه.', 'transfer_details_required');
+        }
+
+        if (($data['repair_booking'] ?? false) && ! app(ModuleAccess::class)->enabled('repairs')) {
+            throw new DomainRuleException('حجز الصيانة محتاج موديول الصيانة يكون شغال عندك.', 'repairs_not_enabled');
         }
 
         if (array_key_exists('category_names', $data)) {
@@ -199,6 +206,10 @@ final class StoreSettingsController
             'category_names' => (object) ($store->category_names ?? []),
             'orders_from' => OnlineStore::hhmm($store->orders_from),
             'orders_until' => OnlineStore::hhmm($store->orders_until),
+            'repair_booking' => $store->repair_booking,
+            'repair_booking_note' => $store->repair_booking_note,
+            // «احجز صيانة» can only be offered by a shop that uses the repairs module.
+            'repairs_available' => app(ModuleAccess::class)->enabled('repairs'),
             'url' => Slugs::url($store->slug),
             'feed_url' => Slugs::url($store->slug).'/feed.xml',
         ];

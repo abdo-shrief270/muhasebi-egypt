@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\OnlineStore\Models;
 
+use App\Modules\OnlineStore\Actions\RepairBookingActions;
 use App\Modules\OnlineStore\Support\StoreMedia;
+use App\Support\Modules\ModuleAccess;
 use App\Support\Tenancy\BelongsToTenant;
 use App\Support\Time\ShopDay;
 use Carbon\CarbonInterface;
@@ -49,6 +51,8 @@ use Illuminate\Support\Carbon;
  * @property bool $show_whatsapp the «كلّمنا واتساب» buttons
  * @property string|null $announcement a line across the top of every page
  * @property bool $show_brand the product's brand on its card and page
+ * @property bool $repair_booking «احجز صيانة» on the store (needs the repairs module)
+ * @property string|null $repair_booking_note a line on the booking form (e.g. «الكشف ببلاش»)
  * @property array<string, string>|null $category_names what a category is called on the store, by category id
  * @property string|null $orders_from HH:MM:SS Cairo time; with orders_until = when orders are taken
  * @property string|null $orders_until
@@ -59,7 +63,7 @@ use Illuminate\Support\Carbon;
     'map_url', 'hours', 'policy', 'facebook', 'instagram', 'show_out_of_stock', 'show_quantity', 'logo', 'cover',
     'pickup', 'delivery', 'min_order', 'free_delivery_over', 'pay_cod', 'pay_transfer', 'transfer_instapay', 'transfer_wallet',
     'show_prices', 'show_models', 'show_latest', 'show_whatsapp', 'announcement',
-    'show_brand', 'category_names', 'orders_from', 'orders_until',
+    'show_brand', 'category_names', 'orders_from', 'orders_until', 'repair_booking', 'repair_booking_note',
 ])]
 final class OnlineStore extends Model
 {
@@ -83,6 +87,7 @@ final class OnlineStore extends Model
             'show_latest' => 'boolean',
             'show_whatsapp' => 'boolean',
             'show_brand' => 'boolean',
+            'repair_booking' => 'boolean',
             'category_names' => 'array',
         ];
     }
@@ -146,6 +151,7 @@ final class OnlineStore extends Model
             'show_whatsapp' => $this->show_whatsapp,
             'show_brand' => $this->show_brand,
             'announcement' => $this->announcement,
+            'repair_booking' => RepairBookingActions::offered($this, app(ModuleAccess::class)) ? ['note' => $this->repair_booking_note] : null,
             'logo' => StoreMedia::urls($this->tenant_id, 'logo', $this->logo),
             'cover' => StoreMedia::urls($this->tenant_id, 'cover', $this->cover),
             'ordering' => $this->takesOrders() ? [

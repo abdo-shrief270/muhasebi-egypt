@@ -49,6 +49,8 @@ final class ReceiveDeviceRequest extends FormRequest
             'expected_at' => ['nullable', 'date'],
             'technician_id' => ['nullable', 'uuid'],
             'estimate' => ['nullable', 'integer', 'min:0', 'max:100000000000'],
+            // A repair booked on the online store: the booking closes with this ticket.
+            'booking_id' => ['nullable', 'uuid'],
             'deposits' => ['nullable', 'array', 'max:4'],
             'deposits.*.method' => ['required', Rule::in(['cash', 'card', 'wallet', 'instapay'])],
             'deposits.*.amount' => ['required', 'integer', 'min:1', 'max:100000000000'],

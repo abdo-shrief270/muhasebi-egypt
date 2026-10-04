@@ -22,6 +22,15 @@
       </div>
     </section>
 
+    <NuxtLink v-if="store.repair_booking" :to="place.path('/repair')" class="card flex items-center gap-3 p-4 hover:border-brand">
+      <span class="flex size-11 items-center justify-center rounded-xl bg-brand/10 text-brand"><StoreIcon name="wrench" /></span>
+      <span class="min-w-0 flex-1">
+        <span class="block font-extrabold">موبايلك محتاج صيانة؟ احجز دلوقتي</span>
+        <span class="block truncate text-sm text-muted">{{ store.repair_booking.note || 'اكتب جهازك والمشكلة، والمحل هيكلّمك يحدد ميعاد.' }}</span>
+      </span>
+      <StoreIcon name="next" class="text-muted" />
+    </NuxtLink>
+
     <section v-if="home.device_brands.length" class="space-y-3" aria-labelledby="pick-phone">
       <h2 id="pick-phone" class="flex items-center gap-2 text-lg font-extrabold">
         <StoreIcon name="smartphone" /> اختار موبايلك

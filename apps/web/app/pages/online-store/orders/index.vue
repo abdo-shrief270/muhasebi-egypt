@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-6">
     <PageHeader title="طلبات المتجر" description="الطلبات اللي الزباين عملوها من المتجر الأونلاين. أكّد مع الزبون، جهّز، وحوّل الطلب لفاتورة لما يتسلّم.">
+      <UButton to="/online-store/bookings" color="neutral" variant="outline" icon="i-lucide-wrench" :label="bookingsNew ? `حجوزات الصيانة (${bookingsNew})` : 'حجوزات الصيانة'" />
       <UButton v-if="store.can('online_store.manage')" to="/online-store" color="neutral" variant="outline" icon="i-lucide-settings" label="إعدادات المتجر" />
     </PageHeader>
 
@@ -64,6 +65,9 @@ definePageMeta({ permission: 'online_store.orders', module: 'online_store' })
 
 const api = useApi()
 const store = useSessionStore()
+// New repair bookings from the store, next to the orders.
+const { data: bookingsData } = await useAsyncData('online-store-bookings-new', () => api<{ meta: { new: number } }>('/online-store/bookings', { query: { status: 'new' } }).catch(() => null))
+const bookingsNew = computed(() => bookingsData.value?.meta.new ?? 0)
 const tabs = [
   { value: 'open', label: 'المفتوحة' },
   { value: 'new', label: 'جديدة' },

@@ -5,6 +5,15 @@
       <PageHeader title="استلام جهاز" description="سجّل الجهاز وحالته قدام العميل، واطبعله إيصال فيه كود يتابع بيه." class="flex-1" />
     </div>
 
+    <UAlert
+      v-if="booking"
+      color="info"
+      variant="subtle"
+      icon="i-lucide-calendar-check"
+      :title="`من حجز المتجر ${booking.reference}`"
+      description="بيانات الزبون والجهاز والمشكلة جت من الحجز، والحجز هيتقفل مع التذكرة."
+    />
+
     <form class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]" @submit.prevent="save">
       <div class="space-y-6">
         <!-- Customer -->
@@ -144,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CashMethod, PosCustomer, RepairOptions, RepairTicket } from '~/types/api'
+import type { CashMethod, PosCustomer, RepairBooking, RepairOptions, RepairTicket } from '~/types/api'
 
 definePageMeta({ module: 'repairs', permission: 'repairs.create' })
 
@@ -158,6 +167,7 @@ const { data: optionsData } = await useAsyncData('repair-options', () => api<{ d
 const options = computed(() => optionsData.value?.data)
 
 const customer = ref<PosCustomer | null>(null)
+const route = useRoute()
 const form = reactive({
   customer_name: '',
   customer_phone: '',
@@ -179,6 +189,21 @@ const form = reactive({
   deposit: '',
   deposit_method: 'cash' as CashMethod,
 })
+
+// From «حجوزات الصيانة»: the booking's customer, device and problem; the ticket closes it.
+const booking = ref<RepairBooking | null>(null)
+if (typeof route.query.booking === 'string' && store.can('online_store.orders')) {
+  booking.value = (await api<{ data: RepairBooking }>(`/online-store/bookings/${route.query.booking}`).catch(() => null))?.data ?? null
+  if (booking.value) {
+    Object.assign(form, {
+      customer_name: booking.value.customer_name,
+      customer_phone: localPhone(booking.value.customer_phone),
+      consent: booking.value.consent ?? true,
+      device_name: booking.value.device,
+      reported_note: booking.value.problem,
+    })
+  }
+}
 
 const unlockTypes = [
   { value: 'none', label: 'مفيش' },
@@ -245,6 +270,7 @@ async function save() {
         estimate: toPiasters(form.estimate),
         technician_id: form.technician_id === 'none' ? null : form.technician_id,
         deposits: deposit > 0 ? [{ method: form.deposit_method, amount: deposit }] : [],
+        booking_id: booking.value?.id ?? null,
       },
     })
     created.value = res.data

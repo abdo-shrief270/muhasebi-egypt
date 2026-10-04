@@ -71,6 +71,23 @@
           </div>
         </UCard>
 
+        <UCard v-if="settings?.repairs_available && form.mode !== 'off'">
+          <template #header>
+            <h2 class="font-bold">
+              حجز صيانة
+            </h2>
+          </template>
+          <div class="space-y-4">
+            <USwitch v-model="form.repair_booking" label="«احجز صيانة» في المتجر" description="الزبون يكتب جهازه والمشكلة واليوم اللي جاي فيه، والحجز يوصلك إشعار. لما الجهاز يوصل بتعمله تذكرة بضغطة." />
+            <UFormField v-if="form.repair_booking" label="سطر للزبون فوق الفورم" hint="اختياري" :error="errors.repair_booking_note">
+              <UInput v-model="form.repair_booking_note" class="w-full" maxlength="255" placeholder="الكشف ببلاش · الإصلاح في نفس اليوم لأغلب الأعطال" />
+            </UFormField>
+            <ULink v-if="settings.repair_booking" to="/online-store/bookings" class="inline-flex items-center gap-1 text-sm font-bold text-primary">
+              <UIcon name="i-lucide-wrench" class="size-4" /> حجوزات الصيانة
+            </ULink>
+          </div>
+        </UCard>
+
         <UCard v-if="form.mode === 'orders'">
           <template #header>
             <h2 class="font-bold">
@@ -255,6 +272,7 @@ const form = reactive({
   category_names: {} as Record<string, string>, orders_from: '', orders_until: '',
   pickup: true, delivery: false, min_order: '', free_delivery_over: '',
   pay_cod: true, pay_transfer: false, transfer_instapay: '', transfer_wallet: '',
+  repair_booking: false, repair_booking_note: '',
 })
 
 function fill(s: OnlineStoreSettings) {
@@ -269,6 +287,7 @@ function fill(s: OnlineStoreSettings) {
     pickup: s.pickup, delivery: s.delivery, min_order: s.min_order ? String(s.min_order / 100) : '',
     free_delivery_over: s.free_delivery_over !== null ? String(s.free_delivery_over / 100) : '',
     pay_cod: s.pay_cod, pay_transfer: s.pay_transfer, transfer_instapay: s.transfer_instapay ?? '', transfer_wallet: localPhone(s.transfer_wallet),
+    repair_booking: s.repair_booking, repair_booking_note: s.repair_booking_note ?? '',
   })
 }
 if (settings.value) {
@@ -298,6 +317,7 @@ async function save() {
         orders_from: form.orders_from || null, orders_until: form.orders_until || null,
         pickup: form.pickup, delivery: form.delivery, min_order: toPiasters(form.min_order) ?? 0,
         free_delivery_over: toPiasters(form.free_delivery_over), pay_cod: form.pay_cod, pay_transfer: form.pay_transfer,
+        ...(settings.value?.repairs_available ? { repair_booking: form.repair_booking, repair_booking_note: nullable(form.repair_booking_note) } : {}),
         transfer_instapay: nullable(form.transfer_instapay), transfer_wallet: nullable(form.transfer_wallet),
       },
     })

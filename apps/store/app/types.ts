@@ -23,6 +23,8 @@ export interface PublicStore {
   show_whatsapp: boolean
   show_brand: boolean
   announcement: string | null
+  /** «احجز صيانة»: offered by the shop (null = not), with its line for the customer */
+  repair_booking?: { note: string | null } | null
   logo: Images | null
   cover: Images | null
   /** How to order (mode «orders» only). */

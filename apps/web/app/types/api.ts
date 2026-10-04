@@ -291,6 +291,11 @@ export interface OnlineStoreSettings {
   pay_transfer: boolean
   transfer_instapay: string | null
   transfer_wallet: string | null
+  /** «احجز صيانة» on the store */
+  repair_booking: boolean
+  repair_booking_note: string | null
+  /** the shop uses the repairs module (booking needs it) */
+  repairs_available: boolean
   url: string
   /** the Meta / Google product feed */
   feed_url: string
@@ -302,6 +307,25 @@ export interface DeliveryZone {
   name: string
   fee: number
   is_active: boolean
+}
+
+export interface RepairBooking {
+  id: string
+  reference: string
+  status: 'new' | 'contacted' | 'converted' | 'cancelled'
+  status_label: string
+  customer_id: string | null
+  customer_name: string
+  customer_phone: string
+  device: string
+  problem: string
+  preferred_on: string | null
+  consent: boolean | null
+  ticket_id: string | null
+  ticket_reference: string | null
+  cancel_reason: string | null
+  handled_by_name: string | null
+  created_at: string
 }
 
 export interface OnlineCoupon {

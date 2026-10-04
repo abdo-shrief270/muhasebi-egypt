@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Repairs\Actions;
 
 use App\Modules\Customers\Contracts\CustomerAccounts;
+use App\Modules\OnlineStore\Contracts\RepairBookings;
 use App\Modules\Repairs\Enums\EventType;
 use App\Modules\Repairs\Enums\TicketStatus;
 use App\Modules\Repairs\Models\RepairTicket;
@@ -19,7 +20,8 @@ use Illuminate\Support\Str;
 
 /**
  * Takes a device in: who left it, what it is, how it looked and worked, what the customer says is
- * wrong, when it was promised — and any deposit, into the receiver's drawer.
+ * wrong, when it was promised — and any deposit, into the receiver's drawer. A device booked on the
+ * online store closes its booking.
  */
 final class ReceiveDeviceAction
 {
@@ -29,6 +31,7 @@ final class ReceiveDeviceAction
         private readonly Timeline $timeline,
         private readonly TicketMoney $money,
         private readonly Auth $auth,
+        private readonly RepairBookings $bookings,
     ) {}
 
     /**
@@ -80,6 +83,9 @@ final class ReceiveDeviceAction
                 'public_token' => Str::random(24),
             ]);
             $this->timeline->add($ticket, EventType::Received, $data['reported_note'] ?? null, to: TicketStatus::Received);
+            if (isset($data['booking_id'])) {
+                $this->bookings->converted((string) $data['booking_id'], $ticket->id, $ticket->reference());
+            }
 
             foreach ($deposits as $deposit) {
                 $this->money->take($ticket, 'deposit', $deposit['method'], $deposit['amount']);

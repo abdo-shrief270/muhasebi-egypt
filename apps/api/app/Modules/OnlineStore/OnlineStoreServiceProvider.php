@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\OnlineStore;
 
 use App\Modules\Customers\Events\CustomerErased;
+use App\Modules\OnlineStore\Actions\RepairBookingActions;
 use App\Modules\OnlineStore\Contracts\OnlineOrders;
+use App\Modules\OnlineStore\Contracts\RepairBookings;
 use App\Modules\OnlineStore\Listeners\AnonymiseCustomerOrders;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -21,6 +23,7 @@ final class OnlineStoreServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         $this->app->bind(OnlineOrders::class, OnlineOrdersService::class);
+        $this->app->bind(RepairBookings::class, RepairBookingActions::class);
     }
 
     public function boot(): void

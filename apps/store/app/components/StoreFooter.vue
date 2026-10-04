@@ -8,8 +8,11 @@
         <p v-if="store.tagline" class="text-muted">
           {{ store.tagline }}
         </p>
-        <NuxtLink :to="place.path('/about')" class="font-semibold text-brand">
+        <NuxtLink :to="place.path('/about')" class="block font-semibold text-brand">
           عن المحل وسياسة الاستبدال
+        </NuxtLink>
+        <NuxtLink v-if="store.repair_booking" :to="place.path('/repair')" class="flex items-center gap-1 font-semibold text-brand">
+          <StoreIcon name="wrench" :size="16" /> احجز صيانة
         </NuxtLink>
       </div>
       <ul class="space-y-2">

@@ -20,9 +20,9 @@ final class Categories
         ],
         'online_orders' => [
             'label' => 'طلبات المتجر الأونلاين',
-            'description' => 'زبون طلب من متجرك الأونلاين.',
+            'description' => 'زبون طلب من متجرك الأونلاين أو حجز صيانة.',
             'permission' => 'online_store.orders',
-            'prefixes' => ['online_order.'],
+            'prefixes' => ['online_order.', 'repair_booking.'],
         ],
         'billing' => [
             'label' => 'تجديد الاشتراك',

@@ -5,6 +5,7 @@ use App\Modules\OnlineStore\Http\Controllers\DeliveryZoneController;
 use App\Modules\OnlineStore\Http\Controllers\OrderController;
 use App\Modules\OnlineStore\Http\Controllers\PublicOrderController;
 use App\Modules\OnlineStore\Http\Controllers\PublicStoreController;
+use App\Modules\OnlineStore\Http\Controllers\RepairBookingController;
 use App\Modules\OnlineStore\Http\Controllers\StoreSettingsController;
 use App\Modules\OnlineStore\Http\Middleware\ResolveMediaShop;
 use App\Modules\OnlineStore\Http\Middleware\ResolveStore;
@@ -42,6 +43,14 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:online_store', 'can:online_
         Route::get('{order}/proof', 'proof')->whereUuid('order');
     });
 
+// Repairs booked on the store: whoever handles the store's orders.
+Route::middleware(['auth:sanctum', 'tenant', 'module:online_store', 'can:online_store.orders'])
+    ->prefix('online-store/bookings')->controller(RepairBookingController::class)->group(function (): void {
+        Route::get('/', 'index');
+        Route::get('{booking}', 'show')->whereUuid('booking');
+        Route::post('{booking}/status', 'move')->whereUuid('booking');
+    });
+
 // Caddy's on-demand TLS check for {slug}.<STORE_HOST> (?domain=…): 200 only for an open store.
 Route::get('public/stores-tls', [PublicStoreController::class, 'tlsCheck'])->middleware([ResolveStore::class, 'module:online_store', 'throttle:store']);
 
@@ -59,6 +68,8 @@ Route::prefix('public/stores/{slug}')->where(['slug' => '[a-z0-9-]{3,40}'])->gro
             Route::get('feed', 'feed');
         });
     Route::post('orders', [PublicOrderController::class, 'store'])
+        ->middleware([ResolveStore::class, 'module:online_store', 'throttle:store-orders']);
+    Route::post('repair-bookings', [RepairBookingController::class, 'book'])
         ->middleware([ResolveStore::class, 'module:online_store', 'throttle:store-orders']);
     Route::post('coupon', [PublicOrderController::class, 'coupon'])
         ->middleware([ResolveStore::class, 'module:online_store', 'throttle:store-coupons']);

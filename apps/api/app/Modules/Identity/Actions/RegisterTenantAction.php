@@ -68,7 +68,8 @@ final class RegisterTenantAction
                 $suggested = array_keys(array_filter($this->registry->all(), fn (ModuleManifest $m) => $m->isSuggestedFor($types)));
                 $this->modules->startTrials($tenant->id, $suggested);
 
-                $this->events->record(new TenantRegistered($tenant->id, $types[0], $owner->id, $types));
+                $referrer = $data->referralCode !== null ? Tenant::query()->where('code', $data->referralCode)->value('id') : null;
+                $this->events->record(new TenantRegistered($tenant->id, $types[0], $owner->id, $types, $referrer));
                 $this->audit->record('shop.registered', "سجّل المحل «{$tenant->name}»", $tenant, tenantId: $tenant->id);
 
                 return $owner;

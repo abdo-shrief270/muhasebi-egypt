@@ -27,8 +27,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $issued_by_name
  * @property string|null $note
  * @property Carbon $paid_at
+ * @property int $credit_used of the total, paid from the shop's credit
  */
-#[Fillable(['tenant_id', 'number', 'plan', 'cycle', 'months', 'lines', 'total', 'vat', 'period_start', 'period_end', 'method', 'payment_reference', 'issued_by_name', 'note', 'paid_at'])]
+#[Fillable(['tenant_id', 'number', 'plan', 'cycle', 'months', 'lines', 'total', 'vat', 'period_start', 'period_end', 'method', 'payment_reference', 'issued_by_name', 'note', 'paid_at', 'credit_used'])]
 final class BillingInvoice extends Model
 {
     use BelongsToTenant, HasUuids;
@@ -36,6 +37,7 @@ final class BillingInvoice extends Model
     protected function casts(): array
     {
         return [
+            'credit_used' => 'integer',
             'lines' => 'array',
             'number' => 'integer',
             'months' => 'integer',

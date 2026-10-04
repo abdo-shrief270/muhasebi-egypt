@@ -7,6 +7,7 @@ namespace App\Modules\Billing\Http\Controllers\Admin;
 use App\Modules\Billing\Models\BillingInvoice;
 use App\Modules\Billing\Models\PaymentRequest;
 use App\Modules\Billing\Models\Subscription;
+use App\Modules\Billing\Models\WalletTransaction;
 use App\Modules\Billing\Support\AdminLog;
 use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Pricing;
@@ -97,6 +98,12 @@ final class AdminShopController
         return response()->json(['data' => [
             'shop' => $shop,
             'subscription' => $this->view->subscription($this->subscriptions->for($tenant)),
+            'wallet' => [
+                'credit' => $this->subscriptions->for($tenant)->credit_balance,
+                'points' => $this->subscriptions->for($tenant)->points_balance,
+                'referred_by' => $this->subscriptions->for($tenant)->referred_by,
+                'history' => WalletTransaction::withoutTenancy()->where('tenant_id', $tenant)->orderByDesc('seq')->limit(20)->get()->map(fn (WalletTransaction $t) => $t->toApi())->all(),
+            ],
             'activity' => $this->activity->recent([$tenant])[$tenant],
             'setup' => $this->setup->progress([$tenant])[$tenant],
             'feedback' => $this->inbox->feedback(['tenant_ids' => [$tenant]], 1, 10)['items'],

@@ -16,6 +16,8 @@ final class TenantRegistered extends DomainEvent
         public readonly string $ownerId,
         /** @var list<string> all the shop's types; $shopType is the first */
         public readonly array $shopTypes = [],
+        /** The shop whose invite code it registered with. */
+        public readonly ?string $referredBy = null,
     ) {}
 
     public function tenantId(): string

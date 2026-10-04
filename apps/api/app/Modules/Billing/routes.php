@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
+use App\Modules\Billing\Http\Controllers\Admin\AdminCouponController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminFeedbackController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
@@ -23,6 +24,9 @@ Route::middleware(['auth:sanctum', 'tenant'])->prefix('billing')->controller(Bil
         Route::get('/', 'show');
         Route::post('quote', 'quote');
         Route::post('requests/{paymentRequest}/cancel', 'cancelRequest');
+        Route::post('pay-with-credit', 'payWithCredit')->middleware('throttle:10,1');
+        Route::post('coupon', 'redeem')->middleware('throttle:10,1');
+        Route::post('points/convert', 'convertPoints')->middleware('throttle:20,1');
         Route::get('invoices/{invoice}', 'invoice');
     });
     // Owner only, checked in the controller (multipart upload).
@@ -50,6 +54,13 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::post('shops/{tenant}/beta', 'grantBeta');
             Route::post('shops/{tenant}/suspend', 'suspend');
             Route::post('shops/{tenant}/unsuspend', 'unsuspend');
+        });
+
+        Route::controller(AdminCouponController::class)->group(function (): void {
+            Route::get('coupons', 'index');
+            Route::post('coupons', 'store');
+            Route::patch('coupons/{coupon}', 'update')->whereUuid('coupon');
+            Route::post('shops/{tenant}/wallet', 'grant');
         });
 
         Route::controller(AdminFeedbackController::class)->group(function (): void {

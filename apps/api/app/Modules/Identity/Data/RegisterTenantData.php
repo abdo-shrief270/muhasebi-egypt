@@ -17,5 +17,7 @@ final readonly class RegisterTenantData
         public ?string $email,
         public string $password,
         public string $branchName,
+        /** The invite code of the shop that brought it (another shop's code), if any. */
+        public ?string $referralCode = null,
     ) {}
 }

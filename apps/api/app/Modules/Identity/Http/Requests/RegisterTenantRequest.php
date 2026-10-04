@@ -35,11 +35,16 @@ final class RegisterTenantRequest extends FormRequest
             'password' => ['required', 'confirmed', Password::min(8)],
             'branch_name' => ['nullable', 'string', 'max:120'],
             'device_name' => ['nullable', 'string', 'max:120'],
+            // Another shop's invite code (its shop code): a welcome discount for this one, points for that one.
+            'referral_code' => ['nullable', 'string', 'max:12', Rule::exists('tenants', 'code')],
         ];
     }
 
     protected function prepareForValidation(): void
     {
+        if (is_string($this->input('referral_code'))) {
+            $this->merge(['referral_code' => strtoupper(trim($this->input('referral_code'))) ?: null]);
+        }
         $phone = $this->input('phone');
 
         if (is_string($phone) && $phone !== '') {
@@ -53,7 +58,7 @@ final class RegisterTenantRequest extends FormRequest
 
     public function attributes(): array
     {
-        return ['shop_types' => 'نوع المحل', 'shop_types.*' => 'نوع المحل'];
+        return ['shop_types' => 'نوع المحل', 'shop_types.*' => 'نوع المحل', 'referral_code' => 'كود الدعوة'];
     }
 
     public function messages(): array
@@ -81,6 +86,7 @@ final class RegisterTenantRequest extends FormRequest
             email: $this->filled('email') ? $this->string('email')->toString() : null,
             password: $this->string('password')->toString(),
             branchName: $this->filled('branch_name') ? $this->string('branch_name')->toString() : 'الفرع الرئيسي',
+            referralCode: $this->filled('referral_code') ? $this->string('referral_code')->toString() : null,
         );
     }
 }

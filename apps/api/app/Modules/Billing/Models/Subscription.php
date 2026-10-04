@@ -23,13 +23,17 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $beta_until end of a free beta period (an admin's grant)
  * @property Carbon|null $suspended_at
  * @property string|null $suspended_reason
+ * @property int $credit_balance piasters, taken off the next payment
+ * @property int $points_balance
+ * @property string|null $referred_by the shop whose code it registered with
+ * @property Carbon|null $referral_rewarded_at when that shop got its points
  */
-#[Fillable(['tenant_id', 'plan', 'cycle', 'modules', 'on_trial', 'paid_until', 'beta_until', 'suspended_at', 'suspended_reason'])]
+#[Fillable(['tenant_id', 'plan', 'cycle', 'modules', 'on_trial', 'paid_until', 'beta_until', 'suspended_at', 'suspended_reason', 'credit_balance', 'points_balance', 'referred_by', 'referral_rewarded_at'])]
 final class Subscription extends Model
 {
     use BelongsToTenant, HasUuids;
 
-    protected $attributes = ['modules' => '[]', 'on_trial' => true];
+    protected $attributes = ['modules' => '[]', 'on_trial' => true, 'credit_balance' => 0, 'points_balance' => 0];
 
     protected function casts(): array
     {
@@ -39,6 +43,9 @@ final class Subscription extends Model
             'paid_until' => 'datetime',
             'beta_until' => 'datetime',
             'suspended_at' => 'datetime',
+            'credit_balance' => 'integer',
+            'points_balance' => 'integer',
+            'referral_rewarded_at' => 'datetime',
         ];
     }
 

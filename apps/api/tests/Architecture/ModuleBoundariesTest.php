@@ -2,6 +2,7 @@
 
 namespace Tests\Architecture;
 
+use App\Modules\Billing\Models\BillingCoupon;
 use App\Modules\Billing\Models\PlatformAdmin;
 use App\Modules\Billing\Models\PlatformAdminAction;
 use App\Modules\Identity\Models\Tenant;
@@ -25,6 +26,7 @@ class ModuleBoundariesTest extends TestCase
         Tenant::class,
         User::class,
         PlatformAdmin::class,
+        BillingCoupon::class,
         PlatformAdminAction::class,
     ];
 

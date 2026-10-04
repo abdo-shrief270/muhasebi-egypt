@@ -25,6 +25,20 @@ return [
         'lockout_minutes' => 15,
     ],
 
+    // Rewards: points the shop earns, turned into credit off its next payment; the welcome a shop
+    // invited by another gets (and the inviter's points come only once the new shop really pays).
+    'rewards' => [
+        'points_per_pound' => 10,
+        'min_convert' => 100,
+        'points' => [
+            'referral' => 500,
+            'early_renewal' => 50,
+            'yearly' => 200,
+            'onboarding' => 100,
+        ],
+        'referral_discount' => ['percent' => 20, 'months' => 3],
+    ],
+
     'instapay' => [
         'address' => env('BILLING_INSTAPAY_ADDRESS', ''),
         'name' => env('BILLING_INSTAPAY_NAME', ''),

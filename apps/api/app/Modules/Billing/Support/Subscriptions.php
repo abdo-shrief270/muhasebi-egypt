@@ -68,11 +68,14 @@ final class Subscriptions
      *
      * @param  array{plan: string, cycle: string, modules: list<string>, months: int, lines: list<array{description: string, amount: int}>, total: int, vat: int}  $quote
      * @param  int|null  $amount  what was actually received, when an admin says it differs
+     * @param  int  $creditUsed  of the total, what the shop's credit paid (already taken off its wallet)
+     * @param  array{id: string, months: int}|null  $redemption  the held discount this payment used
      */
-    public function activate(string $tenantId, array $quote, string $method, ?string $reference, ?string $issuedBy, ?int $amount = null, ?string $note = null, ?int $months = null): BillingInvoice
+    public function activate(string $tenantId, array $quote, string $method, ?string $reference, ?string $issuedBy, ?int $amount = null, ?string $note = null, ?int $months = null, int $creditUsed = 0, ?array $redemption = null): BillingInvoice
     {
-        return $this->tenant->runAs($tenantId, fn () => DB::transaction(function () use ($tenantId, $quote, $method, $reference, $issuedBy, $amount, $note, $months): BillingInvoice {
+        return $this->tenant->runAs($tenantId, fn () => DB::transaction(function () use ($tenantId, $quote, $method, $reference, $issuedBy, $amount, $note, $months, $creditUsed, $redemption): BillingInvoice {
             $subscription = Subscription::query()->lockForUpdate()->find($this->for($tenantId)->id);
+            $before = ['on_trial' => $subscription->on_trial, 'paid_until' => $subscription->paid_until->copy()];
             $previous = $subscription->plan !== null ? $this->pricing->modulesOf($subscription->plan, $subscription->modules) : [];
 
             // A new period starts when the current one (paid or trial) ends: nobody loses days.
@@ -103,6 +106,7 @@ final class Subscriptions
                 'issued_by_name' => $issuedBy,
                 'note' => $note,
                 'paid_at' => now(),
+                'credit_used' => $creditUsed,
             ]);
 
             $subscription->fill([
@@ -119,6 +123,12 @@ final class Subscriptions
 
             $current = $this->pricing->modulesOf($quote['plan'], $quote['modules']);
             $this->syncModules($tenantId, $current, $previous);
+
+            if ($redemption !== null) {
+                app(Checkout::class)->consume($redemption['id'], $redemption['months']);
+            }
+            // Lazily: Rewards needs the Wallet, which asks back here for the subscription.
+            app(Rewards::class)->afterPayment($tenantId, $before, $invoice);
 
             $this->audit->record(
                 $method === 'beta' ? 'billing.beta_granted' : 'billing.activated',

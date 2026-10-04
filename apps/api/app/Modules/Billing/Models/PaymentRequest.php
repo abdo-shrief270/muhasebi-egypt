@@ -28,11 +28,15 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $reviewed_at
  * @property string|null $rejection_reason
  * @property string|null $invoice_id
+ * @property int $discount the held coupon / referral discount, off the price
+ * @property int $credit_used taken off the shop's credit when sent (back if rejected or cancelled)
+ * @property string|null $redemption_id
  * @property Carbon $created_at
  */
 #[Fillable([
     'tenant_id', 'plan', 'cycle', 'modules', 'amount', 'method', 'reference', 'sender_name', 'sender_phone', 'proof_path',
     'status', 'requested_by', 'requested_by_name', 'reviewed_by', 'reviewed_by_name', 'reviewed_at', 'rejection_reason', 'invoice_id',
+    'discount', 'credit_used', 'redemption_id',
 ])]
 final class PaymentRequest extends Model
 {
@@ -40,6 +44,6 @@ final class PaymentRequest extends Model
 
     protected function casts(): array
     {
-        return ['modules' => 'array', 'amount' => 'integer', 'reviewed_at' => 'datetime'];
+        return ['modules' => 'array', 'amount' => 'integer', 'discount' => 'integer', 'credit_used' => 'integer', 'reviewed_at' => 'datetime'];
     }
 }

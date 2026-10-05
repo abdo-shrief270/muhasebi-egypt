@@ -14,25 +14,27 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const pub = join(root, 'public')
 const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright')
 
-// Brand teal (main.css: primary-600 #0D9488, --app-primary-strong #0F766E).
-const defs = `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0F766E"/></linearGradient></defs>`
+// Brand teal (docs/brand: #14B8A6 → #0B4F58; main.css primary-600 #0D9488).
+const defs = `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14B8A6"/><stop offset="1" stop-color="#0B4F58"/></linearGradient></defs>`
 
-/** The sidebar's phone glyph with ledger lines on its screen (right-aligned, like Arabic text); `scale` shrinks it around the centre. */
+/** The brand mark (docs/brand/mark.svg): the letter meem rising out of a small bar chart, amber point in its loop; `scale` shrinks it around the centre. */
 function glyph(scale = 1) {
-  return `<g transform="translate(256 256) scale(${scale}) translate(-256 -256)" fill="none" stroke="#fff" stroke-linecap="round">
-    <rect x="168" y="84" width="176" height="344" rx="40" stroke-width="32"/>
-    <path d="M226 170h60M226 216h60M252 262h34" stroke-width="24" opacity=".9"/>
-    <path d="M236 376h40" stroke-width="28"/>
+  return `<g transform="translate(256 256) scale(${scale * 5.12}) translate(-50 -50) translate(0 -3)">
+    <rect x="21" y="52" width="10" height="16" rx="5" fill="#fff" fill-opacity=".5"/>
+    <rect x="36" y="40" width="10" height="28" rx="5" fill="#fff" fill-opacity=".8"/>
+    <path d="M77 37 V63 Q77 77 63 77 H26" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="64.5" cy="37" r="12.5" fill="none" stroke="#fff" stroke-width="10"/>
+    <circle cx="64.5" cy="37" r="4" fill="#FBBF24"/>
   </g>`
 }
 
 const svg = {
   // Rounded tile, transparent corners: favicon, desktop / Android "any" icon.
-  any: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${defs}<rect width="512" height="512" rx="112" fill="url(#g)"/>${glyph()}</svg>`,
+  any: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${defs}<rect width="512" height="512" rx="133" fill="url(#g)"/>${glyph()}</svg>`,
   // Full bleed, glyph inside the 80% safe circle: Android adaptive icons crop it to any shape.
-  maskable: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${defs}<rect width="512" height="512" fill="url(#g)"/>${glyph(0.78)}</svg>`,
+  maskable: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${defs}<rect width="512" height="512" fill="url(#g)"/>${glyph(0.72)}</svg>`,
   // iOS rounds the corners itself and shows transparency as black: full bleed.
-  apple: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${defs}<rect width="512" height="512" fill="url(#g)"/>${glyph(0.86)}</svg>`,
+  apple: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${defs}<rect width="512" height="512" fill="url(#g)"/>${glyph(0.8)}</svg>`,
 }
 
 const require = createRequire(import.meta.url)

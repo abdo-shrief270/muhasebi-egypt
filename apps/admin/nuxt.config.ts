@@ -13,6 +13,8 @@ export default defineNuxtConfig({
       title: 'محاسبي — الإدارة',
       meta: [{ name: 'robots', content: 'noindex, nofollow' }],
       link: [
+        { rel: 'icon', href: '/favicon.ico?v=2', sizes: '48x48' },
+        { rel: 'icon', href: '/favicon.svg?v=2', type: 'image/svg+xml' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap' },

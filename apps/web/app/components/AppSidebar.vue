@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full flex-col gap-4">
     <div class="flex items-center gap-2.5 px-2.5 text-primary">
-      <UIcon name="i-lucide-smartphone" class="size-6" />
+      <BrandMark class="size-8" />
       <span class="text-xl font-extrabold text-(--ui-text-highlighted)">محاسبي</span>
     </div>
 

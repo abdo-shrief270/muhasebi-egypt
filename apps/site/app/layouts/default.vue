@@ -10,7 +10,7 @@
     <header class="sticky top-0 z-40 border-b border-(--ui-border) bg-(--ui-bg)/85 backdrop-blur">
       <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4">
         <NuxtLink to="/" class="flex items-center gap-2 text-xl font-extrabold" aria-label="محاسبي — الرئيسية">
-          <UIcon name="i-lucide-smartphone" class="size-6 text-primary" />
+          <BrandMark class="size-8" />
           محاسبي
         </NuxtLink>
 
@@ -55,7 +55,7 @@
       <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div class="space-y-2">
           <p class="flex items-center gap-2 text-lg font-extrabold">
-            <UIcon name="i-lucide-smartphone" class="size-5 text-primary" />
+            <BrandMark class="size-7" />
             محاسبي
           </p>
           <p class="text-sm text-(--ui-text-muted)">

@@ -74,7 +74,7 @@ export default defineNuxtConfig({
         'lucide:inbox', 'lucide:circle-check', 'lucide:hammer', 'lucide:package-check', 'lucide:check-check', 'lucide:ban', 'lucide:bell',
         // Customer privacy (customer page consent line / data menu, /privacy sections).
         'lucide:shield-check', 'lucide:shield-alert', 'lucide:shield-question', 'lucide:user-x', 'lucide:download',
-        'lucide:database', 'lucide:target', 'lucide:eye', 'lucide:clock', 'lucide:user-check', 'lucide:phone', 'lucide:lock',
+        'lucide:database', 'lucide:target', 'lucide:eye', 'lucide:clock', 'lucide:user-check', 'lucide:phone', 'lucide:lock', 'lucide:chart-line',
         // Security page (navigation, device icons, conditional shield icons).
         'lucide:lock-keyhole', 'lucide:monitor', 'lucide:tablet', 'lucide:shield', 'lucide:shield-check', 'lucide:shield-alert',
         'lucide:wifi-off', 'lucide:cloud-upload', 'lucide:cloud-alert', 'lucide:refresh-cw',

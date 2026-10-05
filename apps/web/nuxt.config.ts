@@ -100,7 +100,11 @@ export default defineNuxtConfig({
     public: {
       apiBase: 'http://localhost:8000/api/v1', // NUXT_PUBLIC_API_BASE
       appVersion: '', // NUXT_PUBLIC_APP_VERSION (e.g. the git sha), sent with feedback and error reports
-      metaPixelId: '', // NUXT_PUBLIC_META_PIXEL_ID: the website's pixel, told only about a finished sign-up
+      // The website (links from the sign-up / sign-in pages) and its measurement, used on those two pages
+      // only (utils/marketingTags.ts): NUXT_PUBLIC_SITE_URL, NUXT_PUBLIC_GA_ID, NUXT_PUBLIC_META_PIXEL_ID.
+      siteUrl: 'https://muhasebi.com',
+      gaId: '',
+      metaPixelId: '',
     },
   },
 

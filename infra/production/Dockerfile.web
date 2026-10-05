@@ -11,9 +11,11 @@ ENV NUXT_PUBLIC_API_BASE=/api/v1
 # The release (git sha from deploy.sh), sent with feedback and error reports.
 ARG APP_VERSION=""
 ENV NUXT_PUBLIC_APP_VERSION=$APP_VERSION
-# The website's Meta Pixel: the app only reports a finished sign-up to it (CompleteRegistration).
+# The website's address and measurement, for the sign-up / sign-in pages only (utils/marketingTags.ts).
+ARG SITE_URL=https://muhasebi.com
+ARG GA_ID=
 ARG META_PIXEL_ID=
-ENV NUXT_PUBLIC_META_PIXEL_ID=$META_PIXEL_ID
+ENV NUXT_PUBLIC_SITE_URL=$SITE_URL NUXT_PUBLIC_GA_ID=$GA_ID NUXT_PUBLIC_META_PIXEL_ID=$META_PIXEL_ID
 RUN npx nuxi prepare && npx nuxi generate
 
 # The admin panel: a separate app, served on the admin domain only.

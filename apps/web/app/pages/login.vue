@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'auth', guest: true })
+definePageMeta({ layout: 'auth', guest: true, marketing: true })
 
 const store = useSessionStore()
 const route = useRoute()

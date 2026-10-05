@@ -51,17 +51,18 @@
       </p>
       <p class="mt-2 text-xs text-center text-(--ui-text-muted)">
         بياناتك وبيانات عملائك في أمان —
-        <NuxtLink to="/privacy" target="_blank" class="text-primary hover:underline">سياسة الخصوصية</NuxtLink>
+        <a :href="`${siteUrl}/privacy`" target="_blank" class="text-primary hover:underline">سياسة الخصوصية</a>
       </p>
     </template>
   </UCard>
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'auth', guest: true })
+definePageMeta({ layout: 'auth', guest: true, marketing: true })
 
 const store = useSessionStore()
 const route = useRoute()
+const siteUrl = String(useRuntimeConfig().public.siteUrl).replace(/\/$/, '')
 
 const form = reactive({
   shop_name: '',
@@ -95,7 +96,7 @@ async function submit() {
   error.value = null
   try {
     await store.register({ ...form, referral_code: form.referral_code.trim() || undefined, acquisition: acquisition() })
-    reportSignup(String(useRuntimeConfig().public.metaPixelId || ''))
+    reportSignup()
     await navigateTo('/')
   }
   catch (e) {

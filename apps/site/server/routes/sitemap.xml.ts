@@ -15,6 +15,7 @@ export default defineEventHandler((event) => {
     { path: '/blog', priority: '0.7', images: [] },
     ...articles.map(a => ({ path: `/blog/${a.slug}`, priority: '0.7', images: [a.image], lastmod: a.updated ?? a.published })),
     { path: '/docs', priority: '0.8', images: [] },
+    { path: '/privacy', priority: '0.3', images: [] },
     ...docs.map(d => ({
       path: `/docs/${d.slug}`,
       priority: '0.7',

@@ -96,7 +96,7 @@
           <ul class="space-y-2 text-sm text-(--ui-text-muted)">
             <li><a :href="links.register" class="hover:text-primary">سجّل محلك</a></li>
             <li><a :href="links.login" class="hover:text-primary">دخول</a></li>
-            <li><a :href="links.privacy" class="hover:text-primary">سياسة الخصوصية</a></li>
+            <li><NuxtLink to="/privacy" class="hover:text-primary">سياسة الخصوصية</NuxtLink></li>
           </ul>
         </div>
       </div>

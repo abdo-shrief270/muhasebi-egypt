@@ -3,7 +3,10 @@
  * idle so they never slow the first paint. Page views follow client-side navigation.
  */
 export default defineNuxtPlugin(() => {
-  const { gaId, metaPixelId } = useRuntimeConfig().public
+  const config = useRuntimeConfig().public
+  // Numeric-looking values arrive as numbers from the runtime config.
+  const gaId = String(config.gaId || '')
+  const metaPixelId = String(config.metaPixelId || '')
   const router = useRouter()
   const w = window as unknown as Record<string, unknown> & { dataLayer?: unknown[], gtag?: (...a: unknown[]) => void, fbq?: ((...a: unknown[]) => void) & { queue?: unknown[], loaded?: boolean, version?: string, callMethod?: (...a: unknown[]) => void, push?: unknown } }
 

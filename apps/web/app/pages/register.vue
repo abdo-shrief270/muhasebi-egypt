@@ -95,6 +95,7 @@ async function submit() {
   error.value = null
   try {
     await store.register({ ...form, referral_code: form.referral_code.trim() || undefined, acquisition: acquisition() })
+    reportSignup(String(useRuntimeConfig().public.metaPixelId || ''))
     await navigateTo('/')
   }
   catch (e) {

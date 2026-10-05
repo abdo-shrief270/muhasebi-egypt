@@ -100,6 +100,7 @@ export default defineNuxtConfig({
     public: {
       apiBase: 'http://localhost:8000/api/v1', // NUXT_PUBLIC_API_BASE
       appVersion: '', // NUXT_PUBLIC_APP_VERSION (e.g. the git sha), sent with feedback and error reports
+      metaPixelId: '', // NUXT_PUBLIC_META_PIXEL_ID: the website's pixel, told only about a finished sign-up
     },
   },
 

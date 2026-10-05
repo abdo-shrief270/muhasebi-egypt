@@ -56,6 +56,8 @@ export default defineNuxtConfig({
       // Search Console / Bing Webmaster verification codes (NUXT_PUBLIC_GOOGLE_VERIFICATION, …) at build time.
       googleVerification: '',
       bingVerification: '',
+      // Meta (Facebook) domain verification (NUXT_PUBLIC_FACEBOOK_VERIFICATION) at build time.
+      facebookVerification: '',
       // Measurement (NUXT_PUBLIC_GA_ID = G-…, NUXT_PUBLIC_META_PIXEL_ID); empty = nothing loaded.
       gaId: '',
       metaPixelId: '',

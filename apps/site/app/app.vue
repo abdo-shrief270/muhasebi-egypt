@@ -18,6 +18,7 @@ useHead({
   meta: [
     ...(verification.googleVerification ? [{ name: 'google-site-verification', content: verification.googleVerification }] : []),
     ...(verification.bingVerification ? [{ name: 'msvalidate.01', content: verification.bingVerification }] : []),
+    ...(verification.facebookVerification ? [{ name: 'facebook-domain-verification', content: verification.facebookVerification }] : []),
   ],
   script: [{
     key: 'ld-site',

@@ -119,6 +119,8 @@ bold "1/4  Search engines"
 echo "Google Search Console → Add property → URL prefix → HTML tag: paste the content value (or the whole line)."
 collect GOOGLE_SITE_VERIFICATION "Google verification" check_verification
 collect BING_SITE_VERIFICATION "Bing verification (optional)" check_verification
+echo "Meta Business Settings → Brand safety → Domains → Add → Meta-tag: paste the content value (or the whole line)."
+collect FACEBOOK_DOMAIN_VERIFICATION "Meta domain verification (optional)" check_verification
 
 bold "2/4  Measurement"
 collect GA_ID "Google Analytics Measurement ID (G-…)" check_ga
@@ -140,7 +142,7 @@ if [[ -z "${NEW[OFFER_TEXT]}" && ( -n "${NEW[OFFER_CODE]}" || -n "${NEW[OFFER_UN
   warn "No offer text: the bar won't show."
 fi
 
-KEYS=(GOOGLE_SITE_VERIFICATION BING_SITE_VERIFICATION GA_ID META_PIXEL_ID CONTACT_WHATSAPP FACEBOOK_URL
+KEYS=(GOOGLE_SITE_VERIFICATION BING_SITE_VERIFICATION FACEBOOK_DOMAIN_VERIFICATION GA_ID META_PIXEL_ID CONTACT_WHATSAPP FACEBOOK_URL
   INSTAGRAM_URL TIKTOK_URL YOUTUBE_URL OFFER_TEXT OFFER_CODE OFFER_UNTIL)
 
 bold "Summary"
@@ -193,6 +195,7 @@ found() {
 }
 found GOOGLE_SITE_VERIFICATION "Google verification"
 found BING_SITE_VERIFICATION "Bing verification"
+found FACEBOOK_DOMAIN_VERIFICATION "Meta domain verification"
 found GA_ID "Google Analytics"
 found META_PIXEL_ID "Meta Pixel"
 found CONTACT_WHATSAPP "WhatsApp number"
@@ -203,4 +206,5 @@ bold "Next"
 [[ -n "${NEW[GOOGLE_SITE_VERIFICATION]}" ]] && echo "• Search Console: press Verify, then Sitemaps → sitemap.xml → Submit."
 [[ -n "${NEW[GA_ID]}" ]] && echo "• Google Analytics → Reports → Realtime: open https://${LANDING_DOMAIN} on your phone and look for yourself."
 [[ -n "${NEW[META_PIXEL_ID]}" ]] && echo "• Events Manager: PageView should show within a few minutes."
+[[ -n "${NEW[FACEBOOK_DOMAIN_VERIFICATION]}" ]] && echo "• Meta Business Settings → Brand safety → Domains: press Verify."
 echo "Website: https://${LANDING_DOMAIN}"

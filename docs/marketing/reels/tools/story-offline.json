@@ -1,0 +1,109 @@
+{
+ "recording": "rec-offline",
+ "out": "reel-01-offline.mp4",
+ "hook": {
+  "len": 2.2,
+  "icon": "wifi-off",
+  "html": "النت <span>قطع</span><br>في عز الزحمة؟"
+ },
+ "end": {
+  "len": 3.2,
+  "html": "<span>الكاشير مبيقفش</span><br>حتى من غير نت"
+ },
+ "captions": [
+  {
+   "from": "start",
+   "to": "tap:اسكرينة زجاج 9D iPhone 13",
+   "icon": "wifi-off",
+   "tone": "warn",
+   "title": "النت فصل…",
+   "sub": "والزباين واقفين قدامك"
+  },
+  {
+   "from": "tap:اسكرينة زجاج 9D iPhone 13",
+   "to": "pay",
+   "icon": "cart",
+   "title": "كمّل بيع عادي",
+   "sub": "الأصناف والأسعار محفوظة على الجهاز"
+  },
+  {
+   "from": "pay",
+   "to": "closed",
+   "icon": "save",
+   "title": "الفاتورة اتحفظت",
+   "sub": "على الجهاز لحد ما النت يرجع"
+  },
+  {
+   "from": "closed",
+   "to": "online",
+   "icon": "clock",
+   "title": "مستنية النت…",
+   "sub": "ولا فاتورة هتضيع"
+  },
+  {
+   "from": "online",
+   "to": 16.7,
+   "icon": "wifi",
+   "title": "النت رجع",
+   "sub": ""
+  },
+  {
+   "from": 16.6,
+   "to": null,
+   "icon": "check",
+   "tone": "ok",
+   "title": "واتسجلت لوحدها",
+   "sub": "من غير ما تعمل أي حاجة"
+  }
+ ],
+ "camera": [
+  [
+   0,
+   430,
+   0,
+   620
+  ],
+  [
+   "offline",
+   420,
+   0,
+   560,
+   0.6
+  ],
+  [
+   "tap:اسكرينة زجاج 9D iPhone 13",
+   460,
+   150,
+   560,
+   -0.1
+  ],
+  [
+   "cart",
+   10,
+   170,
+   560,
+   -0.2
+  ],
+  [
+   "pay",
+   360,
+   110,
+   560,
+   0.35
+  ],
+  [
+   "receipt",
+   270,
+   40,
+   700,
+   0.45
+  ],
+  [
+   "closed",
+   430,
+   0,
+   560,
+   0.35
+  ]
+ ]
+}

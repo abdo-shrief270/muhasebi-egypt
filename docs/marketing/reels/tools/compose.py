@@ -14,6 +14,15 @@ ICONS = {
     'wifi': '<path d="M12 20h.01M2 8.82a15 15 0 0 1 20 0M5 12.86a10 10 0 0 1 14 0M8.5 16.43a5 5 0 0 1 7 0"/>',
     'check': '<path d="M20 6 9 17l-5-5"/>',
     'clock': '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    'wrench': '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    'phone': '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+    'user': '<circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+    'smartphone': '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+    'banknote': '<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+    'barcode': '<path d="M3 5v14M8 5v14M12 5v14M17 5v14M21 5v14"/>',
+    'chart': '<path d="M3 3v18h18"/><path d="M7 16v-4M12 16V8M17 16v-7"/>',
+    'wallet': '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+    'receipt': '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11"/>',
 }
 
 
@@ -21,7 +30,7 @@ def icon(name):
     return f'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">{ICONS[name]}</svg>'
 
 
-def stage_html(story):
+def stage_html(story, size):
     caps = ''
     for i, c in enumerate(story['captions']):
         sub = '<div class="s">' + c['sub'] + '</div>' if c.get('sub') else ''
@@ -50,7 +59,7 @@ html,body{{width:1080px;height:1920px;overflow:hidden;font-family:'Readex Pro';d
 .win .bar i{{width:13px;height:13px;border-radius:50%;background:#F87171}}.win .bar i:nth-child(2){{background:#FBBF24}}.win .bar i:nth-child(3){{background:#34D399}}
 .win .bar u{{margin-left:20px;height:24px;border-radius:12px;background:#fff;text-decoration:none;font:500 14px/24px 'Readex Pro';color:#64748B;padding:0 14px}}
 .view{{position:absolute;top:44px;left:0;right:0;bottom:0;overflow:hidden}}
-.view img{{position:absolute;top:0;left:0;width:2560px;height:1600px;transform-origin:0 0}}
+.view img{{position:absolute;top:0;left:0;width:{size[0]*2}px;height:{size[1]*2}px;transform-origin:0 0}}
 .hook,.end{{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0}}
 .hook .big{{font-weight:700;font-size:120px;line-height:1.2}}
 .hook .big span,.end h1 span{{display:inline-block;padding-bottom:.12em;background:linear-gradient(90deg,#FBBF24,#5EEAD4 60%,#2DD4BF);-webkit-background-clip:text;background-clip:text;color:transparent}}
@@ -96,7 +105,7 @@ def main(story_path):
     hook_len, end_len = story['hook']['len'], story['end']['len']
     rec_len = ev['end'] - story.get('trim_end', 0)
     total = hook_len + rec_len + end_len - 0.4
-    open(os.path.join(HERE, '_stage.html'), 'w').write(stage_html(story))
+    open(os.path.join(HERE, '_stage.html'), 'w').write(stage_html(story, rec.get('size', [1280, 800])))
     # caption windows: [start, end) in recording time, from event names or numbers
     def at(v): return ev[v] if isinstance(v, str) else v
     caps = [(at(c['from']) + c.get('delay', 0), at(c['to']) if c.get('to') is not None else rec_len) for c in story['captions']]

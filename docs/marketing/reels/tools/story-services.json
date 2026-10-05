@@ -1,0 +1,88 @@
+{
+ "recording": "rec-services",
+ "out": "reel-05-wallets.mp4",
+ "hook": {
+  "len": 2.4,
+  "icon": "wallet",
+  "html": "فودافون كاش<br>من غير <span>لخبطة</span>"
+ },
+ "end": {
+  "len": 3.2,
+  "html": "<span>الدرج مظبوط</span><br>والعمولة محسوبة"
+ },
+ "captions": [
+  {
+   "from": "start",
+   "to": "amount",
+   "icon": "wallet",
+   "title": "اختار العملية",
+   "sub": "إيداع أو سحب، بلمسة أو من الكيبورد"
+  },
+  {
+   "from": "amount",
+   "to": 3.6,
+   "icon": "banknote",
+   "title": "اكتب المبلغ",
+   "sub": "والعمولة بتتحسب لوحدها"
+  },
+  {
+   "from": 3.5,
+   "to": "saved",
+   "icon": "receipt",
+   "title": "تعرف تاخد كام كاش",
+   "sub": "ورصيد المحفظة بعد العملية"
+  },
+  {
+   "from": "saved",
+   "to": "withdraw",
+   "icon": "check",
+   "tone": "ok",
+   "title": "اتسجلت",
+   "sub": "ونزلت في درج الوردية"
+  },
+  {
+   "from": "withdraw",
+   "to": "saved2",
+   "icon": "banknote",
+   "title": "والسحب نفس الحكاية",
+   "sub": "بتعرف تدّي العميل كام بالظبط"
+  },
+  {
+   "from": "saved2",
+   "to": null,
+   "icon": "chart",
+   "tone": "ok",
+   "title": "عمولاتك النهارده",
+   "sub": "قدامك أول بأول"
+  }
+ ],
+ "camera": [
+  [
+   0,
+   380,
+   200,
+   620
+  ],
+  [
+   "saved",
+   20,
+   200,
+   620,
+   0.5
+  ],
+  [
+   "withdraw",
+   380,
+   200,
+   620,
+   0.2
+  ],
+  [
+   "saved2",
+   20,
+   200,
+   620,
+   0.5
+  ]
+ ]
+}

@@ -1,0 +1,87 @@
+{
+ "recording": "rec-repairs",
+ "out": "reel-02-repairs.mp4",
+ "hook": {
+  "len": 2.2,
+  "icon": "wrench",
+  "html": "استلم جهاز صيانة<br>في <span>أقل من دقيقة</span>"
+ },
+ "end": {
+  "len": 3.2,
+  "html": "<span>استلام أسرع</span><br>من غير ورق ولا كشاكيل"
+ },
+ "captions": [
+  {
+   "from": "start",
+   "to": "name",
+   "icon": "phone",
+   "title": "رقم العميل",
+   "sub": "ولو عميل قديم هيظهرلك على طول"
+  },
+  {
+   "from": "name",
+   "to": "device",
+   "icon": "user",
+   "title": "اسمه",
+   "sub": "مرة واحدة بس، بعد كده بيظهر لوحده"
+  },
+  {
+   "from": "device",
+   "to": "fault",
+   "icon": "smartphone",
+   "title": "الجهاز بلمسة",
+   "sub": "الموديلات اللي بتستلمها كتير قدامك"
+  },
+  {
+   "from": "fault",
+   "to": "details",
+   "icon": "wrench",
+   "title": "العطل",
+   "sub": "تختار عطل واحد أو أكتر"
+  },
+  {
+   "from": "details",
+   "to": "saved",
+   "icon": "banknote",
+   "title": "السعر والميعاد",
+   "sub": "والعربون كمان، وكلهم اختياريين"
+  },
+  {
+   "from": "saved",
+   "to": null,
+   "icon": "check",
+   "tone": "ok",
+   "title": "اتسجّل الجهاز",
+   "sub": "برقم تذكرة وإيصال للعميل"
+  }
+ ],
+ "camera": [
+  [
+   0,
+   340,
+   100,
+   660
+  ],
+  [
+   "device",
+   340,
+   170,
+   660,
+   0.3
+  ],
+  [
+   "details",
+   340,
+   260,
+   650,
+   0.3
+  ],
+  [
+   "saved",
+   180,
+   60,
+   680,
+   0.3
+  ]
+ ]
+}

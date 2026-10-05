@@ -1,0 +1,66 @@
+{
+ "recording": "rec-barcode",
+ "out": "reel-03-barcode.mp4",
+ "hook": {
+  "len": 2.2,
+  "icon": "barcode",
+  "html": "فاتورة كاملة<br>في <span>10 ثواني</span>"
+ },
+ "end": {
+  "len": 3.2,
+  "html": "<span>بيع أسرع</span><br>وزحمة أقل"
+ },
+ "captions": [
+  {
+   "from": "start",
+   "to": "scan0",
+   "icon": "barcode",
+   "title": "امسح الباركود",
+   "sub": "أو دوّر باسم الصنف"
+  },
+  {
+   "from": "scan0",
+   "to": "pay",
+   "icon": "cart",
+   "title": "الصنف نزل بسعره",
+   "sub": "من غير ما تكتب حاجة"
+  },
+  {
+   "from": "pay",
+   "to": "receipt",
+   "icon": "banknote",
+   "title": "الباقي محسوب لوحده",
+   "sub": "كاش أو فيزا أو محفظة أو InstaPay"
+  },
+  {
+   "from": "receipt",
+   "to": null,
+   "icon": "receipt",
+   "tone": "ok",
+   "title": "الإيصال جاهز",
+   "sub": "اطبعه أو ابعته واتساب"
+  }
+ ],
+ "camera": [
+  [
+   0,
+   400,
+   20,
+   600
+  ],
+  [
+   "scan0",
+   0,
+   30,
+   620,
+   0.5
+  ],
+  [
+   "pay",
+   330,
+   100,
+   600,
+   0.35
+  ]
+ ]
+}

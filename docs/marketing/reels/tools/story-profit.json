@@ -1,0 +1,73 @@
+{
+ "recording": "rec-profit",
+ "out": "reel-04-profit.mp4",
+ "hook": {
+  "len": 2.4,
+  "icon": "chart",
+  "html": "بتبيع كتير…<br>بس <span>كسبت كام؟</span>"
+ },
+ "end": {
+  "len": 3.2,
+  "html": "<span>اعرف مكسبك</span><br>مش بس مبيعاتك"
+ },
+ "captions": [
+  {
+   "from": "start",
+   "to": "gross",
+   "icon": "chart",
+   "title": "المبيعات",
+   "sub": "صافية بعد الخصومات والمرتجعات"
+  },
+  {
+   "from": "gross",
+   "to": "expenses",
+   "icon": "banknote",
+   "title": "ناقص تكلفة البضاعة",
+   "sub": "يطلعلك مجمل الربح والهامش"
+  },
+  {
+   "from": "expenses",
+   "to": "chart",
+   "icon": "wallet",
+   "title": "ناقص المصاريف",
+   "sub": "يطلعلك صافي الربح الحقيقي"
+  },
+  {
+   "from": "chart",
+   "to": null,
+   "icon": "receipt",
+   "tone": "ok",
+   "title": "يوم بيوم",
+   "sub": "المبيعات والتكلفة والربح، وتطلعه Excel أو PDF"
+  }
+ ],
+ "camera": [
+  [
+   0,
+   500,
+   120,
+   520
+  ],
+  [
+   "sales",
+   500,
+   180,
+   500,
+   0.4
+  ],
+  [
+   "expenses",
+   260,
+   180,
+   500,
+   0.3
+  ],
+  [
+   "chart",
+   20,
+   0,
+   740,
+   0.6
+  ]
+ ]
+}

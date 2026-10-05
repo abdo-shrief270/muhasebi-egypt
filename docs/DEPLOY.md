@@ -189,6 +189,8 @@ ssh-keyscan -t ed25519 YOUR_SERVER_IP 2>/dev/null   # انسخ السطر (ده 
 
 **الموقع التعريفي (muhasebi.com):** اعمل A record للدومين الأساسي (`@`) ولـ `www` على IP السيرفر (بدل صفحة الـ parking لو موجودة)، وبعدين `cd infra/production && ./setup-landing.sh` — بيسأل على الدومين، يتأكد من الـ DNS، يكتب `LANDING_DOMAIN` و`LANDING_SITE_ADDRESS` في `.env`، يضيف موقع nginx + شهادة certbot لو السيرفر عليه nginx، ينشر، ويتأكد إن الصفحة والأسعار شغالين. الموقع صفحات ثابتة (`apps/site`) والأسعار بتيجي من `/api/v1/public/plans` فبتتحدث لوحدها مع `config/billing.php`.
 
+**قيم التسويق على الموقع:** `./setup-marketing.sh` بيسأل على كود Search Console / Bing، والـ GA4 ID، والـ Meta Pixel ID، ورقم الواتساب، ولينكات السوشيال، وشريط العرض (النص / كود الكوبون / آخر يوم). Enter = سيب القيمة الحالية، `-` = امسحها. بيكتبهم في `.env`، ويعيد بناء الموقع (القيم دي بتتحط وقت البناء)، ويتأكد إنها ظاهرة في الصفحة. شغّله تاني في أي وقت تغيّر فيه قيمة (عرض جديد، أو الـ Pixel بعدين).
+
 **الظهور على جوجل:** الموقع جاهز للأرشفة (عنوان ووصف وcanonical لكل صفحة، بيانات schema.org، `sitemap.xml` بالصور، `robots.txt`، و`llms.txt` / `llms-full.txt` لمساعدات الذكاء الاصطناعي، والأسعار مكتوبة في الـ HTML وقت البناء). خطوة واحدة عليك:
 1. ادخل [Google Search Console](https://search.google.com/search-console) → Add property → **URL prefix** `https://muhasebi.com` → طريقة **HTML tag** → انسخ قيمة `content="…"` بس.
 2. حطها في `.env` كـ `GOOGLE_SITE_VERIFICATION=...` و`./deploy.sh`، وبعدين Verify.

@@ -265,6 +265,22 @@ REVERB_HOST=<الدومين>   REVERB_PORT=443   REVERB_SCHEME=https
 - **لو السيرفر كله وقع** محدش من جوه يقدر يبلّغ: ضيف مراقب مجاني من برّه (UptimeRobot أو Better Stack) على `https://<الدومين>/api/v1/health` يبلّغك لو مارجعش 200.
 - تشيّك بإيدك: `docker compose exec api php artisan monitoring:check` (و `--test` يبعت رسالة تجربة).
 
+## سيرفر البحث (Elasticsearch) لسوق محاسبي
+
+سيرفر لوحده (مش نفس سيرفر التطبيق): Ubuntu 24.04، ‏4 جيجا رام على الأقل (8 أحسن)، 2 vCPU، ‏40 جيجا SSD، و Docker. اعمل A record (مثلاً `search.muhasebi.com`) على الـ IP بتاعه وافتح 80 و 443.
+
+```bash
+git clone … && cd muhasebi-egypt/infra/search && ./setup.sh
+```
+
+بيسأل عن الدومين و IP سيرفر التطبيق (هو بس اللي يقدر يكلّم البحث) والذاكرة، يشغّل Elasticsearch (الحماية شغالة) ورا Caddy (HTTPS)، ويعمل API key مسموح لها بس بالـ `muhasebi_*`، وفي الآخر يطبع `SEARCH_URL` و `SEARCH_API_KEY`: حطهم في `infra/production/.env` على سيرفر التطبيق، وبعدين:
+
+```bash
+docker compose up -d api && docker compose exec api php artisan search:setup && docker compose exec api php artisan search:check
+```
+
+`search:setup` بيعمل الـ indices (`market_offers` و `market_items`، بإصدار `_v{N}` ورا alias) و `search:check` بيوريك الاتصال وإزاي العربي بيتقسّم. لو اتغيّر شكل الـ index (`MarketIndices::VERSION`) بيتعمل جديد جنب القديم والـ alias يتنقل.
+
 ## مشاكل شائعة
 - **الموقع مش بيفتح / مفيش HTTPS:** اتأكد إن الـ A record بيشاور على السيرفر (`dig app.muhasebi.com`) وإن 80 و443 مفتوحين، وبص على `docker compose logs caddy`.
 - **Server Error:** `docker compose logs api --tail 100`.

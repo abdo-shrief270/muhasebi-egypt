@@ -60,6 +60,19 @@ return [
         'url' => env('STORE_URL', 'https://store.muhasebi.com'),
     ],
 
+    // Elasticsearch for «سوق محاسبي» (the marketplace search). Empty url = search off. Prefer an API key
+    // (base64 "id:key") over a username / password; `ca` = path to the cluster's CA certificate when it is
+    // self-signed (else the system CAs). Indices are named {prefix}market_offers_v{n} behind an alias.
+    'search' => [
+        'url' => rtrim((string) env('SEARCH_URL', ''), '/'),
+        'api_key' => env('SEARCH_API_KEY', ''),
+        'username' => env('SEARCH_USERNAME', ''),
+        'password' => env('SEARCH_PASSWORD', ''),
+        'ca' => env('SEARCH_CA', ''),
+        'prefix' => env('SEARCH_PREFIX', 'muhasebi_'),
+        'timeout' => (int) env('SEARCH_TIMEOUT', 5),
+    ],
+
     // Google Play app (Trusted Web Activity): its package and signing key fingerprint(s), comma separated.
     'twa' => [
         'package' => env('TWA_PACKAGE', ''),

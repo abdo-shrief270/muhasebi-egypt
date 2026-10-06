@@ -1,0 +1,10 @@
+{$SEARCH_DOMAIN} {
+	# Only the app server (and whoever setup.sh was told) may talk to the cluster at all.
+	@outside not remote_ip {$ALLOWED_IPS}
+	respond @outside 403
+
+	request_body {
+		max_size 50MB
+	}
+	reverse_proxy elasticsearch:9200
+}

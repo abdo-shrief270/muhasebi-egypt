@@ -1,0 +1,39 @@
+# Synonyms for the marketplace search (Solr format: words on a line mean the same thing).
+# Written already folded the way the index folds Arabic (أإآ→ا، ة→ه، ى→ي), lower case.
+iphone, ايفون, ايفن, اي فون
+apple, ابل
+samsung, سامسونج, سامسنج, سامسونغ
+galaxy, جالاكسي, جلاكسي, جالكسي
+xiaomi, شاومي, شياومي, شاومى
+redmi, ريدمي, ردمي
+poco, بوكو
+oppo, اوبو
+realme, ريلمي, ريل مي
+vivo, فيفو
+infinix, انفينكس, انفنكس
+tecno, تكنو, تيكنو
+honor, هونر, هونور, اونر
+huawei, هواوي
+nokia, نوكيا
+motorola, موتورولا, moto, موتو
+pixel, بكسل, بيكسل
+itel, ايتل
+pro, برو
+max, ماكس
+plus, بلس
+ultra, الترا
+mini, ميني
+جراب, كفر, cover, case
+اسكرينه, سكرينه, لزقه, حمايه شاشه, screen protector, glass
+شاشه, display, lcd
+شاحن, شحان, charger, adapter
+كابل, كبل, وصله, cable
+سماعه, سماعات, هاند فري, هاندفري, headphones, earphones, headset
+ايربودز, airpods, earbuds
+باور بانك, باوربانك, power bank, powerbank
+بطاريه, battery
+ميموري, كارت ميموري, memory card, sd card
+حامل, ستاند, holder, stand
+ساعه ذكيه, سمارت واتش, smart watch, smartwatch
+سوكت, سوكيت, socket, charging port
+مستعمل, used, استعمال

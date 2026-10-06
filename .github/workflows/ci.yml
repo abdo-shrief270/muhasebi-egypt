@@ -133,7 +133,7 @@ jobs:
       - name: Build backup image
         run: docker build -f infra/production/Dockerfile.backup -t muhasebi-backup:ci infra/production && docker run --rm muhasebi-backup:ci sh -c 'pg_dump --version && rclone version | head -n 1'
       - name: Shellcheck deploy scripts
-        run: shellcheck infra/production/*.sh infra/production/backup/*.sh
+        run: shellcheck infra/production/*.sh infra/production/backup/*.sh infra/search/*.sh
 
   deploy:
     # Every push to main that passes all checks goes live (see docs/DEPLOY.md, "النشر التلقائي").

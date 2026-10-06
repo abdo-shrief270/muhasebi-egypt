@@ -45,7 +45,7 @@
       </div>
     </section>
 
-    <section class="mt-16 grid gap-6 md:grid-cols-3">
+    <section class="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <div v-for="i in info" :key="i.title" class="rounded-2xl border border-(--ui-border) p-6">
         <UIcon :name="i.icon" class="mb-3 size-6 text-primary" />
         <p class="font-extrabold">
@@ -70,6 +70,7 @@ const info = [
   { icon: 'i-lucide-clock', title: 'تجربة ببلاش', text: 'أول 14 يوم ببلاش بكل الأقسام المناسبة لنوع محلك. مش محتاج كارت.' },
   { icon: 'i-lucide-credit-card', title: 'الدفع بإنستاباي', text: 'حوّل من التطبيق، واكتب رقم العملية وارفع صورة التحويل من صفحة الاشتراك، وبنفعّل بعد المراجعة.' },
   { icon: 'i-lucide-receipt-text', title: 'فاتورة ضريبية', text: 'كل دفعة ليها فاتورة بالضريبة تقدر تطبعها من جوه البرنامج.' },
+  { icon: 'i-lucide-shopping-bag', title: 'سوق محاسبي (قريباً)', text: 'في كل الباقات: محلك وأصنافك وأسعارك بيظهروا لوحدهم في souq.muhasebi.com قدام زباين بيدوّروا على موبايل أو إكسسوار، ويطلبوا منك أو ييجوا المحل.' },
 ]
 
 usePageSeo({

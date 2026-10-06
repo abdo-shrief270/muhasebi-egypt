@@ -102,6 +102,10 @@
             <li v-for="m in plan.modules" :key="m.key" class="flex items-center gap-1.5">
               <UIcon name="i-lucide-check" class="size-4 text-(--ui-success)" /> {{ m.name }}
             </li>
+            <li class="flex items-center gap-1.5">
+              <UIcon name="i-lucide-check" class="size-4 text-(--ui-success)" /> ظهور تلقائي في سوق محاسبي
+              <UBadge size="sm" color="neutral" variant="subtle" label="قريباً" />
+            </li>
           </ul>
         </button>
       </div>

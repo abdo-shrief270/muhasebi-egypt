@@ -1,0 +1,5433 @@
+{
+ "note": "Draft reference list of phones sold new or used in Egypt (Oct 2026). Review before the marketplace launch; entries with verify=true are 2026 releases to confirm. storage_gb: the usual options; colours and RAM come later.",
+ "phones": [
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone X",
+   "aliases": [
+    "ايفون X"
+   ],
+   "year": 2017,
+   "storage_gb": [
+    64,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone XR",
+   "aliases": [
+    "ايفون XR"
+   ],
+   "year": 2018,
+   "storage_gb": [
+    64,
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone XS",
+   "aliases": [
+    "ايفون XS"
+   ],
+   "year": 2018,
+   "storage_gb": [
+    64,
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone XS Max",
+   "aliases": [
+    "ايفون XS ماكس"
+   ],
+   "year": 2018,
+   "storage_gb": [
+    64,
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 11",
+   "aliases": [
+    "ايفون 11"
+   ],
+   "year": 2019,
+   "storage_gb": [
+    64,
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 11 Pro",
+   "aliases": [
+    "ايفون 11 برو"
+   ],
+   "year": 2019,
+   "storage_gb": [
+    64,
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 11 Pro Max",
+   "aliases": [
+    "ايفون 11 برو ماكس"
+   ],
+   "year": 2019,
+   "storage_gb": [
+    64,
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone SE (2020)",
+   "aliases": [
+    "ايفون SE (2020)"
+   ],
+   "year": 2020,
+   "storage_gb": [
+    64,
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 12 mini",
+   "aliases": [
+    "ايفون 12 ميني"
+   ],
+   "year": 2020,
+   "storage_gb": [
+    64,
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 12",
+   "aliases": [
+    "ايفون 12"
+   ],
+   "year": 2020,
+   "storage_gb": [
+    64,
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 12 Pro",
+   "aliases": [
+    "ايفون 12 برو"
+   ],
+   "year": 2020,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 12 Pro Max",
+   "aliases": [
+    "ايفون 12 برو ماكس"
+   ],
+   "year": 2020,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 13 mini",
+   "aliases": [
+    "ايفون 13 ميني"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 13",
+   "aliases": [
+    "ايفون 13"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 13 Pro",
+   "aliases": [
+    "ايفون 13 برو"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 13 Pro Max",
+   "aliases": [
+    "ايفون 13 برو ماكس"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone SE (2022)",
+   "aliases": [
+    "ايفون SE (2022)"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64,
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 14",
+   "aliases": [
+    "ايفون 14"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 14 Plus",
+   "aliases": [
+    "ايفون 14 بلس"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 14 Pro",
+   "aliases": [
+    "ايفون 14 برو"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 14 Pro Max",
+   "aliases": [
+    "ايفون 14 برو ماكس"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 15",
+   "aliases": [
+    "ايفون 15"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 15 Plus",
+   "aliases": [
+    "ايفون 15 بلس"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 15 Pro",
+   "aliases": [
+    "ايفون 15 برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 15 Pro Max",
+   "aliases": [
+    "ايفون 15 برو ماكس"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 16",
+   "aliases": [
+    "ايفون 16"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 16 Plus",
+   "aliases": [
+    "ايفون 16 بلس"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 16 Pro",
+   "aliases": [
+    "ايفون 16 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 16 Pro Max",
+   "aliases": [
+    "ايفون 16 برو ماكس"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 16e",
+   "aliases": [
+    "ايفون 16e"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 17",
+   "aliases": [
+    "ايفون 17"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone Air",
+   "aliases": [
+    "ايفون اير"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 17 Pro",
+   "aliases": [
+    "ايفون 17 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 17 Pro Max",
+   "aliases": [
+    "ايفون 17 برو ماكس"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512,
+    1024,
+    2048
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Apple",
+   "series": null,
+   "model": "iPhone 17e",
+   "aliases": [
+    "ايفون 17e"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A03",
+   "aliases": [
+    "جالاكسي A03"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    32,
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A03s",
+   "aliases": [
+    "جالاكسي A03s"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    32,
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A04",
+   "aliases": [
+    "جالاكسي A04"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    32,
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A04e",
+   "aliases": [
+    "جالاكسي A04e"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    32,
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A04s",
+   "aliases": [
+    "جالاكسي A04s"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    32,
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A05",
+   "aliases": [
+    "جالاكسي A05"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A05s",
+   "aliases": [
+    "جالاكسي A05s"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A06",
+   "aliases": [
+    "جالاكسي A06"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A06 5G",
+   "aliases": [
+    "جالاكسي A06 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A07",
+   "aliases": [
+    "جالاكسي A07"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A12",
+   "aliases": [
+    "جالاكسي A12"
+   ],
+   "year": 2020,
+   "storage_gb": [
+    32,
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A13",
+   "aliases": [
+    "جالاكسي A13"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    32,
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A14",
+   "aliases": [
+    "جالاكسي A14"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A14 5G",
+   "aliases": [
+    "جالاكسي A14 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A15",
+   "aliases": [
+    "جالاكسي A15"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A15 5G",
+   "aliases": [
+    "جالاكسي A15 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A16",
+   "aliases": [
+    "جالاكسي A16"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A16 5G",
+   "aliases": [
+    "جالاكسي A16 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A17",
+   "aliases": [
+    "جالاكسي A17"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A17 5G",
+   "aliases": [
+    "جالاكسي A17 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A23",
+   "aliases": [
+    "جالاكسي A23"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A24",
+   "aliases": [
+    "جالاكسي A24"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A25 5G",
+   "aliases": [
+    "جالاكسي A25 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A26 5G",
+   "aliases": [
+    "جالاكسي A26 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A32",
+   "aliases": [
+    "جالاكسي A32"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A33 5G",
+   "aliases": [
+    "جالاكسي A33 5G"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A34 5G",
+   "aliases": [
+    "جالاكسي A34 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A35 5G",
+   "aliases": [
+    "جالاكسي A35 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A36 5G",
+   "aliases": [
+    "جالاكسي A36 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A37 5G",
+   "aliases": [
+    "جالاكسي A37 5G"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A51",
+   "aliases": [
+    "جالاكسي A51"
+   ],
+   "year": 2019,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A52",
+   "aliases": [
+    "جالاكسي A52"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A53 5G",
+   "aliases": [
+    "جالاكسي A53 5G"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A54 5G",
+   "aliases": [
+    "جالاكسي A54 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A55 5G",
+   "aliases": [
+    "جالاكسي A55 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A56 5G",
+   "aliases": [
+    "جالاكسي A56 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A57 5G",
+   "aliases": [
+    "جالاكسي A57 5G"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A72",
+   "aliases": [
+    "جالاكسي A72"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy A73 5G",
+   "aliases": [
+    "جالاكسي A73 5G"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy M14",
+   "aliases": [
+    "جالاكسي M14"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy M15 5G",
+   "aliases": [
+    "جالاكسي M15 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy M34 5G",
+   "aliases": [
+    "جالاكسي M34 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S20 FE",
+   "aliases": [
+    "جالاكسي S20 FE"
+   ],
+   "year": 2020,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S21 FE",
+   "aliases": [
+    "جالاكسي S21 FE"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S21 Ultra",
+   "aliases": [
+    "جالاكسي S21 الترا"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S22",
+   "aliases": [
+    "جالاكسي S22"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S22+",
+   "aliases": [
+    "جالاكسي S22+"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S22 Ultra",
+   "aliases": [
+    "جالاكسي S22 الترا"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S23",
+   "aliases": [
+    "جالاكسي S23"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S23+",
+   "aliases": [
+    "جالاكسي S23+"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S23 Ultra",
+   "aliases": [
+    "جالاكسي S23 الترا"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S23 FE",
+   "aliases": [
+    "جالاكسي S23 FE"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S24",
+   "aliases": [
+    "جالاكسي S24"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S24+",
+   "aliases": [
+    "جالاكسي S24+"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S24 Ultra",
+   "aliases": [
+    "جالاكسي S24 الترا"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S24 FE",
+   "aliases": [
+    "جالاكسي S24 FE"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S25",
+   "aliases": [
+    "جالاكسي S25"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S25+",
+   "aliases": [
+    "جالاكسي S25+"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S25 Ultra",
+   "aliases": [
+    "جالاكسي S25 الترا"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S25 Edge",
+   "aliases": [
+    "جالاكسي S25 ايدج"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S25 FE",
+   "aliases": [
+    "جالاكسي S25 FE"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S26",
+   "aliases": [
+    "جالاكسي S26"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S26+",
+   "aliases": [
+    "جالاكسي S26+"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy S26 Ultra",
+   "aliases": [
+    "جالاكسي S26 الترا"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Flip4",
+   "aliases": [
+    "جالاكسي Z Flip4"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Fold4",
+   "aliases": [
+    "جالاكسي Z Fold4"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Flip5",
+   "aliases": [
+    "جالاكسي Z Flip5"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Fold5",
+   "aliases": [
+    "جالاكسي Z Fold5"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Flip6",
+   "aliases": [
+    "جالاكسي Z Flip6"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Fold6",
+   "aliases": [
+    "جالاكسي Z Fold6"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Flip7",
+   "aliases": [
+    "جالاكسي Z Flip7"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Flip7 FE",
+   "aliases": [
+    "جالاكسي Z Flip7 FE"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Samsung",
+   "series": null,
+   "model": "Galaxy Z Fold7",
+   "aliases": [
+    "جالاكسي Z Fold7"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 12T",
+   "aliases": [
+    "شاومي 12T"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 12T Pro",
+   "aliases": [
+    "شاومي 12T برو"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 13T",
+   "aliases": [
+    "شاومي 13T"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 13T Pro",
+   "aliases": [
+    "شاومي 13T برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 14",
+   "aliases": [
+    "شاومي 14"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 14 Ultra",
+   "aliases": [
+    "شاومي 14 الترا"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 14T",
+   "aliases": [
+    "شاومي 14T"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 14T Pro",
+   "aliases": [
+    "شاومي 14T برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 15",
+   "aliases": [
+    "شاومي 15"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 15 Ultra",
+   "aliases": [
+    "شاومي 15 الترا"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 15T",
+   "aliases": [
+    "شاومي 15T"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 15T Pro",
+   "aliases": [
+    "شاومي 15T برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 17",
+   "aliases": [
+    "شاومي 17"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Xiaomi",
+   "series": null,
+   "model": "Xiaomi 17 Ultra",
+   "aliases": [
+    "شاومي 17 الترا"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi A2",
+   "aliases": [
+    "ريدمي A2"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    32,
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi A3",
+   "aliases": [
+    "ريدمي A3"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi A3x",
+   "aliases": [
+    "ريدمي A3x"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi A5",
+   "aliases": [
+    "ريدمي A5"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 10",
+   "aliases": [
+    "ريدمي 10"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 10C",
+   "aliases": [
+    "ريدمي 10C"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 12",
+   "aliases": [
+    "ريدمي 12"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 12C",
+   "aliases": [
+    "ريدمي 12C"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 13",
+   "aliases": [
+    "ريدمي 13"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 13C",
+   "aliases": [
+    "ريدمي 13C"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 14C",
+   "aliases": [
+    "ريدمي 14C"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 15",
+   "aliases": [
+    "ريدمي 15"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi 15C",
+   "aliases": [
+    "ريدمي 15C"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 10",
+   "aliases": [
+    "ريدمي نوت 10"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 11",
+   "aliases": [
+    "ريدمي نوت 11"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 11 Pro",
+   "aliases": [
+    "ريدمي نوت 11 برو"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 12",
+   "aliases": [
+    "ريدمي نوت 12"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 12 Pro",
+   "aliases": [
+    "ريدمي نوت 12 برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 13",
+   "aliases": [
+    "ريدمي نوت 13"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 13 5G",
+   "aliases": [
+    "ريدمي نوت 13 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 13 Pro",
+   "aliases": [
+    "ريدمي نوت 13 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 13 Pro 5G",
+   "aliases": [
+    "ريدمي نوت 13 برو 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 13 Pro+ 5G",
+   "aliases": [
+    "ريدمي نوت 13 برو+ 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 14",
+   "aliases": [
+    "ريدمي نوت 14"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 14 5G",
+   "aliases": [
+    "ريدمي نوت 14 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 14 Pro",
+   "aliases": [
+    "ريدمي نوت 14 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 14 Pro 5G",
+   "aliases": [
+    "ريدمي نوت 14 برو 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 14 Pro+ 5G",
+   "aliases": [
+    "ريدمي نوت 14 برو+ 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 15",
+   "aliases": [
+    "ريدمي نوت 15"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": true
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 15 Pro",
+   "aliases": [
+    "ريدمي نوت 15 برو"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": true
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "Redmi",
+   "model": "Redmi Note 15 Pro+ 5G",
+   "aliases": [
+    "ريدمي نوت 15 برو+ 5G"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": true
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO C65",
+   "aliases": [
+    "بوكو C65"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO C75",
+   "aliases": [
+    "بوكو C75"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO M6",
+   "aliases": [
+    "بوكو M6"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO M6 Pro",
+   "aliases": [
+    "بوكو M6 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO M7 Pro 5G",
+   "aliases": [
+    "بوكو M7 برو 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO X6",
+   "aliases": [
+    "بوكو X6"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO X6 Pro",
+   "aliases": [
+    "بوكو X6 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO X7",
+   "aliases": [
+    "بوكو X7"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO X7 Pro",
+   "aliases": [
+    "بوكو X7 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO F6",
+   "aliases": [
+    "بوكو F6"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO F7",
+   "aliases": [
+    "بوكو F7"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Xiaomi",
+   "series": "POCO",
+   "model": "POCO F7 Pro",
+   "aliases": [
+    "بوكو F7 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A16",
+   "aliases": [
+    "اوبو A16"
+   ],
+   "year": 2021,
+   "storage_gb": [
+    32,
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A17",
+   "aliases": [
+    "اوبو A17"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A17k",
+   "aliases": [
+    "اوبو A17k"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A18",
+   "aliases": [
+    "اوبو A18"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A38",
+   "aliases": [
+    "اوبو A38"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A58",
+   "aliases": [
+    "اوبو A58"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A60",
+   "aliases": [
+    "اوبو A60"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A78",
+   "aliases": [
+    "اوبو A78"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A79 5G",
+   "aliases": [
+    "اوبو A79 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A3",
+   "aliases": [
+    "اوبو A3"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A3x",
+   "aliases": [
+    "اوبو A3x"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A5",
+   "aliases": [
+    "اوبو A5"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A5 Pro",
+   "aliases": [
+    "اوبو A5 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO A6",
+   "aliases": [
+    "اوبو A6"
+   ],
+   "year": 2026,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": true
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno8",
+   "aliases": [
+    "اوبو Reno8"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno10",
+   "aliases": [
+    "اوبو Reno10"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno10 Pro",
+   "aliases": [
+    "اوبو Reno10 برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno11 F",
+   "aliases": [
+    "اوبو Reno11 F"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno11",
+   "aliases": [
+    "اوبو Reno11"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno12 F",
+   "aliases": [
+    "اوبو Reno12 F"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno12",
+   "aliases": [
+    "اوبو Reno12"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno12 Pro",
+   "aliases": [
+    "اوبو Reno12 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno13 F",
+   "aliases": [
+    "اوبو Reno13 F"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno13",
+   "aliases": [
+    "اوبو Reno13"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno13 Pro",
+   "aliases": [
+    "اوبو Reno13 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno14 F",
+   "aliases": [
+    "اوبو Reno14 F"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno14",
+   "aliases": [
+    "اوبو Reno14"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Reno14 Pro",
+   "aliases": [
+    "اوبو Reno14 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Find X8",
+   "aliases": [
+    "اوبو Find X8"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OPPO",
+   "series": null,
+   "model": "OPPO Find X8 Pro",
+   "aliases": [
+    "اوبو Find X8 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C30",
+   "aliases": [
+    "ريلمي C30"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    32,
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C33",
+   "aliases": [
+    "ريلمي C33"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C51",
+   "aliases": [
+    "ريلمي C51"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C53",
+   "aliases": [
+    "ريلمي C53"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C55",
+   "aliases": [
+    "ريلمي C55"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C61",
+   "aliases": [
+    "ريلمي C61"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C63",
+   "aliases": [
+    "ريلمي C63"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C65",
+   "aliases": [
+    "ريلمي C65"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C67",
+   "aliases": [
+    "ريلمي C67"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C71",
+   "aliases": [
+    "ريلمي C71"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme C75",
+   "aliases": [
+    "ريلمي C75"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme Note 50",
+   "aliases": [
+    "ريلمي نوت 50"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme Note 60",
+   "aliases": [
+    "ريلمي نوت 60"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 11",
+   "aliases": [
+    "ريلمي 11"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 11 Pro",
+   "aliases": [
+    "ريلمي 11 برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 12",
+   "aliases": [
+    "ريلمي 12"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 12+ 5G",
+   "aliases": [
+    "ريلمي 12+ 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 12 Pro+ 5G",
+   "aliases": [
+    "ريلمي 12 برو+ 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 13",
+   "aliases": [
+    "ريلمي 13"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 13+ 5G",
+   "aliases": [
+    "ريلمي 13+ 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 13 Pro+ 5G",
+   "aliases": [
+    "ريلمي 13 برو+ 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 14",
+   "aliases": [
+    "ريلمي 14"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 14 Pro+ 5G",
+   "aliases": [
+    "ريلمي 14 برو+ 5G"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 15",
+   "aliases": [
+    "ريلمي 15"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme 15 Pro",
+   "aliases": [
+    "ريلمي 15 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "realme",
+   "series": null,
+   "model": "realme GT 7",
+   "aliases": [
+    "ريلمي GT 7"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y02s",
+   "aliases": [
+    "فيفو Y02s"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    32,
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y03",
+   "aliases": [
+    "فيفو Y03"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y04",
+   "aliases": [
+    "فيفو Y04"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y16",
+   "aliases": [
+    "فيفو Y16"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y17s",
+   "aliases": [
+    "فيفو Y17s"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y18",
+   "aliases": [
+    "فيفو Y18"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y19s",
+   "aliases": [
+    "فيفو Y19s"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y27",
+   "aliases": [
+    "فيفو Y27"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y28",
+   "aliases": [
+    "فيفو Y28"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y29",
+   "aliases": [
+    "فيفو Y29"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo Y36",
+   "aliases": [
+    "فيفو Y36"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo V27",
+   "aliases": [
+    "فيفو V27"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo V29",
+   "aliases": [
+    "فيفو V29"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo V30",
+   "aliases": [
+    "فيفو V30"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo V40",
+   "aliases": [
+    "فيفو V40"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo V50",
+   "aliases": [
+    "فيفو V50"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "vivo",
+   "series": null,
+   "model": "vivo V60",
+   "aliases": [
+    "فيفو V60"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Smart 7",
+   "aliases": [
+    "انفينكس Smart 7"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Smart 8",
+   "aliases": [
+    "انفينكس Smart 8"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Smart 9",
+   "aliases": [
+    "انفينكس Smart 9"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Smart 10",
+   "aliases": [
+    "انفينكس Smart 10"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 30",
+   "aliases": [
+    "انفينكس Hot 30"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 30i",
+   "aliases": [
+    "انفينكس Hot 30i"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 40",
+   "aliases": [
+    "انفينكس Hot 40"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 40i",
+   "aliases": [
+    "انفينكس Hot 40i"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 40 Pro",
+   "aliases": [
+    "انفينكس Hot 40 برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 50",
+   "aliases": [
+    "انفينكس Hot 50"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 50i",
+   "aliases": [
+    "انفينكس Hot 50i"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 50 Pro",
+   "aliases": [
+    "انفينكس Hot 50 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 60",
+   "aliases": [
+    "انفينكس Hot 60"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 60i",
+   "aliases": [
+    "انفينكس Hot 60i"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Hot 60 Pro",
+   "aliases": [
+    "انفينكس Hot 60 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Note 30",
+   "aliases": [
+    "انفينكس نوت 30"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Note 40",
+   "aliases": [
+    "انفينكس نوت 40"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Note 40 Pro",
+   "aliases": [
+    "انفينكس نوت 40 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Note 50",
+   "aliases": [
+    "انفينكس نوت 50"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Note 50 Pro",
+   "aliases": [
+    "انفينكس نوت 50 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Zero 30",
+   "aliases": [
+    "انفينكس Zero 30"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix Zero 40",
+   "aliases": [
+    "انفينكس Zero 40"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix GT 20 Pro",
+   "aliases": [
+    "انفينكس GT 20 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Infinix",
+   "series": null,
+   "model": "Infinix GT 30 Pro",
+   "aliases": [
+    "انفينكس GT 30 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Pop 7",
+   "aliases": [
+    "تكنو Pop 7"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Pop 8",
+   "aliases": [
+    "تكنو Pop 8"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Pop 9",
+   "aliases": [
+    "تكنو Pop 9"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 10",
+   "aliases": [
+    "تكنو Spark 10"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 10 Pro",
+   "aliases": [
+    "تكنو Spark 10 برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 20",
+   "aliases": [
+    "تكنو Spark 20"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 20C",
+   "aliases": [
+    "تكنو Spark 20C"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 20 Pro",
+   "aliases": [
+    "تكنو Spark 20 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 30",
+   "aliases": [
+    "تكنو Spark 30"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 30C",
+   "aliases": [
+    "تكنو Spark 30C"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 30 Pro",
+   "aliases": [
+    "تكنو Spark 30 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 40",
+   "aliases": [
+    "تكنو Spark 40"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Spark 40 Pro",
+   "aliases": [
+    "تكنو Spark 40 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Camon 20",
+   "aliases": [
+    "تكنو Camon 20"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Camon 20 Pro",
+   "aliases": [
+    "تكنو Camon 20 برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Camon 30",
+   "aliases": [
+    "تكنو Camon 30"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Camon 30 Pro 5G",
+   "aliases": [
+    "تكنو Camon 30 برو 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Camon 40",
+   "aliases": [
+    "تكنو Camon 40"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Camon 40 Pro",
+   "aliases": [
+    "تكنو Camon 40 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Pova 6 Pro",
+   "aliases": [
+    "تكنو Pova 6 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "TECNO",
+   "series": null,
+   "model": "TECNO Pova 7",
+   "aliases": [
+    "تكنو Pova 7"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X5",
+   "aliases": [
+    "هونر X5"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    32
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X5 Plus",
+   "aliases": [
+    "هونر X5 بلس"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X6",
+   "aliases": [
+    "هونر X6"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X6a",
+   "aliases": [
+    "هونر X6a"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X6b",
+   "aliases": [
+    "هونر X6b"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X6c",
+   "aliases": [
+    "هونر X6c"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X7a",
+   "aliases": [
+    "هونر X7a"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X7b",
+   "aliases": [
+    "هونر X7b"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X7c",
+   "aliases": [
+    "هونر X7c"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X7d",
+   "aliases": [
+    "هونر X7d"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X8a",
+   "aliases": [
+    "هونر X8a"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X8b",
+   "aliases": [
+    "هونر X8b"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X8c",
+   "aliases": [
+    "هونر X8c"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X9a",
+   "aliases": [
+    "هونر X9a"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X9b",
+   "aliases": [
+    "هونر X9b"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X9c",
+   "aliases": [
+    "هونر X9c"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR X9d",
+   "aliases": [
+    "هونر X9d"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR 90",
+   "aliases": [
+    "هونر 90"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR 200",
+   "aliases": [
+    "هونر 200"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR 200 Pro",
+   "aliases": [
+    "هونر 200 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR 400",
+   "aliases": [
+    "هونر 400"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR 400 Pro",
+   "aliases": [
+    "هونر 400 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR Magic6 Pro",
+   "aliases": [
+    "هونر Magic6 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HONOR",
+   "series": null,
+   "model": "HONOR Magic7 Pro",
+   "aliases": [
+    "هونر Magic7 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova Y61",
+   "aliases": [
+    "هواوي nova Y61"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova Y70",
+   "aliases": [
+    "هواوي nova Y70"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova Y71",
+   "aliases": [
+    "هواوي nova Y71"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova Y72",
+   "aliases": [
+    "هواوي nova Y72"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova 10 SE",
+   "aliases": [
+    "هواوي nova 10 SE"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova 11i",
+   "aliases": [
+    "هواوي nova 11i"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova 11",
+   "aliases": [
+    "هواوي nova 11"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova 12i",
+   "aliases": [
+    "هواوي nova 12i"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova 12 SE",
+   "aliases": [
+    "هواوي nova 12 SE"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova 13",
+   "aliases": [
+    "هواوي nova 13"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI nova 13 Pro",
+   "aliases": [
+    "هواوي nova 13 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI Pura 70",
+   "aliases": [
+    "هواوي Pura 70"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI Pura 70 Ultra",
+   "aliases": [
+    "هواوي Pura 70 الترا"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "HUAWEI",
+   "series": null,
+   "model": "HUAWEI Mate X6",
+   "aliases": [
+    "هواوي Mate X6"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    512
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia C12",
+   "aliases": [
+    "نوكيا C12"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia C22",
+   "aliases": [
+    "نوكيا C22"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia C32",
+   "aliases": [
+    "نوكيا C32"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia G21",
+   "aliases": [
+    "نوكيا G21"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia G22",
+   "aliases": [
+    "نوكيا G22"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia 105 (2023)",
+   "aliases": [
+    "نوكيا 105 (2023)"
+   ],
+   "year": 2023,
+   "storage_gb": [],
+   "network": "2G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia 106 4G",
+   "aliases": [
+    "نوكيا 106 4G"
+   ],
+   "year": 2023,
+   "storage_gb": [],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia 110 4G",
+   "aliases": [
+    "نوكيا 110 4G"
+   ],
+   "year": 2023,
+   "storage_gb": [],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Nokia",
+   "series": null,
+   "model": "Nokia 3210 4G",
+   "aliases": [
+    "نوكيا 3210 4G"
+   ],
+   "year": 2024,
+   "storage_gb": [],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Moto G04",
+   "aliases": [
+    "موتو G04"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Moto G05",
+   "aliases": [
+    "موتو G05"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Moto G24",
+   "aliases": [
+    "موتو G24"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Moto G34 5G",
+   "aliases": [
+    "موتو G34 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Moto G54 5G",
+   "aliases": [
+    "موتو G54 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Moto G84 5G",
+   "aliases": [
+    "موتو G84 5G"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Moto G85 5G",
+   "aliases": [
+    "موتو G85 5G"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Motorola Edge 50 Fusion",
+   "aliases": [
+    "موتو ايدج 50 Fusion"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Motorola Edge 50 Pro",
+   "aliases": [
+    "موتو ايدج 50 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Motorola",
+   "series": null,
+   "model": "Motorola Edge 60",
+   "aliases": [
+    "موتو ايدج 60"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "itel",
+   "series": null,
+   "model": "itel A50",
+   "aliases": [
+    "ايتل A50"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    64
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "itel",
+   "series": null,
+   "model": "itel A70",
+   "aliases": [
+    "ايتل A70"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    64,
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "itel",
+   "series": null,
+   "model": "itel A80",
+   "aliases": [
+    "ايتل A80"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "itel",
+   "series": null,
+   "model": "itel P55",
+   "aliases": [
+    "ايتل P55"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "itel",
+   "series": null,
+   "model": "itel P65",
+   "aliases": [
+    "ايتل P65"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "itel",
+   "series": null,
+   "model": "itel S24",
+   "aliases": [
+    "ايتل S24"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "itel",
+   "series": null,
+   "model": "itel S25",
+   "aliases": [
+    "ايتل S25"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "4G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 7",
+   "aliases": [
+    "بكسل 7"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 7 Pro",
+   "aliases": [
+    "بكسل 7 برو"
+   ],
+   "year": 2022,
+   "storage_gb": [
+    128,
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 7a",
+   "aliases": [
+    "بكسل 7a"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 8",
+   "aliases": [
+    "بكسل 8"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 8 Pro",
+   "aliases": [
+    "بكسل 8 برو"
+   ],
+   "year": 2023,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 8a",
+   "aliases": [
+    "بكسل 8a"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 9",
+   "aliases": [
+    "بكسل 9"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 9 Pro",
+   "aliases": [
+    "بكسل 9 برو"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 9 Pro XL",
+   "aliases": [
+    "بكسل 9 برو XL"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 9a",
+   "aliases": [
+    "بكسل 9a"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 10",
+   "aliases": [
+    "بكسل 10"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 10 Pro",
+   "aliases": [
+    "بكسل 10 برو"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    128,
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "Google",
+   "series": null,
+   "model": "Pixel 10 Pro XL",
+   "aliases": [
+    "بكسل 10 برو XL"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512,
+    1024
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OnePlus",
+   "series": null,
+   "model": "OnePlus Nord CE4",
+   "aliases": [
+    "ون بلس Nord CE4"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    128,
+    256
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OnePlus",
+   "series": null,
+   "model": "OnePlus Nord 4",
+   "aliases": [
+    "ون بلس Nord 4"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OnePlus",
+   "series": null,
+   "model": "OnePlus 12",
+   "aliases": [
+    "ون بلس 12"
+   ],
+   "year": 2024,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  },
+  {
+   "brand": "OnePlus",
+   "series": null,
+   "model": "OnePlus 13",
+   "aliases": [
+    "ون بلس 13"
+   ],
+   "year": 2025,
+   "storage_gb": [
+    256,
+    512
+   ],
+   "network": "5G",
+   "verify": false
+  }
+ ]
+}

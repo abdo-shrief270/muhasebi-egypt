@@ -166,7 +166,7 @@ def brochure_outside():
   <p style="margin-top:2mm">نفس البرنامج، وكل محل بيفتح الأقسام اللي تناسب شغله بس.</p>
   {flap}
   <div style="margin-top:7mm;border-top:.3mm solid #D7E7E5;padding-top:5mm;display:flex;flex-direction:column;gap:2.2mm">
-    {''.join(f'<div style="display:flex;gap:2.2mm;align-items:center;font-size:8.6pt;font-weight:600"><span style="color:#0D9488;font-size:4mm">{icon("check")}</span>{t}</div>' for t in ['على الكمبيوتر والموبايل والتابلت', 'نسخة احتياطية من بياناتك كل يوم', 'تجربة 14 يوم من غير كارت'])}
+    {''.join(f'<div style="display:flex;gap:2.2mm;align-items:center;font-size:8.6pt;font-weight:600"><span style="color:#0D9488;font-size:4mm">{icon("check")}</span>{t}</div>' for t in ['محلك بيظهر لوحده في سوق محاسبي (قريباً)', 'على الكمبيوتر والموبايل والتابلت', 'نسخة احتياطية من بياناتك كل يوم', 'تجربة 14 يوم من غير كارت'])}
   </div>
 </div>'''
     return page(297, 210, body, BRO_CSS)
@@ -186,7 +186,7 @@ def brochure_inside():
         ('wrench', 'استلام جهاز في أقل من دقيقة', 'على شاشة لمس: الرقم، الجهاز، العطل، والسعر. والعميل يتابع جهازه برسالة واتساب.'),
         ('smartphone', 'IMEI لكل جهاز', 'تعرف كل جهاز اتشرى من مين واتباع لمين، والمستعمل بفحصه وصورة البطاقة.'),
         ('boxes', 'مخزن مظبوط', 'لكل فرع، بالتكلفة الحقيقية، وجرد، وتحويلات بين الفروع، ومرتجعات للموردين.'),
-        ('store', 'متجر أونلاين لمحلك', 'أصنافك على لينك باسم محلك، والطلبات توصلك على البرنامج.'),
+        ('store', 'متجر أونلاين + سوق محاسبي', 'أصنافك على لينك باسم محلك، وبتظهر لوحدها في سوق محاسبي قدام زباين من كل مصر (قريباً).'),
     ])
     money = feats([
         ('chart', 'مكسبك الحقيقي', 'المبيعات ناقص التكلفة ناقص المصاريف، يوم بيوم، وتطلعه Excel أو PDF.'),
@@ -216,6 +216,7 @@ def brochure_inside():
     <p style="font-size:8pt">الباقات تبدأ من</p>
     <p style="font-weight:800;font-size:20pt;color:#fff;line-height:1.6"><span class="grad">299 ج</span> في الشهر</p>
     <p style="font-size:8pt">شامل الضريبة · أول 14 يوم ببلاش · من غير عقود</p>
+    <p style="font-size:8pt;margin-top:1mm">وكل الباقات فيها ظهور تلقائي في سوق محاسبي</p>
     <p style="font-size:8pt;margin-top:1.5mm">كل الباقات على <span dir="ltr" style="color:#5EEAD4;font-weight:600">muhasebi.com/pricing</span></p>
   </div>
 </div>'''
@@ -242,7 +243,7 @@ def card_front():
 def card_back():
     title = f'<div style="font-size:7.2pt;color:#5B7A7F">{CONTACT["title"]}</div>' if CONTACT['title'] else ''
     row = lambda ic, txt: f'<div style="display:flex;gap:1.8mm;align-items:center;font-size:7.6pt;font-weight:600"><span style="color:#0D9488;font-size:3.4mm">{icon(ic)}</span><span dir="ltr">{txt}</span></div>'
-    body = f'''<div class="in" style="display:flex;gap:4mm;align-items:center">
+    body = f'''<div class="in" style="display:flex;gap:4mm;align-items:center;bottom:9.5mm;padding-top:2mm;padding-bottom:1mm">
   <div style="flex:1;display:flex;flex-direction:column;gap:1.6mm">
     <div style="font-weight:800;font-size:11pt;line-height:1.5">{CONTACT['name']}</div>
     <div style="font-size:6.6pt;color:#5B7A7F;direction:ltr;text-align:right;letter-spacing:.02em">{CONTACT['name_en']}</div>{title}
@@ -252,7 +253,7 @@ def card_back():
   <div style="text-align:center"><div style="width:21mm;height:21mm">{QR_CARD}</div>
     <div style="font-size:5.6pt;color:#5B7A7F;margin-top:1mm">جرّب ببلاش 14 يوم</div></div>
 </div>
-<div style="position:absolute;left:0;right:0;bottom:0;height:6.5mm;background:linear-gradient(90deg,#0B4F58,#14B8A6)"></div>'''
+<div style="position:absolute;left:0;right:0;bottom:0;height:9.5mm;padding:0 8mm 3mm;background:linear-gradient(90deg,#0B4F58,#14B8A6);color:#fff;display:flex;align-items:center;justify-content:center;gap:1.4mm;font-size:6.2pt;font-weight:600">{icon('store')} محلك بيظهر لوحده في سوق محاسبي للزباين · قريباً</div>'''
     return page(85, 55, body, CARD_CSS)
 
 
@@ -262,7 +263,8 @@ def offer_front():
     <div style="display:flex;align-items:center;gap:1.8mm;font-weight:800;font-size:9pt"><img src="mark.svg" style="width:5.5mm;height:5.5mm">محاسبي</div>
     <div style="margin-top:auto;font-size:7.4pt;color:#FBBF24;font-weight:600">{OFFER['who']}</div>
     <div style="font-weight:800;font-size:17pt;line-height:1.55"><span class="grad">{OFFER['text'].split(' ', 2)[0]} {OFFER['text'].split(' ', 2)[1]}</span> {OFFER['text'].split(' ', 2)[2]}</div>
-    <div style="margin-top:2.5mm;display:flex;align-items:center;gap:2mm">
+    <div style="font-size:6.8pt;color:rgba(255,255,255,.8);margin-top:.5mm">+ ظهور تلقائي لمحلك في سوق محاسبي (قريباً)</div>
+    <div style="margin-top:2mm;display:flex;align-items:center;gap:2mm">
       <span style="font-size:7pt;color:rgba(255,255,255,.75)">الكود</span>
       <span style="border:.35mm dashed #FBBF24;border-radius:1.6mm;padding:.8mm 2.6mm;font-weight:800;font-size:10pt;letter-spacing:.12em;direction:ltr">{OFFER['code']}</span>
     </div>
@@ -273,7 +275,7 @@ def offer_front():
 def offer_back():
     steps = ['امسح الـ QR وسجّل محلك', 'جرّب كل حاجة ببلاش 14 يوم', 'وانت بتشترك اكتب كود الخصم']
     li = ''.join(f'<li style="display:flex;gap:1.8mm;align-items:center;font-size:7.2pt"><b style="width:4mm;height:4mm;border-radius:50%;background:#0D9488;color:#fff;display:grid;place-items:center;font-size:6pt;flex:none">{i + 1}</b>{s}</li>' for i, s in enumerate(steps))
-    body = f'''<div class="in" style="display:flex;gap:4mm;align-items:center">
+    body = f'''<div class="in" style="display:flex;gap:4mm;align-items:center;bottom:9.5mm;padding-top:2mm;padding-bottom:1mm">
   <div style="flex:1">
     <div style="font-weight:800;font-size:9.5pt">إزاي تاخد العرض؟</div>
     <ol style="list-style:none;display:flex;flex-direction:column;gap:1.6mm;margin-top:2.2mm">{li}</ol>
@@ -282,7 +284,7 @@ def offer_back():
   </div>
   <div style="width:22mm;height:22mm">{QR_OFFER}</div>
 </div>
-<div style="position:absolute;left:0;right:0;bottom:0;height:6.5mm;background:linear-gradient(90deg,#0B4F58,#14B8A6)"></div>'''
+<div style="position:absolute;left:0;right:0;bottom:0;height:9.5mm;padding:0 8mm 3mm;background:linear-gradient(90deg,#0B4F58,#14B8A6);color:#fff;display:flex;align-items:center;justify-content:center;gap:1.4mm;font-size:6.2pt;font-weight:600">{icon('store')} محلك بيظهر لوحده في سوق محاسبي للزباين · قريباً</div>'''
     return page(85, 55, body, CARD_CSS)
 
 

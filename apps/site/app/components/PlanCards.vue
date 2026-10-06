@@ -55,6 +55,11 @@
             <span>{{ m.name }}</span>
             <UBadge v-if="!m.available" size="sm" color="neutral" variant="subtle" label="قريباً" />
           </li>
+          <li class="flex items-start gap-2">
+            <UIcon name="i-lucide-check" class="mt-1 size-4 shrink-0 text-primary" />
+            <span>ظهور تلقائي لمحلك وأصنافك في سوق محاسبي</span>
+            <UBadge size="sm" color="neutral" variant="subtle" label="قريباً" />
+          </li>
         </ul>
       </div>
     </div>

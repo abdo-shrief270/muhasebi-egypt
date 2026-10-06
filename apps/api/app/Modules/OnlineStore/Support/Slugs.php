@@ -19,7 +19,7 @@ final class Slugs
         // Subdomains of the platform ({slug}.muhasebi.com must never shadow them).
         'account', 'admin', 'api', 'app', 'beta', 'billing', 'blog', 'cdn', 'dashboard', 'dev', 'docs', 'ftp', 'help',
         'm', 'mail', 'muhasebi', 'my', 'ns1', 'ns2', 'owner', 'pay', 'shop', 'shops', 'smtp', 'staging', 'status',
-        'store', 'stores', 'support', 'test', 'www',
+        'store', 'stores', 'souq', 'souk', 'market', 'support', 'test', 'www',
     ];
 
     public static function valid(string $slug): bool

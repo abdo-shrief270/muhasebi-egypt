@@ -42,7 +42,7 @@ export default defineNuxtConfig({
         'lucide:tag', 'lucide:smartphone', 'lucide:credit-card', 'lucide:lock-keyhole', 'lucide:book-open', 'lucide:life-buoy',
         'lucide:percent', 'lucide:store', 'lucide:undo-2', 'lucide:arrow-left-right', 'lucide:user-cog', 'lucide:file-spreadsheet',
         'lucide:bell', 'lucide:qr-code', 'lucide:hand-coins', 'lucide:settings', 'lucide:sparkles', 'lucide:check', 'lucide:clock',
-        'lucide:monitor-smartphone', 'lucide:sun', 'lucide:moon', 'lucide:menu', 'lucide:arrow-left', 'lucide:lightbulb', 'lucide:triangle-alert', 'lucide:calendar-clock', 'lucide:gauge', 'lucide:headphones', 'lucide:circle-alert', 'lucide:facebook', 'lucide:instagram', 'lucide:youtube', 'lucide:music-2', 'lucide:newspaper', 'lucide:clock-3', 'lucide:chart-line', 'lucide:database', 'lucide:user-check',
+        'lucide:monitor-smartphone', 'lucide:sun', 'lucide:moon', 'lucide:menu', 'lucide:arrow-left', 'lucide:lightbulb', 'lucide:triangle-alert', 'lucide:calendar-clock', 'lucide:gauge', 'lucide:headphones', 'lucide:circle-alert', 'lucide:facebook', 'lucide:instagram', 'lucide:youtube', 'lucide:music-2', 'lucide:newspaper', 'lucide:clock-3', 'lucide:chart-line', 'lucide:database', 'lucide:user-check', 'lucide:shopping-bag',
       ],
     },
   },

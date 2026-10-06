@@ -7,7 +7,7 @@ const RESERVED = new Set([
   'assets', 'cart', 'checkout', 'login', 'new', 'order', 'orders', 'robots', 'search', 'sitemap', 'static', '_nuxt',
   'account', 'admin', 'api', 'app', 'beta', 'billing', 'blog', 'cdn', 'dashboard', 'dev', 'docs', 'ftp', 'help',
   'm', 'mail', 'muhasebi', 'my', 'ns1', 'ns2', 'owner', 'pay', 'shop', 'shops', 'smtp', 'staging', 'status',
-  'store', 'stores', 'support', 'test', 'www',
+  'store', 'stores', 'souq', 'souk', 'market', 'support', 'test', 'www',
 ])
 
 export function validSlug(slug: string): boolean {

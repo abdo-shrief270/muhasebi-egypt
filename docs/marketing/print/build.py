@@ -12,11 +12,11 @@ OUT = os.path.join(HERE, 'out')
 os.makedirs(OUT, exist_ok=True)
 
 CONTACT = {
-    'name': 'عبد الرحمن شريف',
+    'name': 'عبد الرحمن شريف علي',
+    'name_en': 'Abdelrahman Shrief Ali',
     'title': '',                       # e.g. 'المؤسس' — empty = not printed
-    'phone': '01X XXXX XXXX',          # the WhatsApp / call number as it should print
+    'phone': '0155 544 0882',          # the WhatsApp / call number as it should print
     'site': 'muhasebi.com',
-    'facebook': 'facebook.com/muhasebi.eg',
 }
 OFFER = {'code': 'FOUNDERS50', 'text': 'خصم 50% أول 3 شهور', 'who': 'لأول 100 محل', 'until': 'العرض لحد 30 نوفمبر 2026'}
 BLEED = 3  # mm
@@ -61,7 +61,7 @@ BASE_CSS = '''
 * { box-sizing: border-box; margin: 0; padding: 0 }
 html, body { font-family: 'Readex Pro'; direction: rtl; color: #0A2A2F; -webkit-print-color-adjust: exact; print-color-adjust: exact }
 .ic { width: 1em; height: 1em; flex: none }
-.grad { background: linear-gradient(90deg, #F59E0B, #14B8A6 60%, #0D9488); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; padding-bottom: .12em }
+.grad { background: linear-gradient(90deg, #F59E0B, #14B8A6 60%, #0D9488); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; padding: .05em 0 .2em; line-height: 1.3 }
 .dark { background:
   radial-gradient(70mm 60mm at 85% 10%, rgba(20,184,166,.45), transparent 62%),
   radial-gradient(60mm 50mm at 0% 100%, rgba(251,191,36,.14), transparent 60%),
@@ -101,8 +101,8 @@ BRO_CSS = '''
 .p-l { left: 0; width: 102mm; padding-left: 12mm }       /* left panel takes the left bleed */
 .p-m { left: 102mm; width: 99mm }
 .p-r { left: 201mm; width: 102mm; padding-right: 12mm }  /* right panel takes the right bleed */
-h2 { font-weight: 800; font-size: 17pt; line-height: 1.25 }
-h3 { font-weight: 700; font-size: 10.5pt }
+h2 { font-weight: 800; font-size: 17pt; line-height: 1.6 }
+h3 { font-weight: 700; font-size: 10.5pt; line-height: 1.5 }
 p, li { font-size: 8.6pt; line-height: 1.6; color: #3B5459 }
 .dark p { color: rgba(255,255,255,.78) }
 .kicker { display: inline-flex; align-items: center; gap: 1.6mm; font-weight: 600; font-size: 7.6pt; color: #0D9488; background: #E6FAF7; border: .25mm solid #99F6E4; border-radius: 99mm; padding: 1mm 3mm }
@@ -134,7 +134,7 @@ def brochure_outside():
   <div style="position:relative;height:100%;display:flex;flex-direction:column">
     <div class="brand"><img src="mark.svg">محاسبي</div>
     <div style="margin-top:20mm"><span class="kicker">برنامج محلات الموبايلات</span></div>
-    <h1 style="margin-top:5mm;font-weight:800;font-size:27pt;line-height:1.25">محلك كله<br>في <span class="grad">برنامج واحد</span></h1>
+    <h1 style="margin-top:5mm;font-weight:800;font-size:27pt;line-height:1.55">محلك كله<br>في <span class="grad">برنامج واحد</span></h1>
     <p style="margin-top:4mm;font-size:9.6pt">كاشير، مخزن بالـ IMEI، صيانة، آجل وتقسيط، شحن وتحويلات، وتقارير بمكسبك الحقيقي.</p>
     <div style="margin-top:auto;position:relative;height:72mm">
       <div style="position:absolute;left:-14mm;bottom:8mm;transform:rotate(-4deg)">{shot('pos', 96, 60)}</div>
@@ -158,7 +158,6 @@ def brochure_outside():
   <div style="margin-top:auto;display:flex;flex-direction:column;gap:2.4mm;font-size:9pt;font-weight:600">
     <div style="display:flex;gap:2.5mm;align-items:center"><span style="color:#0D9488;font-size:4.6mm">{icon('globe')}</span><span dir="ltr">{CONTACT['site']}</span></div>
     <div style="display:flex;gap:2.5mm;align-items:center"><span style="color:#0D9488;font-size:4.6mm">{icon('whatsapp')}</span><span dir="ltr">{CONTACT['phone']}</span></div>
-    <div style="display:flex;gap:2.5mm;align-items:center"><span style="color:#0D9488;font-size:4.6mm">{icon('facebook')}</span><span dir="ltr">{CONTACT['facebook']}</span></div>
   </div>
 </div>
 <div class="panel p-r">
@@ -167,7 +166,7 @@ def brochure_outside():
   <p style="margin-top:2mm">نفس البرنامج، وكل محل بيفتح الأقسام اللي تناسب شغله بس.</p>
   {flap}
   <div style="margin-top:7mm;border-top:.3mm solid #D7E7E5;padding-top:5mm;display:flex;flex-direction:column;gap:2.2mm">
-    {''.join(f'<div style="display:flex;gap:2.2mm;align-items:center;font-size:8.6pt;font-weight:600"><span style="color:#0D9488;font-size:4mm">{icon("check")}</span>{t}</div>' for t in ['بالعامية المصرية', 'على الكمبيوتر والموبايل والتابلت', 'نسخة احتياطية من بياناتك كل يوم'])}
+    {''.join(f'<div style="display:flex;gap:2.2mm;align-items:center;font-size:8.6pt;font-weight:600"><span style="color:#0D9488;font-size:4mm">{icon("check")}</span>{t}</div>' for t in ['على الكمبيوتر والموبايل والتابلت', 'نسخة احتياطية من بياناتك كل يوم', 'تجربة 14 يوم من غير كارت'])}
   </div>
 </div>'''
     return page(297, 210, body, BRO_CSS)
@@ -215,7 +214,7 @@ def brochure_inside():
   <div style="margin-top:auto">{shot('report-sales', 81, 34)}</div>
   <div class="dark" style="margin-top:4mm;position:relative;border-radius:4mm;padding:5mm;overflow:hidden">
     <p style="font-size:8pt">الباقات تبدأ من</p>
-    <p style="font-weight:800;font-size:20pt;color:#fff;line-height:1.3"><span class="grad">299 ج</span> في الشهر</p>
+    <p style="font-weight:800;font-size:20pt;color:#fff;line-height:1.6"><span class="grad">299 ج</span> في الشهر</p>
     <p style="font-size:8pt">شامل الضريبة · أول 14 يوم ببلاش · من غير عقود</p>
     <p style="font-size:8pt;margin-top:1.5mm">كل الباقات على <span dir="ltr" style="color:#5EEAD4;font-weight:600">muhasebi.com/pricing</span></p>
   </div>
@@ -233,8 +232,8 @@ def card_front():
     body = f'''<div class="dark" style="position:absolute;inset:0"><div class="gridbg"></div>
   <div class="in" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
     <img src="mark.svg" style="width:15mm;height:15mm;filter:drop-shadow(0 1.5mm 4mm rgba(20,184,166,.5))">
-    <div style="font-weight:800;font-size:17pt;margin-top:2mm">محاسبي</div>
-    <div style="font-size:7pt;letter-spacing:.35em;color:#5EEAD4;font-weight:600;direction:ltr;margin-top:.5mm">MUHASEBI</div>
+    <div style="font-weight:800;font-size:17pt;margin-top:2mm;line-height:1.5">محاسبي</div>
+    <div style="font-size:7pt;letter-spacing:.35em;color:#5EEAD4;font-weight:600;direction:ltr;margin-top:1.6mm">MUHASEBI</div>
     <div style="font-size:7.4pt;color:rgba(255,255,255,.75);margin-top:2mm">برنامج محلات الموبايلات</div>
   </div></div>'''
     return page(85, 55, body, CARD_CSS)
@@ -245,9 +244,10 @@ def card_back():
     row = lambda ic, txt: f'<div style="display:flex;gap:1.8mm;align-items:center;font-size:7.6pt;font-weight:600"><span style="color:#0D9488;font-size:3.4mm">{icon(ic)}</span><span dir="ltr">{txt}</span></div>'
     body = f'''<div class="in" style="display:flex;gap:4mm;align-items:center">
   <div style="flex:1;display:flex;flex-direction:column;gap:1.6mm">
-    <div style="font-weight:800;font-size:11pt">{CONTACT['name']}</div>{title}
+    <div style="font-weight:800;font-size:11pt;line-height:1.5">{CONTACT['name']}</div>
+    <div style="font-size:6.6pt;color:#5B7A7F;direction:ltr;text-align:right;letter-spacing:.02em">{CONTACT['name_en']}</div>{title}
     <div style="height:.35mm;width:12mm;background:linear-gradient(90deg,#F59E0B,#14B8A6);margin:1mm 0"></div>
-    {row('whatsapp', CONTACT['phone'])}{row('globe', CONTACT['site'])}{row('facebook', CONTACT['facebook'])}
+    {row('whatsapp', CONTACT['phone'])}{row('globe', CONTACT['site'])}
   </div>
   <div style="text-align:center"><div style="width:21mm;height:21mm">{QR_CARD}</div>
     <div style="font-size:5.6pt;color:#5B7A7F;margin-top:1mm">جرّب ببلاش 14 يوم</div></div>
@@ -261,7 +261,7 @@ def offer_front():
   <div class="in" style="display:flex;flex-direction:column">
     <div style="display:flex;align-items:center;gap:1.8mm;font-weight:800;font-size:9pt"><img src="mark.svg" style="width:5.5mm;height:5.5mm">محاسبي</div>
     <div style="margin-top:auto;font-size:7.4pt;color:#FBBF24;font-weight:600">{OFFER['who']}</div>
-    <div style="font-weight:800;font-size:17pt;line-height:1.2"><span class="grad">{OFFER['text'].split(' ', 2)[0]} {OFFER['text'].split(' ', 2)[1]}</span> {OFFER['text'].split(' ', 2)[2]}</div>
+    <div style="font-weight:800;font-size:17pt;line-height:1.55"><span class="grad">{OFFER['text'].split(' ', 2)[0]} {OFFER['text'].split(' ', 2)[1]}</span> {OFFER['text'].split(' ', 2)[2]}</div>
     <div style="margin-top:2.5mm;display:flex;align-items:center;gap:2mm">
       <span style="font-size:7pt;color:rgba(255,255,255,.75)">الكود</span>
       <span style="border:.35mm dashed #FBBF24;border-radius:1.6mm;padding:.8mm 2.6mm;font-weight:800;font-size:10pt;letter-spacing:.12em;direction:ltr">{OFFER['code']}</span>

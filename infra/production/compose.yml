@@ -154,6 +154,35 @@ services:
       timeout: 10s
       start_period: 30m
 
+  # The marketplace's search (Elasticsearch, one node). Off unless COMPOSE_PROFILES has "search"
+  # (./setup-search.sh). Only the app's containers reach it: no port is published.
+  search:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION:-9.1.0}
+    profiles: [search]
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - cluster.name=muhasebi
+      - node.name=search-1
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - xpack.ml.enabled=false
+      - ELASTIC_PASSWORD=${SEARCH_PASSWORD:-}
+      - ES_JAVA_OPTS=-Xms${ES_HEAP:-512m} -Xmx${ES_HEAP:-512m}
+    # A hard cap so search can never starve Postgres / the POS (heap + about half again).
+    mem_limit: ${ES_MEM_LIMIT:-1g}
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs -u elastic:$$ELASTIC_PASSWORD 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' >/dev/null"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 90s
+
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -171,3 +200,4 @@ volumes:
   storage:
   caddy_data:
   caddy_config:
+  esdata:

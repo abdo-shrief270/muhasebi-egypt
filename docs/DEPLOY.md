@@ -265,21 +265,19 @@ REVERB_HOST=<الدومين>   REVERB_PORT=443   REVERB_SCHEME=https
 - **لو السيرفر كله وقع** محدش من جوه يقدر يبلّغ: ضيف مراقب مجاني من برّه (UptimeRobot أو Better Stack) على `https://<الدومين>/api/v1/health` يبلّغك لو مارجعش 200.
 - تشيّك بإيدك: `docker compose exec api php artisan monitoring:check` (و `--test` يبعت رسالة تجربة).
 
-## سيرفر البحث (Elasticsearch) لسوق محاسبي
+## البحث (Elasticsearch) لسوق محاسبي
 
-سيرفر لوحده (مش نفس سيرفر التطبيق): Ubuntu 24.04، ‏4 جيجا رام على الأقل (8 أحسن)، 2 vCPU، ‏40 جيجا SSD، و Docker. اعمل A record (مثلاً `search.muhasebi.com`) على الـ IP بتاعه وافتح 80 و 443.
-
-```bash
-git clone … && cd muhasebi-egypt/infra/search && ./setup.sh
-```
-
-بيسأل عن الدومين و IP سيرفر التطبيق (هو بس اللي يقدر يكلّم البحث) والذاكرة، يشغّل Elasticsearch (الحماية شغالة) ورا Caddy (HTTPS)، ويعمل API key مسموح لها بس بالـ `muhasebi_*`، وفي الآخر يطبع `SEARCH_URL` و `SEARCH_API_KEY`: حطهم في `infra/production/.env` على سيرفر التطبيق، وبعدين:
+**على نفس السيرفر (البداية):**
 
 ```bash
-docker compose up -d api && docker compose exec api php artisan search:setup && docker compose exec api php artisan search:check
+cd infra/production && ./setup-search.sh
 ```
 
-`search:setup` بيعمل الـ indices (`market_offers` و `market_items`، بإصدار `_v{N}` ورا alias) و `search:check` بيوريك الاتصال وإزاي العربي بيتقسّم. لو اتغيّر شكل الـ index (`MarketIndices::VERSION`) بيتعمل جديد جنب القديم والـ alias يتنقل.
+بيشوف الرامات ويقترح الذاكرة (512m للبحث وحد أقصى 1g للكونتينر على سيرفر 4 جيجا، و 1g / 2g على 8 جيجا)، ويعرض يعمل swap ‏2 جيجا لو مفيش، ويظبط `vm.max_map_count`، ويكتب في `.env` ‏`COMPOSE_PROFILES=search` و `SEARCH_*`، ويشغّل خدمة `search` (من غير أي بورت برّه)، ويعمل الـ indices (`search:setup`) ويختبر (`search:check`). بعد كده `deploy.sh` بيشغّلها لوحده.
+
+**على سيرفر لوحده (لما السوق يكبر):** Ubuntu + Docker، ‏A record (مثلاً `search.muhasebi.com`)، و `infra/search/setup.sh` هناك: بيشغّل Elasticsearch ورا Caddy (HTTPS، و IP سيرفر البرنامج بس)، ويطبع `SEARCH_URL` و `SEARCH_API_KEY` (مسموح لها بالـ `muhasebi_*` بس). على سيرفر البرنامج: حطهم في `.env`، فضّي `SEARCH_USERNAME` / `SEARCH_PASSWORD`، شيل `search` من `COMPOSE_PROFILES`، `docker compose up -d --remove-orphans`، و `search:setup`. الداتا بتتبني تاني من Postgres (هو الأصل).
+
+لو اتغيّر شكل الـ index (`MarketIndices::VERSION`) بيتعمل جديد جنب القديم والـ alias يتنقل.
 
 ## مشاكل شائعة
 - **الموقع مش بيفتح / مفيش HTTPS:** اتأكد إن الـ A record بيشاور على السيرفر (`dig app.muhasebi.com`) وإن 80 و443 مفتوحين، وبص على `docker compose logs caddy`.

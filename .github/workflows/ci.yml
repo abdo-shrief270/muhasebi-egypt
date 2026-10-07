@@ -83,7 +83,7 @@ jobs:
           SEARCH_LIVE_URL: http://localhost:9200
           SEARCH_LIVE_USERNAME: elastic
           SEARCH_LIVE_PASSWORD: secret
-        run: php artisan test tests/Feature/SearchLiveTest.php tests/Feature/SearchTest.php
+        run: vendor/bin/phpunit tests/Feature/SearchLiveTest.php --fail-on-skipped
 
   web:
     runs-on: ubuntu-latest

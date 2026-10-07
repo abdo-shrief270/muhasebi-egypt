@@ -42,6 +42,49 @@ jobs:
       - name: Tests
         run: php artisan test
 
+  # The marketplace's search definitions against a real Elasticsearch, with the memory the small
+  # production server gives it (setup-search.sh: 512m heap, 1g cap). Not needed for deploys.
+  search:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    services:
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: "true"
+          xpack.security.http.ssl.enabled: "false"
+          xpack.security.transport.ssl.enabled: "false"
+          xpack.ml.enabled: "false"
+          ELASTIC_PASSWORD: secret
+          ES_JAVA_OPTS: -Xms512m -Xmx512m
+        ports: ["9200:9200"]
+        options: >-
+          --memory 1g
+          --health-cmd "curl -fs -u elastic:secret http://localhost:9200/_cluster/health?wait_for_status=yellow"
+          --health-interval 10s --health-timeout 10s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_pgsql, redis, intl, bcmath, gd
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('apps/api/composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - name: Search against Elasticsearch
+        env:
+          SEARCH_LIVE_URL: http://localhost:9200
+          SEARCH_LIVE_USERNAME: elastic
+          SEARCH_LIVE_PASSWORD: secret
+        run: php artisan test tests/Feature/SearchLiveTest.php tests/Feature/SearchTest.php
+
   web:
     runs-on: ubuntu-latest
     defaults:

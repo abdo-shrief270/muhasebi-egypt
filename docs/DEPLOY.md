@@ -273,7 +273,7 @@ REVERB_HOST=<الدومين>   REVERB_PORT=443   REVERB_SCHEME=https
 cd infra/production && ./setup-search.sh
 ```
 
-بيشوف الرامات ويقترح الذاكرة (512m للبحث وحد أقصى 1g للكونتينر على سيرفر 4 جيجا، و 1g / 2g على 8 جيجا)، ويعرض يعمل swap ‏2 جيجا لو مفيش، ويظبط `vm.max_map_count`، ويكتب في `.env` ‏`COMPOSE_PROFILES=search` و `SEARCH_*`، ويشغّل خدمة `search` (من غير أي بورت برّه)، ويعمل الـ indices (`search:setup`) ويختبر (`search:check`). بعد كده `deploy.sh` بيشغّلها لوحده.
+بيشوف الرامات ويقترح الذاكرة (768m للبحث وحد أقصى 1536m للكونتينر على سيرفر 4 جيجا، و 1g / 2g على 8 جيجا)، ويعرض يعمل swap ‏2 جيجا لو مفيش، ويظبط `vm.max_map_count`، ويكتب في `.env` ‏`COMPOSE_PROFILES=search` و `SEARCH_*`، ويشغّل خدمة `search` (من غير أي بورت برّه)، ويعمل الـ indices (`search:setup`) ويختبر (`search:check`). بعد كده `deploy.sh` بيشغّلها لوحده.
 
 **على سيرفر لوحده (لما السوق يكبر):** Ubuntu + Docker، ‏A record (مثلاً `search.muhasebi.com`)، و `infra/search/setup.sh` هناك: بيشغّل Elasticsearch ورا Caddy (HTTPS، و IP سيرفر البرنامج بس)، ويطبع `SEARCH_URL` و `SEARCH_API_KEY` (مسموح لها بالـ `muhasebi_*` بس). على سيرفر البرنامج: حطهم في `.env`، فضّي `SEARCH_USERNAME` / `SEARCH_PASSWORD`، شيل `search` من `COMPOSE_PROFILES`، `docker compose up -d --remove-orphans`، و `search:setup`. الداتا بتتبني تاني من Postgres (هو الأصل).
 

@@ -37,7 +37,7 @@ ram_mb=$(awk '/MemTotal/ { printf "%d", $2 / 1024 }' /proc/meminfo)
 swap_mb=$(awk '/SwapTotal/ { printf "%d", $2 / 1024 }' /proc/meminfo)
 echo "RAM: ${ram_mb} MB, swap: ${swap_mb} MB"
 if (( ram_mb >= 7500 )); then heap=1g; limit=2g
-else heap=512m; limit=1g
+else heap=768m; limit=1536m
 fi
 current=$(env_get ES_HEAP)
 read -r -p "Elasticsearch heap [${current:-$heap}]: " answer

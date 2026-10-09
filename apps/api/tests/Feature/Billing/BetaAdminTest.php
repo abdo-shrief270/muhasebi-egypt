@@ -117,7 +117,7 @@ class BetaAdminTest extends TestCase
         $this->assertSame(1, $row['activity']['sales_7d']);
         $this->assertSame(0, $row['activity']['repairs_7d']);
         $this->assertNotNull($row['activity']['last_sale_at']);
-        $this->assertSame(8, $row['setup']['total']);
+        $this->assertSame(9, $row['setup']['total']);
         $this->assertSame(4, $row['setup']['done']); // products, stock, shift, first sale
         $this->assertContains('ضيف موظف', $row['setup']['missing']);
         $this->assertArrayHasKey('last_sign_in_at', $row['shop']);

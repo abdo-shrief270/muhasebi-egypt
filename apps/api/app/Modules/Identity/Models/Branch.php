@@ -15,11 +15,15 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $name
  * @property string|null $address
  * @property string|null $phone
+ * @property string|null $governorate
+ * @property string|null $area
+ * @property string|null $latitude
+ * @property string|null $longitude
  * @property string $invoice_prefix
  * @property bool $is_main
  * @property bool $is_active
  */
-#[Fillable(['tenant_id', 'name', 'address', 'phone', 'invoice_prefix', 'is_main', 'is_active'])]
+#[Fillable(['tenant_id', 'name', 'address', 'governorate', 'area', 'latitude', 'longitude', 'phone', 'invoice_prefix', 'is_main', 'is_active'])]
 final class Branch extends Model
 {
     use BelongsToTenant, HasUuids;

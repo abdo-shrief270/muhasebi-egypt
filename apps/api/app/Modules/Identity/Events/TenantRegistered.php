@@ -18,6 +18,8 @@ final class TenantRegistered extends DomainEvent
         public readonly array $shopTypes = [],
         /** The shop whose invite code it registered with. */
         public readonly ?string $referredBy = null,
+        /** The partner code from the link it registered with (unchecked). */
+        public readonly ?string $affiliateCode = null,
     ) {}
 
     public function tenantId(): string

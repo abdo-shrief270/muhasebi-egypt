@@ -75,4 +75,11 @@ interface StockLedger
      * @return list<string> the ones that have ever moved (in $branchId, or in any branch when null)
      */
     public function variantsWithHistory(array $variantIds, ?string $branchId = null): array;
+
+    /**
+     * Variants whose stock changed in any branch after $since, in every shop (the marketplace sync).
+     *
+     * @return array<string, list<string>> tenant id => variant ids
+     */
+    public function changedSince(\DateTimeInterface $since): array;
 }

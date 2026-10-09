@@ -25,4 +25,11 @@ interface BranchDirectory
 
     /** The current shop's main branch (where work that isn't tied to a branch lands). */
     public function mainBranchId(): ?string;
+
+    /**
+     * Every active branch of the current shop with where it is (the marketplace), main first.
+     *
+     * @return array<string, array{name: string, address: string|null, phone: string|null, governorate: string|null, governorate_label: string|null, area: string|null, latitude: float|null, longitude: float|null, is_main: bool}>
+     */
+    public function locations(): array;
 }

@@ -129,6 +129,8 @@ final class Subscriptions
             }
             // Lazily: Rewards needs the Wallet, which asks back here for the subscription.
             app(Rewards::class)->afterPayment($tenantId, $before, $invoice);
+            // A partner's share, when the shop came through one.
+            app(Affiliates::class)->afterPayment($invoice);
 
             $this->audit->record(
                 $method === 'beta' ? 'billing.beta_granted' : 'billing.activated',

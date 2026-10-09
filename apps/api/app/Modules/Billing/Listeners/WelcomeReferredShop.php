@@ -36,7 +36,9 @@ final class WelcomeReferredShop extends ModuleListener
                 return;
             }
             $subscription->update(['referred_by' => $event->referredBy]);
-            if ((int) ($welcome['percent'] ?? 0) > 0) {
+            // One welcome discount per shop (a partner's link may have given it already).
+            if ((int) ($welcome['percent'] ?? 0) > 0
+                && ! CouponRedemption::withoutTenancy()->where('tenant_id', $event->tenantId)->whereIn('source', ['referral', 'affiliate'])->exists()) {
                 CouponRedemption::withoutTenancy()->create([
                     'tenant_id' => $event->tenantId,
                     'source' => 'referral',

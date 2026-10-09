@@ -72,7 +72,7 @@ final class RegisterTenantAction
                 $this->modules->startTrials($tenant->id, $suggested);
 
                 $referrer = $data->referralCode !== null ? Tenant::query()->where('code', $data->referralCode)->value('id') : null;
-                $this->events->record(new TenantRegistered($tenant->id, $types[0], $owner->id, $types, $referrer));
+                $this->events->record(new TenantRegistered($tenant->id, $types[0], $owner->id, $types, $referrer, $data->affiliateCode));
                 $this->audit->record('shop.registered', "سجّل المحل «{$tenant->name}»", $tenant, tenantId: $tenant->id);
 
                 return $owner;

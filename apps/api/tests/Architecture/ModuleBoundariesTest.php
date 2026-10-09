@@ -2,6 +2,10 @@
 
 namespace Tests\Architecture;
 
+use App\Modules\Billing\Models\Affiliate;
+use App\Modules\Billing\Models\AffiliateCommission;
+use App\Modules\Billing\Models\AffiliatePayout;
+use App\Modules\Billing\Models\AffiliateReferral;
 use App\Modules\Billing\Models\BillingCoupon;
 use App\Modules\Billing\Models\PlatformAdmin;
 use App\Modules\Billing\Models\PlatformAdminAction;
@@ -28,6 +32,11 @@ class ModuleBoundariesTest extends TestCase
         PlatformAdmin::class,
         BillingCoupon::class,
         PlatformAdminAction::class,
+        // Partners are people, not shops: platform-wide like the admins.
+        Affiliate::class,
+        AffiliateReferral::class,
+        AffiliateCommission::class,
+        AffiliatePayout::class,
     ];
 
     public function test_modules_only_use_other_modules_contracts_and_events(): void

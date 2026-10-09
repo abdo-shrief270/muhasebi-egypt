@@ -105,6 +105,26 @@ class SearchClient
         return $this->ok($this->http()->post('/'.$index.'/_search', $body))->json() ?? [];
     }
 
+    /**
+     * Deletes every document matching a query (e.g. one shop's offers).
+     *
+     * @param  array<string, mixed>  $query
+     */
+    public function deleteByQuery(string $index, array $query, bool $refresh = false): int
+    {
+        $response = $this->ok($this->http()->post('/'.$index.'/_delete_by_query?conflicts=proceed'.($refresh ? '&refresh=true' : ''), ['query' => $query]));
+
+        return (int) $response->json('deleted');
+    }
+
+    /** @param  array<string, mixed>|null  $query */
+    public function count(string $index, ?array $query = null): int
+    {
+        $response = $this->http()->post('/'.$index.'/_count', $query === null ? (object) [] : ['query' => $query]);
+
+        return $response->status() === 404 ? 0 : (int) $this->ok($response)->json('count');
+    }
+
     /** @return list<string> the tokens an index's analyzer makes of a text (for checking the Arabic setup) */
     public function analyze(string $index, string $analyzer, string $text): array
     {

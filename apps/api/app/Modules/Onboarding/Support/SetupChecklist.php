@@ -39,6 +39,7 @@ final class SetupChecklist implements SetupProgress
             $excel
                 ? ['key' => 'products', 'title' => 'ضيف أصنافك', 'description' => 'ارفع ملف إكسل فيه أصنافك وأسعارها مرة واحدة، أو ضيفهم واحد واحد.', 'to' => '/products/import', 'icon' => 'i-lucide-file-spreadsheet', 'permission' => 'products.manage']
                 : ['key' => 'products', 'title' => 'ضيف أصنافك', 'description' => 'الأصناف اللي بتبيعها بأسعارها والباركود بتاعها.', 'to' => '/products/new', 'icon' => 'i-lucide-package-plus', 'permission' => 'products.manage'],
+            ['key' => 'market_location', 'title' => 'حدد مكان محلك', 'description' => 'المحافظة والمكان على الخريطة، عشان زباين «سوق محاسبي» يلاقوك في «الأقرب ليك».', 'to' => '/settings/shop', 'icon' => 'i-lucide-map-pin', 'permission' => 'owner'],
             ['key' => 'stock', 'title' => 'سجّل البضاعة اللي عندك', 'description' => 'الكميات اللي على الرف دلوقتي (رصيد افتتاحي أو فاتورة شراء).', 'to' => '/inventory', 'icon' => 'i-lucide-boxes', 'permission' => 'inventory.adjust'],
             ['key' => 'staff', 'title' => 'ضيف موظف', 'description' => 'كل واحد بحسابه وصلاحياته، وتعرف مين عمل إيه.', 'to' => '/settings/users', 'icon' => 'i-lucide-user-plus', 'permission' => 'users.manage'],
             ['key' => 'shift', 'title' => 'افتح وردية', 'description' => 'الدرج بيبدأ برصيده وبيتقفل آخر اليوم بالعدّ.', 'to' => '/cash', 'icon' => 'i-lucide-wallet', 'permission' => 'cash.shift'],
@@ -109,6 +110,7 @@ final class SetupChecklist implements SetupProgress
 
         $checks = [
             'shop_info' => $having('branches', fn (Builder $q) => $q->where('is_main', true)->whereNotNull('address')->where('address', '<>', '')->whereNotNull('phone')->where('phone', '<>', '')),
+            'market_location' => $having('branches', fn (Builder $q) => $q->where('is_main', true)->whereNotNull('governorate')->whereNotNull('latitude')),
             'products' => $having('products'),
             'stock' => $having('stock_movements', fn (Builder $q) => $q->where('qty', '>', 0)->whereIn('type', ['opening', 'purchase', 'adjustment', 'transfer_in'])),
             'staff' => $having('users', fn (Builder $q) => $q->where('is_owner', false)),

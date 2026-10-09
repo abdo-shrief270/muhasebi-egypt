@@ -27,3 +27,8 @@ Schedule::command('imports:late-alerts')->dailyAt('07:13')->withoutOverlapping()
 
 // Owner app: each shop's end-of-day summary, once its hour (owner_app.daily_summary) has come.
 Schedule::command('notifications:daily-summary')->everyTenMinutes()->withoutOverlapping();
+
+// «سوق محاسبي»: what changed in the shops (products, prices, stock) reaches the search index every minute,
+// and the whole index is rebuilt from Postgres every night (no-ops while SEARCH_URL is empty).
+Schedule::command('market:sync')->everyMinute()->withoutOverlapping(5);
+Schedule::command('market:reindex')->dailyAt('04:11')->withoutOverlapping(120);

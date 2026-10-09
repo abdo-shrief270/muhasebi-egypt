@@ -21,5 +21,7 @@ final readonly class RegisterTenantData
         public ?string $referralCode = null,
         /** @var array<string, string> where the owner came from: source, medium, campaign, content, term */
         public array $acquisition = [],
+        /** The partner link it came from (?aff=CODE), if any. */
+        public ?string $affiliateCode = null,
     ) {}
 }

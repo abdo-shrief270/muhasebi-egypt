@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Modules\Marketplace\Support\MarketSearch;
 use App\Support\Search\MarketIndices;
 use App\Support\Search\SearchClient;
 use Tests\TestCase;
@@ -29,7 +30,9 @@ class SearchLiveTest extends TestCase
     {
         if (isset($this->search)) {
             foreach (array_keys(MarketIndices::all()) as $logical) {
-                $this->search->deleteIndex($this->search->name($logical).'_v'.MarketIndices::VERSION);
+                foreach ($this->search->aliasTargets($this->search->name($logical)) as $index) {
+                    $this->search->deleteIndex($index);
+                }
             }
         }
         parent::tearDown();
@@ -42,7 +45,7 @@ class SearchLiveTest extends TestCase
         $this->artisan('search:check')->assertSuccessful();
 
         $offers = $this->search->name(MarketIndices::OFFERS);
-        $offer = fn (string $title, string $models, int $price) => ['tenant_id' => 't1', 'title' => $title, 'models' => $models, 'condition' => 'new', 'price' => $price, 'availability' => 'in', 'shop' => ['slug' => 'elnour', 'name' => 'النور', 'verified' => true], 'location' => ['lat' => 30.05, 'lon' => 31.24], 'governorate' => 'cairo', 'listed_at' => '2026-10-01T10:00:00Z'];
+        $offer = fn (string $title, string $models, int $price, string $variant = 'v') => ['tenant_id' => 't1', 'variant_id' => $variant.$price, 'title' => $title, 'models' => $models, 'category' => 'accessory', 'condition' => 'new', 'price' => $price, 'availability' => 'in', 'images' => 0, 'shop' => ['slug' => 'elnour', 'name' => 'النور', 'verified' => true], 'location' => ['lat' => 30.05, 'lon' => 31.24], 'governorate' => 'cairo', 'listed_at' => '2026-10-01T10:00:00Z'];
         $failed = $this->search->bulk($offers, [
             'case' => $offer('جراب سيليكون iPhone 15 Pro — أسود', 'iPhone 15 Pro', 15000),
             'glass' => $offer('لزقة شاشة 9D Galaxy A54', 'Galaxy A54', 7500),
@@ -60,6 +63,18 @@ class SearchLiveTest extends TestCase
         $this->assertSame(['glass'], $find('a54'));
         $this->assertSame(['glass'], $find('اسكرينة a54'));        // اسكرينة = لزقة, ة folded
         $this->assertSame(['charger'], $find('شاحن samsung'));     // سامسونج = samsung
+
+        // The marketplace's own query (prefix, typos, collapse, facets, geo sort) runs as written.
+        $market = app(MarketSearch::class);
+        $titles = fn (array $r) => array_column($r['items'], 'title');
+        $this->assertSame(['جراب سيليكون iPhone 15 Pro — أسود'], $titles($market->search(['q' => 'جرا'])));      // typing
+        $this->assertSame(['جراب سيليكون iPhone 15 Pro — أسود'], $titles($market->search(['q' => 'جراپ'])));     // a typo
+        $this->assertSame(['شاحن سريع 25W سامسونج'], $titles($market->search(['q' => 'شاحن', 'governorate' => 'cairo', 'min' => 40000])));
+        $near = $market->search(['lat' => 30.06, 'lng' => 31.25, 'sort' => 'nearest']);
+        $this->assertSame(3, $near['total']);
+        $this->assertNotNull($near['items'][0]['distance_km']);
+        $this->assertSame([['key' => 'accessory', 'label' => 'إكسسوارات', 'count' => 3]], $near['facets']['category']);
+        $this->assertSame(['min' => 7500, 'max' => 45000], $near['price']);
 
         // Unknown fields are refused (the mapping is strict), so a typo in the indexer shows at once.
         $this->assertSame(1, $this->search->bulk($offers, ['bad' => ['titel' => 'x']], refresh: true));

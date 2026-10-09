@@ -33,6 +33,10 @@
         </UFormField>
       </div>
 
+      <p v-if="affiliateCode && !form.referral_code" class="flex items-center gap-2 rounded-(--ui-radius) bg-(--ui-bg-elevated) p-3 text-sm">
+        <UIcon name="i-lucide-gift" class="size-5 shrink-0 text-(--ui-primary)" />
+        جاي من لينك شريك لمحاسبي: هتاخد خصم ترحيب على أول شهور اشتراكك.
+      </p>
       <UFormField label="كود الدعوة" hint="اختياري" :description="form.referral_code ? 'هتاخد خصم على أول شهور من اشتراكك.' : 'لو محل صاحبك بعتلك كود.'">
         <UInput v-model="form.referral_code" dir="ltr" class="w-full" maxlength="12" placeholder="ABC123" @update:model-value="v => form.referral_code = String(v).toUpperCase()" />
       </UFormField>
@@ -76,6 +80,11 @@ const form = reactive({
 })
 const loading = ref(false)
 const error = ref<string | null>(null)
+// A partner's link (?aff=CODE, kept 60 days on this device): the shop is counted for them.
+const affiliateCode = ref('')
+onMounted(() => {
+  affiliateCode.value = rememberedAffiliate(route.query.aff)
+})
 
 // The campaign the owner came from (utm_* from the website or an ad link), kept on the new shop.
 function acquisition(): Record<string, string> | undefined {
@@ -95,7 +104,7 @@ async function submit() {
   loading.value = true
   error.value = null
   try {
-    await store.register({ ...form, referral_code: form.referral_code.trim() || undefined, acquisition: acquisition() })
+    await store.register({ ...form, referral_code: form.referral_code.trim() || undefined, affiliate_code: affiliateCode.value || undefined, acquisition: acquisition() })
     reportSignup()
     await navigateTo('/')
   }

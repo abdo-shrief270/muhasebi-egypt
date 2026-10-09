@@ -21,7 +21,7 @@ final class SaveBranchAction
     ) {}
 
     /**
-     * @param  array{name?: string, address?: string|null, phone?: string|null, is_active?: bool}  $data
+     * @param  array{name?: string, address?: string|null, governorate?: string|null, area?: string|null, latitude?: float|null, longitude?: float|null, phone?: string|null, is_active?: bool}  $data
      */
     public function handle(string $tenantId, array $data, ?Branch $branch = null): Branch
     {
@@ -43,7 +43,7 @@ final class SaveBranchAction
                 'invoice_prefix' => 'B'.(Branch::query()->count() + 1),
             ]);
 
-            $branch->fill(array_intersect_key($data, array_flip(['name', 'address', 'phone', 'is_active'])))->save();
+            $branch->fill(array_intersect_key($data, array_flip(['name', 'address', 'governorate', 'area', 'latitude', 'longitude', 'phone', 'is_active'])))->save();
 
             $this->audit->record(
                 $creating ? 'branches.created' : 'branches.updated',

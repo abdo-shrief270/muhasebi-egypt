@@ -77,6 +77,10 @@ export interface Branch {
   name: string
   phone: string | null
   address: string | null
+  governorate?: string | null
+  area?: string | null
+  latitude?: number | null
+  longitude?: number | null
   invoice_prefix: string
   is_main: boolean
   is_active: boolean

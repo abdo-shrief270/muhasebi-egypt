@@ -60,6 +60,11 @@ return [
         'url' => env('STORE_URL', 'https://store.muhasebi.com'),
     ],
 
+    // «سوق محاسبي»: the public site's address once it's launched (empty = «قريباً» in the app).
+    'market' => [
+        'url' => rtrim((string) env('MARKET_URL', ''), '/'),
+    ],
+
     // Elasticsearch for «سوق محاسبي» (the marketplace search). Empty url = search off. Prefer an API key
     // (base64 "id:key") over a username / password; `ca` = path to the cluster's CA certificate when it is
     // self-signed (else the system CAs). Indices are named {prefix}market_offers_v{n} behind an alias.

@@ -26,7 +26,6 @@ class SearchTest extends TestCase
             $this->assertSame('ApiKey KEY', $request->header('Authorization')[0]);
 
             return match (true) {
-                $request->method() === 'HEAD' => Http::response(null, 404),
                 $request->method() === 'PUT' => (function () use (&$created, $path, $request) {
                     $created[ltrim($path, '/')] = $request->data();
 
@@ -41,15 +40,32 @@ class SearchTest extends TestCase
         $this->artisan('search:setup')->assertSuccessful();
 
         $v = MarketIndices::VERSION;
-        $this->assertSame(["muhasebi_market_offers_v{$v}", "muhasebi_market_items_v{$v}"], array_keys($created));
-        $offers = $created["muhasebi_market_offers_v{$v}"];
+        $this->assertCount(2, $created);
+        [$offersIndex, $itemsIndex] = array_keys($created);
+        $this->assertMatchesRegularExpression("/^muhasebi_market_offers_v{$v}_\\d{14}$/", $offersIndex);
+        $this->assertMatchesRegularExpression("/^muhasebi_market_items_v{$v}_\\d{14}$/", $itemsIndex);
+        $offers = $created[$offersIndex];
         $this->assertSame('strict', $offers['mappings']['dynamic']);
         $this->assertContains('iphone, ايفون, ايفن, اي فون', $offers['settings']['analysis']['filter']['ar_synonyms']['synonyms']);
 
         Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/_aliases') && $r->data()['actions'] === [
             ['remove' => ['index' => 'muhasebi_market_offers_v0', 'alias' => 'muhasebi_market_offers']],
-            ['add' => ['index' => "muhasebi_market_offers_v{$v}", 'alias' => 'muhasebi_market_offers']],
+            ['add' => ['index' => $offersIndex, 'alias' => 'muhasebi_market_offers']],
         ]);
+        // The previous version's index goes once the alias has moved.
+        Http::assertSent(fn (Request $r) => $r->method() === 'DELETE' && str_ends_with($r->url(), '/muhasebi_market_offers_v0'));
+    }
+
+    public function test_setup_keeps_an_index_of_this_version_even_a_nightly_rebuild(): void
+    {
+        $v = MarketIndices::VERSION;
+        Http::fake(fn (Request $r) => str_starts_with((string) parse_url($r->url(), PHP_URL_PATH), '/_alias/')
+            ? Http::response([str_replace('/_alias/', '', (string) parse_url($r->url(), PHP_URL_PATH))."_v{$v}_20261101041100" => ['aliases' => []]])
+            : Http::response(['acknowledged' => true]));
+
+        $this->artisan('search:setup')->assertSuccessful();
+
+        Http::assertNotSent(fn (Request $r) => in_array($r->method(), ['PUT', 'DELETE'], true) || str_ends_with($r->url(), '/_aliases'));
     }
 
     public function test_bulk_sends_ndjson_and_counts_real_failures_only(): void

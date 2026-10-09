@@ -86,7 +86,11 @@ final class Checkout
             return 'خصم';
         }
 
-        return $r->source === 'referral' ? "خصم الدعوة ({$r->value}%)" : "كوبون {$r->code}".($r->kind === 'percent' ? " ({$r->value}%)" : '');
+        return match ($r->source) {
+            'referral' => "خصم الدعوة ({$r->value}%)",
+            'affiliate' => "خصم الترحيب ({$r->value}%)",
+            default => "كوبون {$r->code}".($r->kind === 'percent' ? " ({$r->value}%)" : ''),
+        };
     }
 
     /** The shop has paid at least once (a free beta doesn't count). */

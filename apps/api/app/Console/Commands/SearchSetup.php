@@ -10,8 +10,8 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('search:setup {--recreate : drop and rebuild this version\'s indices (empties them)}')]
-#[Description('Create the marketplace search indices ({prefix}{name}_v{VERSION}) and point their aliases at them')]
+#[Signature('search:setup {--recreate : a new empty index for each alias (the old one is dropped)}')]
+#[Description('Create the marketplace search indices ({prefix}{name}_v{VERSION}_{time}) behind their aliases, when this version has none yet')]
 final class SearchSetup extends Command
 {
     public function handle(SearchClient $search): int
@@ -23,18 +23,22 @@ final class SearchSetup extends Command
         }
         foreach (MarketIndices::all() as $logical => $definition) {
             $alias = $search->name($logical);
-            $index = $alias.'_v'.MarketIndices::VERSION;
-            if ($this->option('recreate')) {
-                $search->deleteIndex($index);
+            $version = $alias.'_v'.MarketIndices::VERSION;
+            $targets = $search->aliasTargets($alias);
+            // This version's index (or a nightly rebuild of it: {alias}_v{N}_{time}) is already live.
+            $current = collect($targets)->first(fn (string $t) => $t === $version || str_starts_with($t, $version.'_'));
+            if ($current !== null && ! $this->option('recreate')) {
+                $this->line("✓ {$alias} → {$current}");
+
+                continue;
             }
-            if ($search->indexExists($index)) {
-                $this->line("✓ {$index} موجود");
-            } else {
-                $search->createIndex($index, $definition);
-                $this->info("+ {$index} اتعمل");
-            }
+            $index = $version.'_'.now()->format('YmdHis');
+            $search->createIndex($index, $definition);
             $search->swapAlias($alias, $index);
-            $this->line("  {$alias} → {$index}");
+            foreach ($targets as $old) {
+                $search->deleteIndex($old);
+            }
+            $this->info("+ {$alias} → {$index} (فاضي: شغّل market:reindex)");
         }
 
         return self::SUCCESS;

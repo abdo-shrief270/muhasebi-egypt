@@ -99,8 +99,11 @@
 	@www host www.{$LANDING_DOMAIN:landing.invalid}
 	redir @www {scheme}://{$LANDING_DOMAIN:landing.invalid}{uri} permanent
 
-	# Only the public plans endpoint of the API.
+	# Only the public plans endpoint of the API, and the partner program's (its terms, link visits).
 	handle /api/v1/public/plans {
+		reverse_proxy api:80
+	}
+	handle /api/v1/public/affiliates/* {
 		reverse_proxy api:80
 	}
 	@otherapi path /api/* /broadcasting/* /app/* /up

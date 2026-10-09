@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Catalog;
 
+use App\Modules\Catalog\Contracts\MarketCatalog;
 use App\Modules\Catalog\Contracts\StorefrontCatalog;
 use App\Modules\Catalog\Contracts\UsedDeviceCatalog;
 use App\Modules\Catalog\Contracts\VariantCatalog;
@@ -22,5 +23,6 @@ final class CatalogServiceProvider extends ModuleServiceProvider
         $this->app->bind(VariantCatalog::class, VariantCatalogService::class);
         $this->app->bind(UsedDeviceCatalog::class, UsedDeviceCatalogService::class);
         $this->app->bind(StorefrontCatalog::class, StorefrontCatalogService::class);
+        $this->app->bind(MarketCatalog::class, MarketCatalogService::class);
     }
 }

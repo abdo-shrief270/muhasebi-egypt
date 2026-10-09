@@ -241,6 +241,18 @@ final class StockLedgerService implements StockLedger
             ->all();
     }
 
+    public function changedSince(\DateTimeInterface $since): array
+    {
+        $out = [];
+        StockLevel::withoutTenancy()->where('updated_at', '>', $since)->distinct()->orderBy('tenant_id')
+            ->select(['tenant_id', 'variant_id'])->toBase()
+            ->each(function (object $row) use (&$out): void {
+                $out[$row->tenant_id][] = (string) $row->variant_id;
+            });
+
+        return $out;
+    }
+
     private function lockLevel(string $branchId, string $variantId): StockLevel
     {
         $tenantId = $this->tenant->idOrFail();

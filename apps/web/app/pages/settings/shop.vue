@@ -45,7 +45,7 @@
           <template #header>
             <div class="flex flex-wrap items-center justify-between gap-2">
               <h2 class="font-bold">
-                عنوان وتليفون الفرع
+                عنوان الفرع ومكانه
               </h2>
               <USelect v-if="branches.length > 1" v-model="branchId" :items="branches.map(b => ({ label: b.name, value: b.id }))" class="w-48" />
             </div>
@@ -54,8 +54,33 @@
             <UFormField label="العنوان" class="sm:col-span-2" :error="errors.address">
               <UInput v-model="branchForm.address" class="w-full" maxlength="255" placeholder="مثلاً: 12 شارع 9، المعادي" />
             </UFormField>
+            <UFormField label="المحافظة" :error="errors.governorate">
+              <USelectMenu v-model="branchForm.governorate" :items="GOVERNORATES" value-key="value" placeholder="اختار المحافظة" class="w-full" />
+            </UFormField>
+            <UFormField label="المنطقة" hint="الحي أو المدينة" :error="errors.area">
+              <UInput v-model="branchForm.area" class="w-full" maxlength="80" placeholder="مثلاً: المعادي" />
+            </UFormField>
             <UFormField label="تليفون الفرع" hint="اختياري" :error="errors.branch_phone">
               <UInput v-model="branchForm.phone" dir="ltr" inputmode="tel" class="w-full" placeholder="01xxxxxxxxx" />
+            </UFormField>
+            <UFormField
+              label="المكان على الخريطة"
+              class="sm:col-span-2"
+              :error="errors.location"
+              help="عشان الزبون يلاقي «أقرب محل ليه» في سوق محاسبي. افتح جوجل ماب على المحل وانسخ اللينك أو الإحداثيات، أو دوس «أنا في المحل دلوقتي»."
+            >
+              <div class="flex flex-wrap gap-2">
+                <UInput v-model="locationText" dir="ltr" class="min-w-0 flex-1" placeholder="30.0444, 31.2357  أو لينك جوجل ماب" @update:model-value="readLocation" />
+                <UButton color="neutral" variant="outline" icon="i-lucide-locate-fixed" label="أنا في المحل دلوقتي" :loading="locating" @click="useMyLocation" />
+              </div>
+              <p v-if="branchForm.latitude !== null && branchForm.longitude !== null" class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                <UIcon name="i-lucide-map-pin" class="text-(--ui-primary)" />
+                <span class="num" dir="ltr">{{ branchForm.latitude }}, {{ branchForm.longitude }}</span>
+                <ULink :to="`https://www.google.com/maps?q=${branchForm.latitude},${branchForm.longitude}`" target="_blank" class="text-(--ui-primary) underline">
+                  شوفه على الخريطة
+                </ULink>
+                <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-x" label="امسح" @click="clearLocation" />
+              </p>
             </UFormField>
           </div>
         </UCard>
@@ -101,11 +126,65 @@ const form = reactive({
 
 const branches = computed<Branch[]>(() => store.session?.branches ?? [])
 const branchId = ref(store.currentBranch?.id ?? branches.value[0]?.id ?? '')
-const branchForm = ref<{ address: string, phone: string } | null>(null)
+interface BranchForm { address: string, phone: string, governorate: string | undefined, area: string, latitude: number | null, longitude: number | null }
+const branchForm = ref<BranchForm | null>(null)
+const locationText = ref('')
 watch(branchId, (id) => {
   const b = branches.value.find(x => x.id === id)
-  branchForm.value = b ? { address: b.address ?? '', phone: b.phone ? localPhone(b.phone) : '' } : null
+  branchForm.value = b
+    ? {
+        address: b.address ?? '',
+        phone: b.phone ? localPhone(b.phone) : '',
+        governorate: b.governorate ?? undefined,
+        area: b.area ?? '',
+        latitude: b.latitude ?? null,
+        longitude: b.longitude ?? null,
+      }
+    : null
+  locationText.value = ''
 }, { immediate: true })
+
+function readLocation(text: string | number) {
+  const found = parseLatLng(String(text))
+  if (found && branchForm.value) {
+    branchForm.value.latitude = found.lat
+    branchForm.value.longitude = found.lng
+    errors.value.location = ''
+  }
+  else if (String(text).trim() !== '') {
+    errors.value.location = String(text).includes('goo.gl')
+      ? 'اللينك المختصر مفيهوش الإحداثيات: افتحه، وانسخ اللينك الطويل من المتصفح أو الأرقام اللي بتظهر لما تدوس على المكان.'
+      : 'مش لاقي إحداثيات هنا. اكتبها كده: 30.0444, 31.2357'
+  }
+}
+
+const locating = ref(false)
+function useMyLocation() {
+  if (!navigator.geolocation) {
+    toast.add({ color: 'error', title: 'الجهاز ده مبيدعمش تحديد المكان' })
+    return
+  }
+  locating.value = true
+  navigator.geolocation.getCurrentPosition((pos) => {
+    locating.value = false
+    if (branchForm.value) {
+      branchForm.value.latitude = Math.round(pos.coords.latitude * 1e6) / 1e6
+      branchForm.value.longitude = Math.round(pos.coords.longitude * 1e6) / 1e6
+      errors.value.location = ''
+    }
+  }, () => {
+    locating.value = false
+    toast.add({ color: 'error', title: 'مقدرناش نعرف المكان', description: 'اسمح للمتصفح بتحديد المكان، أو الصق الإحداثيات من جوجل ماب.' })
+  }, { enableHighAccuracy: true, timeout: 15000 })
+}
+
+function clearLocation() {
+  if (branchForm.value) {
+    branchForm.value.latitude = null
+    branchForm.value.longitude = null
+  }
+  locationText.value = ''
+}
 
 const errors = ref<Record<string, string>>({})
 const saving = ref(false)
@@ -116,11 +195,29 @@ async function save() {
   try {
     await api('/shop/profile', { method: 'PUT', body: form })
     if (branchForm.value && branchId.value) {
-      await api(`/branches/${branchId.value}`, { method: 'PATCH', body: { address: branchForm.value.address || null, phone: branchForm.value.phone || null } })
+      const b = branchForm.value
+      await api(`/branches/${branchId.value}`, {
+        method: 'PATCH',
+        body: {
+          address: b.address || null,
+          phone: b.phone || null,
+          governorate: b.governorate || null,
+          area: b.area.trim() || null,
+          latitude: b.latitude,
+          longitude: b.longitude,
+        },
+      })
         .catch((e) => {
           // The branch's fields sit under their own inputs.
-          const { address, phone } = apiValidationErrors(e)
-          errors.value = { ...(address ? { address } : {}), ...(phone ? { branch_phone: phone } : {}) }
+          const { address, phone, governorate, area, latitude, longitude } = apiValidationErrors(e)
+          const location = latitude ?? longitude
+          errors.value = {
+            ...(address ? { address } : {}),
+            ...(phone ? { branch_phone: phone } : {}),
+            ...(governorate ? { governorate } : {}),
+            ...(area ? { area } : {}),
+            ...(location ? { location: 'المكان ده مش في مصر. اتأكد من الإحداثيات (خط العرض الأول).' } : {}),
+          }
           throw e
         })
     }

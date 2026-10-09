@@ -29,7 +29,7 @@ class OnboardingTest extends TestCase
         $this->assertSame(0, $data['done']);
         $keys = array_column($data['steps'], 'key');
         // An accessories shop doesn't use repairs; Excel import is on by default.
-        $this->assertSame(['shop_info', 'products', 'stock', 'staff', 'shift', 'first_sale', 'two_factor'], $keys);
+        $this->assertSame(['shop_info', 'products', 'market_location', 'stock', 'staff', 'shift', 'first_sale', 'two_factor'], $keys);
         $this->assertSame('/products/import', $data['steps'][1]['to']);
     }
 
@@ -57,11 +57,12 @@ class OnboardingTest extends TestCase
         }
         $this->assertFalse($done['first_repair']);
         $this->assertFalse($done['two_factor']);
+        $this->assertFalse($done['market_location']);
 
         $progress = app(SetupProgress::class)->progress([$this->owner->tenant_id])[$this->owner->tenant_id];
         $this->assertSame(6, $progress['done']);
-        $this->assertSame(8, $progress['total']);
-        $this->assertSame(['استلم أول جهاز صيانة', 'فعّل التحقق بخطوتين'], $progress['missing']);
+        $this->assertSame(9, $progress['total']);
+        $this->assertSame(['حدد مكان محلك', 'استلم أول جهاز صيانة', 'فعّل التحقق بخطوتين'], $progress['missing']);
     }
 
     public function test_the_card_is_for_owners_and_managers_with_their_own_steps(): void

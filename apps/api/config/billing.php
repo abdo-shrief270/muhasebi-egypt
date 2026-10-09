@@ -39,6 +39,21 @@ return [
         'referral_discount' => ['percent' => 20, 'months' => 3],
     ],
 
+    // Partners (برنامج الشركاء): people who bring shops with their link earn rate_percent of what each
+    // shop pays (without VAT or credit) for `months` from its first payment; a share is held
+    // `hold_days` before it can be paid out, in requests of at least `min_payout` piasters.
+    'affiliates' => [
+        'rate_percent' => (float) env('AFFILIATE_RATE_PERCENT', 20),
+        'months' => (int) env('AFFILIATE_MONTHS', 12),
+        'hold_days' => (int) env('AFFILIATE_HOLD_DAYS', 14),
+        'min_payout' => (int) env('AFFILIATE_MIN_PAYOUT', 20000),
+        // A shop that registers with a partner's link gets the same welcome discount as an invited one.
+        'welcome_discount' => true,
+        'token_days' => 30,
+        // Partners' links point at the website (it carries ?aff= to the sign-up page).
+        'site_url' => rtrim((string) env('SITE_URL', 'https://muhasebi.com'), '/'),
+    ],
+
     'instapay' => [
         'address' => env('BILLING_INSTAPAY_ADDRESS', ''),
         'name' => env('BILLING_INSTAPAY_NAME', ''),

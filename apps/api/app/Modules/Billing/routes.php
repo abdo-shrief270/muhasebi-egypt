@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Billing\Http\Controllers\Admin\AdminAffiliateController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminCouponController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminFeedbackController;
@@ -7,6 +8,8 @@ use App\Modules\Billing\Http\Controllers\Admin\AdminModuleController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminMonitoringController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
+use App\Modules\Billing\Http\Controllers\Affiliate\AffiliateAuthController;
+use App\Modules\Billing\Http\Controllers\Affiliate\AffiliateController;
 use App\Modules\Billing\Http\Controllers\BillingController;
 use App\Modules\Billing\Http\Controllers\PublicPlansController;
 use App\Modules\Billing\Http\Middleware\AdminGate;
@@ -89,6 +92,19 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::post('client-errors/{fingerprint}/resolve', 'resolve')->where('fingerprint', '[0-9a-f]{40}');
         });
 
+        Route::controller(AdminAffiliateController::class)->group(function (): void {
+            Route::pattern('affiliate', '[0-9a-fA-F-]{36}');
+            Route::pattern('payout', '[0-9a-fA-F-]{36}');
+            Route::pattern('commission', '[0-9a-fA-F-]{36}');
+            Route::get('affiliates', 'index');
+            Route::get('affiliates/{affiliate}', 'show');
+            Route::patch('affiliates/{affiliate}', 'update');
+            Route::get('affiliate-payouts', 'payouts');
+            Route::post('affiliate-payouts/{payout}/paid', 'markPaid');
+            Route::post('affiliate-payouts/{payout}/reject', 'reject');
+            Route::post('affiliate-commissions/{commission}/void', 'voidCommission');
+        });
+
         Route::controller(AdminPaymentController::class)->group(function (): void {
             Route::get('payments', 'index');
             Route::get('payments/{paymentRequest}/proof', 'proof');
@@ -97,3 +113,17 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
         });
     });
 });
+
+// Partners (برنامج الشركاء): people, not shops. Their own sign-in; the website counts their link's visits.
+Route::prefix('affiliates')->group(function (): void {
+    Route::post('register', [AffiliateAuthController::class, 'register'])->middleware('throttle:10,60');
+    Route::post('login', [AffiliateAuthController::class, 'login'])->middleware('throttle:20,1');
+    Route::middleware(['auth:sanctum', 'can:affiliate'])->group(function (): void {
+        Route::post('logout', [AffiliateAuthController::class, 'logout']);
+        Route::get('me', [AffiliateController::class, 'me']);
+        Route::put('me', [AffiliateController::class, 'update'])->middleware('throttle:30,1');
+        Route::post('payouts', [AffiliateController::class, 'requestPayout'])->middleware('throttle:10,1');
+    });
+});
+Route::get('public/affiliates/program', [AffiliateController::class, 'program'])->middleware('throttle:60,1');
+Route::post('public/affiliates/{code}/click', [AffiliateController::class, 'click'])->where('code', '[A-Za-z0-9]{4,20}')->middleware('throttle:60,1');

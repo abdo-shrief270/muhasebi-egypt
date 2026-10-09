@@ -83,7 +83,12 @@ jobs:
           SEARCH_LIVE_URL: http://localhost:9200
           SEARCH_LIVE_USERNAME: elastic
           SEARCH_LIVE_PASSWORD: secret
-        run: vendor/bin/phpunit tests/Feature/SearchLiveTest.php --fail-on-skipped
+        # Failures become annotations, so they can be read without the job log.
+        run: |
+          vendor/bin/phpunit tests/Feature/SearchLiveTest.php --fail-on-skipped --log-junit junit.xml || {
+            php -r '$x = simplexml_load_file("junit.xml"); foreach ($x->xpath("//failure|//error") as $f) { echo "::error title=SearchLiveTest::".str_replace(["%", "\r", "\n"], ["%25", "%0D", "%0A"], substr((string) $f, 0, 2000))."\n"; }'
+            exit 1
+          }
 
   web:
     runs-on: ubuntu-latest

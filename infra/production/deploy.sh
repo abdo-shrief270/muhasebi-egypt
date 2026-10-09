@@ -12,6 +12,13 @@ fi
 # The web app sends this with feedback and error reports (NUXT_PUBLIC_APP_VERSION).
 APP_VERSION="$(git -C ../.. rev-parse --short HEAD 2>/dev/null || echo unknown)"
 export APP_VERSION
+# On a small server the marketplace search (Elasticsearch) and the image builds don't fit in memory
+# together: pause it while building; `up -d` below starts it again.
+mem_mb=$(awk '/MemTotal/ { print int($2 / 1024) }' /proc/meminfo)
+if (( mem_mb < 7500 )) && [[ -n "$(docker compose ps -q search 2>/dev/null)" ]]; then
+  echo "==> Pausing search while building (${mem_mb} MB RAM)"
+  docker compose stop search
+fi
 docker compose build --pull
 docker compose up -d pgsql redis
 

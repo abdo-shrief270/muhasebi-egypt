@@ -10,9 +10,12 @@ use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Sales\Enums\PaymentMethod;
 use App\Modules\Sales\Enums\PriceLevel;
+use App\Modules\Sales\Enums\SaleStatus;
+use App\Modules\Sales\Models\SaleItem;
 use App\Support\Tenancy\CurrentBranch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * What the cashier screen needs: sellable items with their stock in this branch.
@@ -76,6 +79,49 @@ final class PosController
             ], $items),
             'meta' => ['current_page' => $page['page'], 'last_page' => $page['last_page'], 'per_page' => $page['per_page'], 'total' => $page['total'], 'generated_at' => now()->toIso8601String()],
         ]);
+    }
+
+    /**
+     * What this customer paid for these items before (any branch), newest first, at most 3 each:
+     * the cashier's hint «آخر مرة اشتراه بـ …». The unit price after the line's discount; lines
+     * returned in full and fully refunded invoices don't count.
+     */
+    public function lastPrices(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'customer_id' => ['required', 'uuid'],
+            'variant_ids' => ['required', 'array', 'max:100'],
+            'variant_ids.*' => ['uuid'],
+        ]);
+
+        $rows = SaleItem::query()
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.customer_id', $data['customer_id'])
+            ->where('sales.status', '<>', SaleStatus::Refunded->value)
+            ->whereIn('sale_items.variant_id', array_values(array_unique($data['variant_ids'])))
+            ->whereColumn('sale_items.returned_qty', '<', 'sale_items.qty')
+            ->orderByDesc('sales.completed_at')
+            ->limit(300)
+            ->get(['sale_items.variant_id', 'sale_items.qty', 'sale_items.unit_price', 'sale_items.line_total', 'sales.id as sale_id', 'sales.number', 'sales.completed_at']);
+
+        $out = [];
+        foreach ($rows as $r) {
+            $list = $out[$r->variant_id] ?? [];
+            if (count($list) >= 3) {
+                continue;
+            }
+            $list[] = [
+                'price' => intdiv((int) $r->line_total, max(1, (int) $r->qty)),
+                'list_price' => (int) $r->unit_price,
+                'qty' => (int) $r->qty,
+                'sale_id' => $r->sale_id,
+                'reference' => 'INV-'.str_pad((string) $r->number, 6, '0', STR_PAD_LEFT),
+                'at' => Carbon::parse($r->completed_at)->toIso8601String(),
+            ];
+            $out[$r->variant_id] = $list;
+        }
+
+        return response()->json(['data' => (object) $out]);
     }
 
     public function options(): JsonResponse

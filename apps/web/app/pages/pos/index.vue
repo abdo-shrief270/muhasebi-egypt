@@ -145,6 +145,15 @@
             </div>
             <span class="font-extrabold num">{{ formatMoney(lineTotal(line)) }}</span>
           </div>
+          <PosLastPrice
+            v-if="cart.customer && lastPrices[line.variant_id]?.length"
+            :history="lastPrices[line.variant_id]!"
+            :current-price="unitPrice(line)"
+            :item-name="line.name"
+            :customer-name="cart.customer.name"
+            :can-match="canLineDiscount"
+            @match="price => line.discount = Math.max(0, unitPrice(line) - price) * line.qty"
+          />
           <InventorySerialsInput
             v-if="line.track_serial"
             v-model="line.serials!"
@@ -252,6 +261,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { CashShift, Category, Customer, OnlineOrderDetail, PosItem, Sale } from '~/types/api'
+import type { LastPriceEntry } from '~/components/pos/LastPrice.vue'
 
 definePageMeta({ permission: 'sales.sell' })
 
@@ -299,6 +309,31 @@ const canPay = computed(() => cart.value.lines.length > 0 && !missingSerials.val
 
 // Offline: items come from the catalog kept on the device, sales go to the outbox.
 const { online } = useConnectivity()
+
+// «آخر مرة اشتراه بـ …»: what the chosen customer paid for the items in the cart before (online only).
+const lastPrices = ref<Record<string, LastPriceEntry[]>>({})
+const lastPricesKey = computed(() => cart.value.customer && online.value
+  ? `${cart.value.customer.id}|${cart.value.lines.map(l => l.variant_id).sort().join(',')}`
+  : '')
+let lastPricesTimer: ReturnType<typeof setTimeout> | undefined
+watch(lastPricesKey, (key) => {
+  clearTimeout(lastPricesTimer)
+  const customer = cart.value.customer
+  const ids = cart.value.lines.map(l => l.variant_id)
+  if (!key || !customer || !ids.length) {
+    if (!cart.value.customer) lastPrices.value = {}
+    return
+  }
+  lastPricesTimer = setTimeout(async () => {
+    try {
+      const res = await api<{ data: Record<string, LastPriceEntry[]> }>('/pos/last-prices', { query: { 'customer_id': customer.id, 'variant_ids[]': ids } })
+      if (cart.value.customer?.id === customer.id) lastPrices.value = res.data
+    }
+    catch {
+      // only a hint: selling goes on without it
+    }
+  }, 300)
+}, { immediate: true })
 const outbox = useOutbox()
 const { panelOpen } = outbox
 const catalog = usePosCatalog()

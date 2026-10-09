@@ -21,6 +21,7 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function (): void {
             Route::get('items', 'items');
             Route::get('options', 'options');
             Route::get('catalog', 'catalog');
+            Route::get('last-prices', 'lastPrices');
         });
 
         Route::prefix('sales')->controller(SaleController::class)->group(function (): void {

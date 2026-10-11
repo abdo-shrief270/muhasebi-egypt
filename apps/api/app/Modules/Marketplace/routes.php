@@ -15,4 +15,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'can:marketplace.manage'])
 Route::prefix('public/market')->middleware('throttle:market')->controller(PublicMarketController::class)->group(function (): void {
     Route::get('search', 'search');
     Route::get('options', 'options');
+    Route::get('shops', 'shops');
+    Route::get('shops/{slug}', 'shop')->where('slug', '[a-z0-9]{3,16}');
+    Route::get('offers/{id}', 'offer')->where('id', '[A-Za-z0-9:_-]{1,120}');
 });

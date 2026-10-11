@@ -99,31 +99,8 @@ final class MarketSearch
         $result = $this->search->search($this->search->name(MarketIndices::OFFERS), $body);
         $governorates = Governorates::labels();
 
-        $items = array_map(function (array $hit) use ($governorates, $hasPoint, $sort): array {
-            $s = $hit['_source'];
-
-            return [
-                'id' => $hit['_id'],
-                'variant_id' => $s['variant_id'] ?? null,
-                'product_id' => $s['product_id'] ?? null,
-                'title' => $s['title'] ?? '',
-                'brand' => $s['brand'] ?? null,
-                'category' => $s['category'] ?? null,
-                'condition' => $s['condition'] ?? 'new',
-                'grade' => $s['grade'] ?? null,
-                'price' => (int) ($s['price'] ?? 0),
-                'availability' => $s['availability'] ?? 'in',
-                'image' => $s['image'] ?? null,
-                'shop' => ['slug' => $s['shop']['slug'] ?? null, 'name' => $s['shop']['name'] ?? null],
-                'place' => [
-                    'governorate' => $s['governorate'] ?? null,
-                    'governorate_label' => isset($s['governorate']) ? ($governorates[$s['governorate']] ?? null) : null,
-                    'area' => $s['area'] ?? null,
-                ],
-                // The distance sort's value is the distance in km.
-                'distance_km' => $hasPoint && $sort === 'nearest' ? round((float) ($hit['sort'][0] ?? 0), 1) : null,
-            ];
-        }, $result['hits']['hits'] ?? []);
+        $point = $hasPoint ? [(float) $p['lat'], (float) $p['lng']] : null;
+        $items = array_map(fn (array $hit) => $this->present($hit, $governorates, $point), $result['hits']['hits'] ?? []);
 
         $aggs = $result['aggregations'] ?? [];
         $labels = [
@@ -153,6 +130,155 @@ final class MarketSearch
                 'max' => isset($aggs['price_max']['value']) ? (int) $aggs['price_max']['value'] : null,
             ],
         ];
+    }
+
+    /**
+     * Shops near a point (or in a governorate) with what they have in stock: one row per listed
+     * branch with offers, nearest first when there's a point, else the most offers first.
+     *
+     * @return list<array{slug: string, name: string, branch_id: string, governorate: ?string, governorate_label: ?string, area: ?string, location: ?array{lat: float, lng: float}, offers: int, distance_km: ?float}>
+     */
+    public function shops(?float $lat, ?float $lng, ?string $governorate = null, ?string $slug = null, int $limit = 30): array
+    {
+        $filters = [];
+        if ($governorate !== null) {
+            $filters[] = ['term' => ['governorate' => $governorate]];
+        }
+        if ($slug !== null) {
+            $filters[] = ['term' => ['shop.slug' => $slug]];
+        }
+        $result = $this->search->search($this->search->name(MarketIndices::OFFERS), [
+            'size' => 0,
+            'query' => ['bool' => ['filter' => $filters]],
+            'aggs' => ['branches' => [
+                'terms' => ['field' => 'branch_id', 'size' => 1000],
+                'aggs' => ['shop' => ['top_hits' => ['size' => 1, '_source' => ['shop', 'governorate', 'area', 'location', 'branch_id']]]],
+            ]],
+        ]);
+        $governorates = Governorates::labels();
+        $point = $lat !== null && $lng !== null ? [$lat, $lng] : null;
+        $rows = [];
+        foreach ($result['aggregations']['branches']['buckets'] ?? [] as $bucket) {
+            $s = $bucket['shop']['hits']['hits'][0]['_source'] ?? null;
+            if ($s === null || ! isset($s['shop']['slug'])) {
+                continue;
+            }
+            $location = self::location($s);
+            $rows[] = [
+                'slug' => $s['shop']['slug'],
+                'name' => $s['shop']['name'] ?? '',
+                'branch_id' => (string) $bucket['key'],
+                'governorate' => $s['governorate'] ?? null,
+                'governorate_label' => isset($s['governorate']) ? ($governorates[$s['governorate']] ?? null) : null,
+                'area' => $s['area'] ?? null,
+                'location' => $location,
+                'offers' => (int) $bucket['doc_count'],
+                'distance_km' => $point !== null && $location !== null ? round(self::km($point, [$location['lat'], $location['lng']]), 1) : null,
+            ];
+        }
+        usort($rows, fn (array $a, array $b) => $point !== null
+            ? [($a['distance_km'] ?? INF), -$a['offers']] <=> [($b['distance_km'] ?? INF), -$b['offers']]
+            : [-$a['offers'], $a['name']] <=> [-$b['offers'], $b['name']]);
+
+        return array_slice($rows, 0, $limit);
+    }
+
+    /**
+     * One offer, and the same thing elsewhere: the closest matches by name in other shops (nearest
+     * first with a point, else cheapest).
+     *
+     * @return array{offer: array<string, mixed>, elsewhere: list<array<string, mixed>>}|null
+     */
+    public function offer(string $id, ?float $lat, ?float $lng): ?array
+    {
+        $index = $this->search->name(MarketIndices::OFFERS);
+        $hit = $this->search->search($index, ['size' => 1, 'query' => ['ids' => ['values' => [$id]]]])['hits']['hits'][0] ?? null;
+        if ($hit === null) {
+            return null;
+        }
+        $governorates = Governorates::labels();
+        $point = $lat !== null && $lng !== null ? [$lat, $lng] : null;
+        $offer = $this->present($hit, $governorates, $point);
+        $s = $hit['_source'];
+        $offer['description'] = $s['description'] ?? null;
+        $offer['images'] = $s['images'] ?? [];
+        $offer['models'] = $s['models'] ?? [];
+        $offer['category_name'] = $s['category_name'] ?? null;
+
+        $similar = $this->search->search($index, [
+            'size' => 12,
+            'query' => ['bool' => [
+                'must' => [['match' => ['title' => ['query' => (string) ($s['title'] ?? ''), 'operator' => 'and']]]],
+                'filter' => [['term' => ['condition' => $s['condition'] ?? 'new']]],
+                'must_not' => [['term' => ['shop.slug' => $s['shop']['slug'] ?? '']]],
+            ]],
+            'collapse' => ['field' => 'variant_id'],
+            'sort' => $point !== null
+                ? [['_geo_distance' => ['location' => ['lat' => $point[0], 'lon' => $point[1]], 'order' => 'asc', 'unit' => 'km', 'ignore_unmapped' => true]]]
+                : [['price' => 'asc']],
+        ]);
+
+        return [
+            'offer' => $offer,
+            'elsewhere' => array_map(fn (array $h) => $this->present($h, $governorates, $point), $similar['hits']['hits'] ?? []),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $hit
+     * @param  array<string, string>  $governorates
+     * @param  array{0: float, 1: float}|null  $point
+     * @return array<string, mixed>
+     */
+    private function present(array $hit, array $governorates, ?array $point): array
+    {
+        $s = $hit['_source'];
+        $location = self::location($s);
+
+        return [
+            'id' => $hit['_id'],
+            'variant_id' => $s['variant_id'] ?? null,
+            'product_id' => $s['product_id'] ?? null,
+            'title' => $s['title'] ?? '',
+            'brand' => $s['brand'] ?? null,
+            'category' => $s['category'] ?? null,
+            'condition' => $s['condition'] ?? 'new',
+            'grade' => $s['grade'] ?? null,
+            'price' => (int) ($s['price'] ?? 0),
+            'availability' => $s['availability'] ?? 'in',
+            'image' => $s['image'] ?? null,
+            'shop' => ['slug' => $s['shop']['slug'] ?? null, 'name' => $s['shop']['name'] ?? null],
+            'place' => [
+                'governorate' => $s['governorate'] ?? null,
+                'governorate_label' => isset($s['governorate']) ? ($governorates[$s['governorate']] ?? null) : null,
+                'area' => $s['area'] ?? null,
+            ],
+            // Shops are public places: the branch's spot is shown on the map.
+            'location' => $location,
+            'distance_km' => $point !== null && $location !== null ? round(self::km($point, [$location['lat'], $location['lng']]), 1) : null,
+        ];
+    }
+
+    /** @return array{lat: float, lng: float}|null */
+    private static function location(array $s): ?array
+    {
+        $l = $s['location'] ?? null;
+
+        return is_array($l) && isset($l['lat'], $l['lon']) ? ['lat' => (float) $l['lat'], 'lng' => (float) $l['lon']] : null;
+    }
+
+    /**
+     * Great-circle distance in km.
+     *
+     * @param  array{0: float, 1: float}  $a
+     * @param  array{0: float, 1: float}  $b
+     */
+    private static function km(array $a, array $b): float
+    {
+        [$lat1, $lng1, $lat2, $lng2] = array_map('deg2rad', [$a[0], $a[1], $b[0], $b[1]]);
+        $h = sin(($lat2 - $lat1) / 2) ** 2 + cos($lat1) * cos($lat2) * sin(($lng2 - $lng1) / 2) ** 2;
+
+        return 6371 * 2 * asin(min(1, sqrt($h)));
     }
 
     /**

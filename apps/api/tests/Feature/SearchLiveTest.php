@@ -45,7 +45,7 @@ class SearchLiveTest extends TestCase
         $this->artisan('search:check')->assertSuccessful();
 
         $offers = $this->search->name(MarketIndices::OFFERS);
-        $offer = fn (string $title, string $models, int $price, string $variant = 'v') => ['tenant_id' => 't1', 'variant_id' => $variant.$price, 'title' => $title, 'models' => $models, 'category' => 'accessory', 'condition' => 'new', 'price' => $price, 'availability' => 'in', 'images' => 0, 'shop' => ['slug' => 'elnour', 'name' => 'النور', 'verified' => true], 'location' => ['lat' => 30.05, 'lon' => 31.24], 'governorate' => 'cairo', 'listed_at' => '2026-10-01T10:00:00Z'];
+        $offer = fn (string $title, string $models, int $price, string $variant = 'v') => ['tenant_id' => 't1', 'branch_id' => 'b1', 'variant_id' => $variant.$price, 'title' => $title, 'models' => $models, 'category' => 'accessory', 'condition' => 'new', 'price' => $price, 'availability' => 'in', 'images' => 0, 'shop' => ['slug' => 'elnour', 'name' => 'النور', 'verified' => true], 'location' => ['lat' => 30.05, 'lon' => 31.24], 'governorate' => 'cairo', 'listed_at' => '2026-10-01T10:00:00Z'];
         $failed = $this->search->bulk($offers, [
             'case' => $offer('جراب سيليكون iPhone 15 Pro — أسود', 'iPhone 15 Pro', 15000),
             'glass' => $offer('لزقة شاشة 9D Galaxy A54', 'Galaxy A54', 7500),
@@ -75,6 +75,15 @@ class SearchLiveTest extends TestCase
         $this->assertNotNull($near['items'][0]['distance_km']);
         $this->assertSame([['key' => 'accessory', 'label' => 'إكسسوارات', 'count' => 3]], $near['facets']['category']);
         $this->assertSame(['min' => 7500, 'max' => 45000], $near['price']);
+
+        // Shops near a point, and an offer with the same thing in another shop (nearest first).
+        $this->search->bulk($offers, ['case2' => [...$offer('جراب سيليكون iPhone 15 Pro — أسود', 'iPhone 15 Pro', 14000, 'w'), 'branch_id' => 'b2', 'shop' => ['slug' => 'tech', 'name' => 'تك زون', 'verified' => false], 'location' => ['lat' => 30.10, 'lon' => 31.30]]], refresh: true);
+        $shops = $market->shops(30.05, 31.24);
+        $this->assertSame([['elnour', 3, 0.0], ['tech', 1]], [[$shops[0]['slug'], $shops[0]['offers'], $shops[0]['distance_km']], [$shops[1]['slug'], $shops[1]['offers']]]);
+        $this->assertSame(['tech'], array_column($market->shops(null, null, slug: 'tech'), 'slug'));
+        $found = $market->offer('case', 30.05, 31.24);
+        $this->assertSame(['جراب سيليكون iPhone 15 Pro — أسود', ['case2'], 'tech'], [$found['offer']['title'], array_column($found['elsewhere'], 'id'), $found['elsewhere'][0]['shop']['slug']]);
+        $this->assertNull($market->offer('nothing', null, null));
 
         // Unknown fields are refused (the mapping is strict), so a typo in the indexer shows at once.
         $this->assertSame(1, $this->search->bulk($offers, ['bad' => ['titel' => 'x']], refresh: true));

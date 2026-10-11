@@ -57,6 +57,8 @@ services:
       STORE_TLS: ${STORE_TLS:-none}
       # Shops' own domains: "https://" with STORE_TLS=on-demand (setup-store.sh writes it); off by default.
       STORE_CUSTOM_ADDRESS: ${STORE_CUSTOM_ADDRESS:-http://custom.invalid}
+      # «سوق محاسبي»: "souq.example.com" ("http://…" behind nginx; setup-market.sh writes it).
+      MARKET_SITE_ADDRESS: ${MARKET_SITE_ADDRESS:-http://market.invalid}
       ACME_EMAIL: ${ACME_EMAIL}
     ports:
       - "80:80"
@@ -100,6 +102,20 @@ services:
       NUXT_API_INTERNAL: http://api/api/v1
       NUXT_PUBLIC_STORE_HOST: ${STORE_HOST:-}
       NUXT_PUBLIC_STORE_URL: https://${STORE_DOMAIN:-store.invalid}
+      NUXT_PUBLIC_SITE_URL: https://${LANDING_DOMAIN:-muhasebi.com}
+    depends_on:
+      - api
+
+  # «سوق محاسبي» (server-rendered Nuxt), reached through Caddy on MARKET_DOMAIN.
+  market:
+    build:
+      context: ../..
+      dockerfile: infra/production/Dockerfile.market
+    image: muhasebi-market:latest
+    restart: unless-stopped
+    environment:
+      NUXT_API_INTERNAL: http://api/api/v1
+      NUXT_PUBLIC_MARKET_URL: https://${MARKET_DOMAIN:-market.invalid}
       NUXT_PUBLIC_SITE_URL: https://${LANDING_DOMAIN:-muhasebi.com}
     depends_on:
       - api

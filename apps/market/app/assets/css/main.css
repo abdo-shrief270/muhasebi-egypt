@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* Design B «الأقرب ليك»: warm paper, deep teal, ink. */
+@theme {
+  --font-sans: "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --color-paper: #f7f6f2;
+  --color-ink: #10282a;
+  --color-teal: #0b5d5a;
+  --color-teal-dark: #083f3d;
+  --color-mint: #e4efee;
+  --color-sand: #efebe2;
+  --color-sand-dark: #e8e4da;
+  --color-line: #e5e1d8;
+  --color-line-strong: #d9d3c6;
+  --color-muted: #5c6b6c;
+  --color-ok: #047857;
+  --color-warn: #b45309;
+  --color-me: #2563eb;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+
+  /* In the base layer so buttons and cards that are links keep their own colours. */
+  a {
+    @apply text-teal hover:text-teal-dark;
+  }
+}
+
+/* Latin digits in prices, distances and counts. */
+.num {
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60;
+}
+
+@utility btn-teal {
+  @apply btn bg-teal text-white hover:bg-teal-dark hover:text-white;
+}
+
+@utility btn-ink {
+  @apply btn bg-ink text-paper hover:opacity-90 hover:text-paper;
+}
+
+@utility btn-line {
+  @apply btn border border-line-strong bg-white text-ink hover:bg-sand hover:text-ink;
+}
+
+@utility chip {
+  @apply inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm transition-colors;
+}
+
+@utility card {
+  @apply rounded-2xl border border-line bg-white;
+}
+
+/* Leaflet sits under the sticky header and reads RTL text right. */
+.leaflet-container {
+  font-family: inherit;
+  z-index: 0;
+}
+
+.market-pin {
+  @apply rounded-full bg-ink px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-white shadow-lg;
+}
+
+.market-me {
+  @apply size-4 rounded-full border-4 border-white bg-me;
+  box-shadow: 0 0 0 8px rgb(37 99 235 / 0.18);
+}

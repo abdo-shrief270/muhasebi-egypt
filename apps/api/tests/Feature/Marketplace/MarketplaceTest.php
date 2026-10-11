@@ -155,6 +155,20 @@ class MarketplaceTest extends TestCase
         $this->getJson('/api/v1/public/market/search?q=x')->assertStatus(503)->assertJsonPath('code', 'market_unavailable');
     }
 
+    public function test_public_shops_and_offer_pages(): void
+    {
+        $this->assertSame([], $this->getJson('/api/v1/public/market/shops?lat=30.05&lng=31.24')->assertOk()->json('data'));
+        $body = json_decode(collect($this->sent)->last()['body'], true);
+        $this->assertSame('branch_id', $body['aggs']['branches']['terms']['field']);
+        // No branches with offers: no shop page.
+        $this->getJson('/api/v1/public/market/shops/elnour')->assertNotFound();
+
+        $data = $this->getJson('/api/v1/public/market/offers/v1:b1?lat=30.05&lng=31.24')->assertOk()->json('data');
+        $this->assertSame(['v1:b1', 'جراب سيليكون', 'elnour'], [$data['offer']['id'], $data['offer']['title'], $data['offer']['shop']['slug']]);
+        $similar = json_decode(collect($this->sent)->last()['body'], true);
+        $this->assertSame([['term' => ['shop.slug' => 'elnour']]], $similar['query']['bool']['must_not']);
+    }
+
     /** A cluster that answers everything, records what it was sent, and returns one hit to searches. */
     private function fakeCluster(): void
     {

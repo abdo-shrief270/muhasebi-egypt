@@ -112,7 +112,7 @@ final class Affiliates
 
         // The cash part of the invoice, without its VAT share.
         $base = intdiv($cash * ($invoice->total - $invoice->vat), $invoice->total);
-        $rate = $affiliate->rate();
+        $rate = $invoice->cycle === Founders::CYCLE ? app(Founders::class)->affiliateRate($affiliate->rate()) : $affiliate->rate();
         $amount = intdiv($base * $rate + 5000, 10000);
         if ($amount <= 0) {
             return null;

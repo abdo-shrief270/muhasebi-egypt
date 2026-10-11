@@ -16,6 +16,9 @@
             <UBadge v-if="sub.beta" color="info" variant="subtle">
               Beta مجانية
             </UBadge>
+            <UBadge v-if="founder" color="warning" variant="soft" icon="i-lucide-crown">
+              المؤسس رقم <span class="num ms-1">{{ founder.number }}</span>
+            </UBadge>
           </div>
           <p class="text-sm text-(--ui-text-muted)">
             <template v-if="sub.paid_up">
@@ -25,7 +28,16 @@
             <template v-else>
               خلص <span class="num">{{ formatDate(sub.paid_until) }}</span>
             </template>
-            <span v-if="sub.cycle"> · {{ sub.cycle === 'yearly' ? 'سنوي' : 'شهري' }}</span>
+            <span v-if="sub.cycle"> · {{ cycleLabel(sub.cycle) }}</span>
+          </p>
+          <p v-if="founder" class="text-sm text-(--ui-text-muted)">
+            <template v-if="founder.remaining">
+              دفعت <span class="num">{{ formatMoney(founder.paid) }}</span> من <span class="num">{{ formatMoney(founder.price) }}</span> — باقي <span class="num">{{ formatMoney(founder.remaining) }}</span>،
+            </template>
+            <template v-else>
+              سعر المؤسسين اتدفع كله،
+            </template>
+            وبعدها <span class="num">{{ formatMoney(founder.annual_fee) }}</span> بس في السنة طول ما المحل شغال.
           </p>
           <p v-if="sub.suspended_reason" class="text-sm text-(--ui-error)">
             {{ sub.suspended_reason }}
@@ -45,7 +57,7 @@
       variant="subtle"
       icon="i-lucide-hourglass"
       :title="`طلب الدفع بتاعك بيتراجع (رقم العملية ${pending.reference})`"
-      :description="`${pending.plan_name} · ${pending.cycle === 'yearly' ? 'سنوي' : 'شهري'} · ${formatMoney(pending.amount)} — هنفعّل الاشتراك أول ما نتأكد من التحويل.`"
+      :description="`${pending.plan_name} · ${cycleLabel(pending.cycle)} · ${formatMoney(pending.amount)} — هنفعّل الاشتراك أول ما نتأكد من التحويل.`"
       :actions="[{ label: 'إلغاء الطلب', color: 'neutral', variant: 'outline', onClick: cancelPending }]"
     />
     <UAlert
@@ -68,12 +80,52 @@
         <UFieldGroup>
           <UButton :color="cycle === 'monthly' ? 'primary' : 'neutral'" :variant="cycle === 'monthly' ? 'solid' : 'outline'" label="شهري" @click="cycle = 'monthly'" />
           <UButton :color="cycle === 'yearly' ? 'primary' : 'neutral'" :variant="cycle === 'yearly' ? 'solid' : 'outline'" :label="`سنوي (${12 - billing.yearly_months} شهور هدية)`" @click="cycle = 'yearly'" />
+          <UButton v-if="founder || offer" icon="i-lucide-crown" :color="cycle === 'founder' ? 'warning' : 'neutral'" :variant="cycle === 'founder' ? 'solid' : 'outline'" :label="offer?.name ?? 'باقة المؤسسين'" @click="cycle = 'founder'" />
         </UFieldGroup>
       </div>
 
+      <UCard v-if="cycle === 'founder' && offer && !founder" class="ring-1 ring-(--ui-warning)/40">
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <UIcon name="i-lucide-crown" class="size-5 text-(--ui-warning)" />
+            <p class="text-lg font-extrabold">
+              {{ offer.name }}
+            </p>
+            <UBadge v-if="offer.seats_left !== null" color="warning" variant="subtle">
+              فاضل <span class="num mx-1">{{ offer.seats_left }}</span> مكان
+            </UBadge>
+            <UBadge v-if="offer.ends_at" color="neutral" variant="subtle">
+              لحد <span class="num ms-1">{{ formatDate(offer.ends_at) }}</span>
+            </UBadge>
+          </div>
+          <p v-if="offer.tagline" class="text-sm text-(--ui-text-muted)">
+            {{ offer.tagline }}
+          </p>
+          <ul v-if="offer.perks.length" class="grid gap-1 text-sm sm:grid-cols-2">
+            <li v-for="perk in offer.perks" :key="perk" class="flex items-start gap-1.5">
+              <UIcon name="i-lucide-check" class="mt-0.5 size-4 shrink-0 text-(--ui-success)" /> {{ perk }}
+            </li>
+          </ul>
+          <div v-if="offer.installments.length > 1" class="flex flex-wrap items-center gap-2">
+            <span class="text-sm font-bold">الدفع:</span>
+            <UFieldGroup>
+              <UButton
+                v-for="n in offer.installments"
+                :key="n"
+                :color="installments === n ? 'primary' : 'neutral'"
+                :variant="installments === n ? 'solid' : 'outline'"
+                :label="n === 1 ? 'مرة واحدة' : `${n} أقساط`"
+                @click="installments = n"
+              />
+            </UFieldGroup>
+            <span v-if="installments > 1" class="text-xs text-(--ui-text-muted)">قسط كل <span class="num">{{ 12 / installments }}</span> شهور</span>
+          </div>
+        </div>
+      </UCard>
+
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <button
-          v-for="plan in billing.plans"
+          v-for="plan in shownPlans"
           :key="plan.key"
           type="button"
           class="app-card relative flex flex-col gap-3 rounded-[calc(var(--ui-radius)*2)] bg-(--ui-bg) p-4 text-start transition"
@@ -91,7 +143,19 @@
               {{ plan.description }}
             </p>
           </div>
-          <p>
+          <p v-if="cycle === 'founder' && founder">
+            <span class="num text-2xl font-extrabold">{{ formatMoney(founder.remaining || founder.annual_fee) }}</span>
+            <span class="text-sm text-(--ui-text-muted)"> {{ founder.remaining ? 'باقي من سعر المؤسسين' : '/ سنة' }}</span>
+          </p>
+          <p v-else-if="cycle === 'founder'">
+            <span class="num text-2xl font-extrabold">{{ formatMoney(offerPlan(plan.key)?.price) }}</span>
+            <span class="text-sm text-(--ui-text-muted)"> مرة واحدة</span>
+            <span class="block text-xs text-(--ui-text-muted)">
+              شامل أول سنة، وبعدها <span class="num">{{ formatMoney(offerPlan(plan.key)?.annual_fee) }}</span> / سنة
+              <span v-if="plan.monthly">(بدل <span class="num">{{ formatMoney(plan.yearly) }}</span>)</span>
+            </span>
+          </p>
+          <p v-else>
             <span class="num text-2xl font-extrabold">{{ formatMoney(cycle === 'yearly' ? plan.yearly : plan.monthly) }}</span>
             <span class="text-sm text-(--ui-text-muted)"> / {{ cycle === 'yearly' ? 'سنة' : 'شهر' }}</span>
           </p>
@@ -120,7 +184,7 @@
             :key="m.key"
             :model-value="chosenExtras.includes(m.key)"
             :label="m.name"
-            :description="`${formatMoney(m.monthly * (cycle === 'yearly' ? billing.yearly_months : 1))} / ${cycle === 'yearly' ? 'سنة' : 'شهر'}`"
+            :description="extraPrice(m.monthly)"
             @update:model-value="toggleExtra(m.key)"
           />
         </div>
@@ -266,7 +330,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BillingInvoiceInfo, BillingOverview } from '~/types/api'
+import type { BillingCycle, BillingInvoiceInfo, BillingOverview } from '~/types/api'
 
 definePageMeta({ ownerOnly: true })
 
@@ -287,9 +351,41 @@ const shop = computed(() => ({ name: store.session?.tenant.name ?? '', phone: st
 
 // The choice: the current plan (or the featured one), the same cycle.
 const planKey = ref<string>(sub.value?.plan ?? billing.value?.plans.find(p => p.featured)?.key ?? billing.value?.plans[0]?.key ?? '')
-const cycle = ref<'monthly' | 'yearly'>(sub.value?.cycle ?? 'monthly')
+const cycle = ref<BillingCycle>(sub.value?.cycle ?? 'monthly')
 const chosenExtras = ref<string[]>((sub.value?.modules ?? []).map(m => m.key))
 const plan = computed(() => billing.value?.plans.find(p => p.key === planKey.value))
+
+// «باقة المؤسسين»: a founder renews its own plan; others see the open offer.
+const founder = computed(() => sub.value?.founder ?? null)
+const offer = computed(() => billing.value?.founders ?? null)
+const installments = ref<number>(offer.value?.installments[0] ?? 1)
+const offerPlan = (key: string) => offer.value?.plans.find(p => p.key === key)
+const shownPlans = computed(() => {
+  const plans = billing.value?.plans ?? []
+  if (cycle.value !== 'founder') {
+    return plans
+  }
+  return founder.value ? plans.filter(p => p.key === founder.value!.plan) : plans.filter(p => offerPlan(p.key))
+})
+watch(cycle, () => {
+  if (!shownPlans.value.some(p => p.key === planKey.value)) {
+    planKey.value = shownPlans.value.find(p => p.featured)?.key ?? shownPlans.value[0]?.key ?? planKey.value
+  }
+}, { immediate: true })
+function extraPrice(monthly: number) {
+  if (cycle.value === 'founder') {
+    const off = founder.value?.module_discount ?? offer.value?.module_discount_percent ?? 0
+    return `${formatMoney(Math.floor(monthly * billing.value!.yearly_months * (100 - off) / 100))} / سنة${off ? ` (خصم المؤسسين ${off}%)` : ''}`
+  }
+  return `${formatMoney(monthly * (cycle.value === 'yearly' ? billing.value!.yearly_months : 1))} / ${cycle.value === 'yearly' ? 'سنة' : 'شهر'}`
+}
+/** What the request sends: the plan, the cycle, the extras and, for a new founder, the installments. */
+const choice = () => ({
+  plan: planKey.value,
+  cycle: cycle.value,
+  modules: validExtras.value,
+  ...(cycle.value === 'founder' && !founder.value ? { installments: installments.value } : {}),
+})
 const extras = computed(() => (billing.value?.extra_modules ?? []).filter(m => !plan.value?.modules.some(pm => pm.key === m.key)))
 
 function toggleExtra(key: string) {
@@ -299,13 +395,13 @@ function toggleExtra(key: string) {
 interface Quote { total: number, vat: number, price: number, discount: number, credit_used: number, due: number, lines: { description: string, amount: number }[] }
 const quote = ref<Quote | null>(null)
 const validExtras = computed(() => chosenExtras.value.filter(k => extras.value.some(m => m.key === k)))
-watch([planKey, cycle, validExtras], () => requote(), { immediate: true })
+watch([planKey, cycle, validExtras, installments], () => requote(), { immediate: true })
 async function requote() {
   if (!planKey.value) {
     return
   }
   try {
-    quote.value = (await api<{ data: Quote }>('/billing/quote', { method: 'POST', body: { plan: planKey.value, cycle: cycle.value, modules: validExtras.value } })).data
+    quote.value = (await api<{ data: Quote }>('/billing/quote', { method: 'POST', body: choice() })).data
   }
   catch {
     quote.value = null
@@ -321,7 +417,7 @@ async function refreshAll() {
 async function payWithCredit() {
   sending.value = true
   try {
-    await api('/billing/pay-with-credit', { method: 'POST', body: { plan: planKey.value, cycle: cycle.value, modules: validExtras.value } })
+    await api('/billing/pay-with-credit', { method: 'POST', body: choice() })
     toast.add({ color: 'success', title: 'اتجدد الاشتراك من رصيدك' })
     await refreshAll()
     await subscription.refresh()
@@ -351,6 +447,10 @@ async function submit() {
     const body = new FormData()
     body.append('plan', planKey.value)
     body.append('cycle', cycle.value)
+    const chosen = choice()
+    if ('installments' in chosen) {
+      body.append('installments', String(chosen.installments))
+    }
     validExtras.value.forEach(m => body.append('modules[]', m))
     body.append('reference', form.reference.trim())
     if (form.sender_name) {

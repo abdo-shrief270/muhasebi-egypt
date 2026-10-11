@@ -1,6 +1,9 @@
 export interface PlanModule { key: string, name: string, available: boolean }
 export interface Plan { key: string, name: string, description: string, monthly: number, yearly: number, featured: boolean, modules: PlanModule[] }
-export interface Plans { trial_days: number, yearly_months: number, vat_percent: number, plans: Plan[], modules: (PlanModule & { monthly: number })[] }
+export interface FounderPlan { key: string, name: string, description: string, price: number, annual_fee: number, monthly: number, featured: boolean, modules: { key: string, name: string }[] }
+/** «باقة المؤسسين» while the platform has it open. */
+export interface Founders { name: string, tagline: string | null, seats: number | null, seats_left: number | null, ends_at: string | null, installments: number[], perks: string[], module_discount_percent: number, plans: FounderPlan[] }
+export interface Plans { trial_days: number, yearly_months: number, vat_percent: number, plans: Plan[], modules: (PlanModule & { monthly: number })[], founders?: Founders | null }
 
 /**
  * The live plans and prices from the API (config/billing.php), so the site never shows a stale price.

@@ -54,6 +54,32 @@ return [
         'site_url' => rtrim((string) env('SITE_URL', 'https://muhasebi.com'), '/'),
     ],
 
+    // «باقة المؤسسين» (founders): a one-time price for life (it covers the first year, payable in
+    // installments) then a small yearly fee. Only these defaults live here: platform admins edit the
+    // live offer (apps/admin «باقة المؤسسين»), stored in billing_founder_offer.
+    'founders' => [
+        'name' => 'باقة المؤسسين',
+        'tagline' => 'ادفع مرة واحدة واشتغل على طول، بسعر ثابت مدى الحياة. لأول المحلات بس.',
+        'seats' => 100,
+        'plans' => [
+            'accessories' => ['enabled' => true, 'price' => 750000, 'annual_fee' => 60000],
+            'repair' => ['enabled' => true, 'price' => 1100000, 'annual_fee' => 90000],
+            'pro' => ['enabled' => true, 'price' => 1350000, 'annual_fee' => 110000],
+            'business' => ['enabled' => true, 'price' => 2100000, 'annual_fee' => 170000],
+        ],
+        'installments' => [1, 2, 3, 4],
+        'perks' => [
+            'سعر ثابت مدى الحياة ما بيزيدش',
+            'كل التحديثات والمميزات الجديدة في باقتك من غير زيادة',
+            'خصم على الأقسام الإضافية',
+            'شارة «مؤسس» ورقم مؤسس باسم محلك',
+            'أولوية في الدعم وفي طلبات المميزات',
+        ],
+        'module_discount_percent' => 30,
+        'affiliate_rate_percent' => 10,
+        'allow_coupons' => false,
+    ],
+
     'instapay' => [
         'address' => env('BILLING_INSTAPAY_ADDRESS', ''),
         'name' => env('BILLING_INSTAPAY_NAME', ''),

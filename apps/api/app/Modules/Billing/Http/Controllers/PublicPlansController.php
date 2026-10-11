@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Billing\Http\Controllers;
 
 use App\Modules\Billing\Support\BillingView;
+use App\Modules\Billing\Support\Founders;
 use App\Support\Modules\ModuleRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
@@ -15,7 +16,7 @@ use Illuminate\Routing\Controller;
  */
 final class PublicPlansController extends Controller
 {
-    public function __invoke(BillingView $view, ModuleRegistry $registry): JsonResponse
+    public function __invoke(BillingView $view, ModuleRegistry $registry, Founders $founders): JsonResponse
     {
         // A module whose screens aren't built yet is shown as «قريباً»; one the platform hid isn't listed,
         // one it opened to every shop is marked free.
@@ -34,7 +35,9 @@ final class PublicPlansController extends Controller
                 'vat_percent' => intdiv((int) config('billing.vat_basis_points'), 100),
                 'plans' => array_map(fn (array $plan) => [...$plan, 'modules' => $mark($plan['modules'])], $view->catalog()),
                 'modules' => $mark($view->extraModules()),
+                // «باقة المؤسسين» while it's open (null otherwise).
+                'founders' => $founders->publicOffer(),
             ],
-        ])->setPublic()->setMaxAge(300);
+        ])->setPublic()->setMaxAge(60);
     }
 }

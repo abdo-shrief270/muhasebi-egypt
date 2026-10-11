@@ -10,7 +10,7 @@
           {{ payment.shop?.owner_name }} <span class="num" dir="ltr">{{ localPhone(payment.shop?.owner_phone) }}</span>
         </p>
         <p class="text-sm">
-          باقة <b>{{ payment.plan_name }}</b> · {{ payment.cycle === 'yearly' ? 'سنوي' : 'شهري' }}
+          باقة <b>{{ payment.plan_name }}</b> · {{ cycleLabel(payment.cycle) }}<span v-if="payment.founder"> ({{ payment.founder.installments === 1 ? 'دفعة واحدة' : `${payment.founder.installments} أقساط` }} من <span class="num">{{ formatMoney(payment.founder.price) }}</span>)</span>
           <span v-if="payment.modules.length"> + {{ payment.modules.map(m => m.name).join('، ') }}</span>
         </p>
         <p class="text-sm">

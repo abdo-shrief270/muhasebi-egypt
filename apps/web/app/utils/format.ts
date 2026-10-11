@@ -47,3 +47,8 @@ export function timeAgo(iso: string, now = Date.now()): string {
     ? date.toLocaleTimeString('ar-EG-u-nu-latn', { hour: 'numeric', minute: '2-digit' })
     : formatDate(iso, true)
 }
+
+/** A subscription's cycle in words. */
+export function cycleLabel(cycle: string | null | undefined): string {
+  return cycle === 'yearly' ? 'سنوي' : cycle === 'founder' ? 'باقة المؤسسين' : 'شهري'
+}

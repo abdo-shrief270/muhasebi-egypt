@@ -11,7 +11,10 @@ use App\Modules\Billing\Models\Subscription;
 /** How subscriptions, requests and invoices are shown (to the owner and to platform admins). */
 final class BillingView
 {
-    public function __construct(private readonly Pricing $pricing) {}
+    public function __construct(
+        private readonly Pricing $pricing,
+        private readonly Founders $founders,
+    ) {}
 
     /** @return array<string, mixed> */
     public function subscription(Subscription $s): array
@@ -34,6 +37,7 @@ final class BillingView
             'beta' => $s->inBeta(),
             'beta_until' => $s->beta_until?->toIso8601String(),
             'monthly_value' => $this->monthlyValue($s),
+            'founder' => $this->founders->of($s),
         ];
     }
 
@@ -44,6 +48,13 @@ final class BillingView
             return 0;
         }
         $prices = $this->pricing->modulePrices();
+        if ($s->cycle === Founders::CYCLE) {
+            // A founder: the year's share of the price while paying it, then of the yearly fee.
+            $year = $s->founder_paid < (int) $s->founder_price ? (int) $s->founder_price : (int) $s->founder_annual_fee;
+            $modules = array_sum(array_map(fn (string $k) => $prices[$k] ?? 0, $s->modules)) * (int) config('billing.yearly_months') * (100 - $s->founder_module_discount) / 100;
+
+            return intdiv($year + (int) $modules, 12);
+        }
 
         return ($this->pricing->plans()[$s->plan]['monthly'] ?? 0) + array_sum(array_map(fn (string $k) => $prices[$k] ?? 0, $s->modules));
     }
@@ -63,6 +74,7 @@ final class BillingView
             'amount' => $r->amount,
             'discount' => $r->discount,
             'credit_used' => $r->credit_used,
+            'founder' => $r->founder,
             'method' => $r->method,
             'reference' => $r->reference,
             'sender_name' => $r->sender_name,

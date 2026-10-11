@@ -16,17 +16,38 @@ final class Checkout
     public function __construct(
         private readonly Pricing $pricing,
         private readonly Subscriptions $subscriptions,
+        private readonly Founders $founders,
     ) {}
 
     /**
+     * The price before discounts: a plan for a month / a year, or — cycle «founder» — the next
+     * founder payment, priced with `$terms` (a request's) or the shop's / today's offer.
+     *
      * @param  list<string>  $extras
-     * @return array{plan: string, cycle: string, modules: list<string>, months: int, lines: list<array{description: string, amount: int}>, total: int, vat: int, price: int, discount: int, redemption_id: ?string, discount_months: int, credit_used: int, due: int}
+     * @param  array<string, mixed>|null  $terms
+     * @return array<string, mixed>
      */
-    public function quote(string $tenantId, string $plan, string $cycle, array $extras = []): array
+    public function base(string $tenantId, string $plan, string $cycle, array $extras = [], ?int $installments = null, ?array $terms = null, bool $checkOpen = true): array
     {
-        $quote = $this->pricing->quote($plan, $cycle, $extras);
+        if ($cycle !== Founders::CYCLE) {
+            return $this->pricing->quote($plan, $cycle, $extras);
+        }
+        $subscription = $this->subscriptions->for($tenantId);
+
+        return $this->founders->quote($subscription, $terms ?? $this->founders->termsFor($subscription, $plan, $installments, $checkOpen), $extras);
+    }
+
+    /**
+     * @param  list<string>  $extras
+     * @return array<string, mixed> the base quote plus price, discount, redemption_id, discount_months, credit_used, due
+     */
+    public function quote(string $tenantId, string $plan, string $cycle, array $extras = [], ?int $installments = null): array
+    {
+        $quote = $this->base($tenantId, $plan, $cycle, $extras, $installments);
         $price = $quote['total'];
-        [$redemption, $discount, $months] = $this->discount($tenantId, $quote);
+        // Founder prices take no coupon unless the offer says so.
+        $coupons = $cycle !== Founders::CYCLE || $this->founders->offer()['allow_coupons'];
+        [$redemption, $discount, $months] = $coupons ? $this->discount($tenantId, $quote) : [null, 0, 0];
         if ($discount > 0) {
             $quote['lines'][] = ['description' => $this->discountLabel($redemption), 'amount' => -$discount];
         }

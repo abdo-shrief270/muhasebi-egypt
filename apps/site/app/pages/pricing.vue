@@ -11,6 +11,8 @@
 
     <PlanCards />
 
+    <FoundersOffer v-if="data?.data.founders" :offer="data.data.founders" :yearly-months="data.data.yearly_months" />
+
     <section v-if="data?.data.modules.length" class="mt-16">
       <h2 class="mb-2 text-2xl font-extrabold">
         أقسام إضافية

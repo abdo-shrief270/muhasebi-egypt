@@ -12,6 +12,7 @@ use App\Modules\Billing\Models\Subscription;
 use App\Modules\Billing\Models\WalletTransaction;
 use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Checkout;
+use App\Modules\Billing\Support\Founders;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Billing\Support\Rewards;
 use App\Modules\Billing\Support\Subscriptions;
@@ -50,7 +51,7 @@ final class BillingController
         return response()->json(['data' => $this->view->subscription($this->subscriptions->for($this->tenant->idOrFail()))]);
     }
 
-    public function show(SetupProgress $setup, Rewards $rewards, ShopDirectory $shops): JsonResponse
+    public function show(SetupProgress $setup, Rewards $rewards, ShopDirectory $shops, Founders $founders): JsonResponse
     {
         $tenantId = $this->tenant->idOrFail();
         // «ابدأ من هنا» all done: its points, once (checked when the owner looks at the page).
@@ -84,6 +85,8 @@ final class BillingController
             'plans' => $this->view->catalog(),
             'extra_modules' => $this->view->extraModules(),
             'yearly_months' => (int) config('billing.yearly_months'),
+            // «باقة المؤسسين»: the open offer (for a shop that isn't a founder yet).
+            'founders' => Founders::isFounder($subscription) ? null : $founders->publicOffer($tenantId),
             'instapay' => config('billing.instapay'),
             'requests' => PaymentRequest::query()->latest()->limit(10)->get()->map(fn (PaymentRequest $r) => $this->view->request($r))->all(),
             'invoices' => BillingInvoice::query()->orderByDesc('number')->get()->map(fn (BillingInvoice $i) => $this->view->invoice($i))->all(),
@@ -94,7 +97,7 @@ final class BillingController
     {
         $data = $this->validateChoice($request);
 
-        return response()->json(['data' => $this->checkout->quote($this->tenant->idOrFail(), $data['plan'], $data['cycle'], $data['modules'] ?? [])]);
+        return response()->json(['data' => $this->checkout->quote($this->tenant->idOrFail(), $data['plan'], $data['cycle'], $data['modules'] ?? [], $data['installments'] ?? null)]);
     }
 
     /** "I paid by InstaPay": waits for an admin to check the transfer. */
@@ -112,7 +115,7 @@ final class BillingController
             throw new DomainRuleException('عندك طلب دفع لسه بيتراجع. استنى الرد أو الغيه الأول.', 'request_pending');
         }
         $tenantId = $this->tenant->idOrFail();
-        $quote = $this->checkout->quote($tenantId, $data['plan'], $data['cycle'], $data['modules'] ?? []);
+        $quote = $this->checkout->quote($tenantId, $data['plan'], $data['cycle'], $data['modules'] ?? [], $data['installments'] ?? null);
         if ($quote['due'] === 0) {
             throw new DomainRuleException('رصيدك بيغطي الاشتراك كله: ادفع من الرصيد.', 'pay_with_credit');
         }
@@ -128,6 +131,7 @@ final class BillingController
             'discount' => $quote['discount'],
             'credit_used' => $quote['credit_used'],
             'redemption_id' => $quote['redemption_id'],
+            'founder' => $quote['founder']['terms'] ?? null,
             'method' => 'instapay',
             'reference' => $data['reference'],
             'sender_name' => $data['sender_name'] ?? null,
@@ -175,7 +179,7 @@ final class BillingController
         }
         $invoice = DB::transaction(function () use ($data, $tenantId, $request): BillingInvoice {
             Subscription::query()->lockForUpdate()->find($this->subscriptions->for($tenantId)->id);
-            $quote = $this->checkout->quote($tenantId, $data['plan'], $data['cycle'], $data['modules'] ?? []);
+            $quote = $this->checkout->quote($tenantId, $data['plan'], $data['cycle'], $data['modules'] ?? [], $data['installments'] ?? null);
             if ($quote['due'] > 0) {
                 throw new DomainRuleException('رصيدك مش مغطي الاشتراك كله؛ الباقي بـ InstaPay.', 'credit_not_enough', context: ['due' => $quote['due']]);
             }
@@ -264,12 +268,13 @@ final class BillingController
         return response()->json(['data' => $this->view->invoice(BillingInvoice::query()->findOrFail($invoice))]);
     }
 
-    /** @return array{plan: string, cycle: string, modules?: list<string>} */
+    /** @return array{plan: string, cycle: string, modules?: list<string>, installments?: int} */
     private function validateChoice(Request $request): array
     {
         return $request->validate([
             'plan' => ['required', Rule::in(array_keys($this->pricing->plans()))],
-            'cycle' => ['required', Rule::in(Pricing::CYCLES)],
+            'cycle' => ['required', Rule::in([...Pricing::CYCLES, Founders::CYCLE])],
+            'installments' => ['nullable', 'integer', Rule::in(Founders::INSTALLMENTS)],
             'modules' => ['nullable', 'array'],
             'modules.*' => ['string', Rule::in(array_keys($this->pricing->modulePrices()))],
         ], attributes: ['plan' => 'الباقة', 'cycle' => 'مدة الاشتراك']);

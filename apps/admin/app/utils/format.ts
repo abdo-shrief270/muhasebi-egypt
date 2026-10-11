@@ -80,3 +80,7 @@ export const subscriptionStatusColor = (status: string) => ({
   restricted: 'warning',
   suspended: 'error',
 } as const)[status as 'active'] ?? 'neutral'
+
+export function cycleLabel(cycle: string | null | undefined): string {
+  return cycle === 'yearly' ? 'سنوي' : cycle === 'founder' ? 'باقة المؤسسين' : 'شهري'
+}

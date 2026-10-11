@@ -8,7 +8,6 @@ use App\Modules\Billing\Models\PaymentRequest;
 use App\Modules\Billing\Support\AdminLog;
 use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Checkout;
-use App\Modules\Billing\Support\Pricing;
 use App\Modules\Billing\Support\Subscriptions;
 use App\Modules\Billing\Support\Wallet;
 use App\Modules\Identity\Contracts\PlatformShops;
@@ -56,20 +55,20 @@ final class AdminPaymentController
      * The transfer arrived: the subscription is extended. The invoice carries the discount the
      * request was priced with; its total = the transfer + the credit held with the request.
      */
-    public function approve(Request $request, string $paymentRequest, Subscriptions $subscriptions, Pricing $pricing): JsonResponse
+    public function approve(Request $request, string $paymentRequest, Subscriptions $subscriptions): JsonResponse
     {
         $data = $request->validate([
             'amount' => ['nullable', 'integer', 'min:0'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $payment = DB::transaction(function () use ($paymentRequest, $data, $request, $subscriptions, $pricing): PaymentRequest {
+        $payment = DB::transaction(function () use ($paymentRequest, $data, $request, $subscriptions): PaymentRequest {
             $payment = PaymentRequest::withoutTenancy()->lockForUpdate()->findOrFail($paymentRequest);
             if ($payment->status !== 'pending') {
                 throw new DomainRuleException('الطلب ده اتراجع خلاص.', 'request_not_pending');
             }
             $admin = $request->user();
-            $quote = $pricing->quote($payment->plan, $payment->cycle, $payment->modules);
+            $quote = app(Checkout::class)->base($payment->tenant_id, $payment->plan, $payment->cycle, $payment->modules, terms: $payment->founder);
             $redemption = null;
             if ($payment->discount > 0) {
                 $quote['lines'][] = ['description' => 'خصم (كوبون / دعوة)', 'amount' => -$payment->discount];

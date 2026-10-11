@@ -969,7 +969,7 @@ export interface SubscriptionInfo {
   on_trial: boolean
   plan: string | null
   plan_name: string | null
-  cycle: 'monthly' | 'yearly' | null
+  cycle: BillingCycle | null
   modules: { key: string, name: string }[]
   paid_until: string
   days_left: number
@@ -978,6 +978,38 @@ export interface SubscriptionInfo {
   beta?: boolean
   beta_until?: string | null
   monthly_value: number
+  /** «باقة المؤسسين»: this shop's locked terms (null = not a founder) */
+  founder?: FounderInfo | null
+}
+
+export type BillingCycle = 'monthly' | 'yearly' | 'founder'
+
+/** Piasters. */
+export interface FounderInfo {
+  number: number
+  since: string | null
+  plan: string
+  plan_name: string
+  price: number
+  paid: number
+  remaining: number
+  installments: number
+  annual_fee: number
+  module_discount: number
+  next: 'installment' | 'annual'
+}
+
+/** «باقة المؤسسين» while it's open (prices in piasters). */
+export interface FoundersOffer {
+  name: string
+  tagline: string | null
+  seats: number | null
+  seats_left: number | null
+  ends_at: string | null
+  installments: number[]
+  perks: string[]
+  module_discount_percent: number
+  plans: { key: string, name: string, description: string, price: number, annual_fee: number, monthly: number, featured: boolean, modules: { key: string, name: string }[] }[]
 }
 
 export interface BillingPlan {
@@ -995,7 +1027,7 @@ export interface PaymentRequestInfo {
   tenant_id: string
   plan: string
   plan_name: string
-  cycle: 'monthly' | 'yearly'
+  cycle: BillingCycle
   modules: { key: string, name: string }[]
   amount: number
   method: string
@@ -1017,7 +1049,7 @@ export interface BillingInvoiceInfo {
   reference: string
   plan: string
   plan_name: string
-  cycle: 'monthly' | 'yearly'
+  cycle: BillingCycle
   months: number
   lines: { description: string, amount: number }[]
   total: number
@@ -1062,6 +1094,8 @@ export interface BillingOverview {
   plans: BillingPlan[]
   extra_modules: { key: string, name: string, monthly: number }[]
   yearly_months: number
+  /** null while closed, or once this shop is a founder */
+  founders: FoundersOffer | null
   instapay: { address: string, name: string, phone: string }
   requests: PaymentRequestInfo[]
   invoices: BillingInvoiceInfo[]

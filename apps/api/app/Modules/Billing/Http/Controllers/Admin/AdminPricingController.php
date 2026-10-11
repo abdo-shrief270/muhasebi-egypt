@@ -14,6 +14,7 @@ use App\Modules\Billing\Support\Lifetime;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Feedback\Contracts\FeedbackInbox;
 use App\Modules\Identity\Contracts\PlatformShops;
+use App\Modules\Marketplace\Contracts\PhoneCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -155,7 +156,7 @@ final class AdminPricingController
     }
 
     /** The numbers on the admin menu. */
-    public function badges(FeedbackInbox $inbox): JsonResponse
+    public function badges(FeedbackInbox $inbox, PhoneCatalog $phones): JsonResponse
     {
         $counts = $inbox->counts();
 
@@ -165,6 +166,7 @@ final class AdminPricingController
             'feedback' => $counts['new_feedback'],
             'errors' => $counts['open_errors'],
             'server' => DB::table('server_errors')->whereNull('resolved_at')->count(),
+            'phones' => $phones->toReview(),
         ]]);
     }
 }

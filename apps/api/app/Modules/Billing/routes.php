@@ -7,6 +7,7 @@ use App\Modules\Billing\Http\Controllers\Admin\AdminFeedbackController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminModuleController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminMonitoringController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
+use App\Modules\Billing\Http\Controllers\Admin\AdminPhoneController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPricingController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
 use App\Modules\Billing\Http\Controllers\Affiliate\AffiliateAuthController;
@@ -77,6 +78,13 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::patch('features/{key}', 'feature')->where('key', '[a-z_]+\\.[a-z_]+');
             Route::get('shops/{tenant}/modules', 'shop');
             Route::post('shops/{tenant}/modules/{key}', 'setShop')->where('key', '[a-z_]+');
+        });
+
+        Route::controller(AdminPhoneController::class)->group(function (): void {
+            Route::get('phones', 'index');
+            Route::post('phones', 'store');
+            Route::patch('phones/{phone}', 'update')->whereUuid('phone');
+            Route::delete('phones/{phone}', 'destroy')->whereUuid('phone');
         });
 
         Route::controller(AdminMonitoringController::class)->group(function (): void {

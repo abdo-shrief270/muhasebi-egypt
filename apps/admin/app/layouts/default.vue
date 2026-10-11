@@ -58,6 +58,7 @@ const groups: NavGroup[] = [
     items: [
       { to: '/shops', label: 'المحلات', icon: 'i-lucide-store' },
       { to: '/modules', label: 'الأقسام والمميزات', icon: 'i-lucide-blocks' },
+      { to: '/phones', label: 'كتالوج الموبايلات', icon: 'i-lucide-smartphone', badge: 'phones' },
     ],
   },
   {

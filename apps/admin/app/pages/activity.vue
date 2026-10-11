@@ -68,6 +68,9 @@ const labels: Record<string, string> = {
   feedback_screenshot_viewed: 'فتح صورة ملاحظة',
   client_error_resolved: 'علّم خطأ واجهة إنه اتحل',
   client_error_reopened: 'رجّع خطأ واجهة مفتوح',
+  phone_added: 'ضاف موبايل للكتالوج',
+  phone_changed: 'عدّل موبايل في الكتالوج',
+  phone_deleted: 'مسح موبايل من الكتالوج',
 }
 
 function summary(details: Record<string, unknown>): string {

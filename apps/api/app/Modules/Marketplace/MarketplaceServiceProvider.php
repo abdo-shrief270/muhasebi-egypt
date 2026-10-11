@@ -6,6 +6,8 @@ namespace App\Modules\Marketplace;
 
 use App\Modules\Marketplace\Console\ReindexMarketCommand;
 use App\Modules\Marketplace\Console\SyncMarketCommand;
+use App\Modules\Marketplace\Contracts\PhoneCatalog;
+use App\Modules\Marketplace\Support\Phones;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -13,6 +15,11 @@ use Illuminate\Support\Facades\RateLimiter;
 
 final class MarketplaceServiceProvider extends ModuleServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(PhoneCatalog::class, Phones::class);
+    }
+
     public function boot(): void
     {
         parent::boot();

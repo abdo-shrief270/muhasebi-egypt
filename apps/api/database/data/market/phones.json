@@ -1246,21 +1246,7 @@
    "series": null,
    "model": "Galaxy S22",
    "aliases": [
-    "جالاكسي S22"
-   ],
-   "year": 2022,
-   "storage_gb": [
-    128,
-    256
-   ],
-   "network": "5G",
-   "verify": false
-  },
-  {
-   "brand": "Samsung",
-   "series": null,
-   "model": "Galaxy S22+",
-   "aliases": [
+    "جالاكسي S22",
     "جالاكسي S22+"
    ],
    "year": 2022,
@@ -1293,26 +1279,12 @@
    "series": null,
    "model": "Galaxy S23",
    "aliases": [
-    "جالاكسي S23"
-   ],
-   "year": 2023,
-   "storage_gb": [
-    128,
-    256,
-    512
-   ],
-   "network": "5G",
-   "verify": false
-  },
-  {
-   "brand": "Samsung",
-   "series": null,
-   "model": "Galaxy S23+",
-   "aliases": [
+    "جالاكسي S23",
     "جالاكسي S23+"
    ],
    "year": 2023,
    "storage_gb": [
+    128,
     256,
     512
    ],
@@ -1355,26 +1327,12 @@
    "series": null,
    "model": "Galaxy S24",
    "aliases": [
-    "جالاكسي S24"
-   ],
-   "year": 2024,
-   "storage_gb": [
-    128,
-    256,
-    512
-   ],
-   "network": "5G",
-   "verify": false
-  },
-  {
-   "brand": "Samsung",
-   "series": null,
-   "model": "Galaxy S24+",
-   "aliases": [
+    "جالاكسي S24",
     "جالاكسي S24+"
    ],
    "year": 2024,
    "storage_gb": [
+    128,
     256,
     512
    ],
@@ -1418,26 +1376,12 @@
    "series": null,
    "model": "Galaxy S25",
    "aliases": [
-    "جالاكسي S25"
-   ],
-   "year": 2025,
-   "storage_gb": [
-    128,
-    256,
-    512
-   ],
-   "network": "5G",
-   "verify": false
-  },
-  {
-   "brand": "Samsung",
-   "series": null,
-   "model": "Galaxy S25+",
-   "aliases": [
+    "جالاكسي S25",
     "جالاكسي S25+"
    ],
    "year": 2025,
    "storage_gb": [
+    128,
     256,
     512
    ],
@@ -1496,21 +1440,7 @@
    "series": null,
    "model": "Galaxy S26",
    "aliases": [
-    "جالاكسي S26"
-   ],
-   "year": 2026,
-   "storage_gb": [
-    256,
-    512
-   ],
-   "network": "5G",
-   "verify": true
-  },
-  {
-   "brand": "Samsung",
-   "series": null,
-   "model": "Galaxy S26+",
-   "aliases": [
+    "جالاكسي S26",
     "جالاكسي S26+"
    ],
    "year": 2026,
@@ -2206,21 +2136,7 @@
    "series": "Redmi",
    "model": "Redmi Note 13 Pro 5G",
    "aliases": [
-    "ريدمي نوت 13 برو 5G"
-   ],
-   "year": 2024,
-   "storage_gb": [
-    256,
-    512
-   ],
-   "network": "5G",
-   "verify": false
-  },
-  {
-   "brand": "Xiaomi",
-   "series": "Redmi",
-   "model": "Redmi Note 13 Pro+ 5G",
-   "aliases": [
+    "ريدمي نوت 13 برو 5G",
     "ريدمي نوت 13 برو+ 5G"
    ],
    "year": 2024,
@@ -2281,21 +2197,7 @@
    "series": "Redmi",
    "model": "Redmi Note 14 Pro 5G",
    "aliases": [
-    "ريدمي نوت 14 برو 5G"
-   ],
-   "year": 2025,
-   "storage_gb": [
-    256,
-    512
-   ],
-   "network": "5G",
-   "verify": false
-  },
-  {
-   "brand": "Xiaomi",
-   "series": "Redmi",
-   "model": "Redmi Note 14 Pro+ 5G",
-   "aliases": [
+    "ريدمي نوت 14 برو 5G",
     "ريدمي نوت 14 برو+ 5G"
    ],
    "year": 2025,

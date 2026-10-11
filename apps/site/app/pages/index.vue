@@ -311,7 +311,7 @@ usePageSeo({
       'screenshot': [`${siteUrl}/screens/dashboard.webp`, `${siteUrl}/screens/pos.webp`, `${siteUrl}/screens/repairs.webp`],
       'description': 'برنامج حسابات ومخزون وصيانة لمحلات الموبايلات والإكسسوارات في مصر: كاشير بالباركود وIMEI، صيانة، آجل، شحن وتحويلات، مستعمل، وتقارير، وبيشتغل من غير نت.',
       'featureList': features.map(f => f.title).join('، '),
-      'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'EGP', 'description': 'تجربة 14 يوم ببلاش، وبعدها اشتراك شهري أو سنوي', 'url': `${siteUrl}/pricing` },
+      'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'EGP', 'description': 'تجربة 14 يوم ببلاش، وبعدها اشتراك شهري أو شراء مدى الحياة', 'url': `${siteUrl}/pricing` },
       'publisher': { '@id': `${siteUrl}/#org` },
     },
     {

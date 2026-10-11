@@ -4,10 +4,10 @@ use App\Modules\Billing\Http\Controllers\Admin\AdminAffiliateController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminCouponController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminFeedbackController;
-use App\Modules\Billing\Http\Controllers\Admin\AdminFounderController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminModuleController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminMonitoringController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
+use App\Modules\Billing\Http\Controllers\Admin\AdminPricingController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminShopController;
 use App\Modules\Billing\Http\Controllers\Affiliate\AffiliateAuthController;
 use App\Modules\Billing\Http\Controllers\Affiliate\AffiliateController;
@@ -106,9 +106,10 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::post('affiliate-commissions/{commission}/void', 'voidCommission');
         });
 
-        Route::controller(AdminFounderController::class)->group(function (): void {
-            Route::get('founders', 'show');
-            Route::put('founders/offer', 'update');
+        Route::controller(AdminPricingController::class)->group(function (): void {
+            Route::get('pricing', 'show');
+            Route::put('pricing/catalog', 'catalog');
+            Route::put('pricing/settings', 'settings');
             Route::get('badges', 'badges');
         });
 

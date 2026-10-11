@@ -47,7 +47,7 @@
         <ul class="space-y-0.5 text-(--ui-text-muted)">
           <li>محل يسجّل بكودك ويدفع: <b class="num text-(--ui-text)">{{ wallet.earn.referral }}</b> نقطة</li>
           <li>تجدد قبل ما الاشتراك يخلص: <b class="num text-(--ui-text)">{{ wallet.earn.early_renewal }}</b></li>
-          <li>تشترك سنوي: <b class="num text-(--ui-text)">{{ wallet.earn.yearly }}</b></li>
+          <li v-if="yearly">تشترك سنوي: <b class="num text-(--ui-text)">{{ wallet.earn.yearly }}</b></li>
           <li>تخلّص «ابدأ من هنا»: <b class="num text-(--ui-text)">{{ wallet.earn.onboarding }}</b></li>
         </ul>
       </div>
@@ -130,7 +130,7 @@
 import type { BillingDiscount, BillingReferral, BillingWallet } from '~/types/api'
 
 /** The shop's credit, points, invite code and coupons on «الاشتراك». */
-const props = defineProps<{ wallet: BillingWallet, referral: BillingReferral, discounts: BillingDiscount[], shopName: string }>()
+const props = defineProps<{ wallet: BillingWallet, referral: BillingReferral, discounts: BillingDiscount[], shopName: string, yearly?: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 
 const api = useApi()

@@ -66,7 +66,7 @@ final class Subscriptions
     /**
      * Pays for a period: extends the subscription, writes the invoice, grants the modules.
      *
-     * @param  array{plan: string, cycle: string, modules: list<string>, months: int, lines: list<array{description: string, amount: int}>, total: int, vat: int, founder?: array<string, mixed>}  $quote
+     * @param  array{plan: string, cycle: string, modules: list<string>, months: int, lines: list<array{description: string, amount: int}>, total: int, vat: int, lifetime?: array<string, mixed>}  $quote
      * @param  int|null  $amount  what was actually received, when an admin says it differs
      * @param  int  $creditUsed  of the total, what the shop's credit paid (already taken off its wallet)
      * @param  array{id: string, months: int}|null  $redemption  the held discount this payment used
@@ -121,8 +121,8 @@ final class Subscriptions
                 'suspended_reason' => null,
             ])->save();
 
-            // A founder payment: the first locks the terms and the number; installments add up.
-            app(Founders::class)->afterPayment($subscription, $quote);
+            // A lifetime payment: the first locks the terms and the number; installments add up.
+            app(Lifetime::class)->afterPayment($subscription, $quote);
 
             $current = $this->pricing->modulesOf($quote['plan'], $quote['modules']);
             $this->syncModules($tenantId, $current, $previous);
@@ -137,7 +137,7 @@ final class Subscriptions
 
             $this->audit->record(
                 $method === 'beta' ? 'billing.beta_granted' : 'billing.activated',
-                ($method === 'beta' ? 'فترة Beta مجانية' : 'اتفعّل الاشتراك').': '.($quote['cycle'] === Founders::CYCLE ? 'باقة المؤسسين' : 'باقة')." «{$this->pricing->plans()[$quote['plan']]['name']}» لحد ".$end->format('Y-m-d')." (فاتورة {$invoice->reference()})",
+                ($method === 'beta' ? 'فترة Beta مجانية' : 'اتفعّل الاشتراك').': '.($quote['cycle'] === Lifetime::CYCLE ? 'شراء مدى الحياة — باقة' : 'باقة')." «{$this->pricing->plans()[$quote['plan']]['name']}» لحد ".$end->format('Y-m-d')." (فاتورة {$invoice->reference()})",
                 $invoice,
                 ['total' => $total, 'method' => $method],
                 $tenantId,

@@ -48,7 +48,7 @@ const groups: NavGroup[] = [
     title: 'الفلوس',
     items: [
       { to: '/payments', label: 'المدفوعات', icon: 'i-lucide-banknote', badge: 'payments' },
-      { to: '/founders', label: 'باقة المؤسسين', icon: 'i-lucide-crown' },
+      { to: '/pricing', label: 'الأسعار ومدى الحياة', icon: 'i-lucide-tags' },
       { to: '/coupons', label: 'الكوبونات', icon: 'i-lucide-ticket-percent' },
       { to: '/partners', label: 'الشركاء', icon: 'i-lucide-handshake', badge: 'payouts' },
     ],

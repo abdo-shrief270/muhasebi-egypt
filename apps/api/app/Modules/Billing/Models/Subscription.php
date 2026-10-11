@@ -27,22 +27,21 @@ use Illuminate\Support\Carbon;
  * @property int $points_balance
  * @property string|null $referred_by the shop whose code it registered with
  * @property Carbon|null $referral_rewarded_at when that shop got its points
- * @property int|null $founder_number «باقة المؤسسين»: its number (null = not a founder)
- * @property Carbon|null $founder_since
- * @property string|null $founder_plan
- * @property int|null $founder_price the lifetime price it locked (piasters)
- * @property int $founder_paid of that price, paid so far
- * @property int|null $founder_installments
- * @property int|null $founder_annual_fee
- * @property int $founder_module_discount percent off extra modules
+ * @property int|null $lifetime_number «مدى الحياة»: its number (null = not bought)
+ * @property Carbon|null $lifetime_since
+ * @property string|null $lifetime_plan
+ * @property int|null $lifetime_price the price it locked, with its modules (piasters)
+ * @property int $lifetime_paid of that price, paid so far
+ * @property int|null $lifetime_installments
+ * @property int|null $lifetime_maintenance a year's maintenance once the price is paid
  */
 #[Fillable(['tenant_id', 'plan', 'cycle', 'modules', 'on_trial', 'paid_until', 'beta_until', 'suspended_at', 'suspended_reason', 'credit_balance', 'points_balance', 'referred_by', 'referral_rewarded_at',
-    'founder_number', 'founder_since', 'founder_plan', 'founder_price', 'founder_paid', 'founder_installments', 'founder_annual_fee', 'founder_module_discount'])]
+    'lifetime_number', 'lifetime_since', 'lifetime_plan', 'lifetime_price', 'lifetime_paid', 'lifetime_installments', 'lifetime_maintenance'])]
 final class Subscription extends Model
 {
     use BelongsToTenant, HasUuids;
 
-    protected $attributes = ['modules' => '[]', 'on_trial' => true, 'credit_balance' => 0, 'points_balance' => 0, 'founder_paid' => 0, 'founder_module_discount' => 0];
+    protected $attributes = ['modules' => '[]', 'on_trial' => true, 'credit_balance' => 0, 'points_balance' => 0, 'lifetime_paid' => 0];
 
     protected function casts(): array
     {
@@ -55,13 +54,12 @@ final class Subscription extends Model
             'credit_balance' => 'integer',
             'points_balance' => 'integer',
             'referral_rewarded_at' => 'datetime',
-            'founder_number' => 'integer',
-            'founder_since' => 'datetime',
-            'founder_price' => 'integer',
-            'founder_paid' => 'integer',
-            'founder_installments' => 'integer',
-            'founder_annual_fee' => 'integer',
-            'founder_module_discount' => 'integer',
+            'lifetime_number' => 'integer',
+            'lifetime_since' => 'datetime',
+            'lifetime_price' => 'integer',
+            'lifetime_paid' => 'integer',
+            'lifetime_installments' => 'integer',
+            'lifetime_maintenance' => 'integer',
         ];
     }
 

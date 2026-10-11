@@ -25,6 +25,12 @@ class RewardsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // The billing mechanics, at fixed prices (the live ones are the admins').
+        config([
+            'billing.plans.accessories.monthly' => 29900, 'billing.plans.repair.monthly' => 44900,
+            'billing.plans.pro.monthly' => 54900, 'billing.plans.business.monthly' => 84900,
+            'billing.yearly_enabled' => true,
+        ]);
         Storage::fake('local');
         $this->inviter = $this->registerShop();
         $this->admin = PlatformAdmin::create(['name' => 'الإدارة', 'email' => 'admin@muhasebi.test', 'password' => 'secret-password']);

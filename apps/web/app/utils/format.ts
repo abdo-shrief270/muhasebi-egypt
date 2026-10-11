@@ -50,5 +50,5 @@ export function timeAgo(iso: string, now = Date.now()): string {
 
 /** A subscription's cycle in words. */
 export function cycleLabel(cycle: string | null | undefined): string {
-  return cycle === 'yearly' ? 'سنوي' : cycle === 'founder' ? 'باقة المؤسسين' : 'شهري'
+  return cycle === 'yearly' ? 'سنوي' : cycle === 'lifetime' ? 'مدى الحياة' : 'شهري'
 }

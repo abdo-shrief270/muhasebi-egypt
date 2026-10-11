@@ -1,8 +1,8 @@
 <?php
 
 /*
- * Subscriptions. Prices in piasters, VAT (14%) included. A yearly subscription costs
- * `yearly_months` months. Payment is by InstaPay (the owner sends the transfer reference and
+ * Subscriptions. Prices in piasters, VAT (14%) included; platform admins override them (billing_catalog).
+ * A yearly subscription (when switched on) costs `yearly_months` months. Payment is by InstaPay (the owner sends the transfer reference and
  * a screenshot; a platform admin approves it) or activated by a platform admin directly.
  */
 return [
@@ -54,31 +54,29 @@ return [
         'site_url' => rtrim((string) env('SITE_URL', 'https://muhasebi.com'), '/'),
     ],
 
-    // «باقة المؤسسين» (founders): a one-time price for life (it covers the first year, payable in
-    // installments) then a small yearly fee. Only these defaults live here: platform admins edit the
-    // live offer (apps/admin «باقة المؤسسين»), stored in billing_founder_offer.
-    'founders' => [
-        'name' => 'باقة المؤسسين',
-        'tagline' => 'ادفع مرة واحدة واشتغل على طول، بسعر ثابت مدى الحياة. لأول المحلات بس.',
-        'seats' => 100,
-        'plans' => [
-            'accessories' => ['enabled' => true, 'price' => 750000, 'annual_fee' => 60000],
-            'repair' => ['enabled' => true, 'price' => 1100000, 'annual_fee' => 90000],
-            'pro' => ['enabled' => true, 'price' => 1350000, 'annual_fee' => 110000],
-            'business' => ['enabled' => true, 'price' => 2100000, 'annual_fee' => 170000],
-        ],
+    // «مدى الحياة»: a one-time price per plan (it covers the first year, payable in installments
+    // each covering 12/N months), then a yearly maintenance fee. Only defaults: platform admins edit
+    // it all (apps/admin «الأسعار»: billing_settings + billing_catalog). Off until they switch it on.
+    // Extra modules without their own lifetime price cost `module_months` of their monthly price
+    // for life and `module_maintenance_months` a year (rounded to 50 ج).
+    'lifetime' => [
+        'name' => 'مدى الحياة',
+        'tagline' => 'اشتري السيستم مرة واحدة، وادفع صيانة ودعم بسيطة كل سنة.',
         'installments' => [1, 2, 3, 4],
         'perks' => [
-            'سعر ثابت مدى الحياة ما بيزيدش',
-            'كل التحديثات والمميزات الجديدة في باقتك من غير زيادة',
-            'خصم على الأقسام الإضافية',
-            'شارة «مؤسس» ورقم مؤسس باسم محلك',
-            'أولوية في الدعم وفي طلبات المميزات',
+            'السيستم بتاعك مدى الحياة بسعر ثابت',
+            'التحديثات والمميزات الجديدة في باقتك من غير زيادة',
+            'صيانة ودعم فني بمبلغ بسيط كل سنة',
+            'تقدر تقسّط أول دفعة',
         ],
-        'module_discount_percent' => 30,
         'affiliate_rate_percent' => 10,
         'allow_coupons' => false,
+        'module_months' => 17,
+        'module_maintenance_months' => 4,
     ],
+
+    // Yearly subscriptions (a year for `yearly_months` months): off unless an admin turns them on.
+    'yearly_enabled' => false,
 
     'instapay' => [
         'address' => env('BILLING_INSTAPAY_ADDRESS', ''),
@@ -90,26 +88,34 @@ return [
         'accessories' => [
             'name' => 'إكسسوارات',
             'description' => 'الأساس: الكاشير والمخزون والمشتريات والعملاء والخزنة والتقارير',
-            'monthly' => 29900,
+            'monthly' => 34900,
+            'lifetime' => 600000,
+            'maintenance' => 150000,
             'modules' => ['shop_orders'],
         ],
         'repair' => [
             'name' => 'صيانة',
             'description' => 'الأساس + الصيانة ومرتجعات الموردين والمستعمل',
-            'monthly' => 44900,
+            'monthly' => 49900,
+            'lifetime' => 850000,
+            'maintenance' => 180000,
             'modules' => ['repairs', 'supplier_returns', 'used_devices', 'shop_orders'],
         ],
         'pro' => [
             'name' => 'برو',
             'description' => 'صيانة + الشحن والتحويلات والاستيراد وتطبيق المالك',
-            'monthly' => 54900,
+            'monthly' => 64900,
+            'lifetime' => 1050000,
+            'maintenance' => 210000,
             'modules' => ['repairs', 'supplier_returns', 'used_devices', 'services', 'imports', 'owner_app', 'shop_orders'],
             'featured' => true,
         ],
         'business' => [
             'name' => 'بيزنس',
             'description' => 'كل اللي في برو + الفروع المتعددة',
-            'monthly' => 84900,
+            'monthly' => 94900,
+            'lifetime' => 1600000,
+            'maintenance' => 300000,
             'modules' => ['repairs', 'supplier_returns', 'used_devices', 'services', 'imports', 'owner_app', 'shop_orders', 'multi_branch'],
         ],
     ],

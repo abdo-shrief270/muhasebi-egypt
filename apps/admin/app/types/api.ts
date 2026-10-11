@@ -5,7 +5,7 @@ export interface SubscriptionInfo {
   on_trial: boolean
   plan: string | null
   plan_name: string | null
-  cycle: 'monthly' | 'yearly' | 'founder' | null
+  cycle: 'monthly' | 'yearly' | 'lifetime' | null
   modules: { key: string, name: string }[]
   paid_until: string
   days_left: number
@@ -13,11 +13,11 @@ export interface SubscriptionInfo {
   beta: boolean
   beta_until: string | null
   monthly_value: number
-  founder: FounderInfo | null
+  lifetime: LifetimeInfo | null
 }
 
-/** «باقة المؤسسين»: a founder's locked terms and what's paid. Piasters. */
-export interface FounderInfo {
+/** «مدى الحياة»: a shop's locked price / maintenance and what's paid. Piasters. */
+export interface LifetimeInfo {
   number: number
   since: string | null
   plan: string
@@ -26,9 +26,8 @@ export interface FounderInfo {
   paid: number
   remaining: number
   installments: number
-  annual_fee: number
-  module_discount: number
-  next: 'installment' | 'annual'
+  maintenance: number
+  next: 'installment' | 'maintenance'
 }
 
 /** Beta: is the shop actually working in the app? */
@@ -101,8 +100,8 @@ export interface PaymentRequestInfo {
   tenant_id: string
   plan: string
   plan_name: string
-  cycle: 'monthly' | 'yearly' | 'founder'
-  founder: { price: number, annual_fee: number, installments: number, module_discount: number } | null
+  cycle: 'monthly' | 'yearly' | 'lifetime'
+  lifetime: { price: number, maintenance: number, installments: number, modules: string[], launch_discount: number } | null
   modules: { key: string, name: string }[]
   amount: number
   method: string

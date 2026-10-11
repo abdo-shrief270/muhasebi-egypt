@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Billing\Http\Controllers;
 
 use App\Modules\Billing\Support\BillingView;
-use App\Modules\Billing\Support\Founders;
+use App\Modules\Billing\Support\Lifetime;
+use App\Modules\Billing\Support\Pricing;
 use App\Support\Modules\ModuleRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
@@ -16,7 +17,7 @@ use Illuminate\Routing\Controller;
  */
 final class PublicPlansController extends Controller
 {
-    public function __invoke(BillingView $view, ModuleRegistry $registry, Founders $founders): JsonResponse
+    public function __invoke(BillingView $view, ModuleRegistry $registry, Lifetime $lifetime, Pricing $pricing): JsonResponse
     {
         // A module whose screens aren't built yet is shown as «قريباً»; one the platform hid isn't listed,
         // one it opened to every shop is marked free.
@@ -31,12 +32,13 @@ final class PublicPlansController extends Controller
         return response()->json([
             'data' => [
                 'trial_days' => (int) config('billing.trial_days'),
-                'yearly_months' => (int) config('billing.yearly_months'),
+                'yearly' => in_array('yearly', $pricing->cycles(), true),
+                'yearly_months' => $pricing->billedMonths('yearly'),
                 'vat_percent' => intdiv((int) config('billing.vat_basis_points'), 100),
                 'plans' => array_map(fn (array $plan) => [...$plan, 'modules' => $mark($plan['modules'])], $view->catalog()),
                 'modules' => $mark($view->extraModules()),
-                // «باقة المؤسسين» while it's open (null otherwise).
-                'founders' => $founders->publicOffer(),
+                // «مدى الحياة» while it's switched on (null otherwise).
+                'lifetime' => $lifetime->publicOffer(),
             ],
         ])->setPublic()->setMaxAge(60);
     }

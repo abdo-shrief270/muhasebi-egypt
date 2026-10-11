@@ -143,7 +143,7 @@ const steps = computed(() => [
 ])
 const numbers = computed(() => [
   { value: `${program.value.rate_percent}%`, label: 'من كل دفعة', hint: 'من غير ضريبة القيمة المضافة' },
-  { value: `${program.value.months} شهر`, label: 'من أول دفعة للمحل', hint: 'شهري أو سنوي، كله بيتحسب' },
+  { value: `${program.value.months} شهر`, label: 'من أول دفعة للمحل', hint: 'شهري أو مدى الحياة، كله بيتحسب' },
   { value: `${pounds(program.value.min_payout)} ج`, label: 'أقل سحب', hint: 'InstaPay أو محفظة أو بنك' },
   { value: `${program.value.hold_days} يوم`, label: 'وتبقى متاحة', hint: 'بعد ما المحل يدفع' },
 ])

@@ -13,7 +13,7 @@ final class BillingView
 {
     public function __construct(
         private readonly Pricing $pricing,
-        private readonly Founders $founders,
+        private readonly Lifetime $lifetime,
     ) {}
 
     /** @return array<string, mixed> */
@@ -37,7 +37,7 @@ final class BillingView
             'beta' => $s->inBeta(),
             'beta_until' => $s->beta_until?->toIso8601String(),
             'monthly_value' => $this->monthlyValue($s),
-            'founder' => $this->founders->of($s),
+            'lifetime' => $this->lifetime->of($s),
         ];
     }
 
@@ -48,12 +48,9 @@ final class BillingView
             return 0;
         }
         $prices = $this->pricing->modulePrices();
-        if ($s->cycle === Founders::CYCLE) {
-            // A founder: the year's share of the price while paying it, then of the yearly fee.
-            $year = $s->founder_paid < (int) $s->founder_price ? (int) $s->founder_price : (int) $s->founder_annual_fee;
-            $modules = array_sum(array_map(fn (string $k) => $prices[$k] ?? 0, $s->modules)) * (int) config('billing.yearly_months') * (100 - $s->founder_module_discount) / 100;
-
-            return intdiv($year + (int) $modules, 12);
+        if ($s->cycle === Lifetime::CYCLE) {
+            // Bought for life: the year's share of the price while paying it, then of the maintenance.
+            return intdiv($s->lifetime_paid < (int) $s->lifetime_price ? (int) $s->lifetime_price : (int) $s->lifetime_maintenance, 12);
         }
 
         return ($this->pricing->plans()[$s->plan]['monthly'] ?? 0) + array_sum(array_map(fn (string $k) => $prices[$k] ?? 0, $s->modules));
@@ -74,7 +71,7 @@ final class BillingView
             'amount' => $r->amount,
             'discount' => $r->discount,
             'credit_used' => $r->credit_used,
-            'founder' => $r->founder,
+            'lifetime' => $r->lifetime,
             'method' => $r->method,
             'reference' => $r->reference,
             'sender_name' => $r->sender_name,
@@ -123,18 +120,20 @@ final class BillingView
         ];
     }
 
-    /** @return list<array<string, mixed>> the plans and extra modules to choose from */
+    /** @return list<array<string, mixed>> the plans on sale */
     public function catalog(): array
     {
         $out = [];
-        foreach ($this->pricing->plans() as $key => $plan) {
+        foreach ($this->pricing->openPlans() as $key => $plan) {
             $out[] = [
                 'key' => $key,
                 'name' => $plan['name'],
                 'description' => $plan['description'],
                 'monthly' => $plan['monthly'],
                 'yearly' => $plan['monthly'] * $this->pricing->billedMonths('yearly'),
-                'featured' => (bool) ($plan['featured'] ?? false),
+                'lifetime' => $plan['lifetime'],
+                'maintenance' => $plan['maintenance'],
+                'featured' => $plan['featured'],
                 'modules' => array_map(fn (string $k) => ['key' => $k, 'name' => $this->pricing->name($k)], $plan['modules']),
             ];
         }
@@ -142,13 +141,13 @@ final class BillingView
         return $out;
     }
 
-    /** @return list<array{key: string, name: string, monthly: int}> */
+    /** @return list<array{key: string, name: string, monthly: int, lifetime: int, maintenance: int}> */
     public function extraModules(): array
     {
         $out = [];
-        foreach ($this->pricing->modulePrices() as $key => $price) {
-            if ($price > 0) {
-                $out[] = ['key' => $key, 'name' => $this->pricing->name($key), 'monthly' => $price];
+        foreach ($this->pricing->modules() as $key => $m) {
+            if ($m['enabled'] && $m['monthly'] > 0) {
+                $out[] = ['key' => $key, 'name' => $this->pricing->name($key), 'monthly' => $m['monthly'], 'lifetime' => $m['lifetime'], 'maintenance' => $m['maintenance']];
             }
         }
 

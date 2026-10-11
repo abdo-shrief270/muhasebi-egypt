@@ -978,14 +978,14 @@ export interface SubscriptionInfo {
   beta?: boolean
   beta_until?: string | null
   monthly_value: number
-  /** «باقة المؤسسين»: this shop's locked terms (null = not a founder) */
-  founder?: FounderInfo | null
+  /** «مدى الحياة»: this shop's locked price / maintenance (null = not bought) */
+  lifetime?: LifetimeInfo | null
 }
 
-export type BillingCycle = 'monthly' | 'yearly' | 'founder'
+export type BillingCycle = 'monthly' | 'yearly' | 'lifetime'
 
 /** Piasters. */
-export interface FounderInfo {
+export interface LifetimeInfo {
   number: number
   since: string | null
   plan: string
@@ -994,22 +994,20 @@ export interface FounderInfo {
   paid: number
   remaining: number
   installments: number
-  annual_fee: number
-  module_discount: number
-  next: 'installment' | 'annual'
+  /** a year's maintenance once the price is paid */
+  maintenance: number
+  next: 'installment' | 'maintenance'
 }
 
-/** «باقة المؤسسين» while it's open (prices in piasters). */
-export interface FoundersOffer {
+/** «مدى الحياة» while it's on (prices in piasters). */
+export interface LifetimeOffer {
   name: string
   tagline: string | null
-  seats: number | null
-  seats_left: number | null
-  ends_at: string | null
   installments: number[]
   perks: string[]
-  module_discount_percent: number
-  plans: { key: string, name: string, description: string, price: number, annual_fee: number, monthly: number, featured: boolean, modules: { key: string, name: string }[] }[]
+  launch: { percent: number, seats: number | null, seats_left: number | null, ends_at: string | null } | null
+  plans: { key: string, name: string, description: string, lifetime: number, maintenance: number, monthly: number, featured: boolean, modules: { key: string, name: string }[] }[]
+  modules: { key: string, name: string, lifetime: number, maintenance: number }[]
 }
 
 export interface BillingPlan {
@@ -1018,6 +1016,9 @@ export interface BillingPlan {
   description: string
   monthly: number
   yearly: number
+  /** one-time price (0 = not sold for life) and a year's maintenance after it */
+  lifetime: number
+  maintenance: number
   featured: boolean
   modules: { key: string, name: string }[]
 }
@@ -1092,10 +1093,12 @@ export interface BillingOverview {
   referral: BillingReferral
   discounts: BillingDiscount[]
   plans: BillingPlan[]
-  extra_modules: { key: string, name: string, monthly: number }[]
+  extra_modules: { key: string, name: string, monthly: number, lifetime: number, maintenance: number }[]
+  /** the subscription cycles on offer (yearly only when the platform turns it on) */
+  cycles: BillingCycle[]
   yearly_months: number
-  /** null while closed, or once this shop is a founder */
-  founders: FoundersOffer | null
+  /** null while off, or once this shop bought it */
+  lifetime: LifetimeOffer | null
   instapay: { address: string, name: string, phone: string }
   requests: PaymentRequestInfo[]
   invoices: BillingInvoiceInfo[]

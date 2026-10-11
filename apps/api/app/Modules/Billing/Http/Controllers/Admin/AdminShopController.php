@@ -11,7 +11,7 @@ use App\Modules\Billing\Models\WalletTransaction;
 use App\Modules\Billing\Support\AdminLog;
 use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Checkout;
-use App\Modules\Billing\Support\Founders;
+use App\Modules\Billing\Support\Lifetime;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Billing\Support\Subscriptions;
 use App\Modules\Billing\Support\SubscriptionStatus;
@@ -91,7 +91,7 @@ final class AdminShopController
         $data = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             // a subscription status, or «beta»: shops in a free beta period
-            'status' => ['nullable', Rule::in([...array_column(SubscriptionStatus::cases(), 'value'), 'beta', 'expiring', 'founder'])],
+            'status' => ['nullable', Rule::in([...array_column(SubscriptionStatus::cases(), 'value'), 'beta', 'expiring', 'lifetime'])],
         ]);
         $status = $data['status'] ?? null;
         $page = Subscription::withoutTenancy()
@@ -99,8 +99,8 @@ final class AdminShopController
             ->when($status === 'beta', fn ($q) => $q->where('beta_until', '>', now()))
             // «بيخلص قريب»: paid up but ending within a week — the shops to call.
             ->when($status === 'expiring', fn ($q) => $q->whereNull('suspended_at')->whereBetween('paid_until', [now(), now()->addDays(7)]))
-            ->when($status === 'founder', fn ($q) => $q->whereNotNull('founder_number'))
-            ->when($status !== null && ! in_array($status, ['beta', 'expiring', 'founder'], true), fn ($q) => $q->withStatus(SubscriptionStatus::from($status)))
+            ->when($status === 'lifetime', fn ($q) => $q->whereNotNull('lifetime_number'))
+            ->when($status !== null && ! in_array($status, ['beta', 'expiring', 'lifetime'], true), fn ($q) => $q->withStatus(SubscriptionStatus::from($status)))
             ->orderBy('paid_until')
             ->paginate(30);
         $ids = $page->getCollection()->pluck('tenant_id')->all();
@@ -146,8 +146,8 @@ final class AdminShopController
         $this->shops->details([$tenant])[$tenant] ?? abort(404);
         $data = $request->validate([
             'plan' => ['required', Rule::in(array_keys($this->pricing->plans()))],
-            'cycle' => ['required', Rule::in([...Pricing::CYCLES, Founders::CYCLE])],
-            'installments' => ['nullable', 'integer', Rule::in(Founders::INSTALLMENTS)],
+            'cycle' => ['required', Rule::in([...Pricing::CYCLES, Lifetime::CYCLE])],
+            'installments' => ['nullable', 'integer', Rule::in(Lifetime::INSTALLMENTS)],
             'modules' => ['nullable', 'array'],
             'modules.*' => ['string', Rule::in(array_keys($this->pricing->modulePrices()))],
             'months' => ['nullable', 'integer', 'min:1', 'max:36'],
@@ -155,7 +155,7 @@ final class AdminShopController
             'reference' => ['nullable', 'string', 'max:60'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
-        // A founder by hand (e.g. paid in cash): today's offer, even past its end or seats.
+        // Sold for life by hand (e.g. paid in cash): today's prices, even while the option is switched off.
         $quote = $checkout->base($tenant, $data['plan'], $data['cycle'], $data['modules'] ?? [], isset($data['installments']) ? (int) $data['installments'] : null, checkOpen: false);
         $invoice = $this->subscriptions->activate($tenant, $quote, 'manual', $data['reference'] ?? null, $request->user()?->getAttribute('name'), $data['amount'] ?? null, $data['note'] ?? null, $data['months'] ?? null);
         $this->log->record('shop_activated', $tenant, $invoice->id, ['plan' => $quote['plan'], 'cycle' => $quote['cycle'], 'modules' => $quote['modules'], 'amount' => $invoice->total, 'months' => $invoice->months, 'note' => $data['note'] ?? null]);

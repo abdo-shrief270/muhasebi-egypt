@@ -16,8 +16,8 @@
             <UBadge v-if="sub.beta" color="info" variant="subtle">
               Beta مجانية
             </UBadge>
-            <UBadge v-if="founder" color="warning" variant="soft" icon="i-lucide-crown">
-              المؤسس رقم <span class="num ms-1">{{ founder.number }}</span>
+            <UBadge v-if="owned" color="warning" variant="soft" icon="i-lucide-crown">
+              مدى الحياة · رقم <span class="num ms-1">{{ owned.number }}</span>
             </UBadge>
           </div>
           <p class="text-sm text-(--ui-text-muted)">
@@ -30,14 +30,14 @@
             </template>
             <span v-if="sub.cycle"> · {{ cycleLabel(sub.cycle) }}</span>
           </p>
-          <p v-if="founder" class="text-sm text-(--ui-text-muted)">
-            <template v-if="founder.remaining">
-              دفعت <span class="num">{{ formatMoney(founder.paid) }}</span> من <span class="num">{{ formatMoney(founder.price) }}</span> — باقي <span class="num">{{ formatMoney(founder.remaining) }}</span>،
+          <p v-if="owned" class="text-sm text-(--ui-text-muted)">
+            <template v-if="owned.remaining">
+              دفعت <span class="num">{{ formatMoney(owned.paid) }}</span> من <span class="num">{{ formatMoney(owned.price) }}</span> — باقي <span class="num">{{ formatMoney(owned.remaining) }}</span>،
             </template>
             <template v-else>
-              سعر المؤسسين اتدفع كله،
+              السيستم بتاعك خالص،
             </template>
-            وبعدها <span class="num">{{ formatMoney(founder.annual_fee) }}</span> بس في السنة طول ما المحل شغال.
+            وبعدها الصيانة والدعم <span class="num">{{ formatMoney(owned.maintenance) }}</span> بس في السنة.
           </p>
           <p v-if="sub.suspended_reason" class="text-sm text-(--ui-error)">
             {{ sub.suspended_reason }}
@@ -69,7 +69,7 @@
       :description="lastRejected.rejection_reason ?? undefined"
     />
 
-    <BillingRewards :wallet="billing.wallet" :referral="billing.referral" :discounts="billing.discounts" :shop-name="shop.name" @changed="refreshAll" />
+    <BillingRewards :yearly="billing.cycles.includes('yearly')" :wallet="billing.wallet" :referral="billing.referral" :discounts="billing.discounts" :shop-name="shop.name" @changed="refreshAll" />
 
     <!-- Choose -->
     <section v-if="!pending" class="space-y-4">
@@ -78,24 +78,27 @@
           {{ sub.on_trial || !sub.paid_up ? 'اختار باقتك' : 'جدّد أو غيّر باقتك' }}
         </h2>
         <UFieldGroup>
-          <UButton :color="cycle === 'monthly' ? 'primary' : 'neutral'" :variant="cycle === 'monthly' ? 'solid' : 'outline'" label="شهري" @click="cycle = 'monthly'" />
-          <UButton :color="cycle === 'yearly' ? 'primary' : 'neutral'" :variant="cycle === 'yearly' ? 'solid' : 'outline'" :label="`سنوي (${12 - billing.yearly_months} شهور هدية)`" @click="cycle = 'yearly'" />
-          <UButton v-if="founder || offer" icon="i-lucide-crown" :color="cycle === 'founder' ? 'warning' : 'neutral'" :variant="cycle === 'founder' ? 'solid' : 'outline'" :label="offer?.name ?? 'باقة المؤسسين'" @click="cycle = 'founder'" />
+          <UButton v-if="!owned" :color="cycle === 'monthly' ? 'primary' : 'neutral'" :variant="cycle === 'monthly' ? 'solid' : 'outline'" label="شهري" @click="cycle = 'monthly'" />
+          <UButton v-if="!owned && billing.cycles.includes('yearly')" :color="cycle === 'yearly' ? 'primary' : 'neutral'" :variant="cycle === 'yearly' ? 'solid' : 'outline'" :label="`سنوي (${12 - billing.yearly_months} شهور هدية)`" @click="cycle = 'yearly'" />
+          <UButton v-if="owned || offer" icon="i-lucide-crown" :color="cycle === 'lifetime' ? 'warning' : 'neutral'" :variant="cycle === 'lifetime' ? 'solid' : 'outline'" :label="offer?.name ?? 'مدى الحياة'" @click="cycle = 'lifetime'" />
         </UFieldGroup>
       </div>
 
-      <UCard v-if="cycle === 'founder' && offer && !founder" class="ring-1 ring-(--ui-warning)/40">
+      <UCard v-if="cycle === 'lifetime' && offer && !owned" class="ring-1 ring-(--ui-warning)/40">
         <div class="space-y-3">
           <div class="flex flex-wrap items-center gap-2">
             <UIcon name="i-lucide-crown" class="size-5 text-(--ui-warning)" />
             <p class="text-lg font-extrabold">
               {{ offer.name }}
             </p>
-            <UBadge v-if="offer.seats_left !== null" color="warning" variant="subtle">
-              فاضل <span class="num mx-1">{{ offer.seats_left }}</span> مكان
-            </UBadge>
-            <UBadge v-if="offer.ends_at" color="neutral" variant="subtle">
-              لحد <span class="num ms-1">{{ formatDate(offer.ends_at) }}</span>
+            <UBadge v-if="offer.launch" color="warning" variant="subtle">
+              خصم الإطلاق <span class="num mx-1">{{ offer.launch.percent }}%</span>
+              <template v-if="offer.launch.seats_left !== null">
+                · فاضل <span class="num mx-1">{{ offer.launch.seats_left }}</span> محل
+              </template>
+              <template v-if="offer.launch.ends_at">
+                · لحد <span class="num ms-1">{{ formatDate(offer.launch.ends_at) }}</span>
+              </template>
             </UBadge>
           </div>
           <p v-if="offer.tagline" class="text-sm text-(--ui-text-muted)">
@@ -143,16 +146,16 @@
               {{ plan.description }}
             </p>
           </div>
-          <p v-if="cycle === 'founder' && founder">
-            <span class="num text-2xl font-extrabold">{{ formatMoney(founder.remaining || founder.annual_fee) }}</span>
-            <span class="text-sm text-(--ui-text-muted)"> {{ founder.remaining ? 'باقي من سعر المؤسسين' : '/ سنة' }}</span>
+          <p v-if="cycle === 'lifetime' && owned">
+            <span class="num text-2xl font-extrabold">{{ formatMoney(owned.remaining || owned.maintenance) }}</span>
+            <span class="text-sm text-(--ui-text-muted)"> {{ owned.remaining ? 'باقي من سعر الشراء' : 'صيانة / سنة' }}</span>
           </p>
-          <p v-else-if="cycle === 'founder'">
-            <span class="num text-2xl font-extrabold">{{ formatMoney(offerPlan(plan.key)?.price) }}</span>
+          <p v-else-if="cycle === 'lifetime'">
+            <span class="num text-2xl font-extrabold">{{ formatMoney(plan.lifetime) }}</span>
             <span class="text-sm text-(--ui-text-muted)"> مرة واحدة</span>
             <span class="block text-xs text-(--ui-text-muted)">
-              شامل أول سنة، وبعدها <span class="num">{{ formatMoney(offerPlan(plan.key)?.annual_fee) }}</span> / سنة
-              <span v-if="plan.monthly">(بدل <span class="num">{{ formatMoney(plan.yearly) }}</span>)</span>
+              شامل أول سنة، وبعدها صيانة <span class="num">{{ formatMoney(plan.maintenance) }}</span> / سنة
+              (بدل <span class="num">{{ formatMoney(plan.monthly * 12) }}</span> في السنة شهري)
             </span>
           </p>
           <p v-else>
@@ -184,7 +187,7 @@
             :key="m.key"
             :model-value="chosenExtras.includes(m.key)"
             :label="m.name"
-            :description="extraPrice(m.monthly)"
+            :description="extraPrice(m)"
             @update:model-value="toggleExtra(m.key)"
           />
         </div>
@@ -355,36 +358,41 @@ const cycle = ref<BillingCycle>(sub.value?.cycle ?? 'monthly')
 const chosenExtras = ref<string[]>((sub.value?.modules ?? []).map(m => m.key))
 const plan = computed(() => billing.value?.plans.find(p => p.key === planKey.value))
 
-// «باقة المؤسسين»: a founder renews its own plan; others see the open offer.
-const founder = computed(() => sub.value?.founder ?? null)
-const offer = computed(() => billing.value?.founders ?? null)
+// «مدى الحياة»: a shop that bought it pays its installments / maintenance on its own plan; others see the option.
+const owned = computed(() => sub.value?.lifetime ?? null)
+const offer = computed(() => billing.value?.lifetime ?? null)
+if (owned.value) {
+  cycle.value = 'lifetime'
+}
+else if (!billing.value?.cycles.includes(cycle.value)) {
+  // e.g. a yearly subscriber after yearly was switched off
+  cycle.value = 'monthly'
+}
 const installments = ref<number>(offer.value?.installments[0] ?? 1)
-const offerPlan = (key: string) => offer.value?.plans.find(p => p.key === key)
 const shownPlans = computed(() => {
   const plans = billing.value?.plans ?? []
-  if (cycle.value !== 'founder') {
+  if (cycle.value !== 'lifetime') {
     return plans
   }
-  return founder.value ? plans.filter(p => p.key === founder.value!.plan) : plans.filter(p => offerPlan(p.key))
+  return owned.value ? plans.filter(p => p.key === owned.value!.plan) : plans.filter(p => p.lifetime > 0)
 })
 watch(cycle, () => {
   if (!shownPlans.value.some(p => p.key === planKey.value)) {
     planKey.value = shownPlans.value.find(p => p.featured)?.key ?? shownPlans.value[0]?.key ?? planKey.value
   }
 }, { immediate: true })
-function extraPrice(monthly: number) {
-  if (cycle.value === 'founder') {
-    const off = founder.value?.module_discount ?? offer.value?.module_discount_percent ?? 0
-    return `${formatMoney(Math.floor(monthly * billing.value!.yearly_months * (100 - off) / 100))} / سنة${off ? ` (خصم المؤسسين ${off}%)` : ''}`
+function extraPrice(m: { monthly: number, lifetime: number, maintenance: number }) {
+  if (cycle.value === 'lifetime') {
+    return m.lifetime ? `${formatMoney(m.lifetime)} مرة واحدة + ${formatMoney(m.maintenance)} صيانة / سنة` : 'مش متاح مدى الحياة'
   }
-  return `${formatMoney(monthly * (cycle.value === 'yearly' ? billing.value!.yearly_months : 1))} / ${cycle.value === 'yearly' ? 'سنة' : 'شهر'}`
+  return `${formatMoney(m.monthly * (cycle.value === 'yearly' ? billing.value!.yearly_months : 1))} / ${cycle.value === 'yearly' ? 'سنة' : 'شهر'}`
 }
-/** What the request sends: the plan, the cycle, the extras and, for a new founder, the installments. */
+/** What the request sends: the plan, the cycle, the extras and, for a first lifetime payment, the installments. */
 const choice = () => ({
   plan: planKey.value,
   cycle: cycle.value,
   modules: validExtras.value,
-  ...(cycle.value === 'founder' && !founder.value ? { installments: installments.value } : {}),
+  ...(cycle.value === 'lifetime' && !owned.value ? { installments: installments.value } : {}),
 })
 const extras = computed(() => (billing.value?.extra_modules ?? []).filter(m => !plan.value?.modules.some(pm => pm.key === m.key)))
 

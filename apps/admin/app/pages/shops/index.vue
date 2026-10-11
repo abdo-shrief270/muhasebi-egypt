@@ -109,7 +109,7 @@ const statusItems = [
   { label: 'موقوف', value: 'suspended' },
   { label: 'في فترة Beta', value: 'beta' },
   { label: 'بيخلص خلال أسبوع', value: 'expiring' },
-  { label: 'مؤسسين', value: 'founder' },
+  { label: 'اشتروا مدى الحياة', value: 'lifetime' },
 ]
 const q = ref('')
 const debounced = ref('')

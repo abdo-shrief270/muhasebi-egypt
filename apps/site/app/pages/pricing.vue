@@ -5,13 +5,13 @@
         الأسعار
       </h1>
       <p class="mt-3 text-lg text-(--ui-text-muted)">
-        ابدأ بتجربة ببلاش، وبعدها ادفع شهري أو سنوي بإنستاباي. من غير عقود ومن غير رسوم مخفية.
+        ابدأ بتجربة ببلاش، وبعدها اشترك شهري أو اشتري السيستم مرة واحدة، والدفع بإنستاباي. من غير عقود ومن غير رسوم مخفية.
       </p>
     </div>
 
     <PlanCards />
 
-    <FoundersOffer v-if="data?.data.founders" :offer="data.data.founders" :yearly-months="data.data.yearly_months" />
+    <LifetimeOffer v-if="data?.data.lifetime" :offer="data.data.lifetime" />
 
     <section v-if="data?.data.modules.length" class="mt-16">
       <h2 class="mb-2 text-2xl font-extrabold">
@@ -77,7 +77,7 @@ const info = [
 
 usePageSeo({
   title: 'أسعار محاسبي — باقات برنامج محلات الموبايلات',
-  description: 'أسعار محاسبي لمحلات الموبايلات والإكسسوارات والصيانة: باقات شهرية وسنوية شاملة الضريبة، أقسام إضافية حسب شغلك، تجربة 14 يوم ببلاش، والدفع بإنستاباي.',
+  description: 'أسعار محاسبي لمحلات الموبايلات والإكسسوارات والصيانة: اشتراك شهري أو شراء مدى الحياة بصيانة سنوية، شاملة الضريبة، أقسام إضافية حسب شغلك، تجربة 14 يوم ببلاش، والدفع بإنستاباي.',
   path: '/pricing',
   jsonLd: [breadcrumbs([{ name: 'الأسعار', path: '/pricing' }])],
 })

@@ -68,7 +68,7 @@ final class AdminPaymentController
                 throw new DomainRuleException('الطلب ده اتراجع خلاص.', 'request_not_pending');
             }
             $admin = $request->user();
-            $quote = app(Checkout::class)->base($payment->tenant_id, $payment->plan, $payment->cycle, $payment->modules, terms: $payment->founder);
+            $quote = app(Checkout::class)->base($payment->tenant_id, $payment->plan, $payment->cycle, $payment->modules, terms: $payment->lifetime);
             $redemption = null;
             if ($payment->discount > 0) {
                 $quote['lines'][] = ['description' => 'خصم (كوبون / دعوة)', 'amount' => -$payment->discount];

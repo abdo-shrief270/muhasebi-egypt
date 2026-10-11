@@ -14,8 +14,8 @@
       <UBadge :color="subscriptionStatusColor(sub.status)" variant="subtle" size="lg">
         {{ sub.status_label }}
       </UBadge>
-      <UBadge v-if="sub.founder" color="warning" variant="soft" size="lg" icon="i-lucide-crown">
-        مؤسس <span class="num ms-1">#{{ sub.founder.number }}</span>
+      <UBadge v-if="sub.lifetime" color="warning" variant="soft" size="lg" icon="i-lucide-crown">
+        مدى الحياة <span class="num ms-1">#{{ sub.lifetime.number }}</span>
       </UBadge>
       <UBadge v-if="sub.beta" color="info" variant="outline" size="lg">
         Beta لحد <span class="num ms-1">{{ formatDate(sub.beta_until) }}</span>
@@ -60,17 +60,16 @@
               </dd>
             </div>
           </dl>
-          <div v-if="sub.founder" class="mt-4 rounded-lg border border-(--ui-border) p-3 text-sm">
+          <div v-if="sub.lifetime" class="mt-4 rounded-lg border border-(--ui-border) p-3 text-sm">
             <p class="font-bold">
-              باقة المؤسسين «{{ sub.founder.plan_name }}» من <span class="num">{{ formatDate(sub.founder.since) }}</span>
+              اشترى «{{ sub.lifetime.plan_name }}» مدى الحياة من <span class="num">{{ formatDate(sub.lifetime.since) }}</span>
             </p>
             <p class="mt-1 text-(--ui-text-muted)">
-              السعر <span class="num">{{ formatMoney(sub.founder.price) }}</span>
-              <span v-if="sub.founder.installments > 1">على <span class="num">{{ sub.founder.installments }}</span> أقساط</span>
-              · اتدفع <span class="num">{{ formatMoney(sub.founder.paid) }}</span>
-              <span v-if="sub.founder.remaining"> · باقي <span class="num">{{ formatMoney(sub.founder.remaining) }}</span></span>
-              · بعدها <span class="num">{{ formatMoney(sub.founder.annual_fee) }}</span> في السنة
-              <span v-if="sub.founder.module_discount"> · خصم <span class="num">{{ sub.founder.module_discount }}%</span> على الأقسام</span>
+              السعر <span class="num">{{ formatMoney(sub.lifetime.price) }}</span>
+              <span v-if="sub.lifetime.installments > 1">على <span class="num">{{ sub.lifetime.installments }}</span> أقساط</span>
+              · اتدفع <span class="num">{{ formatMoney(sub.lifetime.paid) }}</span>
+              <span v-if="sub.lifetime.remaining"> · باقي <span class="num">{{ formatMoney(sub.lifetime.remaining) }}</span></span>
+              · الصيانة <span class="num">{{ formatMoney(sub.lifetime.maintenance) }}</span> في السنة
             </p>
           </div>
           <p v-if="sub.suspended_reason" class="mt-3 text-sm text-(--ui-error)">
@@ -252,7 +251,7 @@
             <UFormField label="المدة">
               <USelect v-model="form.cycle" :items="cycleItems" class="w-full" />
             </UFormField>
-            <UFormField v-if="form.cycle === 'founder' && !sub.founder" label="الأقساط" hint="بأسعار العرض الحالي">
+            <UFormField v-if="form.cycle === 'lifetime' && !sub.lifetime" label="الأقساط" hint="بالأسعار الحالية">
               <USelect v-model="form.installments" :items="installmentItems" class="w-full" />
             </UFormField>
             <UFormField label="أقسام إضافية">
@@ -395,7 +394,7 @@ const moduleItems = computed(() => (overviewData.value?.data.extra_modules ?? []
 
 const form = reactive({
   plan: sub.value?.plan ?? 'accessories',
-  cycle: (sub.value?.cycle ?? 'monthly') as 'monthly' | 'yearly' | 'founder',
+  cycle: (sub.value?.cycle ?? 'monthly') as 'monthly' | 'yearly' | 'lifetime',
   installments: 1,
   modules: (sub.value?.modules ?? []).map(m => m.key) as string[],
   months: '',
@@ -409,14 +408,14 @@ const listPrice = computed(() => {
     return null
   }
   const monthly = plan.monthly + form.modules.filter(k => !plan.modules.some(m => m.key === k)).reduce((sum, k) => sum + (o.extra_modules.find(m => m.key === k)?.monthly ?? 0), 0)
-  if (form.cycle === 'founder') {
+  if (form.cycle === 'lifetime') {
     return null
   }
   // A year costs as many months as the plan's yearly price says (yearly_months).
   return form.cycle === 'yearly' ? monthly * Math.round(plan.yearly / plan.monthly) : monthly
 })
 
-const cycleItems = [{ label: 'شهري', value: 'monthly' }, { label: 'سنوي', value: 'yearly' }, { label: 'باقة المؤسسين', value: 'founder' }]
+const cycleItems = [{ label: 'شهري', value: 'monthly' }, { label: 'سنوي', value: 'yearly' }, { label: 'مدى الحياة', value: 'lifetime' }]
 const installmentItems = [1, 2, 3, 4, 6, 12].map(n => ({ label: n === 1 ? 'دفعة واحدة' : `${n} أقساط (القسط ${12 / n} شهور)`, value: n }))
 
 const gift = reactive({ unit: 'credit' as 'credit' | 'points', amount: '', note: '' })
@@ -468,7 +467,7 @@ const activate = () => run('activate', () => api(`/shops/${id}/activate`, {
   body: {
     plan: form.plan,
     cycle: form.cycle,
-    installments: form.cycle === 'founder' ? form.installments : undefined,
+    installments: form.cycle === 'lifetime' ? form.installments : undefined,
     modules: form.modules,
     months: form.months ? Number(form.months) : undefined,
     amount: form.amount !== '' ? toPiasters(form.amount) : undefined,

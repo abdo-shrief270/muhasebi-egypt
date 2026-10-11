@@ -12,7 +12,7 @@ use App\Modules\Billing\Models\Subscription;
 use App\Modules\Billing\Models\WalletTransaction;
 use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Checkout;
-use App\Modules\Billing\Support\Founders;
+use App\Modules\Billing\Support\Lifetime;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Billing\Support\Rewards;
 use App\Modules\Billing\Support\Subscriptions;
@@ -51,7 +51,7 @@ final class BillingController
         return response()->json(['data' => $this->view->subscription($this->subscriptions->for($this->tenant->idOrFail()))]);
     }
 
-    public function show(SetupProgress $setup, Rewards $rewards, ShopDirectory $shops, Founders $founders): JsonResponse
+    public function show(SetupProgress $setup, Rewards $rewards, ShopDirectory $shops, Lifetime $lifetime): JsonResponse
     {
         $tenantId = $this->tenant->idOrFail();
         // «ابدأ من هنا» all done: its points, once (checked when the owner looks at the page).
@@ -84,9 +84,10 @@ final class BillingController
             'subscription' => $this->view->subscription($this->subscriptions->for($tenantId)),
             'plans' => $this->view->catalog(),
             'extra_modules' => $this->view->extraModules(),
-            'yearly_months' => (int) config('billing.yearly_months'),
-            // «باقة المؤسسين»: the open offer (for a shop that isn't a founder yet).
-            'founders' => Founders::isFounder($subscription) ? null : $founders->publicOffer($tenantId),
+            'cycles' => $this->pricing->cycles(),
+            'yearly_months' => $this->pricing->billedMonths('yearly'),
+            // «مدى الحياة»: the option (for a shop that hasn't bought it yet).
+            'lifetime' => Lifetime::isLifetime($subscription) ? null : $lifetime->publicOffer($tenantId),
             'instapay' => config('billing.instapay'),
             'requests' => PaymentRequest::query()->latest()->limit(10)->get()->map(fn (PaymentRequest $r) => $this->view->request($r))->all(),
             'invoices' => BillingInvoice::query()->orderByDesc('number')->get()->map(fn (BillingInvoice $i) => $this->view->invoice($i))->all(),
@@ -131,7 +132,7 @@ final class BillingController
             'discount' => $quote['discount'],
             'credit_used' => $quote['credit_used'],
             'redemption_id' => $quote['redemption_id'],
-            'founder' => $quote['founder']['terms'] ?? null,
+            'lifetime' => $quote['lifetime']['terms'] ?? null,
             'method' => 'instapay',
             'reference' => $data['reference'],
             'sender_name' => $data['sender_name'] ?? null,
@@ -272,9 +273,10 @@ final class BillingController
     private function validateChoice(Request $request): array
     {
         return $request->validate([
-            'plan' => ['required', Rule::in(array_keys($this->pricing->plans()))],
-            'cycle' => ['required', Rule::in([...Pricing::CYCLES, Founders::CYCLE])],
-            'installments' => ['nullable', 'integer', Rule::in(Founders::INSTALLMENTS)],
+            // Plans on sale, or the shop's own (kept even after the admins close it).
+            'plan' => ['required', Rule::in([...array_keys($this->pricing->openPlans()), $this->subscriptions->for($this->tenant->idOrFail())->plan])],
+            'cycle' => ['required', Rule::in([...$this->pricing->cycles(), Lifetime::CYCLE])],
+            'installments' => ['nullable', 'integer', Rule::in(Lifetime::INSTALLMENTS)],
             'modules' => ['nullable', 'array'],
             'modules.*' => ['string', Rule::in(array_keys($this->pricing->modulePrices()))],
         ], attributes: ['plan' => 'الباقة', 'cycle' => 'مدة الاشتراك']);

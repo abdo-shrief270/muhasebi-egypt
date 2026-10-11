@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 // Plans and prices for the public website (no sign-in).
 Route::get('public/plans', PublicPlansController::class)->middleware('throttle:60,1');
+Route::get('public/plans/recommend', [PublicPlansController::class, 'recommend'])->middleware('throttle:120,1');
 
 // The shop's subscription.
 Route::middleware(['auth:sanctum', 'tenant'])->prefix('billing')->controller(BillingController::class)->group(function (): void {

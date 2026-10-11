@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Actions;
 
+use App\Modules\Billing\Contracts\ShopNeeds;
 use App\Modules\Identity\Data\RegisterTenantData;
 use App\Modules\Identity\Enums\ShopType;
 use App\Modules\Identity\Events\TenantRegistered;
@@ -67,12 +68,15 @@ final class RegisterTenantAction
                 }
 
                 // Must succeed together with the registration, so it's a contract call, not an event.
-                // The optional modules made for this kind of shop start on trial.
-                $suggested = array_keys(array_filter($this->registry->all(), fn (ModuleManifest $m) => $m->isSuggestedFor($types)));
+                // The optional modules for what the owner said the shop does start on trial; an older
+                // client that didn't ask gets those made for its kind of shop.
+                $suggested = $data->needs !== null
+                    ? array_values(array_filter(app(ShopNeeds::class)->modulesFor($data->needs), fn (string $k) => $this->registry->has($k) && $this->registry->get($k)->isOptional()))
+                    : array_keys(array_filter($this->registry->all(), fn (ModuleManifest $m) => $m->isSuggestedFor($types)));
                 $this->modules->startTrials($tenant->id, $suggested);
 
                 $referrer = $data->referralCode !== null ? Tenant::query()->where('code', $data->referralCode)->value('id') : null;
-                $this->events->record(new TenantRegistered($tenant->id, $types[0], $owner->id, $types, $referrer, $data->affiliateCode));
+                $this->events->record(new TenantRegistered($tenant->id, $types[0], $owner->id, $types, $referrer, $data->affiliateCode, $data->needs));
                 $this->audit->record('shop.registered', "سجّل المحل «{$tenant->name}»", $tenant, tenantId: $tenant->id);
 
                 return $owner;

@@ -73,7 +73,7 @@ class LifetimeTest extends TestCase
         $this->assertSame([34900, 600000, 150000], [$pricing['plans'][0]['monthly'], $pricing['plans'][0]['lifetime'], $pricing['plans'][0]['maintenance']]);
         // A module without its own lifetime price: 17 months of it, and 4 a year (to 50 ج).
         $repairs = collect($pricing['modules'])->firstWhere('key', 'repairs');
-        $this->assertSame([14900, 255000, 60000], [$repairs['monthly'], $repairs['lifetime'], $repairs['maintenance']]);
+        $this->assertSame([19900, 340000, 80000], [$repairs['monthly'], $repairs['lifetime'], $repairs['maintenance']]);
 
         // Shops can't touch them.
         Sanctum::actingAs($owner);

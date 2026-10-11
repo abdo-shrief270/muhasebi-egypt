@@ -120,9 +120,25 @@ return [
         ],
     ],
 
+    // What a shop says it does when it registers («بتعمل إيه في المحل؟»): each need is covered by
+    // modules; the shop's trial starts with them and the cheapest plan + extras that covers them is
+    // recommended (`Support\Needs`). `types` = ticked in advance for those shop types.
+    'needs' => [
+        'repairs' => ['label' => 'صيانة واستلام أجهزة', 'description' => 'تذاكر، قطع غيار، ضمان، وتتبع الجهاز للعميل', 'icon' => 'i-lucide-wrench', 'modules' => ['repairs'], 'types' => ['repair']],
+        'supplier_returns' => ['label' => 'مرتجعات للموردين', 'description' => 'القطع والبضاعة البايظة ترجع للمورد وتتحاسب', 'icon' => 'i-lucide-package-x', 'modules' => ['supplier_returns'], 'types' => ['repair']],
+        'used_devices' => ['label' => 'شرا وبيع مستعمل', 'description' => 'تشتري موبايلات مستعملة بالبطاقة وتبيعها', 'icon' => 'i-lucide-smartphone', 'modules' => ['used_devices'], 'types' => ['phones']],
+        'services' => ['label' => 'شحن رصيد وتحويلات', 'description' => 'فودافون كاش، إنستاباي، كروت الشحن', 'icon' => 'i-lucide-arrow-left-right', 'modules' => ['services'], 'types' => []],
+        'installments' => ['label' => 'بيع بالتقسيط', 'description' => 'أقساط ومواعيدها وتحصيلها', 'icon' => 'i-lucide-calendar-clock', 'modules' => ['installments'], 'types' => ['phones']],
+        'online_store' => ['label' => 'متجر أونلاين', 'description' => 'صفحة لمحلك أصنافها وأسعارها من المخزون', 'icon' => 'i-lucide-globe', 'modules' => ['online_store'], 'types' => []],
+        'owner_app' => ['label' => 'أتابع المحل من موبايلي', 'description' => 'مبيعات اللحظة، تنبيهات، وموافقة على الخصومات', 'icon' => 'i-lucide-bell-ring', 'modules' => ['owner_app'], 'types' => []],
+        'multi_branch' => ['label' => 'أكتر من فرع', 'description' => 'مخزون لكل فرع وتحويلات بينهم', 'icon' => 'i-lucide-building-2', 'modules' => ['multi_branch'], 'types' => []],
+        'imports' => ['label' => 'استيراد من برّه', 'description' => 'شحنات، جمارك، وتكلفة وصول كل صنف', 'icon' => 'i-lucide-ship', 'modules' => ['imports'], 'types' => ['importer']],
+        'shop_orders' => ['label' => 'شغل مع محلات تانية', 'description' => 'طلبيات من التجار وتصليح عند محل تاني', 'icon' => 'i-lucide-handshake', 'modules' => ['shop_orders'], 'types' => ['wholesale', 'repair']],
+    ],
+
     // Optional modules bought on top of a plan (monthly).
     'modules' => [
-        'repairs' => 14900,
+        'repairs' => 19900,
         'imports' => 14900,
         'supplier_returns' => 7900,
         'used_devices' => 7900,

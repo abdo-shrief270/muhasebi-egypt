@@ -1096,6 +1096,9 @@ export interface BillingOverview {
   extra_modules: { key: string, name: string, monthly: number, lifetime: number, maintenance: number }[]
   /** the subscription cycles on offer (yearly only when the platform turns it on) */
   cycles: BillingCycle[]
+  /** what the owner said the shop does at sign-up, and the cheapest plan + extras covering it */
+  needs: string[] | null
+  recommended: { plan: string, plan_name: string, modules: { key: string, name: string }[], monthly: number, lifetime: number | null, maintenance: number | null } | null
   yearly_months: number
   /** null while off, or once this shop bought it */
   lifetime: LifetimeOffer | null

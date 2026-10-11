@@ -23,5 +23,7 @@ final readonly class RegisterTenantData
         public array $acquisition = [],
         /** The partner link it came from (?aff=CODE), if any. */
         public ?string $affiliateCode = null,
+        /** @var list<string>|null Billing's need keys the owner ticked; null = an older client (trials by shop type) */
+        public ?array $needs = null,
     ) {}
 }

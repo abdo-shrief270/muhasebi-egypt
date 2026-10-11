@@ -29,7 +29,7 @@ class RewardsTest extends TestCase
         config([
             'billing.plans.accessories.monthly' => 29900, 'billing.plans.repair.monthly' => 44900,
             'billing.plans.pro.monthly' => 54900, 'billing.plans.business.monthly' => 84900,
-            'billing.yearly_enabled' => true,
+            'billing.modules.repairs' => 14900, 'billing.yearly_enabled' => true,
         ]);
         Storage::fake('local');
         $this->inviter = $this->registerShop();

@@ -34,9 +34,10 @@ use Illuminate\Support\Carbon;
  * @property int $lifetime_paid of that price, paid so far
  * @property int|null $lifetime_installments
  * @property int|null $lifetime_maintenance a year's maintenance once the price is paid
+ * @property list<string>|null $needs what the owner said the shop does at registration
  */
 #[Fillable(['tenant_id', 'plan', 'cycle', 'modules', 'on_trial', 'paid_until', 'beta_until', 'suspended_at', 'suspended_reason', 'credit_balance', 'points_balance', 'referred_by', 'referral_rewarded_at',
-    'lifetime_number', 'lifetime_since', 'lifetime_plan', 'lifetime_price', 'lifetime_paid', 'lifetime_installments', 'lifetime_maintenance'])]
+    'lifetime_number', 'lifetime_since', 'lifetime_plan', 'lifetime_price', 'lifetime_paid', 'lifetime_installments', 'lifetime_maintenance', 'needs'])]
 final class Subscription extends Model
 {
     use BelongsToTenant, HasUuids;
@@ -60,6 +61,7 @@ final class Subscription extends Model
             'lifetime_paid' => 'integer',
             'lifetime_installments' => 'integer',
             'lifetime_maintenance' => 'integer',
+            'needs' => 'array',
         ];
     }
 

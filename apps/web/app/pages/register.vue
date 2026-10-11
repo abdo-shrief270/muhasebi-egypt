@@ -14,8 +14,12 @@
         <UInput v-model="form.shop_name" class="w-full" />
       </UFormField>
 
-      <UFormField label="محلك بيعمل إيه؟" description="اختار كل اللي ينطبق. هتشوف الأقسام اللي تناسبك بس، وتقدر تغيّر ده بعدين.">
-        <ShopTypePicker v-model="form.shop_types" />
+      <UFormField label="نوع المحل" description="اختار كل اللي ينطبق.">
+        <ShopTypePicker v-model="form.shop_types" :show-modules="false" />
+      </UFormField>
+
+      <UFormField label="بتعمل إيه في المحل؟" description="علّم على اللي محتاجه بس: البرنامج هيفتحلك الحاجات دي، ونحسبلك أرخص اشتراك يغطيها. الكاشير والمخزون والعملاء والخزنة والتقارير موجودين في كل الباقات.">
+        <NeedsPicker v-model="form.needs" :shop-types="form.shop_types" />
       </UFormField>
 
       <UFormField label="اسمك">
@@ -71,6 +75,7 @@ const siteUrl = String(useRuntimeConfig().public.siteUrl).replace(/\/$/, '')
 const form = reactive({
   shop_name: '',
   shop_types: ['accessories'] as string[],
+  needs: [] as string[],
   owner_name: '',
   phone: '',
   password: '',

@@ -92,7 +92,7 @@ export default defineNuxtConfig({
         'lucide:download', 'lucide:monitor-down', 'lucide:monitor-smartphone', 'lucide:laptop', 'lucide:share', 'lucide:square-plus',
         'lucide:book-open', 'lucide:copy', 'lucide:star', 'lucide:printer', 'lucide:mouse-pointer-click', 'lucide:history', 'lucide:zap',
         'lucide:refresh-cw', 'lucide:circle-check', 'lucide:chevron-left', 'lucide:chevron-right', 'lucide:ellipsis-vertical',
-      ],
+      'lucide:globe', 'lucide:building-2'],
     },
   },
 

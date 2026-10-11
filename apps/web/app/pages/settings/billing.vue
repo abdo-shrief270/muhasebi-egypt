@@ -135,7 +135,10 @@
           :class="planKey === plan.key ? 'ring-2 ring-primary' : 'hover:ring-1 hover:ring-(--ui-border-accented)'"
           @click="planKey = plan.key"
         >
-          <UBadge v-if="plan.featured" color="primary" class="absolute -top-2.5 start-4">
+          <UBadge v-if="recommended?.plan === plan.key" color="success" class="absolute -top-2.5 start-4">
+            الأنسب ليك
+          </UBadge>
+          <UBadge v-else-if="plan.featured && !recommended" color="primary" class="absolute -top-2.5 start-4">
             الأكثر اختياراً
           </UBadge>
           <div>
@@ -353,9 +356,11 @@ const lastRejected = computed(() => {
 const shop = computed(() => ({ name: store.session?.tenant.name ?? '', phone: store.session?.tenant.phone ?? null }))
 
 // The choice: the current plan (or the featured one), the same cycle.
-const planKey = ref<string>(sub.value?.plan ?? billing.value?.plans.find(p => p.featured)?.key ?? billing.value?.plans[0]?.key ?? '')
+// A shop that hasn't paid yet starts on what fits what it said it does at sign-up.
+const recommended = computed(() => (sub.value?.plan ? null : billing.value?.recommended) ?? null)
+const planKey = ref<string>(sub.value?.plan ?? recommended.value?.plan ?? billing.value?.plans.find(p => p.featured)?.key ?? billing.value?.plans[0]?.key ?? '')
 const cycle = ref<BillingCycle>(sub.value?.cycle ?? 'monthly')
-const chosenExtras = ref<string[]>((sub.value?.modules ?? []).map(m => m.key))
+const chosenExtras = ref<string[]>(sub.value?.plan ? (sub.value.modules ?? []).map(m => m.key) : (recommended.value?.modules ?? []).map(m => m.key))
 const plan = computed(() => billing.value?.plans.find(p => p.key === planKey.value))
 
 // «مدى الحياة»: a shop that bought it pays its installments / maintenance on its own plan; others see the option.

@@ -19,7 +19,7 @@
         <UIcon v-if="model.includes(type.value)" name="i-lucide-check" class="size-4 shrink-0 text-primary" />
       </button>
     </div>
-    <div v-if="modules.length" class="rounded-lg bg-(--ui-bg-elevated) p-3 text-sm">
+    <div v-if="showModules && modules.length" class="rounded-lg bg-(--ui-bg-elevated) p-3 text-sm">
       <p class="mb-1.5 font-bold">
         {{ modulesTitle }}
       </p>
@@ -45,7 +45,7 @@ export interface ShopTypeOption {
 }
 
 /** One or more kinds of shop; shows the extra modules that come with them. */
-withDefaults(defineProps<{ modulesTitle?: string }>(), { modulesTitle: 'الأقسام الإضافية اللي تناسبك (تجربة مجانية 14 يوم):' })
+withDefaults(defineProps<{ modulesTitle?: string, showModules?: boolean }>(), { modulesTitle: 'الأقسام الإضافية اللي تناسبك (تجربة مجانية 14 يوم):', showModules: true })
 const model = defineModel<string[]>({ required: true })
 
 const api = useApi()

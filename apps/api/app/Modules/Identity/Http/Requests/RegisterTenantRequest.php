@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Http\Requests;
 
+use App\Modules\Billing\Contracts\ShopNeeds;
 use App\Modules\Identity\Data\RegisterTenantData;
 use App\Modules\Identity\Enums\ShopType;
 use Illuminate\Foundation\Http\FormRequest;
@@ -40,6 +41,9 @@ final class RegisterTenantRequest extends FormRequest
             // The campaign the owner came from (utm_* carried from the website / an ad link).
             // A partner's code: checked by Billing after the shop exists (an unknown one is just ignored).
             'affiliate_code' => ['nullable', 'string', 'max:20', 'regex:/^[A-Za-z0-9_-]+$/'],
+            // What the shop does («بتعمل إيه في المحل؟»): its trial starts with the modules for those.
+            'needs' => ['nullable', 'array', 'max:30'],
+            'needs.*' => ['distinct', Rule::in(app(ShopNeeds::class)->keys())],
             'acquisition' => ['nullable', 'array:source,medium,campaign,content,term'],
             'acquisition.*' => ['nullable', 'string', 'max:80'],
         ];
@@ -93,6 +97,7 @@ final class RegisterTenantRequest extends FormRequest
             branchName: $this->filled('branch_name') ? $this->string('branch_name')->toString() : 'الفرع الرئيسي',
             referralCode: $this->filled('referral_code') ? $this->string('referral_code')->toString() : null,
             affiliateCode: $this->filled('affiliate_code') ? strtoupper($this->string('affiliate_code')->trim()->toString()) : null,
+            needs: $this->has('needs') ? array_values((array) $this->input('needs', [])) : null,
             acquisition: array_filter(array_map(fn ($v) => is_string($v) ? trim($v) : null, (array) $this->input('acquisition', [])), fn ($v) => $v !== null && $v !== ''),
         );
     }

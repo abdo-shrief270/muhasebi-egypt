@@ -8,11 +8,14 @@ use App\Modules\Billing\Console\AdminTwoFactorCommand;
 use App\Modules\Billing\Console\CreateAdminCommand;
 use App\Modules\Billing\Console\SendRenewalRemindersCommand;
 use App\Modules\Billing\Console\SyncSubscriptionModulesCommand;
+use App\Modules\Billing\Contracts\ShopNeeds;
 use App\Modules\Billing\Contracts\SubscriptionStanding;
 use App\Modules\Billing\Listeners\AttributeAffiliateSignup;
+use App\Modules\Billing\Listeners\RememberShopNeeds;
 use App\Modules\Billing\Listeners\WelcomeReferredShop;
 use App\Modules\Billing\Models\Affiliate;
 use App\Modules\Billing\Models\PlatformAdmin;
+use App\Modules\Billing\Support\Needs;
 use App\Modules\Identity\Events\TenantRegistered;
 use App\Support\Modules\ModuleServiceProvider;
 use App\Support\Tenancy\TenantRequestGuard;
@@ -21,13 +24,14 @@ use Illuminate\Support\Facades\Gate;
 final class BillingServiceProvider extends ModuleServiceProvider
 {
     protected array $listen = [
-        TenantRegistered::class => [WelcomeReferredShop::class, AttributeAffiliateSignup::class],
+        TenantRegistered::class => [WelcomeReferredShop::class, AttributeAffiliateSignup::class, RememberShopNeeds::class],
     ];
 
     public function register(): void
     {
         $this->app->tag([SubscriptionGuard::class], TenantRequestGuard::TAG);
         $this->app->bind(SubscriptionStanding::class, SubscriptionStandingService::class);
+        $this->app->bind(ShopNeeds::class, Needs::class);
     }
 
     public function boot(): void

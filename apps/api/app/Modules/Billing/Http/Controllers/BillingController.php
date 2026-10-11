@@ -13,6 +13,7 @@ use App\Modules\Billing\Models\WalletTransaction;
 use App\Modules\Billing\Support\BillingView;
 use App\Modules\Billing\Support\Checkout;
 use App\Modules\Billing\Support\Lifetime;
+use App\Modules\Billing\Support\Needs;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Billing\Support\Rewards;
 use App\Modules\Billing\Support\Subscriptions;
@@ -51,7 +52,7 @@ final class BillingController
         return response()->json(['data' => $this->view->subscription($this->subscriptions->for($this->tenant->idOrFail()))]);
     }
 
-    public function show(SetupProgress $setup, Rewards $rewards, ShopDirectory $shops, Lifetime $lifetime): JsonResponse
+    public function show(SetupProgress $setup, Rewards $rewards, ShopDirectory $shops, Lifetime $lifetime, Needs $needs): JsonResponse
     {
         $tenantId = $this->tenant->idOrFail();
         // «ابدأ من هنا» all done: its points, once (checked when the owner looks at the page).
@@ -85,6 +86,9 @@ final class BillingController
             'plans' => $this->view->catalog(),
             'extra_modules' => $this->view->extraModules(),
             'cycles' => $this->pricing->cycles(),
+            // What the owner said the shop does, and the cheapest plan + extras covering it today.
+            'needs' => $subscription->needs,
+            'recommended' => $subscription->needs !== null ? $needs->recommend($subscription->needs) : null,
             'yearly_months' => $this->pricing->billedMonths('yearly'),
             // «مدى الحياة»: the option (for a shop that hasn't bought it yet).
             'lifetime' => Lifetime::isLifetime($subscription) ? null : $lifetime->publicOffer($tenantId),

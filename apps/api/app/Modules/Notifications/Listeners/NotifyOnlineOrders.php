@@ -36,7 +36,7 @@ final class NotifyOnlineOrders extends ModuleListener
 
         app(Notifier::class)->notify(
             'online_order.placed',
-            "طلب أونلاين جديد {$event->reference}",
+            ($event->source === 'market' ? 'طلب جديد من سوق محاسبي ' : 'طلب أونلاين جديد ').$event->reference,
             $event->items.' قطعة · '.number_format($event->total / 100, 2).' ج · '.($event->fulfilment === 'delivery' ? 'توصيل' : 'استلام من المحل'),
             'i-lucide-shopping-bag',
             "/online-store/orders/{$event->orderId}",

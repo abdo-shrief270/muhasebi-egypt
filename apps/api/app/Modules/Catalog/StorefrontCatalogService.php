@@ -102,7 +102,7 @@ final class StorefrontCatalogService implements StorefrontCatalog
         ];
     }
 
-    public function variants(array $variantIds): array
+    public function variants(array $variantIds, bool $market = false): array
     {
         if ($variantIds === []) {
             return [];
@@ -111,7 +111,9 @@ final class StorefrontCatalogService implements StorefrontCatalog
         return ProductVariant::query()
             ->whereIn('product_variants.id', $variantIds)
             ->where('is_active', true)
-            ->whereIn('product_id', $this->shown(null)->select('products.id'))
+            ->whereIn('product_id', $market
+                ? Product::query()->where('products.is_active', true)->select('products.id')
+                : $this->shown(null)->select('products.id'))
             ->with('product')
             ->get()
             ->mapWithKeys(fn (ProductVariant $v) => [$v->id => [

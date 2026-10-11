@@ -46,6 +46,10 @@ export default defineNuxtConfig({
     // visitor's place (kept in the browser) re-sorts them after load.
     '/**': { cache: { swr: true, maxAge: 60 } },
     '/api/**': { cache: false },
+    // The visitor's own: the cart, checkout and an order's page, filled in the browser.
+    '/cart': { ssr: false, cache: false },
+    '/checkout/**': { ssr: false, cache: false },
+    '/o/**': { ssr: false, cache: false },
     '/sitemap.xml': { cache: false },
     '/robots.txt': { cache: false },
   },

@@ -18,6 +18,8 @@ final class OnlineOrderPlaced extends DomainEvent
         public readonly int $total,
         public readonly int $items,
         public readonly string $fulfilment,
+        /** store | market («سوق محاسبي») */
+        public readonly string $source = 'store',
     ) {}
 
     public function tenantId(): string

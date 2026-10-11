@@ -75,6 +75,25 @@ class OnlineOrdersTest extends TestCase
         $this->assertSame('+201055556666', $this->getJson('/api/v1/customers?q=أحمد')->json('data.0.phone'));
     }
 
+    public function test_an_order_from_the_marketplace_comes_from_the_offers_branch(): void
+    {
+        // Not shown on the store, but listed in the market: it can still be ordered from there.
+        $productId = $this->getJson('/api/v1/products?q=جراب')->json('data.0.id');
+        $this->patchJson('/api/v1/products/online', ['ids' => [$productId], 'visible' => false])->assertOk();
+        $this->order()->assertUnprocessable()->assertJsonPath('code', 'items_unavailable');
+
+        $placed = $this->order(['branch_id' => $this->branchId])->assertCreated()->json('data');
+        $this->assertSame(['WEB-00001', 20000], [$placed['reference'], $placed['subtotal']]);
+        app(EventRelay::class)->publishPending();
+        $id = $this->getJson('/api/v1/online-store/orders')->assertOk()->json('data.0.id');
+        $order = $this->getJson("/api/v1/online-store/orders/{$id}")->assertOk()->json('data');
+        $this->assertSame(['market', $this->branchId], [$order['source'], $order['branch_id']]);
+        $this->assertStringStartsWith('طلب جديد من سوق محاسبي', Notification::withoutTenancy()->latest('created_at')->value('title'));
+
+        // A branch that isn't this shop's.
+        $this->order(['phone' => '01055556667', 'branch_id' => '00000000-0000-7000-8000-000000000000'])->assertUnprocessable()->assertJsonPath('code', 'branch_unavailable');
+    }
+
     public function test_refusals(): void
     {
         $this->order(['items' => [['variant_id' => $this->v[1], 'qty' => 21]]])->assertUnprocessable()->assertJsonPath('code', 'out_of_stock');

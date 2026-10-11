@@ -60,7 +60,10 @@ final class PlaceOrderAction
         bool $consent,
         array $items,
         ?string $couponCode = null,
+        // From «سوق محاسبي»: the branch the offer was in (its stock, where it's prepared).
+        ?string $branchId = null,
     ): OnlineOrder {
+        $source = $branchId !== null ? 'market' : 'store';
         // The same checkout sent twice (a retry after a timeout) is saved once.
         if ($orderId !== null && ($existing = OnlineOrder::query()->find($orderId)) !== null) {
             return $existing;
@@ -99,12 +102,15 @@ final class PlaceOrderAction
         }
 
         $ids = array_column($items, 'variant_id');
-        $variants = $this->catalog->variants($ids);
+        $variants = $this->catalog->variants($ids, market: $source === 'market');
         $missing = array_values(array_diff($ids, array_keys($variants)));
         if ($missing !== []) {
             throw new DomainRuleException('فيه أصناف في السلة مابقتش موجودة في المتجر. شيلها وكمّل.', 'items_unavailable', context: ['variant_ids' => $missing]);
         }
-        $stock = $this->storefront->quantities($store, $ids);
+        $stock = $branchId !== null ? $this->storefront->quantitiesAt($branchId, $ids) : $this->storefront->quantities($store, $ids);
+        if ($stock === null) {
+            throw new DomainRuleException('الفرع ده مش موجود.', 'branch_unavailable', 422);
+        }
         $short = array_values(array_filter($items, fn (array $i) => $i['qty'] > max(0, $stock[$i['variant_id']] ?? 0)));
         if ($short !== []) {
             $names = implode('، ', array_map(fn (array $i) => $variants[$i['variant_id']]['name'], $short));
@@ -133,13 +139,14 @@ final class PlaceOrderAction
         $proofName = $proof !== null ? $this->proofs->put($store->tenant_id, $id, $proof) : null;
 
         try {
-            return DB::transaction(function () use ($store, $id, $name, $phone, $fulfilment, $zone, $address, $notes, $payment, $proofName, $consent, $lines, $subtotal, $fee, $couponCode): OnlineOrder {
+            return DB::transaction(function () use ($store, $id, $name, $phone, $fulfilment, $zone, $address, $notes, $payment, $proofName, $consent, $lines, $subtotal, $fee, $couponCode, $branchId, $source): OnlineOrder {
                 [$coupon, $discount] = $couponCode !== null ? $this->couponDiscount($couponCode, $subtotal, $phone, lock: true) : [null, 0];
                 $coupon?->increment('uses');
                 $customer = $consent ? $this->customers->findOrCreate($name, $phone, true) : null;
                 $order = new OnlineOrder([
                     'tenant_id' => $store->tenant_id,
-                    'branch_id' => $this->storefront->branch($store),
+                    'branch_id' => $branchId ?? $this->storefront->branch($store),
+                    'source' => $source,
                     'number' => $this->numbers->next($store->tenant_id, 'online_order'),
                     'status' => OrderStatus::New,
                     'customer_id' => $customer?->id,
@@ -182,6 +189,7 @@ final class PlaceOrderAction
                     total: $order->total,
                     items: array_sum(array_column($lines, 'qty')),
                     fulfilment: $fulfilment,
+                    source: $source,
                 ));
 
                 return $order;

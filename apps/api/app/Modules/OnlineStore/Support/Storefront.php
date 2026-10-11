@@ -175,6 +175,18 @@ final class Storefront
         return $this->stock->quantities($this->branch($store), $variantIds);
     }
 
+    /**
+     * Stock in one of the shop's branches (an order from «سوق محاسبي» is for the branch the offer
+     * was in); null = not a branch of this shop.
+     *
+     * @param  list<string>  $variantIds
+     * @return array<string, int>|null
+     */
+    public function quantitiesAt(string $branchId, array $variantIds): ?array
+    {
+        return array_key_exists($branchId, $this->branches->all()) ? $this->stock->quantities($branchId, $variantIds) : null;
+    }
+
     public function branch(OnlineStore $store): string
     {
         return (string) ($store->branch_id ?? $this->branches->mainBranchId());

@@ -1,6 +1,6 @@
 <template>
   <div v-if="order" class="space-y-6">
-    <PageHeader :title="`طلب ${order.reference}`" :description="`${formatDate(order.created_at, true)} · من المتجر الأونلاين`">
+    <PageHeader :title="`طلب ${order.reference}`" :description="`${formatDate(order.created_at, true)} · ${order.source === 'market' ? 'من سوق محاسبي' : 'من المتجر الأونلاين'}`">
       <UButton to="/online-store/orders" color="neutral" variant="ghost" icon="i-lucide-arrow-right" label="الطلبات" />
     </PageHeader>
 

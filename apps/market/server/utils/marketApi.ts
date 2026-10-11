@@ -14,6 +14,24 @@ export function marketApi<T>(event: H3Event, path: string, query?: Record<string
   })
 }
 
+/** Another public API endpoint (a shop's store: ordering options, coupon, order tracking). */
+export function publicApi<T>(event: H3Event, path: string, init: { method?: 'GET' | 'POST', query?: Record<string, unknown>, body?: unknown } = {}): Promise<T> {
+  const config = useRuntimeConfig(event)
+  const ip = getRequestIP(event, { xForwardedFor: true })
+  return $fetch<T>(`${config.apiInternal}/public${path}`, {
+    method: init.method ?? 'GET',
+    query: init.query,
+    body: init.body as Record<string, unknown> | undefined,
+    headers: { Accept: 'application/json', ...(ip ? { 'X-Forwarded-For': ip } : {}) },
+    timeout: 8000,
+  })
+}
+
+/** A shop store's slug, as the API allows them. */
+export function validStoreSlug(slug: string): boolean {
+  return /^[a-z0-9-]{3,40}$/.test(slug)
+}
+
 /** API errors keep their meaning: 404 = no such offer / shop, 503 = search is down. */
 export function rethrow(error: unknown): never {
   const status = (error as { statusCode?: number, status?: number }).statusCode ?? (error as { status?: number }).status ?? 502

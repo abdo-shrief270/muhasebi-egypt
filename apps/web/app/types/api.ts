@@ -386,6 +386,8 @@ export interface OnlineOrder {
   items_count: number | null
   sale_id: string | null
   sale_reference: string | null
+  /** store | market (from «سوق محاسبي», prepared at the offer's branch) */
+  source?: 'store' | 'market'
   token: string
   created_at: string
 }

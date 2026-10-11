@@ -39,6 +39,7 @@
             <div class="min-w-0 flex-1">
               <p class="font-bold">
                 <span class="num" dir="ltr">{{ order.reference }}</span> · {{ order.customer_name }}
+                <UBadge v-if="order.source === 'market'" size="sm" color="info" variant="subtle" label="سوق محاسبي" class="ms-1" />
               </p>
               <p class="text-sm text-(--ui-text-muted)">
                 <span class="num">{{ order.items_count }}</span> قطعة · {{ onlineOrderFulfilment(order) }} · {{ order.payment === 'transfer' ? 'تحويل' : 'كاش' }}

@@ -12,13 +12,16 @@ final class PublicStoreLinks implements PublicStores
 {
     public function __construct(private readonly ModuleAccess $modules) {}
 
-    public function url(string $tenantId): ?string
+    public function find(string $tenantId): ?array
     {
         if (! $this->modules->enabled('online_store', $tenantId)) {
             return null;
         }
         $store = OnlineStore::withoutTenancy()->where('tenant_id', $tenantId)->first();
+        if ($store === null || ! $store->isOpen()) {
+            return null;
+        }
 
-        return $store !== null && $store->isOpen() ? $store->url() : null;
+        return ['slug' => $store->slug, 'url' => $store->url(), 'takes_orders' => $store->takesOrders(), 'whatsapp' => $store->whatsapp];
     }
 }

@@ -43,13 +43,14 @@ use Illuminate\Support\Carbon;
  * @property string|null $sale_id
  * @property string|null $sale_reference
  * @property bool $fee_collected
+ * @property string $source store | market («سوق محاسبي»)
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
 #[Fillable([
     'tenant_id', 'branch_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone', 'fulfilment',
     'zone_id', 'zone_name', 'address', 'notes', 'payment', 'proof', 'subtotal', 'delivery_fee', 'total', 'token', 'coupon_id', 'coupon_code', 'discount',
-    'consent', 'cancel_reason', 'sale_id', 'sale_reference', 'fee_collected',
+    'consent', 'cancel_reason', 'sale_id', 'sale_reference', 'fee_collected', 'source',
 ])]
 final class OnlineOrder extends Model
 {
@@ -153,6 +154,7 @@ final class OnlineOrder extends Model
             'items_count' => $this->relationLoaded('items') ? $this->items->sum('qty') : null,
             'sale_id' => $this->sale_id,
             'sale_reference' => $this->sale_reference,
+            'source' => $this->source,
             'token' => $this->token,
             'created_at' => $this->created_at->toIso8601String(),
         ];

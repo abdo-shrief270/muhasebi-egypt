@@ -33,6 +33,8 @@ final class PublicOrderController
             'items.*.variant_id' => ['required', 'uuid', 'distinct'],
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:50'],
             'coupon_code' => ['nullable', 'string', 'max:32'],
+            // From «سوق محاسبي»: the branch the offers were in.
+            'branch_id' => ['nullable', 'uuid'],
             // Honeypot: a field people never see; bots fill it.
             'website' => ['nullable', 'max:0'],
         ], [], [
@@ -53,6 +55,7 @@ final class PublicOrderController
             consent: (bool) ($data['consent'] ?? false),
             items: array_values(array_map(fn (array $i) => ['variant_id' => (string) $i['variant_id'], 'qty' => (int) $i['qty']], $data['items'])),
             couponCode: $data['coupon_code'] ?? null,
+            branchId: $data['branch_id'] ?? null,
         );
 
         return response()->json(['data' => [...$order->load(['items', 'events'])->toPublic(), 'token' => $order->token]], 201)

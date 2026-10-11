@@ -75,12 +75,15 @@ final class PublicMarketController
         $branches = $this->guard(fn () => $market->shops(isset($p['lat']) ? (float) $p['lat'] : null, isset($p['lng']) ? (float) $p['lng'] : null, slug: strtolower($slug), limit: 100));
         $shop = $branches !== [] ? $shops->findByCode(strtoupper($slug)) : null;
         abort_if($shop === null, 404);
+        $store = $stores->find($shop->id);
 
         return response()->json(['data' => [
             'slug' => strtolower($shop->code),
             'name' => $shop->name,
             'phone' => $shop->phone,
-            'store_url' => $stores->url($shop->id),
+            // Its own store: a link, and — when it takes orders — where the market's cart orders.
+            'store' => $store,
+            'store_url' => $store['url'] ?? null,
             'branches' => $branches,
             'offers' => array_sum(array_column($branches, 'offers')),
         ]])->header('Cache-Control', 'public, max-age=60');

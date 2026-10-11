@@ -48,13 +48,14 @@ interface StorefrontCatalog
     public function product(string $id): ?array;
 
     /**
-     * Variants a customer may order (active, of a product shown on the store) with what they cost
-     * online — for pricing an order on the server, never from the cart.
+     * Variants a customer may order (active, of a product shown on the store — or, from «سوق محاسبي»,
+     * any active product, as the market lists them) with what they cost online — for pricing an
+     * order on the server, never from the cart.
      *
      * @param  list<string>  $variantIds
      * @return array<string, array{id: string, product_id: string, name: string, price: int}> keyed by id; others left out
      */
-    public function variants(array $variantIds): array;
+    public function variants(array $variantIds, bool $market = false): array;
 
     /**
      * One row per variant on the store, for the Meta / Google product feed: at most $limit.

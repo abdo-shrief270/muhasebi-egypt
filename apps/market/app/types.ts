@@ -61,6 +61,7 @@ export interface ShopPage {
   slug: string
   name: string
   phone: string
+  store: ShopStore | null
   store_url: string | null
   branches: ShopRow[]
   offers: number
@@ -74,3 +75,47 @@ export interface Options {
 }
 
 export interface MapPin extends LatLng { label: string, to?: string }
+
+/** A shop's own store, when it has one open: where the cart orders (takes_orders) or a link. */
+export interface ShopStore { slug: string, url: string, takes_orders: boolean, whatsapp: string | null }
+
+export interface Ordering {
+  pickup: boolean
+  delivery: boolean
+  min_order: number
+  free_delivery_over: number | null
+  pay_cod: boolean
+  pay_transfer: boolean
+  transfer_instapay: string | null
+  transfer_wallet: string | null
+  hours: { from: string, until: string } | null
+  open_now: boolean
+  coupons?: boolean
+}
+
+export interface Zone { id: string, name: string, fee: number }
+
+export interface StoreCheckout {
+  store: { slug: string, name: string, mode: string, whatsapp: string | null, ordering: Ordering | null }
+  zones: Zone[]
+}
+
+export interface OrderView {
+  reference: string
+  status: string
+  status_label: string
+  customer_name: string
+  fulfilment: 'pickup' | 'delivery'
+  zone_name: string | null
+  payment: 'cod' | 'transfer'
+  subtotal: number
+  coupon_code: string | null
+  discount: number
+  delivery_fee: number
+  total: number
+  cancel_reason: string | null
+  items: { product_id: string, name: string, qty: number, unit_price: number, line_total: number }[]
+  timeline: { status: string, label: string, at: string }[]
+  created_at: string
+  token?: string
+}

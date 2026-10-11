@@ -23,6 +23,24 @@
           {{ formatPrice(offer.price) }}
         </p>
 
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center rounded-xl border border-line-strong bg-white">
+            <button type="button" class="grid size-11 place-items-center text-lg" aria-label="أقل" @click="qty = Math.max(1, qty - 1)">
+              −
+            </button>
+            <span class="num w-8 text-center font-bold">{{ qty }}</span>
+            <button type="button" class="grid size-11 place-items-center text-lg" aria-label="أكتر" @click="qty = Math.min(offer.availability === 'low' ? 2 : 50, qty + 1)">
+              +
+            </button>
+          </div>
+          <button type="button" class="btn-ink h-11 flex-1 text-base" @click="addToCart">
+            أضف للسلة
+          </button>
+        </div>
+        <p v-if="added" class="rounded-xl bg-mint px-3 py-2 text-sm" role="status">
+          اتضافت للسلة. <NuxtLink to="/cart" class="font-semibold">روح للسلة</NuxtLink> أو كمّل تسوّق.
+        </p>
+
         <div class="card space-y-3 p-4">
           <NuxtLink :to="`/s/${offer.shop.slug}`" class="flex items-center gap-3 text-ink hover:text-ink">
             <span class="grid size-11 place-items-center rounded-xl bg-mint font-bold text-teal">{{ initial(offer.shop.name) }}</span>
@@ -88,6 +106,18 @@ const offer = computed(() => data.value?.offer ?? null)
 const elsewhere = computed(() => data.value?.elsewhere ?? [])
 const { data: shopData } = await useAsyncData(`offer-shop:${id.value}`, () => (offer.value?.shop.slug ? marketFetch<{ data: ShopPage }>(`/shops/${offer.value.shop.slug}`).then(r => r.data).catch(() => null) : Promise.resolve(null)))
 const shop = computed(() => shopData.value ?? null)
+
+const cart = useCart()
+const qty = ref(1)
+const added = ref(false)
+function addToCart() {
+  const o = offer.value
+  if (!o?.shop.slug) {
+    return
+  }
+  cart.add({ offerId: o.id, shop: { slug: o.shop.slug, name: o.shop.name ?? '' }, title: o.title, image: o.image, price: o.price }, qty.value)
+  added.value = true
+}
 
 const photo = computed(() => {
   const images = offer.value?.images

@@ -59,6 +59,7 @@ const groups: NavGroup[] = [
       { to: '/shops', label: 'المحلات', icon: 'i-lucide-store' },
       { to: '/modules', label: 'الأقسام والمميزات', icon: 'i-lucide-blocks' },
       { to: '/phones', label: 'كتالوج الموبايلات', icon: 'i-lucide-smartphone', badge: 'phones' },
+      { to: '/market', label: 'بلاغات السوق والتقييمات', icon: 'i-lucide-flag', badge: 'market' },
     ],
   },
   {

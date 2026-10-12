@@ -15,4 +15,11 @@ interface PublicStores
      * @return array{slug: string, url: string, takes_orders: bool, whatsapp: ?string}|null
      */
     public function find(string $tenantId): ?array;
+
+    /**
+     * Shops whose open store takes repair bookings («احجز صيانة»; the repairs module usable).
+     *
+     * @return array<string, array{slug: string, note: ?string}> tenant id => store
+     */
+    public function repairShops(): array;
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\OnlineStore\Http\Controllers;
 
 use App\Modules\OnlineStore\Actions\PlaceOrderAction;
+use App\Modules\OnlineStore\Actions\ReviewOrderAction;
 use App\Modules\OnlineStore\Models\OnlineCoupon;
 use App\Modules\OnlineStore\Models\OnlineOrder;
 use App\Modules\OnlineStore\Models\OnlineStore;
@@ -93,6 +94,22 @@ final class PublicOrderController
         }
 
         return response()->json(['data' => $order->toPublic()])->header('Cache-Control', 'no-store');
+    }
+
+    /** The customer rates the shop once the order was delivered. */
+    public function review(Request $request, string $slug, string $token, ReviewOrderAction $action): JsonResponse
+    {
+        $data = $request->validate([
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'comment' => ['nullable', 'string', 'max:500'],
+        ], [], ['rating' => 'التقييم', 'comment' => 'الكلام']);
+        $order = OnlineOrder::query()->where('token', $token)->first();
+        if ($order === null) {
+            return response()->json(['message' => 'الطلب ده مش موجود.', 'code' => 'order_not_found'], 404);
+        }
+        $review = $action->handle($order, (int) $data['rating'], $data['comment'] ?? null);
+
+        return response()->json(['data' => $review->toPublic()], 201)->header('Cache-Control', 'no-store');
     }
 
     private function onlineStore(Request $request): OnlineStore

@@ -29,6 +29,7 @@ final class RepairBookingController
             'problem' => ['required', 'string', 'min:3', 'max:1000'],
             'preferred_on' => ['nullable', 'date', 'after_or_equal:'.$today->toDateString(), 'before_or_equal:'.$today->addDays(30)->toDateString()],
             'consent' => ['nullable', 'boolean'],
+            'source' => ['nullable', 'in:store,market'],
             // Honeypot: a field people never see; bots fill it.
             'website' => ['nullable', 'max:0'],
         ], [], ['name' => 'الاسم', 'phone' => 'رقم الموبايل', 'device' => 'الجهاز', 'problem' => 'المشكلة', 'preferred_on' => 'اليوم']);
@@ -44,6 +45,7 @@ final class RepairBookingController
             trim($data['problem']),
             $data['preferred_on'] ?? null,
             (bool) ($data['consent'] ?? false),
+            $data['source'] ?? 'store',
         );
 
         return response()->json(['data' => ['reference' => $booking->reference(), 'preferred_on' => $booking->preferred_on?->toDateString()]], 201)

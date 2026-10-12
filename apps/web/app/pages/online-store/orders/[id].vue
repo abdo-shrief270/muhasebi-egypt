@@ -16,6 +16,18 @@
               السبب: {{ order.cancel_reason }}
             </p>
           </div>
+          <p v-if="order.auto_cancelled" class="mt-3 rounded-(--ui-radius) bg-(--ui-warning)/10 p-3 text-sm text-(--ui-warning)">
+            اتلغى لوحده لأنه فضل «جديد» من غير رد. الطلبات اللي بتيجي من سوق محاسبي لازم تتأكد أو تتلغى بسرعة، والمحلات اللي بتتأخر في الرد بتنزل في ترتيب السوق.
+          </p>
+          <div v-if="order.review" class="mt-3 rounded-(--ui-radius) bg-(--ui-bg-elevated) p-3">
+            <p class="flex items-center gap-1 text-sm font-bold">
+              تقييم الزبون:
+              <span class="text-(--ui-warning)" :aria-label="`${order.review.rating} من 5`">{{ '★'.repeat(order.review.rating) }}<span class="text-(--ui-text-dimmed)">{{ '★'.repeat(5 - order.review.rating) }}</span></span>
+            </p>
+            <p v-if="order.review.comment" class="mt-1 text-sm">
+              «{{ order.review.comment }}» — {{ order.review.name }}
+            </p>
+          </div>
           <div v-if="isOpen" class="mt-4 flex flex-wrap gap-2">
             <UButton
               v-if="canInvoice"

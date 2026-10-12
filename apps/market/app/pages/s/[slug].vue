@@ -11,6 +11,12 @@
             <p class="text-sm text-muted">
               <span class="num">{{ shop.offers }}</span> صنف متاح · <span class="num">{{ shop.branches.length }}</span> {{ shop.branches.length === 1 ? 'فرع' : 'فروع' }}
             </p>
+            <p v-if="shop.reputation?.rating" class="mt-0.5 text-sm">
+              <StarRating :rating="shop.reputation.rating" :reviews="shop.reputation.reviews" />
+            </p>
+            <p v-if="shop.reputation?.response !== null && shop.reputation?.response !== undefined && shop.reputation.response >= 0.9" class="mt-0.5 text-sm font-semibold text-ok">
+              بيرد على الطلبات بسرعة
+            </p>
           </div>
         </div>
         <div class="flex flex-wrap gap-2">
@@ -32,6 +38,26 @@
       <ClientOnly>
         <MarketMap class="min-h-72 border border-line lg:col-span-3" :pins="pins" :me="place?.point ?? null" />
       </ClientOnly>
+    </section>
+
+    <section v-if="shop.reviews?.length" class="space-y-3">
+      <h2 class="text-xl font-bold">
+        رأي الزباين
+      </h2>
+      <p class="text-sm text-muted">
+        من زباين استلموا طلباتهم بس.
+      </p>
+      <ul class="grid gap-3 sm:grid-cols-2">
+        <li v-for="(r, i) in shop.reviews" :key="i" class="card space-y-1 p-4">
+          <StarRating :rating="r.rating" />
+          <p v-if="r.comment" class="text-sm">
+            «{{ r.comment }}»
+          </p>
+          <p class="text-xs text-muted">
+            {{ r.name }} · <span class="num">{{ new Date(r.at).toLocaleDateString('ar-EG-u-nu-latn', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
+          </p>
+        </li>
+      </ul>
     </section>
 
     <section class="space-y-3">

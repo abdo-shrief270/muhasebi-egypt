@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -44,13 +45,15 @@ use Illuminate\Support\Carbon;
  * @property string|null $sale_reference
  * @property bool $fee_collected
  * @property string $source store | market («سوق محاسبي»)
+ * @property Carbon|null $answered_at when it first left «جديد»
+ * @property bool $auto_cancelled the shop never answered (marketplace orders)
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
 #[Fillable([
     'tenant_id', 'branch_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone', 'fulfilment',
     'zone_id', 'zone_name', 'address', 'notes', 'payment', 'proof', 'subtotal', 'delivery_fee', 'total', 'token', 'coupon_id', 'coupon_code', 'discount',
-    'consent', 'cancel_reason', 'sale_id', 'sale_reference', 'fee_collected', 'source',
+    'consent', 'cancel_reason', 'sale_id', 'sale_reference', 'fee_collected', 'source', 'answered_at', 'auto_cancelled',
 ])]
 final class OnlineOrder extends Model
 {
@@ -69,6 +72,8 @@ final class OnlineOrder extends Model
             'total' => 'integer',
             'consent' => 'boolean',
             'fee_collected' => 'boolean',
+            'answered_at' => 'datetime',
+            'auto_cancelled' => 'boolean',
         ];
     }
 
@@ -82,6 +87,18 @@ final class OnlineOrder extends Model
     public function events(): HasMany
     {
         return $this->hasMany(OnlineOrderEvent::class, 'order_id')->orderBy('seq');
+    }
+
+    /** @return HasOne<OnlineReview, $this> */
+    public function review(): HasOne
+    {
+        return $this->hasOne(OnlineReview::class, 'order_id');
+    }
+
+    /** A delivered order can be rated once, for 30 days. */
+    public function canBeReviewed(): bool
+    {
+        return $this->status === OrderStatus::Delivered && ! $this->review()->exists() && $this->updated_at->gt(now()->subDays(30));
     }
 
     public function reference(): string
@@ -115,6 +132,10 @@ final class OnlineOrder extends Model
             'delivery_fee' => $this->delivery_fee,
             'total' => $this->total,
             'cancel_reason' => $this->cancel_reason,
+            'auto_cancelled' => $this->auto_cancelled,
+            'source' => $this->source,
+            'review' => $this->review?->toPublic(),
+            'can_review' => $this->canBeReviewed(),
             'items' => $this->items->map(fn (OnlineOrderItem $i) => [
                 'product_id' => $i->product_id, 'name' => $i->name, 'qty' => $i->qty, 'unit_price' => $i->unit_price, 'line_total' => $i->line_total,
             ])->values()->all(),
@@ -169,6 +190,8 @@ final class OnlineOrder extends Model
             'notes' => $this->notes,
             'consent' => $this->consent,
             'cancel_reason' => $this->cancel_reason,
+            'auto_cancelled' => $this->auto_cancelled,
+            'review' => $this->review?->toPublic(),
             'fee_collected' => $this->fee_collected,
             'items' => $this->items->map(fn (OnlineOrderItem $i) => [
                 'id' => $i->id, 'product_id' => $i->product_id, 'variant_id' => $i->variant_id, 'name' => $i->name,

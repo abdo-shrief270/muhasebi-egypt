@@ -32,6 +32,7 @@
           <div class="min-w-0 flex-1">
             <p class="font-bold">
               {{ b.device }} <span class="num text-sm font-normal text-(--ui-text-muted)" dir="ltr">{{ b.reference }}</span>
+              <UBadge v-if="b.source === 'market'" size="sm" color="info" variant="subtle" label="سوق محاسبي" class="ms-1" />
             </p>
             <p class="text-sm">
               {{ b.customer_name }} · <a :href="`tel:${b.customer_phone}`" class="num" dir="ltr">{{ localPhone(b.customer_phone) }}</a>

@@ -31,6 +31,9 @@ final class MarketSearch
     /** The used devices' grades as buyers read them (UsedDevices' own words). */
     public const GRADE_LABELS = ['A' => 'زي الجديد', 'B' => 'حالة كويسة', 'C' => 'فيه عيوب'];
 
+    /** Offers held back from every listing (a price far from the others' until the shop confirms it). */
+    private const HELD = [['exists' => ['field' => 'flag']]];
+
     public function __construct(private readonly SearchClient $search) {}
 
     /**
@@ -87,11 +90,14 @@ final class MarketSearch
 
         $body = [
             'query' => ['function_score' => [
-                'query' => ['bool' => ['must' => [$must], 'filter' => $filters]],
-                // Plenty in stock ranks a little above «قرب يخلص»; offers with a photo above those without.
+                'query' => ['bool' => ['must' => [$must], 'filter' => $filters, 'must_not' => self::HELD]],
+                // Plenty in stock ranks a little above «قرب يخلص»; offers with a photo above those without;
+                // shops that answer their orders late sink, well-rated ones rise a little.
                 'functions' => [
                     ['filter' => ['term' => ['availability' => 'in']], 'weight' => 1.2],
                     ['filter' => ['range' => ['images' => ['gte' => 1]]], 'weight' => 1.3],
+                    ['filter' => ['range' => ['shop.response' => ['lt' => 0.5]]], 'weight' => 0.6],
+                    ['filter' => ['bool' => ['filter' => [['range' => ['shop.rating' => ['gte' => 4.5]]], ['range' => ['shop.reviews' => ['gte' => 3]]]]]], 'weight' => 1.15],
                 ],
                 'score_mode' => 'multiply',
                 'boost_mode' => 'multiply',
@@ -169,7 +175,7 @@ final class MarketSearch
         }
         $result = $this->search->search($this->search->name(MarketIndices::OFFERS), [
             'size' => 0,
-            'query' => ['bool' => ['filter' => $filters]],
+            'query' => ['bool' => ['filter' => $filters, 'must_not' => self::HELD]],
             'aggs' => ['branches' => [
                 'terms' => ['field' => 'branch_id', 'size' => 1000],
                 'aggs' => ['shop' => ['top_hits' => ['size' => 1, '_source' => ['shop', 'governorate', 'area', 'location', 'branch_id']]]],
@@ -193,6 +199,8 @@ final class MarketSearch
                 'area' => $s['area'] ?? null,
                 'location' => $location,
                 'offers' => (int) $bucket['doc_count'],
+                'rating' => $s['shop']['rating'] ?? null,
+                'reviews' => (int) ($s['shop']['reviews'] ?? 0),
                 'distance_km' => $point !== null && $location !== null ? round(self::km($point, [$location['lat'], $location['lng']]), 1) : null,
             ];
         }
@@ -201,6 +209,14 @@ final class MarketSearch
             : [-$a['offers'], $a['name']] <=> [-$b['offers'], $b['name']]);
 
         return array_slice($rows, 0, $limit);
+    }
+
+    /** @return array<string, mixed>|null an offer's raw document (held back or not), for reports */
+    public function document(string $id): ?array
+    {
+        $hit = $this->search->search($this->search->name(MarketIndices::OFFERS), ['size' => 1, 'query' => ['ids' => ['values' => [$id]]]])['hits']['hits'][0] ?? null;
+
+        return $hit['_source'] ?? null;
     }
 
     /**
@@ -212,7 +228,7 @@ final class MarketSearch
     public function offer(string $id, ?float $lat, ?float $lng): ?array
     {
         $index = $this->search->name(MarketIndices::OFFERS);
-        $hit = $this->search->search($index, ['size' => 1, 'query' => ['ids' => ['values' => [$id]]]])['hits']['hits'][0] ?? null;
+        $hit = $this->search->search($index, ['size' => 1, 'query' => ['bool' => ['filter' => [['ids' => ['values' => [$id]]]], 'must_not' => self::HELD]]])['hits']['hits'][0] ?? null;
         if ($hit === null) {
             return null;
         }
@@ -231,7 +247,7 @@ final class MarketSearch
             'query' => ['bool' => [
                 'must' => [['match' => ['title' => ['query' => (string) ($s['title'] ?? ''), 'operator' => 'and']]]],
                 'filter' => [['term' => ['condition' => $s['condition'] ?? 'new']]],
-                'must_not' => [['term' => ['shop.slug' => $s['shop']['slug'] ?? '']]],
+                'must_not' => [['term' => ['shop.slug' => $s['shop']['slug'] ?? '']], ...self::HELD],
             ]],
             'collapse' => ['field' => 'variant_id'],
             'sort' => $point !== null
@@ -258,7 +274,7 @@ final class MarketSearch
         $filter = $phoneIds === null ? [['exists' => ['field' => 'item_id']]] : [['terms' => ['item_id' => array_values($phoneIds)]]];
         $result = $this->search->search($index, [
             'size' => 0,
-            'query' => ['bool' => ['filter' => $filter]],
+            'query' => ['bool' => ['filter' => $filter, 'must_not' => self::HELD]],
             'aggs' => ['phones' => [
                 'terms' => ['field' => 'item_id', 'size' => 2000],
                 'aggs' => ['condition' => [
@@ -274,7 +290,7 @@ final class MarketSearch
         ]);
         $fits = $this->search->search($index, [
             'size' => 0,
-            'query' => ['bool' => ['filter' => $phoneIds === null ? [['exists' => ['field' => 'fits']]] : [['terms' => ['fits' => array_values($phoneIds)]]]]],
+            'query' => ['bool' => ['filter' => $phoneIds === null ? [['exists' => ['field' => 'fits']]] : [['terms' => ['fits' => array_values($phoneIds)]]], 'must_not' => self::HELD]],
             'aggs' => ['phones' => ['terms' => ['field' => 'fits', 'size' => 2000], 'aggs' => ['offers' => ['cardinality' => ['field' => 'variant_id']]]]],
         ]);
 
@@ -330,7 +346,7 @@ final class MarketSearch
             'price' => (int) ($s['price'] ?? 0),
             'availability' => $s['availability'] ?? 'in',
             'image' => $s['image'] ?? null,
-            'shop' => ['slug' => $s['shop']['slug'] ?? null, 'name' => $s['shop']['name'] ?? null],
+            'shop' => ['slug' => $s['shop']['slug'] ?? null, 'name' => $s['shop']['name'] ?? null, 'rating' => $s['shop']['rating'] ?? null, 'reviews' => (int) ($s['shop']['reviews'] ?? 0)],
             'place' => [
                 'governorate' => $s['governorate'] ?? null,
                 'governorate_label' => isset($s['governorate']) ? ($governorates[$s['governorate']] ?? null) : null,

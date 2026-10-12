@@ -342,6 +342,7 @@ export interface RepairBooking {
   ticket_reference: string | null
   cancel_reason: string | null
   handled_by_name: string | null
+  source?: 'store' | 'market'
   created_at: string
 }
 
@@ -398,6 +399,8 @@ export interface OnlineOrderDetail extends OnlineOrder {
   notes: string | null
   consent: boolean | null
   cancel_reason: string | null
+  auto_cancelled?: boolean
+  review?: { rating: number, comment: string | null, name: string, at: string } | null
   fee_collected: boolean
   track_url: string | null
   items: { id: string, product_id: string, variant_id: string, name: string, qty: number, unit_price: number, line_total: number }[]

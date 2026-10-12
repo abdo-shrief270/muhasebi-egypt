@@ -62,11 +62,16 @@
 
     <section class="grid gap-5 sm:grid-cols-2">
       <div class="flex flex-col gap-2.5 rounded-2xl bg-ink p-7 text-paper">
-        <span class="text-xl font-bold sm:text-2xl">محتاج قطعة غيار؟</span>
-        <span class="text-[15px] opacity-85">شاشات، بطاريات، سوكت شحن… من محلات الصيانة والقطع اللي حواليك.</span>
-        <NuxtLink to="/search?category=part" class="btn mt-1.5 self-start bg-paper text-ink hover:bg-white hover:text-ink">
-          قطع الغيار حواليك
-        </NuxtLink>
+        <span class="text-xl font-bold sm:text-2xl">موبايلك محتاج صيانة؟</span>
+        <span class="text-[15px] opacity-85">احجز في محل صيانة قريب منك، أو دوّر على قطعة الغيار بنفسك.</span>
+        <span class="mt-1.5 flex flex-wrap gap-2">
+          <NuxtLink to="/repair" class="btn bg-paper text-ink hover:bg-white hover:text-ink">
+            احجز صيانة
+          </NuxtLink>
+          <NuxtLink to="/search?category=part" class="btn border border-paper/40 text-paper hover:bg-paper/10 hover:text-paper">
+            قطع الغيار حواليك
+          </NuxtLink>
+        </span>
       </div>
       <div class="flex flex-col gap-2.5 rounded-2xl bg-mint p-7">
         <span class="text-xl font-bold sm:text-2xl">مستعمل من محل قريب</span>

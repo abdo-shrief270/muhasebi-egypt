@@ -6,13 +6,16 @@ namespace App\Modules\OnlineStore;
 
 use App\Modules\Customers\Events\CustomerErased;
 use App\Modules\OnlineStore\Actions\RepairBookingActions;
+use App\Modules\OnlineStore\Console\ExpireUnansweredCommand;
 use App\Modules\OnlineStore\Console\ListDomainsCommand;
 use App\Modules\OnlineStore\Contracts\OnlineOrders;
 use App\Modules\OnlineStore\Contracts\PublicStores;
 use App\Modules\OnlineStore\Contracts\RepairBookings;
+use App\Modules\OnlineStore\Contracts\ShopReputation;
 use App\Modules\OnlineStore\Listeners\AnonymiseCustomerOrders;
 use App\Modules\OnlineStore\Support\DomainDns;
 use App\Modules\OnlineStore\Support\PublicStoreLinks;
+use App\Modules\OnlineStore\Support\Reputation;
 use App\Modules\OnlineStore\Support\SystemDomainDns;
 use App\Support\Modules\ModuleServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -30,6 +33,7 @@ final class OnlineStoreServiceProvider extends ModuleServiceProvider
         $this->app->bind(OnlineOrders::class, OnlineOrdersService::class);
         $this->app->bind(RepairBookings::class, RepairBookingActions::class);
         $this->app->bind(PublicStores::class, PublicStoreLinks::class);
+        $this->app->bind(ShopReputation::class, Reputation::class);
         $this->app->bind(DomainDns::class, SystemDomainDns::class);
     }
 
@@ -38,7 +42,7 @@ final class OnlineStoreServiceProvider extends ModuleServiceProvider
         parent::boot();
 
         if ($this->app->runningInConsole()) {
-            $this->commands([ListDomainsCommand::class]);
+            $this->commands([ListDomainsCommand::class, ExpireUnansweredCommand::class]);
         }
 
         // The store's server forwards each customer's IP; this only stops floods of the read-only API.

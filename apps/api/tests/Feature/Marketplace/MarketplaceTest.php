@@ -166,7 +166,7 @@ class MarketplaceTest extends TestCase
         $data = $this->getJson('/api/v1/public/market/offers/v1:b1?lat=30.05&lng=31.24')->assertOk()->json('data');
         $this->assertSame(['v1:b1', 'جراب سيليكون', 'elnour'], [$data['offer']['id'], $data['offer']['title'], $data['offer']['shop']['slug']]);
         $similar = json_decode(collect($this->sent)->last()['body'], true);
-        $this->assertSame([['term' => ['shop.slug' => 'elnour']]], $similar['query']['bool']['must_not']);
+        $this->assertSame([['term' => ['shop.slug' => 'elnour']], ['exists' => ['field' => 'flag']]], $similar['query']['bool']['must_not']);
     }
 
     /** A cluster that answers everything, records what it was sent, and returns one hit to searches. */

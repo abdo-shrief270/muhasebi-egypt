@@ -36,7 +36,7 @@ final class RepairBookingActions implements RepairBookings
         private readonly Auth $auth,
     ) {}
 
-    public function book(OnlineStore $store, ?string $id, string $name, string $phone, string $device, string $problem, ?string $preferredOn, bool $consent): RepairBooking
+    public function book(OnlineStore $store, ?string $id, string $name, string $phone, string $device, string $problem, ?string $preferredOn, bool $consent, string $source = 'store'): RepairBooking
     {
         // The same form sent twice (a retry after a timeout) is saved once.
         if ($id !== null && ($existing = RepairBooking::query()->find($id)) !== null) {
@@ -50,7 +50,7 @@ final class RepairBookingActions implements RepairBookings
         }
 
         try {
-            return DB::transaction(function () use ($store, $id, $name, $phone, $device, $problem, $preferredOn, $consent): RepairBooking {
+            return DB::transaction(function () use ($store, $id, $name, $phone, $device, $problem, $preferredOn, $consent, $source): RepairBooking {
                 $customer = $consent ? $this->customers->findOrCreate($name, $phone, true) : null;
                 $booking = new RepairBooking([
                     'tenant_id' => $store->tenant_id,
@@ -58,6 +58,7 @@ final class RepairBookingActions implements RepairBookings
                     'status' => 'new',
                     'customer_id' => $customer?->id,
                     'customer_name' => $name,
+                    'source' => $source,
                     'customer_phone' => $phone,
                     'device' => $device,
                     'problem' => $problem,

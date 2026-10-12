@@ -37,7 +37,12 @@ final class MoveOrderAction
                 throw new DomainRuleException('اكتب سبب الإلغاء (الزبون هيشوفه).', 'cancel_reason_required');
             }
 
-            $order->update(['status' => $to, 'cancel_reason' => $to === OrderStatus::Cancelled ? $reason : $order->cancel_reason]);
+            $order->update([
+                'status' => $to,
+                'cancel_reason' => $to === OrderStatus::Cancelled ? $reason : $order->cancel_reason,
+                // The shop's first answer (how fast it answers counts in «سوق محاسبي»).
+                'answered_at' => $order->answered_at ?? now(),
+            ]);
             $this->timeline->add($order, $to, $reason);
             if ($to === OrderStatus::Cancelled) {
                 // A cancelled order gives its coupon use back.

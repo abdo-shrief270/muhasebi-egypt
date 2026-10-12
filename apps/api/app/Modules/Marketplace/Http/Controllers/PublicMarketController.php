@@ -6,9 +6,12 @@ namespace App\Modules\Marketplace\Http\Controllers;
 
 use App\Modules\Identity\Contracts\Governorates;
 use App\Modules\Identity\Contracts\ShopDirectory;
+use App\Modules\Marketplace\Contracts\MarketModeration;
 use App\Modules\Marketplace\Contracts\PhoneCatalog;
 use App\Modules\Marketplace\Support\MarketSearch;
+use App\Modules\Marketplace\Support\RepairShops;
 use App\Modules\OnlineStore\Contracts\PublicStores;
+use App\Modules\OnlineStore\Contracts\ShopReputation;
 use App\Modules\UsedDevices\Contracts\UsedListings;
 use App\Support\Exceptions\DomainRuleException;
 use App\Support\Search\SearchClient;
@@ -82,7 +85,7 @@ final class PublicMarketController
     }
 
     /** A shop's page: its branches on the map, how to reach it, its own store if open. */
-    public function shop(Request $request, string $slug, MarketSearch $market, ShopDirectory $shops, PublicStores $stores): JsonResponse
+    public function shop(Request $request, string $slug, MarketSearch $market, ShopDirectory $shops, PublicStores $stores, ShopReputation $reputation): JsonResponse
     {
         $p = $request->validate([
             'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:-90,90'],
@@ -102,7 +105,47 @@ final class PublicMarketController
             'store_url' => $store['url'] ?? null,
             'branches' => $branches,
             'offers' => array_sum(array_column($branches, 'offers')),
+            // From delivered orders only.
+            'reputation' => $reputation->scores([$shop->id])[$shop->id] ?? ['rating' => null, 'reviews' => 0, 'response' => null],
+            'reviews' => $reputation->latest($shop->id, 10),
         ]])->header('Cache-Control', 'public, max-age=60');
+    }
+
+    /** «في حاجة غلط في العرض ده»: a visitor's report, for the platform admins. */
+    public function report(Request $request, MarketSearch $market, MarketModeration $moderation, SearchClient $search): JsonResponse
+    {
+        $data = $request->validate([
+            'offer_id' => ['required', 'string', 'regex:/^[A-Za-z0-9:_-]{1,120}$/'],
+            'reason' => ['required', Rule::in(array_keys(MarketModeration::REASONS))],
+            'note' => ['nullable', 'string', 'max:500'],
+            'contact' => ['nullable', 'string', 'max:30'],
+            'website' => ['nullable', 'max:0'],
+        ], [], ['reason' => 'السبب', 'note' => 'التفاصيل']);
+        $offer = null;
+        if ($search->enabled()) {
+            try {
+                $offer = $market->document($data['offer_id']);
+            } catch (Throwable) {
+                $offer = null; // the report still counts
+            }
+        }
+        $moderation->report($data['offer_id'], $offer, $data['reason'], $data['note'] ?? null, $data['contact'] ?? null, (string) $request->ip());
+
+        return response()->json(['data' => ['ok' => true]], 201)->header('Cache-Control', 'no-store');
+    }
+
+    /** Shops near the visitor that take repair bookings through their store. */
+    public function repairShops(Request $request, RepairShops $shops): JsonResponse
+    {
+        $p = $request->validate([
+            'governorate' => ['nullable', Rule::in(array_keys(Governorates::labels()))],
+            'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'required_with:lat', 'numeric', 'between:-180,180'],
+        ]);
+
+        return response()->json(['data' => $shops->near(
+            isset($p['lat']) ? (float) $p['lat'] : null, isset($p['lng']) ? (float) $p['lng'] : null, $p['governorate'] ?? null,
+        )])->header('Cache-Control', 'public, max-age=60');
     }
 
     /** One offer, and the same thing in other shops. */

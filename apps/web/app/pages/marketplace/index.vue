@@ -18,6 +18,34 @@
           </div>
         </UCard>
 
+        <UCard v-if="form.listed && held.length" :ui="{ root: 'ring-(--ui-warning)/40' }">
+          <template #header>
+            <h2 class="flex items-center gap-2 font-bold">
+              <UIcon name="i-lucide-triangle-alert" class="size-5 text-(--ui-warning)" />
+              أسعار محتاجة تأكيد
+            </h2>
+          </template>
+          <p class="mb-3 text-sm text-(--ui-text-muted)">
+            الموبايلات دي سعرها بعيد أوي عن سعرها في باقي المحلات، فمستخبية من السوق لحد ما تتأكد. غالباً صفر زيادة أو ناقص.
+          </p>
+          <ul class="divide-y divide-(--ui-border)">
+            <li v-for="h in held" :key="h.variant_id" class="flex flex-wrap items-center gap-3 py-2.5">
+              <div class="min-w-0 flex-1">
+                <p class="font-medium">
+                  {{ h.title }}
+                </p>
+                <p class="text-sm text-(--ui-text-muted)">
+                  سعرك <span class="num font-bold text-(--ui-text)">{{ formatMoney(h.price) }}</span> · في المحلات حوالي <span class="num">{{ formatMoney(h.median) }}</span>
+                </p>
+              </div>
+              <div class="flex gap-1">
+                <UButton size="sm" color="neutral" variant="outline" icon="i-lucide-pencil" label="عدّل السعر" :to="`/products/${h.product_id}`" />
+                <UButton size="sm" color="success" variant="soft" icon="i-lucide-check" label="السعر صح" :loading="confirming === h.variant_id" @click="confirmPrice(h)" />
+              </div>
+            </li>
+          </ul>
+        </UCard>
+
         <UCard v-if="form.listed">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="space-y-1">
@@ -179,9 +207,29 @@ function fill(s: MarketSettings) {
   hiddenProducts.value = [...s.hidden_products]
 }
 
+interface HeldPrice { variant_id: string, product_id: string, title: string, price: number, median: number }
+const held = ref<HeldPrice[]>([])
+const confirming = ref<string | null>(null)
+
 onMounted(async () => {
   fill((await api<{ data: MarketSettings }>('/marketplace/settings')).data)
+  held.value = (await api<{ data: HeldPrice[] }>('/marketplace/held-prices').catch(() => ({ data: [] }))).data
 })
+
+async function confirmPrice(h: HeldPrice) {
+  confirming.value = h.variant_id
+  try {
+    await api(`/marketplace/held-prices/${h.variant_id}/confirm`, { method: 'POST' })
+    held.value = held.value.filter(x => x.variant_id !== h.variant_id)
+    toast.add({ color: 'success', title: 'اتأكد', description: 'هيظهر في السوق في خلال دقيقة.' })
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    confirming.value = null
+  }
+}
 
 function toggle<T>(list: T[], value: T, on: boolean) {
   const i = list.indexOf(value)

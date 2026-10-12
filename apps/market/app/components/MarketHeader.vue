@@ -10,7 +10,8 @@
         <NuxtLink to="/prices" class="rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink">الأسعار</NuxtLink>
         <NuxtLink to="/shops" class="rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink">المحلات</NuxtLink>
         <NuxtLink to="/used" class="rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink">المستعمل</NuxtLink>
-        <NuxtLink to="/search?category=part" class="hidden rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink sm:block">قطع غيار</NuxtLink>
+        <NuxtLink to="/repair" class="hidden rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink sm:block">صيانة</NuxtLink>
+        <NuxtLink to="/search?category=part" class="hidden rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink md:block">قطع غيار</NuxtLink>
         <CartButton />
       </nav>
     </div>

@@ -48,6 +48,7 @@ final class OnlineOrdersService implements OnlineOrders
             'sale_id' => $saleId,
             'sale_reference' => $saleReference,
             'fee_collected' => $collect,
+            'answered_at' => $order->answered_at ?? now(),
         ]);
         if ($collect) {
             $this->drawer->record($branchId, DrawerEntry::Delivery, 'cash', $order->delivery_fee, 'online_order', $order->id, "توصيل {$order->reference()}", requireShift: true);

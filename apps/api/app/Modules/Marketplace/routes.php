@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Marketplace\Http\Controllers\HeldPricesController;
 use App\Modules\Marketplace\Http\Controllers\MarketLinksController;
 use App\Modules\Marketplace\Http\Controllers\MarketSettingsController;
 use App\Modules\Marketplace\Http\Controllers\PublicMarketController;
@@ -10,6 +11,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'can:marketplace.manage'])
     ->prefix('marketplace')->controller(MarketSettingsController::class)->group(function (): void {
         Route::get('settings', 'show');
         Route::put('settings', 'update')->middleware('throttle:30,1');
+    });
+Route::middleware(['auth:sanctum', 'tenant', 'can:marketplace.manage'])
+    ->prefix('marketplace/held-prices')->controller(HeldPricesController::class)->group(function (): void {
+        Route::get('/', 'index');
+        Route::post('{variant}/confirm', 'confirm')->whereUuid('variant')->middleware('throttle:60,1');
     });
 
 // The shop's phones ↔ the platform's phone catalog («اربط موبايلاتك»).
@@ -31,4 +37,6 @@ Route::prefix('public/market')->middleware('throttle:market')->controller(Public
     Route::get('offers/{id}', 'offer')->where('id', '[A-Za-z0-9:_-]{1,120}');
     Route::get('phones', 'phones');
     Route::get('phones/{slug}', 'phone')->where('slug', '[a-z0-9-]{1,140}');
+    Route::get('repair-shops', 'repairShops');
+    Route::post('reports', 'report')->middleware('throttle:market-reports');
 });

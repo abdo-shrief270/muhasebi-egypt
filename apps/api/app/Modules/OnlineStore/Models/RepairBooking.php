@@ -33,7 +33,7 @@ use Illuminate\Support\Carbon;
  */
 #[Fillable([
     'tenant_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone', 'device', 'problem', 'preferred_on',
-    'consent', 'ticket_id', 'ticket_reference', 'cancel_reason', 'handled_by_name',
+    'consent', 'ticket_id', 'ticket_reference', 'cancel_reason', 'handled_by_name', 'source',
 ])]
 final class RepairBooking extends Model
 {
@@ -71,6 +71,7 @@ final class RepairBooking extends Model
             'reference' => $this->reference(),
             'status' => $this->status,
             'status_label' => self::STATUSES[$this->status] ?? $this->status,
+            'source' => $this->source ?? 'store',
             'customer_id' => $this->customer_id,
             'customer_name' => $this->customer_name,
             'customer_phone' => $this->customer_phone,

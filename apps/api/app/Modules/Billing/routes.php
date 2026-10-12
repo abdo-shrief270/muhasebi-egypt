@@ -4,6 +4,7 @@ use App\Modules\Billing\Http\Controllers\Admin\AdminAffiliateController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminAuthController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminCouponController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminFeedbackController;
+use App\Modules\Billing\Http\Controllers\Admin\AdminMarketController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminModuleController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminMonitoringController;
 use App\Modules\Billing\Http\Controllers\Admin\AdminPaymentController;
@@ -78,6 +79,14 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::patch('features/{key}', 'feature')->where('key', '[a-z_]+\\.[a-z_]+');
             Route::get('shops/{tenant}/modules', 'shop');
             Route::post('shops/{tenant}/modules/{key}', 'setShop')->where('key', '[a-z_]+');
+        });
+
+        Route::controller(AdminMarketController::class)->prefix('market')->group(function (): void {
+            Route::get('reports', 'reports');
+            Route::post('reports/{report}/resolve', 'resolve')->whereUuid('report');
+            Route::post('unblock', 'unblock');
+            Route::get('reviews', 'reviews');
+            Route::patch('reviews/{review}', 'review')->whereUuid('review');
         });
 
         Route::controller(AdminPhoneController::class)->group(function (): void {

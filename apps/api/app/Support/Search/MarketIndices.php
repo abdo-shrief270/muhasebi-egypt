@@ -9,7 +9,7 @@ namespace App\Support\Search;
  */
 final class MarketIndices
 {
-    public const VERSION = 2;
+    public const VERSION = 3;
 
     /** Offers: one document per (product variant × branch) a shop shows in the marketplace. */
     public const OFFERS = 'market_offers';
@@ -84,6 +84,7 @@ final class MarketIndices
             'variant_id' => ['type' => 'keyword'],
             'item_id' => ['type' => 'keyword'],              // the reference catalog item it's matched to, if any
             'fits' => ['type' => 'keyword'],                 // catalog phones an accessory / part fits
+            'flag' => ['type' => 'keyword'],                 // held back from the market (price: far from the others, until the shop confirms)
             'title' => self::text(true),                     // «جراب سيليكون iPhone 15 — أسود»
             'description' => ['type' => 'text', 'analyzer' => 'ar_text', 'search_analyzer' => 'ar_search'],
             'brand' => self::text(),

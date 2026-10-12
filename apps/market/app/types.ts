@@ -24,7 +24,7 @@ export interface Offer {
   price: number
   availability: 'in' | 'low'
   image: string | null
-  shop: { slug: string | null, name: string | null }
+  shop: { slug: string | null, name: string | null, rating?: number | null, reviews?: number }
   place: Place
   location: LatLng | null
   distance_km: number | null
@@ -58,6 +58,8 @@ export interface ShopRow {
   area: string | null
   location: LatLng | null
   offers: number
+  rating?: number | null
+  reviews?: number
   distance_km: number | null
 }
 
@@ -69,6 +71,8 @@ export interface ShopPage {
   store_url: string | null
   branches: ShopRow[]
   offers: number
+  reputation?: Reputation
+  reviews?: Review[]
 }
 
 export interface Options {
@@ -118,6 +122,10 @@ export interface OrderView {
   delivery_fee: number
   total: number
   cancel_reason: string | null
+  auto_cancelled?: boolean
+  source?: 'store' | 'market'
+  review?: Review | null
+  can_review?: boolean
   items: { product_id: string, name: string, qty: number, unit_price: number, line_total: number }[]
   timeline: { status: string, label: string, at: string }[]
   created_at: string
@@ -161,4 +169,27 @@ export interface UsedListing {
   checks: { label: string, ok: boolean }[]
   imei_registered: boolean
   listed_at: string
+}
+
+/** A customer's rating of a shop (first name only). */
+export interface Review { rating: number, comment: string | null, name: string, at: string }
+
+export interface Reputation { rating: number | null, reviews: number, response: number | null }
+
+/** A shop branch that takes repair bookings through its store. */
+export interface RepairShop {
+  slug: string
+  name: string
+  store: string
+  note: string | null
+  branch_id: string
+  branch: string
+  address: string | null
+  governorate: string | null
+  governorate_label: string | null
+  area: string | null
+  location: LatLng | null
+  rating: number | null
+  reviews: number
+  distance_km: number | null
 }

@@ -19,6 +19,52 @@
         </p>
       </div>
 
+      <div v-if="order.auto_cancelled && order.items.length" class="card space-y-2 p-5">
+        <p class="font-bold">
+          اطلبها من محل تاني قريب
+        </p>
+        <NuxtLink v-for="i in order.items" :key="i.name" :to="{ path: '/search', query: { q: i.name } }" class="flex items-center justify-between rounded-xl bg-paper px-3 py-2 text-ink hover:text-ink">
+          <span>{{ i.name }}</span><span class="text-sm text-teal">شوف المحلات ←</span>
+        </NuxtLink>
+      </div>
+
+      <div v-if="order.review" class="card space-y-1 p-5 text-center">
+        <p class="text-sm text-muted">
+          تقييمك
+        </p>
+        <StarRating :rating="order.review.rating" />
+        <p v-if="order.review.comment" class="text-sm">
+          «{{ order.review.comment }}»
+        </p>
+      </div>
+      <form v-else-if="order.can_review" class="card space-y-3 p-5" @submit.prevent="sendReview">
+        <p class="font-bold">
+          قيّم المحل
+        </p>
+        <div class="flex justify-center gap-1" role="radiogroup" aria-label="التقييم">
+          <button
+            v-for="n in 5"
+            :key="n"
+            type="button"
+            role="radio"
+            :aria-checked="rating === n"
+            :aria-label="`${n} من 5`"
+            class="text-4xl leading-none transition-colors"
+            :class="n <= rating ? 'text-[#d97706]' : 'text-line-strong'"
+            @click="rating = n"
+          >
+            ★
+          </button>
+        </div>
+        <textarea v-model="comment" rows="2" maxlength="500" placeholder="كلمتين عن التعامل (اختياري)" class="w-full rounded-xl border border-line-strong bg-white px-3 py-2" aria-label="رأيك" />
+        <p v-if="reviewError" class="text-sm text-warn" role="alert">
+          {{ reviewError }}
+        </p>
+        <button type="submit" class="btn-teal w-full" :disabled="!rating || sending">
+          {{ sending ? 'بيتبعت…' : 'ابعت التقييم' }}
+        </button>
+      </form>
+
       <ol class="card space-y-3 p-5">
         <li v-for="t in order.timeline" :key="t.at + t.status" class="flex items-center gap-3">
           <span class="size-2.5 rounded-full bg-teal" />
@@ -67,6 +113,25 @@ onMounted(() => {
   timer = setInterval(() => refresh(), 30_000)
 })
 onBeforeUnmount(() => clearInterval(timer))
+
+const rating = ref(0)
+const comment = ref('')
+const sending = ref(false)
+const reviewError = ref<string | null>(null)
+async function sendReview() {
+  sending.value = true
+  reviewError.value = null
+  try {
+    await $fetch(`/api/market/stores/${route.params.store}/orders/${route.params.token}/review`, { method: 'POST', body: { rating: rating.value, comment: comment.value || null } })
+    await refresh()
+  }
+  catch (e) {
+    reviewError.value = (e as { data?: { message?: string } }).data?.message ?? 'التقييم ما اتبعتش، جرّب تاني.'
+  }
+  finally {
+    sending.value = false
+  }
+}
 
 const when = (iso: string) => new Date(iso).toLocaleString('ar-EG-u-nu-latn', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
 </script>

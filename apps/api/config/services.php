@@ -69,6 +69,8 @@ return [
     // «سوق محاسبي»: the public site's address once it's launched (empty = «قريباً» in the app).
     'market' => [
         'url' => rtrim((string) env('MARKET_URL', ''), '/'),
+        // Minutes a shop has to answer an order from the marketplace before it's cancelled for it.
+        'answer_minutes' => (int) env('MARKET_ANSWER_MINUTES', 45),
     ],
 
     // Elasticsearch for «سوق محاسبي» (the marketplace search). Empty url = search off. Prefer an API key

@@ -10,11 +10,13 @@ use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Marketplace\Models\MarketSettings;
+use App\Modules\OnlineStore\Contracts\ShopReputation;
 use App\Modules\UsedDevices\Contracts\UsedListings;
 use App\Support\Search\MarketIndices;
 use App\Support\Search\SearchClient;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Copies what shops offer into the marketplace's search index: one document per (variant ×
@@ -36,6 +38,8 @@ final class MarketIndexer
         private readonly ShopDirectory $shops,
         private readonly PhoneLinks $links,
         private readonly UsedListings $used,
+        private readonly ShopReputation $reputation,
+        private readonly PriceChecks $prices,
     ) {}
 
     public function enabled(): bool
@@ -80,6 +84,10 @@ final class MarketIndexer
             ));
             $shown = array_column($offers, 'variant_id');
             $links = $this->links->resolve($offers);
+            // Taken out by the platform admins (a report); held back for a price far from the others.
+            $blocked = array_flip(DB::table('market_blocks')->where('tenant_id', $tenantId)->pluck('variant_id')->all());
+            $confirmed = $this->prices->confirmations();
+            $reputation = $this->reputation->scores([$tenantId])[$tenantId] ?? ['rating' => null, 'reviews' => 0, 'response' => null];
             // Used devices show with their grade, battery and photos; one without a photo stays out of the market.
             $used = $this->used->forVariants(array_column(array_filter($offers, fn (array $o) => $o['used']), 'variant_id'));
 
@@ -98,7 +106,7 @@ final class MarketIndexer
                     $id = "{$offer['variant_id']}:{$branchId}";
                     $qty = $quantities[$offer['variant_id']] ?? 0;
                     $listing = $offer['used'] ? ($used[$offer['variant_id']] ?? null) : null;
-                    if (isset($hiddenBranches[$branchId]) || $qty <= 0 || ($offer['used'] && ($listing === null || $listing['photos'] === []))) {
+                    if (isset($hiddenBranches[$branchId]) || isset($blocked[$offer['variant_id']]) || $qty <= 0 || ($offer['used'] && ($listing === null || $listing['photos'] === []))) {
                         $docs[$id] = null;
 
                         continue;
@@ -114,6 +122,7 @@ final class MarketIndexer
                         'battery_health' => $listing['battery_health'] ?? null,
                         'color' => $listing['color'] ?? null,
                         'fits' => $links[$offer['variant_id']]['fits'] ?? [],
+                        'flag' => $this->prices->judge($offer['variant_id'], $links[$offer['variant_id']]['item_id'] ?? null, $offer['used'], $offer['price'], $confirmed) !== null ? 'price' : null,
                         'title' => $offer['title'],
                         'description' => $offer['description'],
                         'brand' => $offer['brand'],
@@ -129,6 +138,9 @@ final class MarketIndexer
                         'shop' => [
                             'slug' => strtolower($shop->code),
                             'name' => $shop->name,
+                            'rating' => $reputation['rating'],
+                            'reviews' => $reputation['reviews'],
+                            'response' => $reputation['response'],
                             'delivers' => false,
                             'verified' => false,
                         ],
@@ -182,6 +194,28 @@ final class MarketIndexer
     public function countFor(string $tenantId): int
     {
         return $this->search->count($this->alias(), ['term' => ['tenant_id' => $tenantId]]);
+    }
+
+    /**
+     * The shop's offers the market holds back for their price (its «راجع الأسعار» list). Runs in
+     * the shop's context.
+     *
+     * @return list<array{variant_id: string, title: string, price: int, median: int}>
+     */
+    public function heldPrices(): array
+    {
+        $offers = array_values(array_filter($this->catalog->offers(), fn (array $o) => ! $o['used']));
+        $links = $this->links->resolve($offers);
+        $confirmed = $this->prices->confirmations();
+        $out = [];
+        foreach ($offers as $offer) {
+            $held = $this->prices->judge($offer['variant_id'], $links[$offer['variant_id']]['item_id'] ?? null, false, $offer['price'], $confirmed);
+            if ($held !== null) {
+                $out[] = ['variant_id' => $offer['variant_id'], 'product_id' => $offer['product_id'], 'title' => $offer['title'], 'price' => $offer['price'], 'median' => $held['median']];
+            }
+        }
+
+        return $out;
     }
 
     /** The live index was built with an older definition (MarketIndices::VERSION was bumped since). */

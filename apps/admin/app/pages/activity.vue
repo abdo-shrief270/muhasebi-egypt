@@ -71,6 +71,11 @@ const labels: Record<string, string> = {
   phone_added: 'ضاف موبايل للكتالوج',
   phone_changed: 'عدّل موبايل في الكتالوج',
   phone_deleted: 'مسح موبايل من الكتالوج',
+  market_offer_hidden: 'خبّى عرض من السوق (بلاغ)',
+  market_report_dismissed: 'قفل بلاغ في السوق',
+  market_offer_unhidden: 'رجّع عرض للسوق',
+  review_hidden: 'خبّى تقييم محل',
+  review_shown: 'أظهر تقييم محل',
 }
 
 function summary(details: Record<string, unknown>): string {

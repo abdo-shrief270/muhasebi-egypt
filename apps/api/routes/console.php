@@ -30,5 +30,8 @@ Schedule::command('notifications:daily-summary')->everyTenMinutes()->withoutOver
 
 // «سوق محاسبي»: what changed in the shops (products, prices, stock) reaches the search index every minute,
 // and the whole index is rebuilt from Postgres every night (no-ops while SEARCH_URL is empty).
+// «سوق محاسبي» orders the shop never answered in time: cancelled, the customer sees other shops.
+Schedule::command('online-store:expire-unanswered')->everyMinute()->withoutOverlapping(5);
+Schedule::command('market:price-refs')->hourlyAt(23)->withoutOverlapping(30);
 Schedule::command('market:sync')->everyMinute()->withoutOverlapping(5);
 Schedule::command('market:reindex')->dailyAt('04:11')->withoutOverlapping(120);

@@ -54,3 +54,19 @@ export function queryKey(prefix: string, query: Record<string, unknown>): string
   }
   return `${prefix}:${new URLSearchParams(q as Record<string, string>).toString()}`
 }
+
+/** A visitor's POST to the API, never cached, the API's status and message kept (422 / 409 …). */
+export async function forwardPost(event: H3Event, path: string, body: Record<string, unknown>): Promise<unknown> {
+  setResponseHeader(event, 'Cache-Control', 'no-store')
+  const config = useRuntimeConfig(event)
+  const ip = getRequestIP(event, { xForwardedFor: true })
+  const res = await $fetch.raw(`${config.apiInternal}/public${path}`, {
+    method: 'POST',
+    body,
+    headers: { Accept: 'application/json', ...(ip ? { 'X-Forwarded-For': ip } : {}) },
+    timeout: 8000,
+    ignoreResponseError: true,
+  })
+  setResponseStatus(event, res.status)
+  return res._data
+}

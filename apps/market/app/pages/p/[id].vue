@@ -86,6 +86,7 @@
             <span class="grid size-11 place-items-center rounded-xl bg-mint font-bold text-teal">{{ initial(offer.shop.name) }}</span>
             <span class="flex-1">
               <span class="block font-bold">{{ offer.shop.name }}</span>
+              <StarRating v-if="offer.shop.rating" :rating="offer.shop.rating" :reviews="offer.shop.reviews" class="text-sm" />
               <span class="block text-sm text-muted">
                 {{ [offer.place.area, offer.place.governorate_label].filter(Boolean).join('، ') }}
                 <template v-if="offer.distance_km !== null"> · <span class="num">{{ formatKm(offer.distance_km) }}</span> ({{ tripTime(offer.distance_km) }})</template>
@@ -110,6 +111,7 @@
             السعر والمتاح من مخزون المحل وبيتحدّثوا كل دقيقة. الدفع للمحل نفسه.
           </p>
         </div>
+        <ReportOffer :offer-id="offer.id" />
 
         <p v-if="offer.description" class="leading-relaxed whitespace-pre-line text-[#33494A]">
           {{ offer.description }}

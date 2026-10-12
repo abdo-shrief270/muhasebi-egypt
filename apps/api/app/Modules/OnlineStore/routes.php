@@ -82,6 +82,8 @@ Route::prefix('public/stores/{slug}')->where(['slug' => '[a-z0-9-]{3,40}'])->gro
         ->middleware([ResolveStore::class, 'module:online_store', 'throttle:store-orders']);
     Route::post('coupon', [PublicOrderController::class, 'coupon'])
         ->middleware([ResolveStore::class, 'module:online_store', 'throttle:store-coupons']);
+    Route::post('orders/{token}/review', [PublicOrderController::class, 'review'])->where('token', '[A-Za-z0-9]{32}')
+        ->middleware([ResolveStore::class.':any', 'module:online_store', 'throttle:store-orders']);
     // A placed order stays trackable even after the store closes.
     Route::get('orders/{token}', [PublicOrderController::class, 'show'])->where('token', '[A-Za-z0-9]{32}')
         ->middleware([ResolveStore::class.':any', 'module:online_store', 'throttle:store']);

@@ -25,6 +25,9 @@ COPY apps/admin/package.json apps/admin/package-lock.json ./
 RUN npm ci --no-audit --no-fund --ignore-scripts
 COPY apps/admin/ ./
 ENV NUXT_PUBLIC_API_BASE=/api/v1
+# «سوق محاسبي»'s address, for links to reported offers.
+ARG MARKET_URL=
+ENV NUXT_PUBLIC_MARKET_URL=$MARKET_URL
 RUN npx nuxi prepare && npx nuxi generate && node scripts/csp.mjs > .output/admin-csp.caddy
 
 # The public website (landing page, pricing, guide), prerendered to static HTML.

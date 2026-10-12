@@ -9,8 +9,11 @@
             <RepairsDeviceLabel :ticket="ticket" :size="size" :show="settings.show" />
           </div>
         </div>
-        <UFormField label="مقاس الرول">
-          <USelect v-model="settings.size" :items="REPAIR_LABEL_SIZES.map(s => ({ label: s.label, value: s.key }))" class="w-full" />
+        <UFormField label="مقاس الرول" :hint="settings.size && settings.size !== shopDefault.key ? 'على الجهاز ده بس' : 'افتراضي المحل'">
+          <USelect v-model="sizeKey" :items="REPAIR_LABEL_SIZES.map(s => ({ label: s.label, value: s.key }))" class="w-full" />
+          <template v-if="settings.size && settings.size !== shopDefault.key" #help>
+            <UButton size="xs" variant="link" class="px-0" :label="`رجّعه لافتراضي المحل (${shopDefault.label})`" @click="settings.size = null" />
+          </template>
         </UFormField>
         <div class="grid grid-cols-2 gap-2">
           <UCheckbox v-model="settings.show.technician" label="اسم الفني" />
@@ -45,7 +48,12 @@ import type { RepairTicket } from '~/types/api'
 defineOptions({ inheritAttrs: false })
 withDefaults(defineProps<{ ticket: RepairTicket, label?: string }>(), { label: 'ستيكر' })
 
-const { settings, size } = useRepairLabel()
+const { settings, size, shopDefault } = useRepairLabel()
+// Picking the shop's default again drops this device's own choice.
+const sizeKey = computed({
+  get: () => size.value.key,
+  set: (key: string) => { settings.value.size = key === shopDefault.value.key ? null : key },
+})
 const { printing, print } = usePrint()
 const open = ref(false)
 

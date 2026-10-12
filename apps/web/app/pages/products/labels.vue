@@ -137,14 +137,9 @@ const canManage = computed(() => store.can('products.manage'))
 const shopName = computed(() => store.session?.tenant.name ?? '')
 const { printing, print } = usePrint()
 
-// Thermal label rolls, and a 3×8 A4 sticker sheet.
-const sizes: (LabelSize & { key: string, label: string })[] = [
-  { key: '38x25', label: 'رول 38 × 25 مم', w: 38, h: 25 },
-  { key: '50x30', label: 'رول 50 × 30 مم', w: 50, h: 30 },
-  { key: '58x40', label: 'رول 58 × 40 مم', w: 58, h: 40 },
-  { key: 'a4', label: 'ورقة A4 (24 ليبل 64 × 34 مم)', w: 64, h: 34, sheet: true },
-]
-const sizeKey = ref('38x25')
+// Thermal label rolls, and a 3×8 A4 sticker sheet; the shop's default (/settings/shop) first.
+const sizes = PRODUCT_LABEL_SIZES
+const sizeKey = ref(useSessionStore().session?.tenant.receipt?.product_label ?? '38x25')
 const size = computed(() => sizes.find(s => s.key === sizeKey.value) ?? sizes[0]!)
 const codeType = ref<'barcode' | 'qr'>('barcode')
 const show = reactive({ shop: false, name: true, price: true })

@@ -624,6 +624,9 @@ export interface ReceiptSettings {
   show_serials?: boolean
   /** thermal paper width in mm */
   paper?: '80' | '58'
+  /** the default label rolls (keys of PRODUCT_LABEL_SIZES / REPAIR_LABEL_SIZES); a device may pick another */
+  product_label?: string
+  repair_label?: string
 }
 
 /** The shop's lines at the top / bottom of a receipt. */

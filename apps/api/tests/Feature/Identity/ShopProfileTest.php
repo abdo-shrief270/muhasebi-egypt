@@ -48,6 +48,20 @@ class ShopProfileTest extends TestCase
             ->assertOk()->assertJsonPath('data.receipt.footer', 'شكراً لزيارتك 🌷')->assertJsonPath('data.receipt.tax_number', null);
     }
 
+    public function test_the_owner_picks_the_default_label_rolls(): void
+    {
+        $this->getJson('/api/v1/shop/profile')->assertOk()
+            ->assertJsonPath('data.receipt.product_label', '38x25')
+            ->assertJsonPath('data.receipt.repair_label', '58x40');
+
+        $this->putJson('/api/v1/shop/profile', ['name' => 'محل', 'phone' => '01011112222', 'product_label' => 'a4', 'repair_label' => '80x50'])
+            ->assertOk()->assertJsonPath('data.receipt.product_label', 'a4')->assertJsonPath('data.receipt.repair_label', '80x50');
+        // Left out = kept; it rides on /auth/me for every user's screens.
+        $this->putJson('/api/v1/shop/profile', ['name' => 'محل', 'phone' => '01011112222'])->assertOk()->assertJsonPath('data.receipt.repair_label', '80x50');
+        $this->getJson('/api/v1/auth/me')->assertJsonPath('data.tenant.receipt.product_label', 'a4');
+        $this->putJson('/api/v1/shop/profile', ['name' => 'محل', 'phone' => '01011112222', 'repair_label' => '10x10'])->assertJsonValidationErrors('repair_label');
+    }
+
     public function test_the_public_receipt_prints_the_shop_lines(): void
     {
         $this->putJson('/api/v1/shop/profile', ['name' => 'موبايلات النور', 'phone' => '01011112222', 'tax_number' => '123456789', 'footer' => 'نورتنا'])->assertOk();

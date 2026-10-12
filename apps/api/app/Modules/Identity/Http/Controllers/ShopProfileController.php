@@ -42,6 +42,8 @@ final class ShopProfileController
             'show_customer' => ['sometimes', 'boolean'],
             'show_serials' => ['sometimes', 'boolean'],
             'paper' => ['sometimes', 'in:'.implode(',', ReceiptSettings::PAPERS)],
+            'product_label' => ['sometimes', 'in:'.implode(',', ReceiptSettings::PRODUCT_LABELS)],
+            'repair_label' => ['sometimes', 'in:'.implode(',', ReceiptSettings::REPAIR_LABELS)],
         ], [], [
             'name' => 'اسم المحل',
             'phone' => 'موبايل المحل',

@@ -33,6 +33,15 @@
                 :items="[{ value: '80', label: '80 مم (العادي)' }, { value: '58', label: '58 مم (الصغير)' }]"
               />
             </UFormField>
+            <UFormField label="رول ليبل الأصناف" hint="الافتراضي لكل الأجهزة">
+              <USelect v-model="form.product_label" :items="PRODUCT_LABEL_SIZES.map(r => ({ label: r.label, value: r.key }))" class="w-full" />
+            </UFormField>
+            <UFormField v-if="store.hasModule('repairs')" label="رول ستيكر أجهزة الصيانة" hint="الافتراضي لكل الأجهزة">
+              <USelect v-model="form.repair_label" :items="REPAIR_LABEL_SIZES.map(r => ({ label: r.label, value: r.key }))" class="w-full" />
+            </UFormField>
+            <p class="-mt-2 text-xs text-(--ui-text-muted) sm:col-span-2">
+              أي جهاز يقدر يختار مقاس تاني وقت الطباعة لو الطابعة اللي عليه مختلفة.
+            </p>
             <div class="space-y-3 sm:col-span-2">
               <USwitch v-model="form.show_cashier" label="اطبع اسم الكاشير" />
               <USwitch v-model="form.show_customer" label="اطبع اسم العميل" />
@@ -122,6 +131,8 @@ const form = reactive({
   show_customer: tenant.receipt?.show_customer ?? true,
   show_serials: tenant.receipt?.show_serials ?? true,
   paper: (tenant.receipt?.paper ?? '80') as '80' | '58',
+  product_label: tenant.receipt?.product_label ?? '38x25',
+  repair_label: tenant.receipt?.repair_label ?? '58x40',
 })
 
 const branches = computed<Branch[]>(() => store.session?.branches ?? [])

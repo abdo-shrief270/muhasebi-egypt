@@ -1,7 +1,9 @@
 <?php
 
+use App\Modules\UsedDevices\Http\Controllers\PublicPhotoController;
 use App\Modules\UsedDevices\Http\Controllers\SellerController;
 use App\Modules\UsedDevices\Http\Controllers\UsedDeviceController;
+use App\Modules\UsedDevices\Http\Middleware\ResolveDeviceShop;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'tenant', 'module:used_devices'])->prefix('used-devices')->group(function (): void {
@@ -38,5 +40,12 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:used_devices'])->prefix('us
         Route::post('/', 'store')->middleware('throttle:30,1');
         Route::patch('{device}', 'update');
         Route::get('{device}/photos/{photo}', 'photo')->whereNumber('photo');
+        // The device's own photos (the ones «سوق محاسبي» shows); used_devices.manage is checked in the controller.
+        Route::post('{device}/photos', 'addPhotos')->middleware('throttle:30,1');
+        Route::delete('{device}/photos/{photo}', 'removePhoto')->whereNumber('photo');
     });
 });
+
+// A device's own photos in «سوق محاسبي» (no login; never the card photos).
+Route::get('public/media/used/{device}/{photo}.webp', PublicPhotoController::class)
+    ->where(['device' => '[0-9a-fA-F-]{36}', 'photo' => '[0-9]+'])->middleware(['throttle:market', ResolveDeviceShop::class, 'module:used_devices']);

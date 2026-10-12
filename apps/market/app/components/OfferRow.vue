@@ -7,7 +7,7 @@
     <span class="flex min-w-0 flex-1 flex-col gap-0.5">
       <span class="truncate text-[15px] font-semibold">{{ offer.title }}</span>
       <span class="truncate text-[13px] text-muted">
-        {{ offer.shop.name }}<template v-if="offer.condition === 'used'"> · {{ offer.grade ? `مستعمل ${offer.grade}` : 'مستعمل' }}</template>
+        {{ offer.shop.name }}<template v-if="offer.condition === 'used'"> · {{ offer.grade ? (GRADE_LABELS[offer.grade] ?? `مستعمل ${offer.grade}`) : 'مستعمل' }}<template v-if="offer.battery_health"> · بطارية <bdi dir="ltr" class="num">{{ offer.battery_health }}%</bdi></template></template>
         <span class="sm:hidden"><template v-if="offer.distance_km !== null"> · <span class="num">{{ formatKm(offer.distance_km) }}</span></template></span>
       </span>
       <span class="text-xs font-semibold sm:hidden" :class="AVAILABILITY[offer.availability]?.class">{{ AVAILABILITY[offer.availability]?.label }}</span>

@@ -9,8 +9,10 @@ use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Marketplace\Contracts\PhoneCatalog;
 use App\Modules\Marketplace\Support\MarketSearch;
 use App\Modules\OnlineStore\Contracts\PublicStores;
+use App\Modules\UsedDevices\Contracts\UsedListings;
 use App\Support\Exceptions\DomainRuleException;
 use App\Support\Search\SearchClient;
+use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -28,6 +30,10 @@ final class PublicMarketController
             'governorate' => ['nullable', Rule::in(array_keys(Governorates::labels()))],
             'brand' => ['nullable', 'string', 'max:60'],
             'shop' => ['nullable', 'string', 'max:40'],
+            'grade' => ['nullable', 'array', 'max:3'],
+            'grade.*' => [Rule::in(MarketSearch::GRADES)],
+            'battery' => ['nullable', 'integer', 'min:50', 'max:100'],
+            'storage' => ['nullable', 'integer', Rule::in([16, 32, 64, 128, 256, 512, 1024, 2048])],
             'phone' => ['nullable', 'string', 'max:140'],   // offers that ARE this catalog phone (slug)
             'fits' => ['nullable', 'string', 'max:140'],    // accessories / parts that fit it (slug)
             'min' => ['nullable', 'integer', 'min:0'],
@@ -100,7 +106,7 @@ final class PublicMarketController
     }
 
     /** One offer, and the same thing in other shops. */
-    public function offer(Request $request, string $id, MarketSearch $market, PhoneCatalog $phones): JsonResponse
+    public function offer(Request $request, string $id, MarketSearch $market, PhoneCatalog $phones, UsedListings $used, CurrentTenant $tenant): JsonResponse
     {
         $p = $request->validate([
             'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:-90,90'],
@@ -111,6 +117,15 @@ final class PublicMarketController
         // The catalog phone it is: the page links to «سعره في كل المحلات».
         $phone = $data['offer']['item_id'] ? ($phones->many([$data['offer']['item_id']])[$data['offer']['item_id']] ?? null) : null;
         $data['phone'] = $phone !== null && $phone['status'] === 'published' ? self::phoneCard($phone) : null;
+        // A used device: its grade, battery, inspection and photos (never the seller or the IMEI).
+        $tenantId = $data['offer']['tenant_id'];
+        unset($data['offer']['tenant_id']);
+        $data['used'] = $data['offer']['condition'] === 'used' && $tenantId !== null && $data['offer']['variant_id'] !== null
+            ? ($tenant->runAs($tenantId, fn () => $used->forVariants([$data['offer']['variant_id']]))[$data['offer']['variant_id']] ?? null)
+            : null;
+        if (is_array($data['used'])) {
+            unset($data['used']['device_id']);
+        }
 
         return response()->json(['data' => $data])->header('Cache-Control', 'public, max-age=30');
     }
@@ -195,6 +210,7 @@ final class PublicMarketController
         return response()->json(['data' => [
             'categories' => self::pairs(MarketSearch::CATEGORIES),
             'conditions' => self::pairs(MarketSearch::CONDITIONS),
+            'grades' => self::pairs(MarketSearch::GRADE_LABELS),
             'governorates' => self::pairs(Governorates::labels()),
             'sorts' => MarketSearch::SORTS,
         ]])->header('Cache-Control', 'public, max-age=3600');

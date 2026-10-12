@@ -11,6 +11,7 @@ use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Marketplace\Jobs\ReindexShop;
 use App\Modules\Marketplace\Models\MarketSettings;
 use App\Modules\Marketplace\Support\MarketIndexer;
+use App\Modules\UsedDevices\Contracts\UsedListings;
 use App\Support\Audit\Auditor;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
@@ -108,6 +109,8 @@ final class MarketSettingsController
                 'url' => (string) config('services.market.url') ?: null,
                 'search' => $this->indexer->enabled(),
                 'offers' => $offers,
+                // Used devices the market leaves out: they need a photo of the device first.
+                'used_without_photos' => app(UsedListings::class)->withoutPhotos(),
             ],
             'branches' => collect($locations)->map(fn (array $b, string $id) => [
                 'id' => $id,

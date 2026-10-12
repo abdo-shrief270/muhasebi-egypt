@@ -61,3 +61,11 @@ export function initial(name: string | null | undefined): string {
   const n = (name ?? '').trim().replace(/^ال(?=\S{2})/, '')
   return n.charAt(0) || 'م'
 }
+
+/** The used devices' grades as buyers read them. */
+export const GRADE_LABELS: Record<string, string> = { A: 'زي الجديد', B: 'حالة كويسة', C: 'فيه عيوب' }
+
+/** 128 → "128GB", 1024 → "1TB". */
+export function storageLabel(gb: number): string {
+  return gb >= 1024 ? `${gb / 1024}TB` : `${gb}GB`
+}

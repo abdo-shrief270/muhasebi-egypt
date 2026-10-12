@@ -8,6 +8,7 @@ use App\Modules\Catalog\Contracts\DeviceModelSummary;
 use App\Modules\Catalog\Contracts\UsedDeviceCatalog;
 use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\UsedDevices\Actions\BuyDeviceAction;
+use App\Modules\UsedDevices\Actions\DevicePhotosAction;
 use App\Modules\UsedDevices\Actions\UpdateDeviceAction;
 use App\Modules\UsedDevices\Enums\Grade;
 use App\Modules\UsedDevices\Enums\PaymentMethod;
@@ -174,6 +175,28 @@ final class UsedDeviceController
         ], attributes: ['asking_price' => 'سعر البيع']);
         $model = UsedDevice::query()->where('branch_id', $this->branch->idOrFail())->findOrFail($device);
         $action->handle($model, $data);
+
+        return $this->show($model->id);
+    }
+
+    public function addPhotos(Request $request, string $device, DevicePhotosAction $action): UsedDeviceResource
+    {
+        abort_unless((bool) $request->user()?->can('used_devices.manage'), 403);
+        $request->validate([
+            'photos' => ['required', 'array', 'min:1', 'max:'.DevicePhotosAction::MAX],
+            'photos.*' => ['image', 'mimes:jpeg,png,webp', 'max:5120'],
+        ], attributes: ['photos' => 'الصور', 'photos.*' => 'الصورة']);
+        $model = UsedDevice::query()->where('branch_id', $this->branch->idOrFail())->findOrFail($device);
+        $action->add($model, array_values($request->file('photos')));
+
+        return $this->show($model->id);
+    }
+
+    public function removePhoto(Request $request, string $device, int $photo, DevicePhotosAction $action): UsedDeviceResource
+    {
+        abort_unless((bool) $request->user()?->can('used_devices.manage'), 403);
+        $model = UsedDevice::query()->where('branch_id', $this->branch->idOrFail())->findOrFail($device);
+        $action->remove($model, $photo);
 
         return $this->show($model->id);
     }

@@ -19,6 +19,8 @@ export interface Offer {
   grade: string | null
   item_id?: string | null
   storage_gb?: number | null
+  battery_health?: number | null
+  color?: string | null
   price: number
   availability: 'in' | 'low'
   image: string | null
@@ -43,7 +45,7 @@ export interface SearchResult {
   page: number
   per_page: number
   sort: string
-  facets: Record<'category' | 'condition' | 'governorate' | 'brand', Facet[]>
+  facets: Record<'category' | 'condition' | 'governorate' | 'brand', Facet[]> & Partial<Record<'grade' | 'storage', Facet[]>>
   price: { min: number | null, max: number | null }
 }
 
@@ -145,4 +147,18 @@ export interface PhonePage {
   prices: PhonePrices
   new: Offer[]
   used: Offer[]
+}
+
+/** A used device's page: what the shop's inspection found (never the seller or the IMEI). */
+export interface UsedListing {
+  grade: string
+  grade_label: string
+  battery_health: number | null
+  storage: string | null
+  storage_gb: number | null
+  color: string | null
+  photos: string[]
+  checks: { label: string, ok: boolean }[]
+  imei_registered: boolean
+  listed_at: string
 }

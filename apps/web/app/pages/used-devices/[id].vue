@@ -53,14 +53,39 @@
         </UCard>
 
         <UCard>
-          <p class="mb-3 font-bold">
-            الصور
-          </p>
-          <div v-if="devicePhotos.length" class="flex flex-wrap gap-2">
-            <UsedDevicesSecureImage v-for="p in devicePhotos" :key="p.id" :src="`/used-devices/${device.id}/photos/${p.id}`" alt="صورة الجهاز" class="size-28" />
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p class="font-bold">
+              صور الجهاز
+            </p>
+            <template v-if="device.status === 'in_stock' && devicePhotos.length < MAX_PHOTOS">
+              <input ref="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden" @change="addPhotos">
+              <UButton size="sm" variant="outline" icon="i-lucide-image-plus" label="ضيف صور" :loading="photoBusy === 'add'" @click="photoInput?.click()" />
+            </template>
           </div>
+          <div v-if="devicePhotos.length" class="flex flex-wrap gap-2">
+            <div v-for="p in devicePhotos" :key="p.id" class="relative">
+              <UsedDevicesSecureImage :src="`/used-devices/${device.id}/photos/${p.id}`" alt="صورة الجهاز" class="size-28" />
+              <UButton
+                v-if="device.status === 'in_stock'"
+                class="absolute top-1 end-1"
+                size="xs"
+                color="neutral"
+                variant="solid"
+                icon="i-lucide-x"
+                aria-label="شيل الصورة"
+                :loading="photoBusy === p.id"
+                @click="removePhoto(p.id)"
+              />
+            </div>
+          </div>
+          <p v-else-if="device.status === 'in_stock'" class="text-sm text-(--ui-warning)">
+            مفيش صور للجهاز، فمش هيظهر في سوق محاسبي. صوّر الوش والضهر وأي عيب.
+          </p>
           <p v-else class="text-sm text-(--ui-text-muted)">
             مفيش صور للجهاز.
+          </p>
+          <p v-if="devicePhotos.length && device.status === 'in_stock'" class="mt-2 text-xs text-(--ui-text-muted)">
+            صور الجهاز بتظهر للزباين في سوق محاسبي طول ما هو معروض. صور البطاقة عمرها ما تظهر.
           </p>
         </UCard>
       </div>
@@ -193,6 +218,43 @@ function checkIcon(v: CheckValue) {
 }
 function checkClass(v: CheckValue) {
   return v === 'yes' ? 'text-(--ui-success)' : v === 'no' ? 'text-(--ui-error)' : 'text-(--ui-text-dimmed)'
+}
+
+const MAX_PHOTOS = 4
+const photoInput = ref<HTMLInputElement | null>(null)
+const photoBusy = ref<string | number | null>(null)
+
+async function addPhotos(event: Event) {
+  const input = event.target as HTMLInputElement
+  const files = Array.from(input.files ?? []).slice(0, MAX_PHOTOS - devicePhotos.value.length)
+  input.value = ''
+  if (!files.length) return
+  photoBusy.value = 'add'
+  try {
+    const body = new FormData()
+    for (const f of files) body.append('photos[]', await shrinkPhoto(f))
+    data.value = await api<{ data: UsedDevice }>(`/used-devices/${route.params.id}/photos`, { method: 'POST', body })
+    toast.add({ color: 'success', title: 'الصور اتضافت', description: 'هتظهر في سوق محاسبي في خلال دقيقة.' })
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    photoBusy.value = null
+  }
+}
+
+async function removePhoto(id: number) {
+  photoBusy.value = id
+  try {
+    data.value = await api<{ data: UsedDevice }>(`/used-devices/${route.params.id}/photos/${id}`, { method: 'DELETE' })
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    photoBusy.value = null
+  }
 }
 
 const { printing, print } = usePrint()

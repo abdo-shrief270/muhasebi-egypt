@@ -10,6 +10,7 @@ use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Marketplace\Models\MarketSettings;
+use App\Modules\UsedDevices\Contracts\UsedListings;
 use App\Support\Search\MarketIndices;
 use App\Support\Search\SearchClient;
 use App\Support\Tenancy\CurrentTenant;
@@ -34,6 +35,7 @@ final class MarketIndexer
         private readonly BranchDirectory $branches,
         private readonly ShopDirectory $shops,
         private readonly PhoneLinks $links,
+        private readonly UsedListings $used,
     ) {}
 
     public function enabled(): bool
@@ -78,6 +80,8 @@ final class MarketIndexer
             ));
             $shown = array_column($offers, 'variant_id');
             $links = $this->links->resolve($offers);
+            // Used devices show with their grade, battery and photos; one without a photo stays out of the market.
+            $used = $this->used->forVariants(array_column(array_filter($offers, fn (array $o) => $o['used']), 'variant_id'));
 
             $docs = [];
             // Asked-for variants that are no longer offered (inactive, hidden, no price) leave every branch.
@@ -93,7 +97,8 @@ final class MarketIndexer
                 foreach ($offers as $offer) {
                     $id = "{$offer['variant_id']}:{$branchId}";
                     $qty = $quantities[$offer['variant_id']] ?? 0;
-                    if (isset($hiddenBranches[$branchId]) || $qty <= 0) {
+                    $listing = $offer['used'] ? ($used[$offer['variant_id']] ?? null) : null;
+                    if (isset($hiddenBranches[$branchId]) || $qty <= 0 || ($offer['used'] && ($listing === null || $listing['photos'] === []))) {
                         $docs[$id] = null;
 
                         continue;
@@ -105,7 +110,9 @@ final class MarketIndexer
                         'variant_id' => $offer['variant_id'],
                         // The catalog phone it is (phone pages, «سعره في كل المحلات») / the phones it fits.
                         'item_id' => $links[$offer['variant_id']]['item_id'] ?? null,
-                        'storage_gb' => $links[$offer['variant_id']]['storage_gb'] ?? null,
+                        'storage_gb' => $listing['storage_gb'] ?? $links[$offer['variant_id']]['storage_gb'] ?? null,
+                        'battery_health' => $listing['battery_health'] ?? null,
+                        'color' => $listing['color'] ?? null,
                         'fits' => $links[$offer['variant_id']]['fits'] ?? [],
                         'title' => $offer['title'],
                         'description' => $offer['description'],
@@ -114,11 +121,11 @@ final class MarketIndexer
                         'category' => $offer['used'] ? 'used' : $offer['category']['type'],
                         'category_name' => $offer['category']['name'],
                         'condition' => $offer['used'] ? 'used' : 'new',
-                        'grade' => $offer['quality'],
+                        'grade' => $listing['grade'] ?? $offer['quality'],
                         'price' => $offer['price'],
                         'availability' => $offer['used'] || $qty > self::LOW ? 'in' : 'low',
-                        'image' => $offer['image'][800] ?? null,
-                        'images' => $offer['images'],
+                        'image' => $listing !== null ? $listing['photos'][0] : ($offer['image'][800] ?? null),
+                        'images' => $listing !== null ? count($listing['photos']) : $offer['images'],
                         'shop' => [
                             'slug' => strtolower($shop->code),
                             'name' => $shop->name,
@@ -129,7 +136,7 @@ final class MarketIndexer
                             ? ['lat' => $branch['latitude'], 'lon' => $branch['longitude']] : null,
                         'governorate' => $branch['governorate'],
                         'area' => $branch['area'],
-                        'listed_at' => $offer['updated_at'] ?? $now,
+                        'listed_at' => $listing['listed_at'] ?? $offer['updated_at'] ?? $now,
                         'updated_at' => $now,
                     ];
                 }

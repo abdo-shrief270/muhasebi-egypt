@@ -134,6 +134,10 @@
             <p v-else-if="settings.status.offers !== null && form.listed">
               <span class="num font-bold">{{ settings.status.offers.toLocaleString('ar-EG-u-nu-latn') }}</span> عرض من أصنافك في البحث دلوقتي.
             </p>
+            <p v-if="settings.status.used_without_photos" class="text-(--ui-warning)">
+              <span class="num font-bold">{{ settings.status.used_without_photos }}</span> جهاز مستعمل مش ظاهر لأن مفيهوش صور.
+              <ULink to="/used-devices" class="underline">ضيف صورهم</ULink>
+            </p>
             <p class="text-(--ui-text-muted)">
               اللي بيظهر: اسم الصنف، صوره، سعر البيع (سعر الأونلاين لو حاطه)، ومتاح ولا قرب يخلص في كل فرع. التكلفة والباركود وأسعار الجملة عمرها ما تظهر.
             </p>
@@ -155,7 +159,7 @@ interface MarketSettings {
   hidden_branches: string[]
   hidden_categories: number[]
   hidden_products: { id: string, name: string }[]
-  status: { subscription: string, subscription_ok: boolean, live: boolean, url: string | null, search: boolean, offers: number | null }
+  status: { subscription: string, subscription_ok: boolean, live: boolean, url: string | null, search: boolean, offers: number | null, used_without_photos: number }
   branches: { id: string, name: string, governorate_label: string | null, area: string | null, located: boolean, has_governorate: boolean }[]
   categories: { id: number, name: string }[]
 }

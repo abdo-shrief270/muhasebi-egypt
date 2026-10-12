@@ -9,7 +9,7 @@
       <nav class="ms-auto flex gap-1 text-sm sm:text-[15px]" aria-label="الأقسام">
         <NuxtLink to="/prices" class="rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink">الأسعار</NuxtLink>
         <NuxtLink to="/shops" class="rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink">المحلات</NuxtLink>
-        <NuxtLink to="/search?category=used" class="rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink">المستعمل</NuxtLink>
+        <NuxtLink to="/used" class="rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink">المستعمل</NuxtLink>
         <NuxtLink to="/search?category=part" class="hidden rounded-lg px-3 py-2 text-ink hover:bg-sand hover:text-ink sm:block">قطع غيار</NuxtLink>
         <CartButton />
       </nav>

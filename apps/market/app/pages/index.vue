@@ -71,7 +71,7 @@
       <div class="flex flex-col gap-2.5 rounded-2xl bg-mint p-7">
         <span class="text-xl font-bold sm:text-2xl">مستعمل من محل قريب</span>
         <span class="text-[15px] text-[#33494A]">شوف الجهاز بنفسك قبل ما تشتري. كل جهاز متسجّل في المحل بدرجته.</span>
-        <NuxtLink to="/search?category=used" class="btn-teal mt-1.5 self-start">
+        <NuxtLink to="/used" class="btn-teal mt-1.5 self-start">
           المستعمل حواليك
         </NuxtLink>
       </div>

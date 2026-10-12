@@ -1,5 +1,5 @@
 // Offers across every listed shop, cached 30 s per exact query.
-const ALLOWED = ['q', 'category', 'condition', 'governorate', 'brand', 'shop', 'phone', 'fits', 'min', 'max', 'lat', 'lng', 'sort', 'page', 'per_page']
+const ALLOWED = ['q', 'category', 'condition', 'governorate', 'brand', 'shop', 'phone', 'fits', 'grade', 'battery', 'storage', 'min', 'max', 'lat', 'lng', 'sort', 'page', 'per_page']
 
 export default defineCachedEventHandler(async (event) => {
   return await marketApi(event, '/search', pick(event, ALLOWED)).catch(rethrow)

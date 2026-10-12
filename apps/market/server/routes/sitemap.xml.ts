@@ -4,7 +4,7 @@ export default defineCachedEventHandler(async (event) => {
   const shops = await marketApi<{ data: { slug: string }[] }>(event, '/shops', { limit: 100 }).then(r => r.data).catch(() => [])
   const phones = await marketApi<{ data: { phones: { slug: string, prices: { new: unknown, used: unknown } }[] } }>(event, '/phones').then(r => r.data.phones).catch(() => [])
   const urls = [
-    '/', '/shops', '/prices',
+    '/', '/shops', '/prices', '/used',
     ...phones.filter(p => p.prices.new || p.prices.used).map(p => `/phones/${p.slug}`),
     ...[...new Set(shops.map(s => s.slug))].map(s => `/s/${s}`),
   ]

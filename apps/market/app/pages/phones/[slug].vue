@@ -105,7 +105,6 @@ const page = computed(() => data.value ?? null)
 const phone = computed(() => page.value!.phone)
 const prices = computed(() => page.value!.prices)
 
-const storageLabel = (gb: number) => (gb >= 1024 ? `${gb / 1024}TB` : `${gb}GB`)
 const range = (r: PriceRange) => (r.min === r.max ? formatPrice(r.min) : `${formatPrice(r.min)} – ${formatPrice(r.max)}`)
 
 const storage = ref<number | null>(null)

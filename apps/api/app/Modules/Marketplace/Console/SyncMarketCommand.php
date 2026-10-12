@@ -7,6 +7,7 @@ namespace App\Modules\Marketplace\Console;
 use App\Modules\Catalog\Contracts\MarketCatalog;
 use App\Modules\Inventory\Contracts\StockLedger;
 use App\Modules\Marketplace\Support\MarketIndexer;
+use App\Modules\UsedDevices\Contracts\UsedListings;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -20,7 +21,7 @@ final class SyncMarketCommand extends Command
 {
     private const MARK = 'offers';
 
-    public function handle(MarketIndexer $indexer, MarketCatalog $catalog, StockLedger $stock): int
+    public function handle(MarketIndexer $indexer, MarketCatalog $catalog, StockLedger $stock, UsedListings $used): int
     {
         if (! $indexer->enabled()) {
             return self::SUCCESS;
@@ -31,8 +32,11 @@ final class SyncMarketCommand extends Command
         $since = ($mark === null ? $started->copy()->subMinutes(10) : Carbon::parse($mark))->subSeconds(5);
 
         $changed = $catalog->changedSince($since);
-        foreach ($stock->changedSince($since) as $tenantId => $ids) {
-            $changed[$tenantId] = [...($changed[$tenantId] ?? []), ...$ids];
+        // Stock that moved, and used devices whose photos changed.
+        foreach ([$stock->changedSince($since), $used->changedSince($since)] as $more) {
+            foreach ($more as $tenantId => $ids) {
+                $changed[$tenantId] = [...($changed[$tenantId] ?? []), ...$ids];
+            }
         }
 
         $failed = 0;

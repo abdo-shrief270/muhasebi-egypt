@@ -26,6 +26,11 @@ final class MarketSearch
 
     public const CONDITIONS = ['new' => 'جديد', 'used' => 'مستعمل'];
 
+    public const GRADES = ['A', 'B', 'C'];
+
+    /** The used devices' grades as buyers read them (UsedDevices' own words). */
+    public const GRADE_LABELS = ['A' => 'زي الجديد', 'B' => 'حالة كويسة', 'C' => 'فيه عيوب'];
+
     public function __construct(private readonly SearchClient $search) {}
 
     /**
@@ -51,6 +56,17 @@ final class MarketSearch
         }
         if (($p['brand'] ?? null) !== null && $p['brand'] !== '') {
             $filters[] = ['term' => ['brand.raw' => mb_strtolower((string) $p['brand'])]];
+        }
+        // Used devices: grades (A, B…), a battery at least this healthy, a storage size.
+        $grades = array_values(array_intersect((array) ($p['grade'] ?? []), self::GRADES));
+        if ($grades !== []) {
+            $filters[] = ['terms' => ['grade' => $grades]];
+        }
+        if (($p['battery'] ?? null) !== null && $p['battery'] !== '') {
+            $filters[] = ['range' => ['battery_health' => ['gte' => (int) $p['battery']]]];
+        }
+        if (($p['storage'] ?? null) !== null && $p['storage'] !== '') {
+            $filters[] = ['term' => ['storage_gb' => (int) $p['storage']]];
         }
         $range = array_map('intval', array_filter(['gte' => $p['min'] ?? null, 'lte' => $p['max'] ?? null], fn ($v) => $v !== null && $v !== ''));
         if ($range !== []) {
@@ -91,6 +107,8 @@ final class MarketSearch
                 'condition' => ['terms' => ['field' => 'condition', 'size' => 5]],
                 'governorate' => ['terms' => ['field' => 'governorate', 'size' => 30]],
                 'brand' => ['terms' => ['field' => 'brand.raw', 'size' => 30]],
+                'grade' => ['terms' => ['field' => 'grade', 'size' => 5]],
+                'storage' => ['terms' => ['field' => 'storage_gb', 'size' => 10, 'order' => ['_key' => 'asc']]],
                 'price_min' => ['min' => ['field' => 'price']],
                 'price_max' => ['max' => ['field' => 'price']],
             ],
@@ -108,6 +126,8 @@ final class MarketSearch
             'condition' => self::CONDITIONS,
             'governorate' => $governorates,
             'brand' => [],
+            'grade' => self::GRADE_LABELS,
+            'storage' => [],
         ];
         $facets = [];
         foreach ($labels as $name => $names) {
@@ -204,6 +224,7 @@ final class MarketSearch
         $offer['images'] = $s['images'] ?? [];
         $offer['models'] = $s['models'] ?? [];
         $offer['category_name'] = $s['category_name'] ?? null;
+        $offer['tenant_id'] = $s['tenant_id'] ?? null;
 
         $similar = $this->search->search($index, [
             'size' => 12,
@@ -304,6 +325,8 @@ final class MarketSearch
             'grade' => $s['grade'] ?? null,
             'item_id' => $s['item_id'] ?? null,
             'storage_gb' => $s['storage_gb'] ?? null,
+            'battery_health' => $s['battery_health'] ?? null,
+            'color' => $s['color'] ?? null,
             'price' => (int) ($s['price'] ?? 0),
             'availability' => $s['availability'] ?? 'in',
             'image' => $s['image'] ?? null,

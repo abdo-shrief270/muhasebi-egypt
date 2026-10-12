@@ -57,6 +57,27 @@
   unicode-bidi: isolate;
 }
 
+/*
+ * ltr above flips start / end on a .num block (a table cell, a <p>): its text would hug the other
+ * side from the header above it. Align it as the page reads: inherited alignment against the
+ * parent's direction, and text-start / text-end mapped by hand (layered below the utilities so
+ * text-center etc. still win; the two overrides sit outside the layers to beat the utilities).
+ */
+@layer base {
+  .num {
+    text-align: -webkit-match-parent;
+    text-align: match-parent;
+  }
+}
+
+[dir="rtl"] .num.text-start {
+  text-align: right;
+}
+
+[dir="rtl"] .num.text-end {
+  text-align: left;
+}
+
 /* Soft card shadow from the mockups (applied through app.config). */
 .app-card {
   box-shadow: var(--app-shadow);

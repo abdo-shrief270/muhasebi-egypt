@@ -44,7 +44,7 @@ final class MarketSearch
         }
 
         $filters = [];
-        foreach (['category' => 'category', 'condition' => 'condition', 'governorate' => 'governorate', 'shop' => 'shop.slug'] as $param => $field) {
+        foreach (['category' => 'category', 'condition' => 'condition', 'governorate' => 'governorate', 'shop' => 'shop.slug', 'item' => 'item_id', 'fits' => 'fits'] as $param => $field) {
             if (($p[$param] ?? null) !== null && $p[$param] !== '') {
                 $filters[] = ['term' => [$field => $p[$param]]];
             }
@@ -225,6 +225,64 @@ final class MarketSearch
     }
 
     /**
+     * Prices of catalog phones across every listed shop: per phone and condition, the lowest /
+     * highest price, how many offers (one per variant of a shop) and shops.
+     *
+     * @param  list<string>|null  $phoneIds  null = every phone with offers
+     * @return array<string, array{new: array{min: int, max: int, offers: int, shops: int}|null, used: array{min: int, max: int, offers: int, shops: int}|null, fits: int}>
+     */
+    public function phonePrices(?array $phoneIds = null): array
+    {
+        $index = $this->search->name(MarketIndices::OFFERS);
+        $filter = $phoneIds === null ? [['exists' => ['field' => 'item_id']]] : [['terms' => ['item_id' => array_values($phoneIds)]]];
+        $result = $this->search->search($index, [
+            'size' => 0,
+            'query' => ['bool' => ['filter' => $filter]],
+            'aggs' => ['phones' => [
+                'terms' => ['field' => 'item_id', 'size' => 2000],
+                'aggs' => ['condition' => [
+                    'terms' => ['field' => 'condition', 'size' => 2],
+                    'aggs' => [
+                        'min' => ['min' => ['field' => 'price']],
+                        'max' => ['max' => ['field' => 'price']],
+                        'offers' => ['cardinality' => ['field' => 'variant_id']],
+                        'shops' => ['cardinality' => ['field' => 'tenant_id']],
+                    ],
+                ]],
+            ]],
+        ]);
+        $fits = $this->search->search($index, [
+            'size' => 0,
+            'query' => ['bool' => ['filter' => $phoneIds === null ? [['exists' => ['field' => 'fits']]] : [['terms' => ['fits' => array_values($phoneIds)]]]]],
+            'aggs' => ['phones' => ['terms' => ['field' => 'fits', 'size' => 2000], 'aggs' => ['offers' => ['cardinality' => ['field' => 'variant_id']]]]],
+        ]);
+
+        $out = [];
+        foreach ($result['aggregations']['phones']['buckets'] ?? [] as $bucket) {
+            $row = ['new' => null, 'used' => null, 'fits' => 0];
+            foreach ($bucket['condition']['buckets'] ?? [] as $c) {
+                $row[$c['key'] === 'used' ? 'used' : 'new'] = [
+                    'min' => (int) $c['min']['value'],
+                    'max' => (int) $c['max']['value'],
+                    'offers' => (int) $c['offers']['value'],
+                    'shops' => (int) $c['shops']['value'],
+                ];
+            }
+            $out[(string) $bucket['key']] = $row;
+        }
+        foreach ($fits['aggregations']['phones']['buckets'] ?? [] as $bucket) {
+            $id = (string) $bucket['key'];
+            if ($phoneIds !== null && ! in_array($id, $phoneIds, true)) {
+                continue;
+            }
+            $out[$id] ??= ['new' => null, 'used' => null, 'fits' => 0];
+            $out[$id]['fits'] = (int) $bucket['offers']['value'];
+        }
+
+        return $out;
+    }
+
+    /**
      * @param  array<string, mixed>  $hit
      * @param  array<string, string>  $governorates
      * @param  array{0: float, 1: float}|null  $point
@@ -244,6 +302,8 @@ final class MarketSearch
             'category' => $s['category'] ?? null,
             'condition' => $s['condition'] ?? 'new',
             'grade' => $s['grade'] ?? null,
+            'item_id' => $s['item_id'] ?? null,
+            'storage_gb' => $s['storage_gb'] ?? null,
             'price' => (int) ($s['price'] ?? 0),
             'availability' => $s['availability'] ?? 'in',
             'image' => $s['image'] ?? null,

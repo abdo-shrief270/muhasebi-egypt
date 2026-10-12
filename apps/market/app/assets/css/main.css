@@ -59,6 +59,14 @@
   @apply inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm transition-colors;
 }
 
+@utility chip-off {
+  @apply border-line-strong bg-white text-ink hover:bg-sand hover:text-ink;
+}
+
+@utility chip-on {
+  @apply border-teal bg-mint font-semibold text-teal hover:text-teal;
+}
+
 @utility card {
   @apply rounded-2xl border border-line bg-white;
 }

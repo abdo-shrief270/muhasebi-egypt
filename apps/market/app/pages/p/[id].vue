@@ -22,6 +22,9 @@
         <p class="num text-4xl font-bold">
           {{ formatPrice(offer.price) }}
         </p>
+        <NuxtLink v-if="phone" :to="`/phones/${phone.slug}`" class="flex items-center gap-2 rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-teal">
+          <MarketIcon name="phone" /> قارن سعر <bdi>{{ phone.name }}</bdi> في كل المحلات ←
+        </NuxtLink>
 
         <div class="flex flex-wrap items-center gap-3">
           <div class="flex items-center rounded-xl border border-line-strong bg-white">
@@ -92,18 +95,19 @@
 </template>
 
 <script setup lang="ts">
-import type { Offer, OfferDetail, ShopPage } from '~/types'
+import type { Offer, OfferDetail, Phone, ShopPage } from '~/types'
 
 const route = useRoute()
 const id = computed(() => String(route.params.id))
 const { query } = usePlace()
 
-const { data, error } = await useAsyncData(`offer:${id.value}`, () => marketFetch<{ data: { offer: OfferDetail, elsewhere: Offer[] } }>(`/offers/${encodeURIComponent(id.value)}`, query.value).then(r => r.data), { watch: [query] })
+const { data, error } = await useAsyncData(`offer:${id.value}`, () => marketFetch<{ data: { offer: OfferDetail, elsewhere: Offer[], phone?: Phone | null } }>(`/offers/${encodeURIComponent(id.value)}`, query.value).then(r => r.data), { watch: [query] })
 if (error.value && !data.value) {
   throw createError({ statusCode: (error.value as { statusCode?: number }).statusCode ?? 404, fatal: true })
 }
 const offer = computed(() => data.value?.offer ?? null)
 const elsewhere = computed(() => data.value?.elsewhere ?? [])
+const phone = computed(() => data.value?.phone ?? null)
 const { data: shopData } = await useAsyncData(`offer-shop:${id.value}`, () => (offer.value?.shop.slug ? marketFetch<{ data: ShopPage }>(`/shops/${offer.value.shop.slug}`).then(r => r.data).catch(() => null) : Promise.resolve(null)))
 const shop = computed(() => shopData.value ?? null)
 

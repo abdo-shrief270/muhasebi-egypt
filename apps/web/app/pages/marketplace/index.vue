@@ -19,6 +19,20 @@
         </UCard>
 
         <UCard v-if="form.listed">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="space-y-1">
+              <p class="font-bold">
+                موبايلاتك في الكتالوج
+              </p>
+              <p class="text-sm text-(--ui-text-muted)">
+                الموبايلات اللي بتبيعها بتتربط بموديلها عشان تدخل في «سعره في كل المحلات». راجع اللي ما اتعرفش لوحده.
+              </p>
+            </div>
+            <UButton to="/marketplace/phones" icon="i-lucide-smartphone" label="اربط موبايلاتك" />
+          </div>
+        </UCard>
+
+        <UCard v-if="form.listed">
           <template #header>
             <h2 class="font-bold">
               الفروع

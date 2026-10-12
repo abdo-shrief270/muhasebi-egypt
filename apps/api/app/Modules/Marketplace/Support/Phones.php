@@ -101,12 +101,40 @@ final class Phones implements PhoneCatalog
             DB::table('market_phones')->where('id', $id)->update($row);
         }
 
+        PhoneMatcher::forget();
+
         return $this->find($id) ?? [];
     }
 
     public function delete(string $id): bool
     {
-        return DB::table('market_phones')->where('id', $id)->delete() > 0;
+        $deleted = DB::table('market_phones')->where('id', $id)->delete() > 0;
+        PhoneMatcher::forget();
+
+        return $deleted;
+    }
+
+    public function findBySlug(string $slug): ?array
+    {
+        $row = DB::table('market_phones')->where('slug', $slug)->where('status', 'published')->first();
+
+        return $row ? $this->present($row) : null;
+    }
+
+    public function many(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('market_phones')->whereIn('id', array_values(array_unique($ids)))->get()
+            ->mapWithKeys(fn (object $row) => [$row->id => $this->present($row)])->all();
+    }
+
+    /** «OPPO A58», not «OPPO OPPO A58»: most makers write their name into the model. */
+    public static function name(string $brand, string $model): string
+    {
+        return str_starts_with(mb_strtolower($model), mb_strtolower($brand)) ? $model : "{$brand} {$model}";
     }
 
     public function toReview(): int
@@ -129,6 +157,7 @@ final class Phones implements PhoneCatalog
             'brand' => $row->brand,
             'series' => $row->series,
             'model' => $row->model,
+            'name' => self::name($row->brand, $row->model),
             'slug' => $row->slug,
             'aliases' => json_decode((string) $row->aliases, true) ?: [],
             'year' => $row->year !== null ? (int) $row->year : null,

@@ -6,6 +6,7 @@ namespace App\Modules\Marketplace\Http\Controllers;
 
 use App\Modules\Identity\Contracts\Governorates;
 use App\Modules\Identity\Contracts\ShopDirectory;
+use App\Modules\Marketplace\Contracts\PhoneCatalog;
 use App\Modules\Marketplace\Support\MarketSearch;
 use App\Modules\OnlineStore\Contracts\PublicStores;
 use App\Support\Exceptions\DomainRuleException;
@@ -27,6 +28,8 @@ final class PublicMarketController
             'governorate' => ['nullable', Rule::in(array_keys(Governorates::labels()))],
             'brand' => ['nullable', 'string', 'max:60'],
             'shop' => ['nullable', 'string', 'max:40'],
+            'phone' => ['nullable', 'string', 'max:140'],   // offers that ARE this catalog phone (slug)
+            'fits' => ['nullable', 'string', 'max:140'],    // accessories / parts that fit it (slug)
             'min' => ['nullable', 'integer', 'min:0'],
             'max' => ['nullable', 'integer', 'min:0'],
             'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:-90,90'],
@@ -37,6 +40,13 @@ final class PublicMarketController
         ]);
         if (! $search->enabled()) {
             throw new DomainRuleException('سوق محاسبي مش شغال دلوقتي.', 'market_unavailable', 503);
+        }
+        $phones = app(PhoneCatalog::class);
+        foreach (['phone' => 'item', 'fits' => 'fits'] as $param => $filter) {
+            if (($p[$param] ?? null) !== null) {
+                // An unknown phone filters to nothing rather than to everything.
+                $p[$filter] = $phones->findBySlug((string) $p[$param])['id'] ?? 'none';
+            }
         }
         try {
             $result = $market->search($p);
@@ -90,7 +100,7 @@ final class PublicMarketController
     }
 
     /** One offer, and the same thing in other shops. */
-    public function offer(Request $request, string $id, MarketSearch $market): JsonResponse
+    public function offer(Request $request, string $id, MarketSearch $market, PhoneCatalog $phones): JsonResponse
     {
         $p = $request->validate([
             'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:-90,90'],
@@ -98,8 +108,66 @@ final class PublicMarketController
         ]);
         $data = $this->guard(fn () => $market->offer($id, isset($p['lat']) ? (float) $p['lat'] : null, isset($p['lng']) ? (float) $p['lng'] : null));
         abort_if($data === null, 404);
+        // The catalog phone it is: the page links to «سعره في كل المحلات».
+        $phone = $data['offer']['item_id'] ? ($phones->many([$data['offer']['item_id']])[$data['offer']['item_id']] ?? null) : null;
+        $data['phone'] = $phone !== null && $phone['status'] === 'published' ? self::phoneCard($phone) : null;
 
         return response()->json(['data' => $data])->header('Cache-Control', 'public, max-age=30');
+    }
+
+    /**
+     * Phone prices («أسعار الموبايلات»): every published catalog phone with its lowest / highest
+     * price new and used across the listed shops.
+     */
+    public function phones(Request $request, MarketSearch $market, PhoneCatalog $phones): JsonResponse
+    {
+        $p = $request->validate(['brand' => ['nullable', 'string', 'max:40']]);
+        $list = $phones->published();
+        if (($p['brand'] ?? null) !== null) {
+            $list = array_values(array_filter($list, fn (array $phone) => mb_strtolower($phone['brand']) === mb_strtolower((string) $p['brand'])));
+        }
+        $prices = $this->guard(fn () => $market->phonePrices());
+        $rows = array_map(fn (array $phone) => [...self::phoneCard($phone), 'prices' => $prices[$phone['id']] ?? ['new' => null, 'used' => null, 'fits' => 0]], $list);
+        $brands = array_count_values(array_column($phones->published(), 'brand'));
+        arsort($brands);
+
+        return response()->json(['data' => [
+            'phones' => $rows,
+            'brands' => array_map(fn (string $b, int $n) => ['key' => $b, 'count' => $n], array_keys($brands), $brands),
+        ]])->header('Cache-Control', 'public, max-age=300');
+    }
+
+    /** One phone: its prices in every shop, new and used, and what fits it. */
+    public function phone(Request $request, string $slug, MarketSearch $market, PhoneCatalog $phones): JsonResponse
+    {
+        $p = $request->validate([
+            'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'required_with:lat', 'numeric', 'between:-180,180'],
+        ]);
+        $phone = $phones->findBySlug($slug);
+        abort_if($phone === null, 404);
+        $point = isset($p['lat'], $p['lng']) ? ['lat' => (float) $p['lat'], 'lng' => (float) $p['lng']] : [];
+        [$prices, $new, $used] = $this->guard(fn () => [
+            $market->phonePrices([$phone['id']])[$phone['id']] ?? ['new' => null, 'used' => null, 'fits' => 0],
+            $market->search([...$point, 'item' => $phone['id'], 'condition' => 'new', 'sort' => $point ? 'nearest' : 'price_asc', 'per_page' => 48]),
+            $market->search([...$point, 'item' => $phone['id'], 'condition' => 'used', 'sort' => $point ? 'nearest' : 'price_asc', 'per_page' => 24]),
+        ]);
+
+        return response()->json(['data' => [
+            'phone' => [...self::phoneCard($phone), 'aliases' => $phone['aliases']],
+            'prices' => $prices,
+            'new' => $new['items'],
+            'used' => $used['items'],
+        ]])->header('Cache-Control', 'public, max-age=60');
+    }
+
+    /**
+     * @param  array<string, mixed>  $phone
+     * @return array<string, mixed>
+     */
+    private static function phoneCard(array $phone): array
+    {
+        return array_intersect_key($phone, array_flip(['slug', 'brand', 'series', 'model', 'name', 'year', 'storage_gb', 'network']));
     }
 
     /**

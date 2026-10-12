@@ -33,6 +33,7 @@ final class MarketIndexer
         private readonly StockLedger $stock,
         private readonly BranchDirectory $branches,
         private readonly ShopDirectory $shops,
+        private readonly PhoneLinks $links,
     ) {}
 
     public function enabled(): bool
@@ -76,6 +77,7 @@ final class MarketIndexer
                 fn (array $o) => ! isset($hiddenCategories[$o['category']['id']]) && ! isset($hiddenProducts[$o['product_id']]),
             ));
             $shown = array_column($offers, 'variant_id');
+            $links = $this->links->resolve($offers);
 
             $docs = [];
             // Asked-for variants that are no longer offered (inactive, hidden, no price) leave every branch.
@@ -101,6 +103,10 @@ final class MarketIndexer
                         'branch_id' => $branchId,
                         'product_id' => $offer['product_id'],
                         'variant_id' => $offer['variant_id'],
+                        // The catalog phone it is (phone pages, «سعره في كل المحلات») / the phones it fits.
+                        'item_id' => $links[$offer['variant_id']]['item_id'] ?? null,
+                        'storage_gb' => $links[$offer['variant_id']]['storage_gb'] ?? null,
+                        'fits' => $links[$offer['variant_id']]['fits'] ?? [],
                         'title' => $offer['title'],
                         'description' => $offer['description'],
                         'brand' => $offer['brand'],
@@ -169,6 +175,15 @@ final class MarketIndexer
     public function countFor(string $tenantId): int
     {
         return $this->search->count($this->alias(), ['term' => ['tenant_id' => $tenantId]]);
+    }
+
+    /** The live index was built with an older definition (MarketIndices::VERSION was bumped since). */
+    public function outdated(): bool
+    {
+        $targets = $this->search->aliasTargets($this->alias());
+        $current = $this->alias().'_v'.MarketIndices::VERSION.'_';
+
+        return $targets !== [] && array_filter($targets, fn (string $t) => str_starts_with($t, $current)) === [];
     }
 
     /**

@@ -9,7 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('market:reindex {--shop= : only this shop (tenant id)}')]
+#[Signature('market:reindex {--shop= : only this shop (tenant id)} {--if-outdated : only when the live index has an older definition (deploys)}')]
 #[Description('Rebuild the marketplace index from the shops\' data (a new index, then the alias moves), or one shop\'s offers')]
 final class ReindexMarketCommand extends Command
 {
@@ -17,6 +17,11 @@ final class ReindexMarketCommand extends Command
     {
         if (! $indexer->enabled()) {
             $this->line('SEARCH_URL مش متحط في .env: مفيش حاجة تتعمل.');
+
+            return self::SUCCESS;
+        }
+        if ($this->option('if-outdated') && ! $indexer->outdated()) {
+            $this->line('The marketplace index is up to date.');
 
             return self::SUCCESS;
         }

@@ -17,6 +17,8 @@ export interface Offer {
   category: string | null
   condition: 'new' | 'used'
   grade: string | null
+  item_id?: string | null
+  storage_gb?: number | null
   price: number
   availability: 'in' | 'low'
   image: string | null
@@ -118,4 +120,29 @@ export interface OrderView {
   timeline: { status: string, label: string, at: string }[]
   created_at: string
   token?: string
+}
+
+/** A phone of the reference catalog. */
+export interface Phone {
+  slug: string
+  brand: string
+  series: string | null
+  model: string
+  name: string
+  year: number | null
+  storage_gb: number[]
+  network: string | null
+}
+
+export interface PriceRange { min: number, max: number, offers: number, shops: number }
+
+export interface PhonePrices { new: PriceRange | null, used: PriceRange | null, fits: number }
+
+export interface PhoneRow extends Phone { prices: PhonePrices }
+
+export interface PhonePage {
+  phone: Phone & { aliases: string[] }
+  prices: PhonePrices
+  new: Offer[]
+  used: Offer[]
 }

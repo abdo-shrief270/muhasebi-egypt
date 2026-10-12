@@ -33,6 +33,15 @@ interface PhoneCatalog
 
     public function delete(string $id): bool;
 
+    /** @return array<string, mixed>|null a published phone */
+    public function findBySlug(string $slug): ?array;
+
+    /**
+     * @param  list<string>  $ids
+     * @return array<string, array<string, mixed>> id => phone, whatever its status
+     */
+    public function many(array $ids): array;
+
     /** How many still need checking (the admin menu's badge). */
     public function toReview(): int;
 

@@ -33,6 +33,9 @@ docker compose up -d --remove-orphans
 # Queue workers keep old code in memory until told to restart.
 docker compose exec -T worker php artisan horizon:terminate || true
 
+# A new marketplace index definition (MarketIndices::VERSION): rebuild now, not at 04:11. No-op otherwise.
+docker compose exec -T api php artisan market:reindex --if-outdated || echo "WARNING: marketplace reindex failed, the nightly one will retry." >&2
+
 docker image prune -f >/dev/null
 docker compose ps
 echo "Deployed. Check: https://$(grep '^DOMAIN=' .env | cut -d= -f2)/up"

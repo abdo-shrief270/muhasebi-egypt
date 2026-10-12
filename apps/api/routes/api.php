@@ -2,6 +2,7 @@
 
 // API routes live in each module: app/Modules/{Module}/routes.php (prefixed with /api/v1).
 
+use App\Support\Monitoring\Diagnostics;
 use App\Support\Monitoring\Health;
 use Illuminate\Support\Facades\Route;
 
@@ -11,3 +12,10 @@ Route::get('v1/health', function (Health $health) {
 
     return response()->json($result, $result['ok'] ? 200 : 503)->header('Cache-Control', 'no-store');
 })->middleware('throttle:60,1');
+
+// For testing a monitor from outside (DIAGNOSTICS_TOKEN set, else 404): a 5xx, a slow answer, no answer.
+Route::prefix('v1/diagnostics')->middleware('throttle:10,1')->group(function (): void {
+    Route::get('error', [Diagnostics::class, 'error']);
+    Route::get('slow', [Diagnostics::class, 'slow']);
+    Route::get('hang', [Diagnostics::class, 'hang']);
+});

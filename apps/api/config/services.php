@@ -47,6 +47,12 @@ return [
         'min_free_percent' => (int) env('MONITOR_MIN_FREE_PERCENT', 10),
     ],
 
+    // /api/v1/diagnostics/{error,slow,hang}: misbehave on purpose to test a monitor. Empty token = off (404).
+    'diagnostics' => [
+        'token' => env('DIAGNOSTICS_TOKEN', ''),
+        'hang_seconds' => (int) env('DIAGNOSTICS_HANG_SECONDS', 120),
+    ],
+
     'webpush' => [
         'public_key' => env('VAPID_PUBLIC_KEY'),
         'private_key' => env('VAPID_PRIVATE_KEY'),

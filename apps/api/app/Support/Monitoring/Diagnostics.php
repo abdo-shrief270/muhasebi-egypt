@@ -10,7 +10,8 @@ use Illuminate\Http\Request;
 /**
  * Endpoints that misbehave on purpose, to test an uptime monitor / alerting from outside:
  * a 5xx, a slow answer, and no answer at all. Off unless DIAGNOSTICS_TOKEN is set, and then only
- * with that token (`?token=` or `X-Diagnostics-Token`); otherwise they're a plain 404. They never
+ * with that token (`?token=`, a `token` body field or `X-Diagnostics-Token`); otherwise they're a plain 404.
+ * Any HTTP method; `status` / `seconds` / `token` come from the query string or the body. They never
  * throw, so they don't reach server_errors or the Telegram alerts.
  */
 final class Diagnostics
@@ -19,7 +20,7 @@ final class Diagnostics
     public function error(Request $request): JsonResponse
     {
         $this->guard($request);
-        $status = (int) $request->query('status', '500');
+        $status = (int) $request->input('status', '500');
 
         return response()->json(
             ['message' => 'خطأ تجريبي (diagnostics).', 'code' => 'diagnostics_error'],
@@ -31,7 +32,7 @@ final class Diagnostics
     public function slow(Request $request): JsonResponse
     {
         $this->guard($request);
-        $seconds = min(60.0, max(0.0, (float) $request->query('seconds', '6')));
+        $seconds = min(60.0, max(0.0, (float) $request->input('seconds', '6')));
         self::allow((int) ceil($seconds));
         usleep((int) ($seconds * 1_000_000));
 
@@ -47,7 +48,7 @@ final class Diagnostics
     public function hang(Request $request): JsonResponse
     {
         $this->guard($request);
-        $seconds = min(600, max(1, (int) $request->query('seconds', (string) config('services.diagnostics.hang_seconds'))));
+        $seconds = min(600, max(1, (int) $request->input('seconds', (string) config('services.diagnostics.hang_seconds'))));
         self::allow($seconds);
         sleep($seconds);
 
@@ -66,7 +67,7 @@ final class Diagnostics
     private function guard(Request $request): void
     {
         $token = (string) config('services.diagnostics.token');
-        $given = (string) ($request->header('X-Diagnostics-Token') ?? $request->query('token', ''));
+        $given = (string) ($request->header('X-Diagnostics-Token') ?? $request->input('token', ''));
         abort_if($token === '' || ! hash_equals($token, $given), 404);
     }
 }

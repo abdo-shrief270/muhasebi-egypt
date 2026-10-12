@@ -15,7 +15,8 @@ Route::get('v1/health', function (Health $health) {
 
 // For testing a monitor from outside (DIAGNOSTICS_TOKEN set, else 404): a 5xx, a slow answer, no answer.
 Route::prefix('v1/diagnostics')->middleware('throttle:10,1')->group(function (): void {
-    Route::get('error', [Diagnostics::class, 'error']);
-    Route::get('slow', [Diagnostics::class, 'slow']);
-    Route::get('hang', [Diagnostics::class, 'hang']);
+    // Any method (GET, POST, PUT, PATCH, DELETE, OPTIONS…), so a monitor can test whatever it sends.
+    Route::any('error', [Diagnostics::class, 'error']);
+    Route::any('slow', [Diagnostics::class, 'slow']);
+    Route::any('hang', [Diagnostics::class, 'hang']);
 });

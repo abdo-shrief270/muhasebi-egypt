@@ -35,6 +35,13 @@ class DiagnosticsTest extends TestCase
         $started = microtime(true);
         $this->getJson('/api/v1/diagnostics/hang?seconds=1&token=secret-token-123')->assertStatus(504);
         $this->assertGreaterThanOrEqual(1.0, microtime(true) - $started);
+        // Any method, parameters in the body too.
+        $this->postJson('/api/v1/diagnostics/error', ['token' => 'secret-token-123', 'status' => 502])->assertStatus(502);
+        $this->putJson('/api/v1/diagnostics/error?token=secret-token-123')->assertStatus(500);
+        $this->deleteJson('/api/v1/diagnostics/slow?seconds=0&token=secret-token-123')->assertOk();
+        $this->patchJson('/api/v1/diagnostics/hang', ['seconds' => 1], ['X-Diagnostics-Token' => 'secret-token-123'])->assertStatus(504);
+        $this->postJson('/api/v1/diagnostics/error', ['token' => 'nope'])->assertNotFound();
+
         // Errors on purpose aren't server errors: nothing for the Telegram alerts.
         $this->assertDatabaseCount('server_errors', 0);
     }

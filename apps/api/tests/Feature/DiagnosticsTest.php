@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /** /api/v1/diagnostics: misbehaving on purpose, only with the token. */
 class DiagnosticsTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_off_without_a_token_and_with_a_wrong_one(): void
     {
         config(['services.diagnostics.token' => '']);

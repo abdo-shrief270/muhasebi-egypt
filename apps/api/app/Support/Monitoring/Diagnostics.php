@@ -32,7 +32,7 @@ final class Diagnostics
     {
         $this->guard($request);
         $seconds = min(60.0, max(0.0, (float) $request->query('seconds', '6')));
-        set_time_limit((int) ceil($seconds) + 30);
+        self::allow((int) ceil($seconds));
         usleep((int) ($seconds * 1_000_000));
 
         return response()->json(['ok' => true, 'slept_seconds' => $seconds])->header('Cache-Control', 'no-store');
@@ -48,10 +48,19 @@ final class Diagnostics
     {
         $this->guard($request);
         $seconds = min(600, max(1, (int) $request->query('seconds', (string) config('services.diagnostics.hang_seconds'))));
-        set_time_limit($seconds + 30);
+        self::allow($seconds);
         sleep($seconds);
 
         return response()->json(['message' => 'انتهى وقت الانتظار التجريبي.', 'code' => 'diagnostics_hang'], 504)->header('Cache-Control', 'no-store');
+    }
+
+    /** Lets the request run that long: only ever raises PHP's limit (none stays none). */
+    private static function allow(int $seconds): void
+    {
+        $limit = (int) ini_get('max_execution_time');
+        if ($limit > 0 && $limit < $seconds + 30) {
+            set_time_limit($seconds + 30);
+        }
     }
 
     private function guard(Request $request): void

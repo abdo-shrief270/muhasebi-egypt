@@ -8,6 +8,7 @@ use App\Modules\Catalog\Contracts\VariantCatalog;
 use App\Modules\Catalog\Contracts\VariantSummary;
 use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Inventory\Contracts\StockLedger;
+use App\Modules\Repairs\Contracts\TechnicianPricing;
 use App\Support\Tenancy\CurrentBranch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ use Illuminate\Http\Request;
 /**
  * «بكام ده؟»: a customer asks, the shop scans or types — prices, and where it's in stock.
  * Wholesale / technician prices for whoever may sell at them, cost with products.view_cost,
- * stock per branch with inventory.view.
+ * stock per branch with inventory.view. A technician who only asks for parts sees the technician price alone.
  */
 final class PriceCheckController
 {
@@ -24,6 +25,7 @@ final class PriceCheckController
         private readonly StockLedger $stock,
         private readonly CurrentBranch $branch,
         private readonly BranchDirectory $branches,
+        private readonly TechnicianPricing $pricing,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -40,6 +42,7 @@ final class PriceCheckController
 
         $current = $this->branch->idOrFail();
         $levels = $user->can('sales.discount') || $user->can('products.manage');
+        $technicianOnly = $this->pricing->technicianOnly($user);
         $costs = $user->can('products.view_cost') ? $this->stock->averageCosts($current, $ids) : null;
         $stock = [];
         if ($user->can('inventory.view')) {
@@ -58,11 +61,16 @@ final class PriceCheckController
             'is_active' => $v->isActive,
             'track_serial' => $v->trackSerial,
             'exact_barcode' => $v->barcode === $q,
-            'prices' => [
+            'prices' => $technicianOnly ? [
+                'retail' => null,
+                'wholesale' => null,
+                'technician' => $v->priceFor('technician'),
+            ] : [
                 'retail' => $v->priceRetail,
                 'wholesale' => $levels ? $v->priceWholesale : null,
                 'technician' => $levels ? $v->priceTechnician : null,
             ],
+            'technician_only' => $technicianOnly,
             'cost' => $costs === null ? null : ($costs[$v->id] ?? null),
             'stock' => $stock === [] ? null : array_values(array_map(fn (string $branchId, array $b): array => [
                 'branch_id' => $branchId,

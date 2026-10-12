@@ -44,9 +44,11 @@ final readonly class VariantSummary
     }
 
     /**
+     * @param  bool  $technicianOnly  for a technician who only asks for parts: the technician price
+     *                                (else retail) as `price_technician`, no other price
      * @return array<string, mixed>
      */
-    public function toArray(): array
+    public function toArray(bool $technicianOnly = false): array
     {
         return [
             'id' => $this->id,
@@ -57,9 +59,9 @@ final readonly class VariantSummary
             'barcode' => $this->barcode,
             'sku' => $this->sku,
             'category' => ['id' => $this->categoryId, 'name' => $this->categoryName],
-            'price_retail' => $this->priceRetail,
-            'price_wholesale' => $this->priceWholesale,
-            'price_technician' => $this->priceTechnician,
+            'price_retail' => $technicianOnly ? null : $this->priceRetail,
+            'price_wholesale' => $technicianOnly ? null : $this->priceWholesale,
+            'price_technician' => $technicianOnly ? $this->priceFor('technician') : $this->priceTechnician,
             'quality_label' => $this->qualityLabel,
             'min_stock' => $this->minStock,
             'is_active' => $this->isActive,

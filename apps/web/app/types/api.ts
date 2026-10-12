@@ -234,7 +234,8 @@ export interface ProductVariant {
   quality_grade: QualityGrade | null
   quality_label: string | null
   barcode: string | null
-  price_retail: number
+  /** null (with wholesale / online) for a technician who only asks for parts: they see price_technician alone */
+  price_retail: number | null
   price_wholesale: number | null
   price_technician: number | null
   price_online: number | null
@@ -868,12 +869,37 @@ export interface PriceCheckItem {
   is_active: boolean
   track_serial: boolean
   exact_barcode: boolean
-  /** wholesale / technician are null for whoever can't sell at them */
-  prices: { retail: number, wholesale: number | null, technician: number | null }
+  /** wholesale / technician are null for whoever can't sell at them; a technician who only asks for parts gets technician alone */
+  prices: { retail: number | null, wholesale: number | null, technician: number | null }
+  technician_only?: boolean
   /** average cost in this branch; null without products.view_cost */
   cost: number | null
   /** per branch the user may see; null without inventory.view */
   stock: { branch_id: string, name: string, qty: number, current: boolean }[] | null
+}
+
+export type PartRequestStatus = 'requested' | 'handed' | 'rejected' | 'cancelled'
+
+export interface RepairPartRequest {
+  id: string
+  ticket_id: string
+  variant_id: string
+  name: string
+  qty: number
+  note: string | null
+  status: PartRequestStatus
+  status_label: string
+  requested_by: string | null
+  requested_by_name: string | null
+  handled_by_name: string | null
+  handled_at: string | null
+  reason: string | null
+  created_at: string
+  /** the queue only */
+  ticket?: { id: string, reference: string, device_name: string, customer_name: string, technician_name: string | null }
+  track_serial?: boolean
+  barcode?: string | null
+  stock?: number
 }
 
 export type TicketStatus = 'received' | 'diagnosing' | 'awaiting_approval' | 'repairing' | 'awaiting_part' | 'ready' | 'rejected' | 'delivered'
@@ -944,6 +970,8 @@ export interface RepairTicket {
   public_token: string
   parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, serials: string[] | null, added_by_name: string | null }[]
   payments?: { kind: 'deposit' | 'payment' | 'refund', method: string, amount: number, user_name: string | null, created_at: string }[]
+  /** «طلب قطعة»: waiting, refused or taken back (handed ones are in parts) */
+  part_requests?: RepairPartRequest[]
   events?: { type: string, type_label: string, from_status_label: string | null, to_status: TicketStatus | null, to_status_label: string | null, note: string | null, user_name: string | null, created_at: string }[]
 }
 

@@ -13,6 +13,7 @@ use App\Modules\Inventory\Contracts\StockReference;
 use App\Modules\Repairs\Enums\EventType;
 use App\Modules\Repairs\Models\RepairTicket;
 use App\Modules\Repairs\Models\RepairTicketPart;
+use App\Modules\Repairs\Support\PartPricing;
 use App\Modules\Repairs\Support\Timeline;
 use App\Support\Exceptions\DomainRuleException;
 use Illuminate\Contracts\Auth\Factory as Auth;
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * A part fitted: it leaves the ticket branch's stock now (FIFO, like a sale) and is billed at
- * its retail price unless the technician sets another. A part whose product tracks serials names
+ * its retail price — the technician price with «الفني يطلب القطع» on — unless another is set. A part whose product tracks serials names
  * the units fitted (they must be in the branch's stock, or unknown — registered as they leave).
  */
 final class AddPartAction
@@ -31,12 +32,13 @@ final class AddPartAction
         private readonly SerialRegistry $serials,
         private readonly Timeline $timeline,
         private readonly Auth $auth,
+        private readonly PartPricing $pricing,
     ) {}
 
     /**
      * @param  list<string>|null  $serials
      */
-    public function handle(RepairTicket $ticket, string $variantId, int $qty, ?int $unitPrice, ?array $serials = null): RepairTicketPart
+    public function handle(RepairTicket $ticket, string $variantId, int $qty, ?int $unitPrice, ?array $serials = null, ?string $addedByName = null): RepairTicketPart
     {
         if (! $ticket->status->isOpen()) {
             throw new DomainRuleException('الجهاز اتسلّم خلاص؛ مينفعش تضيف قطع.', 'ticket_closed');
@@ -44,8 +46,9 @@ final class AddPartAction
         $variant = $this->catalog->find([$variantId])[$variantId] ?? throw new DomainRuleException('الصنف مش موجود.', 'variant_not_found', 404);
         $serials = SerialCount::check($variant->displayName(), $variant->trackSerial, $qty, $serials, $variant->id);
         $serials = $serials === null ? null : $this->serials->normalize($serials);
+        $unitPrice ??= $this->pricing->on() ? $this->pricing->price($variant->priceRetail, $variant->priceTechnician) : $variant->priceRetail;
 
-        return DB::transaction(function () use ($ticket, $variant, $qty, $unitPrice, $serials): RepairTicketPart {
+        return DB::transaction(function () use ($ticket, $variant, $qty, $unitPrice, $serials, $addedByName): RepairTicketPart {
             $ticket = RepairTicket::query()->lockForUpdate()->findOrFail($ticket->id);
             $reference = new StockReference(
                 MovementType::RepairUse,
@@ -65,10 +68,10 @@ final class AddPartAction
                 'variant_id' => $variant->id,
                 'name' => $variant->displayName(),
                 'qty' => $qty,
-                'unit_price' => $unitPrice ?? $variant->priceRetail,
+                'unit_price' => $unitPrice,
                 'unit_cost' => $issue->unitCost(),
                 'added_by' => $user?->getAuthIdentifier(),
-                'added_by_name' => $user?->getAttribute('name'),
+                'added_by_name' => $addedByName ?? $user?->getAttribute('name'),
                 'serials' => $serials,
             ]);
             $ticket->recalculate();

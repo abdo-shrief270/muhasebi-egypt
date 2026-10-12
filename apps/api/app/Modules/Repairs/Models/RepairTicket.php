@@ -178,6 +178,12 @@ final class RepairTicket extends Model
     /**
      * @return HasMany<RepairTicketEvent, $this>
      */
+    /** @return HasMany<RepairPartRequest, $this> */
+    public function partRequests(): HasMany
+    {
+        return $this->hasMany(RepairPartRequest::class, 'ticket_id')->orderBy('created_at')->orderBy('id');
+    }
+
     public function events(): HasMany
     {
         return $this->hasMany(RepairTicketEvent::class, 'ticket_id')->orderBy('seq');

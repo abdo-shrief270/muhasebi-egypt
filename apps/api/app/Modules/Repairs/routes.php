@@ -2,6 +2,7 @@
 
 use App\Modules\Repairs\Http\Controllers\CommissionController;
 use App\Modules\Repairs\Http\Controllers\FaultCategoryController;
+use App\Modules\Repairs\Http\Controllers\PartRequestController;
 use App\Modules\Repairs\Http\Controllers\PublicTicketController;
 use App\Modules\Repairs\Http\Controllers\TicketController;
 use App\Modules\Repairs\Http\Middleware\ResolveTicketShop;
@@ -45,5 +46,15 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:repairs'])->prefix('repairs
         Route::delete('tickets/{ticket}/parts/{part}', 'removePart')->whereNumber('part');
         Route::post('tickets/{ticket}/deliver', 'deliver');
         Route::post('tickets/{ticket}/warranty', 'warranty')->middleware('feature:repairs.warranty');
+    });
+
+    // «طلبات القطع»: repairs.request_parts / repairs.hand_parts are checked in the controller.
+    Route::middleware(['branch', 'feature:repairs.part_requests'])->controller(PartRequestController::class)->group(function (): void {
+        Route::pattern('partRequest', '[0-9a-fA-F-]{36}');
+        Route::get('part-requests', 'index');
+        Route::post('tickets/{ticket}/part-requests', 'store');
+        Route::post('part-requests/{partRequest}/hand', 'hand');
+        Route::post('part-requests/{partRequest}/reject', 'reject');
+        Route::delete('part-requests/{partRequest}', 'destroy');
     });
 });

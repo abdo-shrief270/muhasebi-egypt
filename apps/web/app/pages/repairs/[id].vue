@@ -114,13 +114,31 @@
             </p>
             <span class="text-sm text-(--ui-text-muted)">بتتخصم من مخزون الفرع</span>
           </div>
-          <div v-if="canWork && ticket.status !== 'delivered'" class="relative mb-3">
-            <UInput v-model="partTerm" icon="i-lucide-search" placeholder="امسح أو دوّر على القطعة…" class="w-full" @keydown.enter.prevent="addFirstPart" />
+          <div v-if="(canAddPart || canRequestPart) && ticket.status !== 'delivered'" class="relative mb-3">
+            <UInput v-model="partTerm" icon="i-lucide-search" :placeholder="canAddPart ? 'امسح أو دوّر على القطعة…' : 'دوّر على القطعة اللي محتاجها من المخزن…'" class="w-full" @keydown.enter.prevent="addFirstPart" />
             <div v-if="partResults.length && partTerm" class="absolute inset-x-0 top-full z-10 mt-1 max-h-64 overflow-y-auto rounded-(--ui-radius) border border-(--ui-border) bg-(--ui-bg) shadow-lg">
-              <button v-for="p in partResults" :key="p.id" type="button" class="flex w-full items-center justify-between gap-3 px-3 py-2 text-start text-sm hover:bg-(--ui-bg-elevated)" @click="addPart(p)">
+              <button v-for="p in partResults" :key="p.id" type="button" class="flex w-full items-center justify-between gap-3 px-3 py-2 text-start text-sm hover:bg-(--ui-bg-elevated)" @click="pickPart(p)">
                 <span class="font-bold">{{ p.display_name }}</span>
-                <span class="shrink-0 text-(--ui-text-muted)"><span class="num">{{ formatMoney(p.prices.retail) }}</span><template v-if="p.stock"> · مخزون <span class="num">{{ p.stock.find(s => s.current)?.qty ?? 0 }}</span></template></span>
+                <span class="shrink-0 text-(--ui-text-muted)"><template v-if="p.technician_only">فني </template><span class="num">{{ formatMoney(p.technician_only ? p.prices.technician : p.prices.retail) }}</span><template v-if="p.stock"> · مخزون <span class="num">{{ p.stock.find(s => s.current)?.qty ?? 0 }}</span></template></span>
               </button>
+            </div>
+          </div>
+          <div v-if="requesting" class="mb-3 space-y-2 rounded-(--ui-radius) border border-(--ui-border) p-3">
+            <p class="text-sm font-bold">
+              اطلب «{{ requesting.display_name }}» من المخزن
+              <span v-if="requesting.technician_only" class="font-normal text-(--ui-text-muted)">· سعر الفني <span class="num">{{ formatMoney(requesting.prices.technician) }}</span></span>
+            </p>
+            <div class="flex flex-wrap items-end gap-2">
+              <UFormField label="العدد" class="w-24">
+                <UInput v-model.number="requestQty" type="number" min="1" max="100" class="num" />
+              </UFormField>
+              <UFormField label="ملاحظة للمخزن (اختياري)" class="min-w-0 flex-1">
+                <UInput v-model="requestNote" maxlength="190" placeholder="مثلاً: الأصلي لو موجود" class="w-full" />
+              </UFormField>
+            </div>
+            <div class="flex justify-end gap-2">
+              <UButton size="sm" color="neutral" variant="ghost" label="إلغاء" @click="requesting = null" />
+              <UButton size="sm" icon="i-lucide-send" label="ابعت الطلب" :loading="requestBusy" :disabled="!(requestQty >= 1)" @click="sendRequest" />
             </div>
           </div>
           <div v-if="serialPart" class="mb-3 space-y-2 rounded-(--ui-radius) border border-(--ui-border) p-3">
@@ -158,6 +176,27 @@
               مفيش قطع.
             </li>
           </ul>
+          <div v-if="ticket.part_requests?.length" class="mt-3 space-y-2 border-t border-(--ui-border) pt-3">
+            <p class="text-sm font-bold">
+              طلبات من المخزن
+            </p>
+            <ul class="space-y-1.5">
+              <li v-for="r in ticket.part_requests" :key="r.id" class="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span class="min-w-0">
+                  <span class="num">{{ r.qty }}</span> × {{ r.name }}
+                  <span class="block text-xs text-(--ui-text-muted)">
+                    {{ r.requested_by_name }}<template v-if="r.note"> · {{ r.note }}</template>
+                    <template v-if="r.status === 'rejected' && r.reason"> · <span class="text-(--ui-error)">{{ r.reason }}</span></template>
+                  </span>
+                </span>
+                <span class="flex items-center gap-1.5">
+                  <UBadge :color="r.status === 'requested' ? 'warning' : r.status === 'rejected' ? 'error' : 'neutral'" variant="subtle" size="sm" :label="r.status_label" />
+                  <UButton v-if="r.status === 'requested' && canHandPart" size="xs" color="primary" variant="soft" icon="i-lucide-package-check" label="اصرف" to="/repairs/parts" />
+                  <UButton v-if="r.status === 'requested' && (canHandPart || r.requested_by === store.session?.user.id)" size="xs" color="neutral" variant="ghost" icon="i-lucide-x" :aria-label="`الغي طلب ${r.name}`" @click="cancelRequest(r.id)" />
+                </span>
+              </li>
+            </ul>
+          </div>
         </UCard>
 
         <!-- Device -->
@@ -472,6 +511,54 @@ onBeforeUnmount(() => clearTimeout(partTimer))
 const serialPart = ref<PriceCheckItem | null>(null)
 const partSerials = ref<string[]>([])
 
+// «الفني يطلب القطع من المخزن»: with it on, only whoever hands parts out adds them; a technician asks.
+const partRequestsOn = computed(() => store.hasFeature('repairs.part_requests'))
+const canHandPart = computed(() => partRequestsOn.value && store.can('repairs.hand_parts'))
+const canAddPart = computed(() => canWork.value && (!partRequestsOn.value || store.can('repairs.hand_parts')))
+const canRequestPart = computed(() => partRequestsOn.value && !canAddPart.value && store.can('repairs.request_parts'))
+const requesting = ref<PriceCheckItem | null>(null)
+const requestQty = ref(1)
+const requestNote = ref('')
+const requestBusy = ref(false)
+
+function pickPart(item: PriceCheckItem) {
+  if (canAddPart.value) {
+    addPart(item)
+    return
+  }
+  partTerm.value = ''
+  partResults.value = []
+  requesting.value = item
+  requestQty.value = 1
+  requestNote.value = ''
+}
+
+async function sendRequest() {
+  if (!requesting.value) return
+  requestBusy.value = true
+  try {
+    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/part-requests`, { method: 'POST', body: { variant_id: requesting.value.id, qty: requestQty.value, note: requestNote.value.trim() || null } })
+    requesting.value = null
+    toast.add({ color: 'success', title: 'الطلب وصل المخزن', description: 'أول ما يتصرف هيظهر في القطع.' })
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    requestBusy.value = false
+  }
+}
+
+async function cancelRequest(requestId: string) {
+  try {
+    await api(`/repairs/part-requests/${requestId}`, { method: 'DELETE' })
+    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}`)
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+}
+
 async function addPart(item: PriceCheckItem, serials?: string[]) {
   partTerm.value = ''
   partResults.value = []
@@ -491,7 +578,7 @@ async function addPart(item: PriceCheckItem, serials?: string[]) {
 function addFirstPart() {
   const hit = partResults.value.find(p => p.exact_barcode) ?? partResults.value[0]
   if (hit) {
-    addPart(hit)
+    pickPart(hit)
   }
 }
 // With supplier returns on, a part that turned out bad goes to the returns bin instead of stock.

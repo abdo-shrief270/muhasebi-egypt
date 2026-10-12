@@ -8,6 +8,7 @@ use App\Modules\Customers\Contracts\CustomerAccounts;
 use App\Modules\Repairs\Enums\EventType;
 use App\Modules\Repairs\Enums\TicketStatus;
 use App\Modules\Repairs\Events\TicketDelivered;
+use App\Modules\Repairs\Models\RepairPartRequest;
 use App\Modules\Repairs\Models\RepairTicket;
 use App\Modules\Repairs\Support\Commission;
 use App\Modules\Repairs\Support\PartnerSync;
@@ -104,6 +105,9 @@ final class DeliverTicketAction
             $ticket->save();
 
             $this->timeline->add($ticket, EventType::Delivered, $note, $from, TicketStatus::Delivered);
+            // Parts still asked for aren't needed any more.
+            RepairPartRequest::query()->where('ticket_id', $ticket->id)->where('status', RepairPartRequest::REQUESTED)
+                ->update(['status' => RepairPartRequest::CANCELLED, 'reason' => 'الجهاز اتسلّم', 'updated_at' => now()]);
             $this->partnerSync->ticketMoved($ticket);
             $this->audit->record(
                 'repairs.delivered',

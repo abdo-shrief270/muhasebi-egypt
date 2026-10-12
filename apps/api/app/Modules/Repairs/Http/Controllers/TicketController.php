@@ -131,7 +131,7 @@ final class TicketController
 
         $this->markNotified(collect([$ticket]));
 
-        return new TicketResource($ticket->load(['parts', 'payments', 'events']));
+        return new TicketResource($ticket->load(['parts', 'payments', 'events', 'partRequests']));
     }
 
     /**
@@ -212,6 +212,10 @@ final class TicketController
     {
         $this->inBranch($ticket);
         abort_unless((bool) $request->user()?->can('repairs.update_status'), 403);
+        // With part requests on, a part goes on the ticket only through whoever hands parts out.
+        if ($this->features->enabled('repairs.part_requests') && ! $request->user()->can('repairs.hand_parts')) {
+            throw new DomainRuleException('القطع بتتطلب من المخزن: دوس «اطلب القطعة».', 'part_request_required', 403);
+        }
         $data = $request->validate([
             'variant_id' => ['required', 'uuid'],
             'qty' => ['required', 'integer', 'min:1', 'max:1000'],

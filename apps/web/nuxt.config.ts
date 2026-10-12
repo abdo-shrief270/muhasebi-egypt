@@ -63,7 +63,7 @@ export default defineNuxtConfig({
       scan: true,
       icons: [
         'lucide:gauge', 'lucide:chevron-down', 'lucide:shopping-bag', 'lucide:phone-call', 'lucide:unlink', 'lucide:settings', 'lucide:arrow-right', 'lucide:image-plus', 'lucide:external-link', 'lucide:upload', 'lucide:image', 'lucide:fingerprint', 'lucide:key-round', 'lucide:clock-alert', 'lucide:x', 'lucide:trending-down', 'lucide:minus', 'lucide:package-x', 'lucide:lock-open', 'lucide:circle', 'lucide:arrow-left-right', 'lucide:toggle-right', 'lucide:calendar-clock', 'lucide:chart-column', 'lucide:credit-card',
-        'lucide:file-check', 'lucide:git-compare-arrows', 'lucide:message-circle', 'lucide:package',
+        'lucide:file-check', 'lucide:git-compare-arrows', 'lucide:message-circle', 'lucide:package', 'lucide:package-search',
         'lucide:receipt', 'lucide:ship', 'lucide:shopping-cart', 'lucide:smartphone', 'lucide:store',
         'lucide:truck', 'lucide:undo-2', 'lucide:users', 'lucide:wallet', 'lucide:warehouse', 'lucide:wrench',
         'lucide:box', 'lucide:shopping-basket', 'lucide:locate-fixed', 'lucide:map-pin', 'lucide:handshake', 'lucide:receipt-text', 'lucide:tag', 'lucide:tags', 'lucide:percent', 'lucide:scan-line',

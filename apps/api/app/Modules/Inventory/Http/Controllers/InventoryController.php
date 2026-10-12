@@ -13,6 +13,7 @@ use App\Modules\Inventory\Http\Requests\AdjustStockRequest;
 use App\Modules\Inventory\Http\Requests\OpeningStockRequest;
 use App\Modules\Inventory\Models\StockLevel;
 use App\Modules\Inventory\Models\StockMovement;
+use App\Modules\Repairs\Contracts\TechnicianPricing;
 use App\Support\Tenancy\CurrentBranch;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
@@ -174,7 +175,7 @@ final class InventoryController
         $qty = $level['qty'] ?? 0;
 
         return [
-            ...$v->toArray(),
+            ...$v->toArray(app(TechnicianPricing::class)->technicianOnly(request()->user())),
             'qty' => $qty,
             'status' => $qty <= 0 ? 'out' : ($v->minStock > 0 && $qty <= $v->minStock ? 'low' : 'ok'),
             'avg_cost' => $canCost ? ($level['avg_cost'] ?? 0) : null,

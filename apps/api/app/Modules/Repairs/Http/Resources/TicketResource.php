@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Repairs\Http\Resources;
 
 use App\Modules\Repairs\Enums\TicketStatus;
+use App\Modules\Repairs\Http\Controllers\PartRequestController;
+use App\Modules\Repairs\Models\RepairPartRequest;
 use App\Modules\Repairs\Models\RepairTicket;
 use App\Modules\Repairs\Models\RepairTicketEvent;
 use App\Modules\Repairs\Models\RepairTicketPart;
@@ -108,6 +110,10 @@ final class TicketResource extends JsonResource
                 'serials' => $p->serials,
                 'added_by_name' => $p->added_by_name,
             ])->all()),
+            // «طلب قطعة»: what's still waiting, and the latest answered (handed parts show in `parts`).
+            'part_requests' => $this->whenLoaded('partRequests', fn () => $this->partRequests
+                ->filter(fn (RepairPartRequest $r) => $r->status !== RepairPartRequest::HANDED)
+                ->map(fn (RepairPartRequest $r) => PartRequestController::row($r))->values()->all()),
             'payments' => $this->whenLoaded('payments', fn () => $this->payments->map(fn (RepairTicketPayment $p) => [
                 'kind' => $p->kind,
                 'method' => $p->method,

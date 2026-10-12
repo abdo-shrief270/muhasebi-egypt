@@ -32,7 +32,11 @@
                   {{ item.category }}<span v-if="item.quality_label"> · {{ item.quality_label }}</span><span v-if="item.barcode"> · <bdi class="num">{{ item.barcode }}</bdi></span>
                 </p>
               </div>
-              <p class="shrink-0 text-2xl font-extrabold num">
+              <p v-if="item.technician_only" class="shrink-0 text-end">
+                <span class="block text-xs text-(--ui-text-muted)">سعر الفني</span>
+                <span class="text-2xl font-extrabold num">{{ formatMoney(item.prices.technician) }}</span>
+              </p>
+              <p v-else class="shrink-0 text-2xl font-extrabold num">
                 {{ formatMoney(item.prices.retail) }}
               </p>
             </div>
@@ -41,7 +45,7 @@
               <UBadge v-if="item.prices.wholesale !== null" color="neutral" variant="subtle">
                 جملة <span class="num">{{ formatMoney(item.prices.wholesale) }}</span>
               </UBadge>
-              <UBadge v-if="item.prices.technician !== null" color="neutral" variant="subtle">
+              <UBadge v-if="item.prices.technician !== null && !item.technician_only" color="neutral" variant="subtle">
                 فني <span class="num">{{ formatMoney(item.prices.technician) }}</span>
               </UBadge>
               <span v-if="item.cost !== null" class="text-xs text-(--ui-text-muted)">

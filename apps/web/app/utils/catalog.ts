@@ -30,7 +30,8 @@ export function toPounds(piasters: number | null | undefined): number | null {
 
 /** "150 ج" or "150 – 250 ج" across a product's variants. */
 export function retailPriceRange(variants: ProductVariant[]): string {
-  const prices = variants.map(v => v.price_retail)
+  // A technician who only asks for parts gets the technician price alone.
+  const prices = variants.map(v => v.price_retail ?? v.price_technician ?? 0)
   if (!prices.length) {
     return '—'
   }

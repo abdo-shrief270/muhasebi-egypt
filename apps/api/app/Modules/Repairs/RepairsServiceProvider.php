@@ -7,9 +7,11 @@ namespace App\Modules\Repairs;
 use App\Modules\Customers\Events\CustomerErased;
 use App\Modules\ModuleManager\Events\ModuleEnabled;
 use App\Modules\Repairs\Contracts\CustomerRepairs;
+use App\Modules\Repairs\Contracts\TechnicianPricing;
 use App\Modules\Repairs\Listeners\AnonymiseCustomerTickets;
 use App\Modules\Repairs\Listeners\SeedDefaultFaults;
 use App\Modules\Repairs\Listeners\SyncPartnerRepairs;
+use App\Modules\Repairs\Support\PartPricing;
 use App\Modules\ShopOrders\Events\ShopOrderUpdated;
 use App\Support\Modules\ModuleServiceProvider;
 
@@ -24,5 +26,6 @@ final class RepairsServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         $this->app->bind(CustomerRepairs::class, CustomerRepairsService::class);
+        $this->app->bind(TechnicianPricing::class, PartPricing::class);
     }
 }

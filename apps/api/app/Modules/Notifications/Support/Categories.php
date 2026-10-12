@@ -36,6 +36,12 @@ final class Categories
             'permission' => 'transfers.manage',
             'prefixes' => ['transfer.'],
         ],
+        'repair_parts' => [
+            'label' => 'طلبات قطع الغيار',
+            'description' => 'فني محتاج قطعة من المخزن لجهاز بيصلحه.',
+            'permission' => 'repairs.hand_parts',
+            'prefixes' => ['repair_part.'],
+        ],
         'imports' => [
             'label' => 'شحنات الاستيراد',
             'description' => 'شحنة عدّت ميعاد وصولها المتوقع ولسه ما اتستلمتش.',

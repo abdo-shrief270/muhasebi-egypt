@@ -25,13 +25,13 @@ final class DefaultRoles
                 'permissions' => [
                     'sales.sell', 'sales.view', 'products.view', 'inventory.view',
                     'customers.view', 'customers.manage', 'cash.shift', 'cash.expenses', 'messages.send',
-                    'repairs.view', 'repairs.create', 'repairs.deliver', 'services.manage', 'shop_orders.view', 'installments.collect',
+                    'repairs.view', 'repairs.create', 'repairs.deliver', 'repairs.hand_parts', 'services.manage', 'shop_orders.view', 'installments.collect',
                 ],
             ],
             'technician' => [
                 'name' => 'فني صيانة',
                 'permissions' => [
-                    'repairs.view', 'repairs.create', 'repairs.update_status', 'products.view',
+                    'repairs.view', 'repairs.create', 'repairs.update_status', 'repairs.request_parts', 'products.view',
                     'inventory.view', 'messages.send', 'shop_orders.view', 'shop_orders.fulfil',
                 ],
             ],
@@ -40,7 +40,7 @@ final class DefaultRoles
                 'permissions' => [
                     'products.view', 'products.manage', 'products.view_cost', 'inventory.view', 'inventory.adjust',
                     'suppliers.view', 'suppliers.manage', 'supplier_returns.view', 'supplier_returns.manage',
-                    'imports.view', 'shop_orders.view', 'shop_orders.place', 'shop_orders.fulfil',
+                    'imports.view', 'shop_orders.view', 'shop_orders.place', 'shop_orders.fulfil', 'repairs.hand_parts',
                 ],
             ],
         ];

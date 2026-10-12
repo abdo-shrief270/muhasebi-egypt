@@ -9,6 +9,7 @@ use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Inventory\Contracts\SerialRegistry;
 use App\Modules\Inventory\Models\SerialEvent;
 use App\Modules\Inventory\Models\SerialNumber;
+use App\Modules\Repairs\Contracts\TechnicianPricing;
 use App\Support\Tenancy\CurrentBranch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,6 +47,7 @@ final class SerialController
 
         $variants = $this->catalog->find($rows->pluck('variant_id')->unique()->values()->all());
         $branchNames = $this->branches->accessibleBranches($user);
+        $technicianOnly = app(TechnicianPricing::class)->technicianOnly($user);
 
         return response()->json(['data' => $rows->map(fn (SerialNumber $s): array => [
             'serial' => $s->serial,
@@ -55,7 +57,7 @@ final class SerialController
                 SerialNumber::DAMAGED => 'مرتجع تالف',
                 default => 'خرج',
             },
-            'variant' => ($variants[$s->variant_id] ?? null)?->toArray(),
+            'variant' => ($variants[$s->variant_id] ?? null)?->toArray($technicianOnly),
             'branch_id' => $s->branch_id,
             'branch_name' => $branchNames[$s->branch_id] ?? null,
             'here' => $s->status === SerialNumber::IN_STOCK && $s->branch_id === $this->branch->id(),

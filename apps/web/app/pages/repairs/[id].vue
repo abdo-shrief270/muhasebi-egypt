@@ -30,6 +30,7 @@
         />
         <UButton v-else-if="canMessage" color="neutral" variant="outline" icon="i-lucide-message-circle" label="واتساب" @click="notify(ticket)" />
         <UButton color="neutral" variant="outline" icon="i-lucide-printer" label="الإيصال" @click="print" />
+        <RepairsLabelPrint :ticket="ticket" color="neutral" variant="outline" />
         <UButton v-if="canWork && ticket.next_statuses.length" color="neutral" variant="outline" icon="i-lucide-arrow-left-right" label="تغيير الحالة" @click="openStatus(null)" />
         <UButton v-if="canWork && ticket.next_statuses.some(s => s.value === 'ready')" color="success" variant="soft" icon="i-lucide-check-circle" label="جاهز" @click="openStatus('ready')" />
         <UButton v-if="canOutsource && !['delivered', 'rejected'].includes(ticket.status) && !ticket.outsourced?.active" color="neutral" variant="outline" icon="i-lucide-send" label="ابعته لمحل شريك" @click="outsourceOpen = true" />

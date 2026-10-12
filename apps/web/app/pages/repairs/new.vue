@@ -149,6 +149,8 @@
     <PrintSheet v-if="printing && created" :page-size="paper.page.value">
       <RepairsIntakeReceipt :ticket="created" :shop="shop" />
     </PrintSheet>
+    <!-- Only for «اطبعه لوحده بعد الإيصال»: the button itself stays hidden here. -->
+    <RepairsLabelPrint v-if="created" ref="labelPrint" :ticket="created" class="hidden" />
   </div>
 </template>
 
@@ -244,6 +246,7 @@ const error = ref<string | null>(null)
 const needsShift = ref(false)
 const created = ref<RepairTicket | null>(null)
 const { printing, print } = usePrint()
+const labelPrint = useTemplateRef<{ print: () => Promise<void>, auto: boolean }>('labelPrint')
 
 async function save() {
   saving.value = true
@@ -275,6 +278,8 @@ async function save() {
     })
     created.value = res.data
     await print()
+    await nextTick()
+    if (labelPrint.value?.auto) await labelPrint.value.print()
     await navigateTo(`/repairs/${res.data.id}`)
   }
   catch (e) {

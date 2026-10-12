@@ -22,9 +22,10 @@
           {{ created.customer_name }} · {{ created.device_name }}
         </p>
       </div>
-      <div class="mx-auto grid max-w-xl gap-3 sm:grid-cols-3">
+      <div class="mx-auto grid max-w-2xl gap-3 sm:grid-cols-4">
         <UButton size="xl" block icon="i-lucide-plus" label="جهاز تاني" @click="restart" />
         <UButton size="xl" block color="neutral" variant="outline" icon="i-lucide-printer" label="اطبع تاني" @click="print" />
+        <RepairsLabelPrint ref="labelPrint" :ticket="created" label="ستيكر الجهاز" size="xl" block color="neutral" variant="outline" />
         <UButton size="xl" block color="neutral" variant="outline" icon="i-lucide-arrow-left" label="افتح التذكرة" :to="`/repairs/${created.id}`" />
       </div>
     </UCard>
@@ -273,6 +274,7 @@ const store = useSessionStore()
 const paper = useThermalPaper()
 const shop = useReceiptShop()
 const { printing, print } = usePrint()
+const labelPrint = useTemplateRef<{ print: () => Promise<void>, auto: boolean }>('labelPrint')
 
 const { data: optionsData } = await useAsyncData('repair-options', () => api<{ data: RepairOptions }>('/repairs/options'))
 const options = computed(() => optionsData.value?.data)
@@ -464,6 +466,9 @@ async function save() {
     })
     created.value = res.data
     await print()
+    // «اطبعه لوحده»: the sticker for the device right after the receipt.
+    await nextTick()
+    if (labelPrint.value?.auto) await labelPrint.value.print()
   }
   catch (e) {
     error.value = apiErrorMessage(e)

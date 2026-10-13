@@ -94,6 +94,12 @@ return [
 
     // Passkeys (unlocking the app with a fingerprint / face). rp_id = the app's host; origins = the
     // pages allowed to use them (comma separated, default APP_URL).
+    // Shops signing up on their own (the platform admins switch it; this is the default until they do).
+    'signup' => [
+        'open' => (bool) env('SIGNUP_OPEN', false),
+        'whatsapp' => env('SIGNUP_WHATSAPP', '+201555440882'),
+    ],
+
     'webauthn' => [
         'rp_id' => env('WEBAUTHN_RP_ID', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         'origins' => array_values(array_filter(array_map(trim(...), explode(',', (string) env('WEBAUTHN_ORIGINS', env('APP_URL', 'http://localhost')))))),

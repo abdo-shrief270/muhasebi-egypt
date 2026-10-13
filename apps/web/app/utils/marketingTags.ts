@@ -79,3 +79,12 @@ export function reportSignup(): void {
   w.gtag?.('event', 'sign_up', { method: 'phone' })
   w.fbq?.('track', 'CompleteRegistration')
 }
+
+/** Someone asked for an account on WhatsApp (sign-up closed): Meta Contact, GA contact. */
+export function reportContact(): void {
+  const { gaId, pixelId } = ids()
+  if (!gaId && !pixelId) return
+  const w = ensureTags()
+  w.gtag?.('event', 'contact', { method: 'whatsapp' })
+  w.fbq?.('track', 'Contact')
+}

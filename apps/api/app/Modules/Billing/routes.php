@@ -128,6 +128,8 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::get('pricing', 'show');
             Route::put('pricing/catalog', 'catalog');
             Route::put('pricing/settings', 'settings');
+            Route::get('signup', 'signup');
+            Route::put('signup', 'saveSignup');
             Route::get('badges', 'badges');
         });
 

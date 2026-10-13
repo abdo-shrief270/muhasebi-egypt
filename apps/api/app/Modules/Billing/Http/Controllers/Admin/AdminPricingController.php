@@ -14,6 +14,7 @@ use App\Modules\Billing\Support\Lifetime;
 use App\Modules\Billing\Support\Pricing;
 use App\Modules\Feedback\Contracts\FeedbackInbox;
 use App\Modules\Identity\Contracts\PlatformShops;
+use App\Modules\Identity\Contracts\SignupGate;
 use App\Modules\Marketplace\Contracts\MarketModeration;
 use App\Modules\Marketplace\Contracts\PhoneCatalog;
 use Illuminate\Http\JsonResponse;
@@ -154,6 +155,29 @@ final class AdminPricingController
         ]);
 
         return $this->show($shops);
+    }
+
+    /** Whether shops may sign up on their own, and where they're sent while they can't. */
+    public function signup(SignupGate $signup): JsonResponse
+    {
+        return response()->json(['data' => $signup->get()]);
+    }
+
+    public function saveSignup(Request $request, SignupGate $signup): JsonResponse
+    {
+        $data = $request->validate([
+            'open' => ['required', 'boolean'],
+            'whatsapp' => ['nullable', 'string', 'regex:/^\+?[0-9 ]{10,16}$/', Rule::requiredIf(! $request->boolean('open'))],
+            'message' => ['nullable', 'string', 'max:300'],
+        ], attributes: ['whatsapp' => 'رقم الواتساب', 'message' => 'الرسالة']);
+        $before = $signup->get();
+        $after = $signup->save($data);
+        $this->log->record('signup_settings_updated', details: [
+            'open' => $after['open'],
+            'changed' => array_keys(array_filter($after, fn ($value, $key) => $before[$key] !== $value, ARRAY_FILTER_USE_BOTH)),
+        ]);
+
+        return response()->json(['data' => $after]);
     }
 
     /** The numbers on the admin menu. */

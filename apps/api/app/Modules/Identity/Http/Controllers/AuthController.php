@@ -9,6 +9,7 @@ use App\Modules\Identity\Auth\DeviceSessions;
 use App\Modules\Identity\Auth\LoginChallenges;
 use App\Modules\Identity\Auth\TwoFactor;
 use App\Modules\Identity\BranchAccess;
+use App\Modules\Identity\Contracts\SignupGate;
 use App\Modules\Identity\Http\Requests\LoginRequest;
 use App\Modules\Identity\Http\Requests\RegisterTenantRequest;
 use App\Modules\Identity\Http\Resources\BranchResource;
@@ -17,6 +18,7 @@ use App\Modules\Identity\Http\Resources\UserResource;
 use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\PermissionResolver;
+use App\Support\Exceptions\DomainRuleException;
 use App\Support\Modules\FeatureAccess;
 use App\Support\Modules\ModuleAccess;
 use App\Support\Modules\ModuleRegistry;
@@ -30,8 +32,12 @@ use Illuminate\Validation\ValidationException;
 
 final class AuthController
 {
-    public function register(RegisterTenantRequest $request, RegisterTenantAction $action, DeviceSessions $sessions): JsonResponse
+    public function register(RegisterTenantRequest $request, RegisterTenantAction $action, DeviceSessions $sessions, SignupGate $signup): JsonResponse
     {
+        // Closed by the platform admins: shops are opened with the team (the page shows WhatsApp).
+        if (! $signup->get()['open']) {
+            throw new DomainRuleException('التسجيل دلوقتي بيتم مع فريقنا. كلّمنا واتساب وهنفتحلك الحساب.', 'signup_closed', 403);
+        }
         $owner = $action->handle($request->toData());
 
         return response()->json([

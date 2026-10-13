@@ -10,8 +10,10 @@ use App\Modules\Identity\Contracts\BranchDirectory;
 use App\Modules\Identity\Contracts\PlatformShops;
 use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Identity\Contracts\ShopProfile;
+use App\Modules\Identity\Contracts\SignupGate;
 use App\Modules\Identity\Contracts\StaffDirectory;
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Support\SignupSettings;
 use App\Support\Modules\ModuleRegistry;
 use App\Support\Modules\ModuleServiceProvider;
 use App\Support\Security\WebAuthn;
@@ -29,6 +31,7 @@ final class IdentityServiceProvider extends ModuleServiceProvider
         $this->app->bind(BranchDirectory::class, BranchDirectoryService::class);
         $this->app->bind(StaffDirectory::class, StaffDirectoryService::class);
         $this->app->bind(AccountSecurity::class, AppUnlock::class);
+        $this->app->bind(SignupGate::class, SignupSettings::class);
         $this->app->singleton(WebAuthn::class, fn () => new WebAuthn(
             (string) config('services.webauthn.rp_id'),
             (array) config('services.webauthn.origins'),

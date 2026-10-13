@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Identity\Contracts\SignupGate;
 use App\Modules\Identity\Http\Controllers\AuditLogController;
 use App\Modules\Identity\Http\Controllers\AuthController;
 use App\Modules\Identity\Http\Controllers\BranchController;
@@ -18,6 +19,9 @@ use Illuminate\Support\Facades\Route;
 
 // The kinds of shop, for the registration form.
 Route::get('shop-types', [ShopTypeController::class, 'index'])->middleware('throttle:60,1');
+
+// Whether the registration form is open, else where to ask for an account (WhatsApp).
+Route::get('public/signup', fn (SignupGate $signup) => response()->json(['data' => $signup->get()]))->middleware('throttle:60,1');
 
 Route::prefix('auth')->group(function (): void {
     Route::middleware('throttle:10,1')->group(function (): void {

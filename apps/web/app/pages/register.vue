@@ -1,5 +1,36 @@
 <template>
-  <UCard>
+  <USkeleton v-if="!signup" class="h-96 w-full" />
+
+  <!-- Self sign-up closed by the platform: the team opens the account, on WhatsApp. -->
+  <UCard v-else-if="!signup.open">
+    <template #header>
+      <h1 class="text-xl font-bold">
+        سجّل محلك
+      </h1>
+    </template>
+    <div class="space-y-5 text-center">
+      <span class="mx-auto flex size-16 items-center justify-center rounded-full bg-(--app-primary-soft)">
+        <UIcon name="i-lucide-message-circle" class="size-8 text-(--ui-primary)" />
+      </span>
+      <p class="leading-loose">
+        {{ signup.message }}
+      </p>
+      <UButton v-if="whatsappHref" :to="whatsappHref" target="_blank" rel="noopener" block size="xl" color="success" icon="i-lucide-message-circle" label="كلّمنا واتساب" @click="reportContact()" />
+      <p v-if="signup.whatsapp" class="text-sm text-(--ui-text-muted)">
+        أو كلّمنا على <bdi class="num font-bold">{{ localPhone(signup.whatsapp) }}</bdi>
+      </p>
+    </div>
+    <template #footer>
+      <p class="text-sm text-center text-(--ui-text-muted)">
+        عندك حساب؟
+        <NuxtLink to="/login" class="text-primary font-semibold">
+          سجّل دخول
+        </NuxtLink>
+      </p>
+    </template>
+  </UCard>
+
+  <UCard v-else>
     <template #header>
       <h1 class="text-xl font-bold">
         سجّل محلك
@@ -70,6 +101,26 @@ definePageMeta({ layout: 'auth', guest: true, marketing: true })
 
 const store = useSessionStore()
 const route = useRoute()
+const api = useApi()
+
+// Whether the platform takes sign-ups now; else where to ask for an account. On failure, show the form
+// (the API still refuses a closed sign-up).
+const signup = ref<{ open: boolean, whatsapp: string | null, message: string } | null>(null)
+onMounted(async () => {
+  signup.value = await api<{ data: NonNullable<typeof signup.value> }>('/public/signup').then(r => r.data).catch(() => ({ open: true, whatsapp: null, message: '' }))
+})
+const whatsappHref = computed(() => {
+  const number = signup.value?.whatsapp?.replace(/\D/g, '')
+  if (!number) return null
+  // What the team needs to open the account the same way the form would have.
+  const extra = [
+    form.referral_code && `كود دعوة: ${form.referral_code}`,
+    affiliateCode.value && `كود شريك: ${affiliateCode.value}`,
+    acquisition()?.source && `جاي من: ${acquisition()!.source}`,
+  ].filter(Boolean)
+  const text = `السلام عليكم، عايز أسجّل محلي في محاسبي.${extra.length ? `\n(${extra.join(' · ')})` : ''}`
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+})
 const siteUrl = String(useRuntimeConfig().public.siteUrl).replace(/\/$/, '')
 
 const form = reactive({

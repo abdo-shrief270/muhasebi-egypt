@@ -58,6 +58,7 @@ Route::prefix('admin')->middleware(AdminGate::class)->group(function (): void {
             Route::get('overview', 'overview');
             Route::get('acquisition', 'acquisition');
             Route::get('shops', 'index');
+            Route::post('shops', 'store');
             Route::get('shops/{tenant}', 'show');
             Route::post('shops/{tenant}/activate', 'activate');
             Route::post('shops/{tenant}/trial', 'extendTrial');

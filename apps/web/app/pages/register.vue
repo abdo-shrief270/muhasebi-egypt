@@ -15,7 +15,7 @@
       <p class="leading-loose">
         {{ signup.message }}
       </p>
-      <UButton v-if="whatsappHref" :to="whatsappHref" target="_blank" rel="noopener" block size="xl" color="success" icon="i-lucide-message-circle" label="كلّمنا واتساب" @click="reportContact()" />
+      <UButton v-if="whatsappHref" :to="whatsappHref" target="_blank" rel="noopener" block size="xl" color="success" icon="i-lucide-message-circle" label="كلّمنا واتساب" @click="reportContact(apiBase)" />
       <p v-if="signup.whatsapp" class="text-sm text-(--ui-text-muted)">
         أو كلّمنا على <bdi class="num font-bold">{{ localPhone(signup.whatsapp) }}</bdi>
       </p>
@@ -102,6 +102,7 @@ definePageMeta({ layout: 'auth', guest: true, marketing: true })
 const store = useSessionStore()
 const route = useRoute()
 const api = useApi()
+const apiBase = String(useRuntimeConfig().public.apiBase)
 
 // Whether the platform takes sign-ups now; else where to ask for an account. On failure, show the form
 // (the API still refuses a closed sign-up).
@@ -160,8 +161,8 @@ async function submit() {
   loading.value = true
   error.value = null
   try {
-    await store.register({ ...form, referral_code: form.referral_code.trim() || undefined, affiliate_code: affiliateCode.value || undefined, acquisition: acquisition() })
-    reportSignup()
+    const eventId = await store.register({ ...form, referral_code: form.referral_code.trim() || undefined, affiliate_code: affiliateCode.value || undefined, acquisition: acquisition() })
+    reportSignup(eventId)
     await navigateTo('/')
   }
   catch (e) {

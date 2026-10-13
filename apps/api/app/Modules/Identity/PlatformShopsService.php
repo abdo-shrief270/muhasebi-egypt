@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity;
 
+use App\Modules\Identity\Actions\RegisterTenantAction;
 use App\Modules\Identity\Contracts\PlatformShops;
+use App\Modules\Identity\Data\RegisterTenantData;
 use App\Modules\Identity\Enums\ShopType;
 use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\Tenant;
@@ -12,9 +14,49 @@ use App\Modules\Identity\Models\User;
 use App\Support\Text\SearchText;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Propaganistas\LaravelPhone\PhoneNumber;
 
 final class PlatformShopsService implements PlatformShops
 {
+    public function __construct(private readonly RegisterTenantAction $register) {}
+
+    public function open(string $shopName, string $ownerName, string $phone, array $shopTypes, ?array $needs, array $acquisition): array
+    {
+        $phone = (new PhoneNumber($phone, 'EG'))->formatE164();
+        if (User::query()->where('phone', $phone)->exists()) {
+            throw ValidationException::withMessages(['phone' => 'الموبايل ده عليه حساب خلاص.']);
+        }
+        $selectable = array_map(fn (ShopType $t) => $t->value, ShopType::selectable());
+        if ($shopTypes === [] || array_diff($shopTypes, $selectable) !== []) {
+            throw ValidationException::withMessages(['shop_types' => 'اختار نوع المحل من القايمة.']);
+        }
+        // Easy to read out on WhatsApp and type on a phone: no look-alike characters.
+        $password = Str::password(10, letters: true, numbers: true, symbols: false);
+        $password = strtr($password, ['0' => '7', 'O' => 'P', 'o' => 'p', 'l' => 'k', 'I' => 'J', '1' => '8']);
+        $types = [];
+        foreach ($shopTypes as $t) {
+            foreach (ShopType::from($t)->parts() as $part) {
+                $types[$part->value] = $part;
+            }
+        }
+        $types = array_values($types);
+        $owner = $this->register->handle(new RegisterTenantData(
+            shopName: $shopName,
+            shopTypes: $types,
+            ownerName: $ownerName,
+            phone: $phone,
+            email: null,
+            password: $password,
+            branchName: 'الفرع الرئيسي',
+            acquisition: $acquisition,
+            needs: $needs,
+        ));
+
+        return ['tenant_id' => (string) $owner->tenant_id, 'owner_id' => (string) $owner->id, 'phone' => $phone, 'password' => $password];
+    }
+
     public function searchIds(string $q, int $limit = 200): array
     {
         $like = SearchText::like(mb_strtolower(trim($q)));

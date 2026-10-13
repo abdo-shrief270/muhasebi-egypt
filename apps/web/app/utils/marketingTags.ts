@@ -71,20 +71,36 @@ export function pauseMarketing(): void {
   if (gaId) (window as unknown as Win)[`ga-disable-${gaId}`] = true
 }
 
-/** A shop finished signing up: lets the ads aim at people who really register. */
-export function reportSignup(): void {
+/**
+ * A shop finished signing up: lets the ads aim at people who really register. `eventId` = the one the
+ * API sent its own copy with (Conversions API), so Meta counts the sign-up once.
+ */
+export function reportSignup(eventId?: string): void {
   const { gaId, pixelId } = ids()
   if (!gaId && !pixelId) return
   const w = ensureTags()
   w.gtag?.('event', 'sign_up', { method: 'phone' })
-  w.fbq?.('track', 'CompleteRegistration')
+  w.fbq?.('track', 'CompleteRegistration', {}, eventId ? { eventID: eventId } : undefined)
 }
 
-/** Someone asked for an account on WhatsApp (sign-up closed): Meta Contact, GA contact. */
-export function reportContact(): void {
+/**
+ * Someone asked for an account on WhatsApp (sign-up closed): Meta Contact (the pixel, and the API's
+ * copy through the Conversions API with the same event id, so it counts even when the pixel is
+ * blocked), GA contact.
+ */
+export function reportContact(apiBase: string): void {
+  const eventId = `contact-${crypto.randomUUID()}`
+  // Fire and forget, and survive the page going to WhatsApp.
+  fetch(`${apiBase.replace(/\/$/, '')}/public/signup/contact`, {
+    method: 'POST',
+    keepalive: true,
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ event_id: eventId, url: window.location.href.split('?')[0] }),
+  }).catch(() => {})
   const { gaId, pixelId } = ids()
   if (!gaId && !pixelId) return
   const w = ensureTags()
   w.gtag?.('event', 'contact', { method: 'whatsapp' })
-  w.fbq?.('track', 'Contact')
+  w.fbq?.('track', 'Contact', {}, { eventID: eventId })
 }

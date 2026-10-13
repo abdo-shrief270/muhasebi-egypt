@@ -37,6 +37,17 @@ export function apiErrorMessage(error: unknown): string {
   return data?.message ?? 'حصلت مشكلة، حاول تاني.'
 }
 
+/** A 422's field errors, first message per field (`shop_types.0` counts as `shop_types`). */
+export function apiValidationErrors(error: unknown): Record<string, string> {
+  const errors = (error as { data?: { errors?: Record<string, string[]> } })?.data?.errors ?? {}
+  const out: Record<string, string> = {}
+  for (const [key, messages] of Object.entries(errors)) {
+    const field = key.split('.')[0]!
+    out[field] ??= messages[0] ?? ''
+  }
+  return out
+}
+
 /** "منذ 3 أيام" style, for last activity. */
 const relative = new Intl.RelativeTimeFormat('ar-EG-u-nu-latn', { numeric: 'auto' })
 export function timeAgo(iso: string | null | undefined, never = 'لسه'): string {

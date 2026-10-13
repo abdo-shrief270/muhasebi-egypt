@@ -19,6 +19,7 @@ use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\PermissionResolver;
 use App\Support\Exceptions\DomainRuleException;
+use App\Support\Marketing\MetaConversions;
 use App\Support\Modules\FeatureAccess;
 use App\Support\Modules\ModuleAccess;
 use App\Support\Modules\ModuleRegistry;
@@ -32,17 +33,21 @@ use Illuminate\Validation\ValidationException;
 
 final class AuthController
 {
-    public function register(RegisterTenantRequest $request, RegisterTenantAction $action, DeviceSessions $sessions, SignupGate $signup): JsonResponse
+    public function register(RegisterTenantRequest $request, RegisterTenantAction $action, DeviceSessions $sessions, SignupGate $signup, MetaConversions $meta): JsonResponse
     {
         // Closed by the platform admins: shops are opened with the team (the page shows WhatsApp).
         if (! $signup->get()['open']) {
             throw new DomainRuleException('التسجيل دلوقتي بيتم مع فريقنا. كلّمنا واتساب وهنفتحلك الحساب.', 'signup_closed', 403);
         }
         $owner = $action->handle($request->toData());
+        // The server's copy of the browser's CompleteRegistration (same event id: counted once).
+        $eventId = "reg-{$owner->tenant_id}";
+        $meta->send('CompleteRegistration', $eventId, $owner->phone, $owner->tenant_id, 'website', MetaConversions::visitor($request));
 
         return response()->json([
             'token' => $sessions->issue($owner, $request->string('device_name', 'web')->toString() ?: 'web'),
             'user' => new UserResource($owner),
+            'signup_event_id' => $eventId,
         ], Response::HTTP_CREATED);
     }
 

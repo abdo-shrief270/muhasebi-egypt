@@ -15,6 +15,8 @@ use App\Modules\Identity\Http\Controllers\ShopTypeController;
 use App\Modules\Identity\Http\Controllers\TwoFactorController;
 use App\Modules\Identity\Http\Controllers\UnlockController;
 use App\Modules\Identity\Http\Controllers\UserController;
+use App\Support\Marketing\MetaConversions;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // The kinds of shop, for the registration form.
@@ -22,6 +24,13 @@ Route::get('shop-types', [ShopTypeController::class, 'index'])->middleware('thro
 
 // Whether the registration form is open, else where to ask for an account (WhatsApp).
 Route::get('public/signup', fn (SignupGate $signup) => response()->json(['data' => $signup->get()]))->middleware('throttle:60,1');
+// Someone asked for an account on WhatsApp from the closed sign-up page: the server's copy of the pixel's Contact.
+Route::post('public/signup/contact', function (Request $request, MetaConversions $meta) {
+    $data = $request->validate(['event_id' => ['required', 'string', 'regex:/^[\w-]{8,64}$/'], 'url' => ['nullable', 'string', 'max:500']]);
+    $meta->send('Contact', $data['event_id'], null, null, 'website', MetaConversions::visitor($request, $data['url'] ?? null));
+
+    return response()->noContent();
+})->middleware('throttle:10,1');
 
 Route::prefix('auth')->group(function (): void {
     Route::middleware('throttle:10,1')->group(function (): void {

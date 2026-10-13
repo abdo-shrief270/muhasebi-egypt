@@ -48,7 +48,7 @@ ask_value() {
   local key=$1 question=$2 current answer
   current=$(env_get "$key")
   if [[ -n "$current" ]]; then
-    read -r -p "$question [$current] (- = remove): " answer
+    read -r -p "$question [$(shown "$key" "$current")] (- = remove): " answer
   else
     read -r -p "$question [empty = skip]: " answer
   fi
@@ -60,6 +60,11 @@ ask_value() {
 }
 
 declare -A NEW=()
+
+# Secrets are never echoed back: only their last 4 characters.
+shown() {
+  if [[ "$1" == META_CAPI_TOKEN && -n "$2" ]]; then printf '…%s' "${2: -4}"; else printf '%s' "$2"; fi
+}
 
 # collect KEY "Question" check_function — asks until the check passes (an empty value always passes).
 collect() {
@@ -89,6 +94,10 @@ check_ga() {
 check_pixel() {
   [[ "$VALUE" =~ ^[0-9]{10,20}$ ]] && return 0
   warn "The Pixel / Dataset ID is a number of 15–16 digits."; return 1
+}
+check_token() {
+  [[ "$VALUE" =~ ^[A-Za-z0-9_-]{40,}$ ]] && return 0
+  warn "Paste the whole access token (Events Manager → the dataset → Settings → Conversions API → Generate access token)."; return 1
 }
 check_whatsapp() {
   VALUE=$(printf '%s' "$VALUE" | tr -d ' +()-')
@@ -125,6 +134,8 @@ collect FACEBOOK_DOMAIN_VERIFICATION "Meta domain verification (optional)" check
 bold "2/4  Measurement"
 collect GA_ID "Google Analytics Measurement ID (G-…)" check_ga
 collect META_PIXEL_ID "Meta Pixel / Dataset ID (optional, can be added later)" check_pixel
+echo "The server sends sign-ups and WhatsApp contacts to the same dataset too (Conversions API)."
+collect META_CAPI_TOKEN "Conversions API access token (optional)" check_token
 
 bold "3/4  Contact and social links"
 collect CONTACT_WHATSAPP "WhatsApp number (e.g. 01012345678)" check_whatsapp
@@ -142,7 +153,7 @@ if [[ -z "${NEW[OFFER_TEXT]}" && ( -n "${NEW[OFFER_CODE]}" || -n "${NEW[OFFER_UN
   warn "No offer text: the bar won't show."
 fi
 
-KEYS=(GOOGLE_SITE_VERIFICATION BING_SITE_VERIFICATION FACEBOOK_DOMAIN_VERIFICATION GA_ID META_PIXEL_ID CONTACT_WHATSAPP FACEBOOK_URL
+KEYS=(GOOGLE_SITE_VERIFICATION BING_SITE_VERIFICATION FACEBOOK_DOMAIN_VERIFICATION GA_ID META_PIXEL_ID META_CAPI_TOKEN CONTACT_WHATSAPP FACEBOOK_URL
   INSTAGRAM_URL TIKTOK_URL YOUTUBE_URL OFFER_TEXT OFFER_CODE OFFER_UNTIL)
 
 bold "Summary"
@@ -151,7 +162,8 @@ for key in "${KEYS[@]}"; do
   old=$(env_get "$key")
   mark=" "
   if [[ "$old" != "${NEW[$key]}" ]]; then mark="*"; changed=1; fi
-  printf ' %s %-26s %s\n' "$mark" "$key" "${NEW[$key]:-—}"
+  value=$(shown "$key" "${NEW[$key]}")
+  printf ' %s %-26s %s\n' "$mark" "$key" "${value:-—}"
 done
 echo "   (* = changed)"
 if [[ $changed == 0 ]]; then
@@ -206,5 +218,6 @@ bold "Next"
 [[ -n "${NEW[GOOGLE_SITE_VERIFICATION]}" ]] && echo "• Search Console: press Verify, then Sitemaps → sitemap.xml → Submit."
 [[ -n "${NEW[GA_ID]}" ]] && echo "• Google Analytics → Reports → Realtime: open https://${LANDING_DOMAIN} on your phone and look for yourself."
 [[ -n "${NEW[META_PIXEL_ID]}" ]] && echo "• Events Manager: PageView should show within a few minutes."
+[[ -n "${NEW[META_CAPI_TOKEN]}" ]] && echo "• Conversions API: open a shop from the admin panel (or press WhatsApp on /register) — the event shows under the dataset's Overview (Server)."
 [[ -n "${NEW[FACEBOOK_DOMAIN_VERIFICATION]}" ]] && echo "• Meta Business Settings → Brand safety → Domains: press Verify."
 echo "Website: https://${LANDING_DOMAIN}"

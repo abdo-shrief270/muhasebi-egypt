@@ -28,4 +28,16 @@ interface PlatformShops
      * @return list<array{source: string, medium: string, campaign: string, shops: int, tenant_ids: list<string>}>
      */
     public function signupsBySource(Carbon $since): array;
+
+    /**
+     * A shop the team opens by hand (self sign-up closed, the owner asked on WhatsApp): registered
+     * like any other — trials, default catalog, TenantRegistered — with a password made here for the
+     * owner to sign in with and change.
+     *
+     * @param  list<string>  $shopTypes  ShopType values
+     * @param  list<string>|null  $needs  Billing's need keys, null = by shop type
+     * @param  array<string, string>  $acquisition  where the owner came from (source, campaign…)
+     * @return array{tenant_id: string, owner_id: string, phone: string, password: string}
+     */
+    public function open(string $shopName, string $ownerName, string $phone, array $shopTypes, ?array $needs, array $acquisition): array;
 }

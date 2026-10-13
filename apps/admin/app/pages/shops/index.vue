@@ -1,8 +1,12 @@
 <template>
   <div class="space-y-6">
-    <h1 class="text-2xl font-extrabold">
-      المحلات
-    </h1>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-2xl font-extrabold">
+        المحلات
+      </h1>
+      <UButton icon="i-lucide-plus" label="افتح محل جديد" @click="openShop = true" />
+    </div>
+    <ShopOpenModal v-model:open="openShop" @opened="refresh()" />
     <div class="grid gap-3 md:grid-cols-[1fr_220px]">
       <UInput v-model="q" icon="i-lucide-search" placeholder="اسم المحل، الكود، أو الموبايل…" class="w-full" />
       <USelect v-model="status" :items="statusItems" class="w-full" />
@@ -128,7 +132,8 @@ watch(status, () => {
 })
 onBeforeUnmount(() => clearTimeout(timer))
 
-const { data } = await useAsyncData('admin-shops', () => api<{ data: { shop: AdminShop | null, subscription: SubscriptionInfo, activity: ShopActivity | null, setup: SetupProgress | null }[], meta: { total: number, last_page: number } }>('/shops', {
+const openShop = ref(false)
+const { data, refresh } = await useAsyncData('admin-shops', () => api<{ data: { shop: AdminShop | null, subscription: SubscriptionInfo, activity: ShopActivity | null, setup: SetupProgress | null }[], meta: { total: number, last_page: number } }>('/shops', {
   query: { q: debounced.value || undefined, status: status.value === ALL ? undefined : status.value, page: page.value },
 }), { watch: [debounced, status, page] })
 const rows = computed(() => data.value?.data ?? [])

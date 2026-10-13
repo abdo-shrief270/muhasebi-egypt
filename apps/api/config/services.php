@@ -94,6 +94,14 @@ return [
 
     // Passkeys (unlocking the app with a fingerprint / face). rp_id = the app's host; origins = the
     // pages allowed to use them (comma separated, default APP_URL).
+    // Meta (Facebook) Conversions API: sign-ups / contacts sent by the server too (same pixel / dataset).
+    'meta' => [
+        'pixel_id' => (string) env('META_PIXEL_ID', ''),
+        'capi_token' => env('META_CAPI_TOKEN', ''),
+        'test_event_code' => env('META_TEST_EVENT_CODE', ''),
+        'graph_version' => env('META_GRAPH_VERSION', 'v21.0'),
+    ],
+
     // Shops signing up on their own (the platform admins switch it; this is the default until they do).
     'signup' => [
         'open' => (bool) env('SIGNUP_OPEN', false),

@@ -74,10 +74,12 @@ export const useSessionStore = defineStore('session', () => {
     return { recoveryCodesLeft: res.recovery_codes_left }
   }
 
-  async function register(payload: Record<string, unknown>): Promise<void> {
-    const res = await api<{ token: string }>('/auth/register', { method: 'POST', body: { device_name: currentDeviceName(), ...payload } })
+  /** Returns the sign-up's event id: the pixel sends it with CompleteRegistration so Meta counts the server's copy once. */
+  async function register(payload: Record<string, unknown>): Promise<string | undefined> {
+    const res = await api<{ token: string, signup_event_id?: string }>('/auth/register', { method: 'POST', body: { device_name: currentDeviceName(), ...payload } })
     auth.set(res.token)
     await load()
+    return res.signup_event_id
   }
 
   async function logout(): Promise<void> {

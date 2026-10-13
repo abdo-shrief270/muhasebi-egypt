@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Billing\Http\Controllers\Admin;
 
+use App\Modules\Billing\Contracts\ShopNeeds;
 use App\Modules\Billing\Models\BillingInvoice;
 use App\Modules\Billing\Models\PaymentRequest;
 use App\Modules\Billing\Models\Subscription;
@@ -20,6 +21,7 @@ use App\Modules\Identity\Contracts\PlatformShops;
 use App\Modules\Onboarding\Contracts\SetupProgress;
 use App\Modules\Onboarding\Contracts\ShopActivity;
 use App\Support\Audit\Auditor;
+use App\Support\Marketing\MetaConversions;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,7 +40,51 @@ final class AdminShopController
         private readonly SetupProgress $setup,
         private readonly ShopActivity $activity,
         private readonly FeedbackInbox $inbox,
+        private readonly ShopNeeds $needs,
     ) {}
+
+    /**
+     * A shop the team opens by hand (sign-up closed; the owner asked on WhatsApp). Returns the
+     * owner's sign-in details once — the password isn't kept anywhere readable — and tells Meta
+     * about the sign-up (CompleteRegistration, matched by the owner's phone, hashed).
+     */
+    public function store(Request $request, MetaConversions $meta): JsonResponse
+    {
+        $data = $request->validate([
+            'shop_name' => ['required', 'string', 'max:120'],
+            'owner_name' => ['required', 'string', 'max:120'],
+            'phone' => ['required', 'phone:EG'],
+            'shop_types' => ['required', 'array', 'min:1', 'max:5'],
+            'shop_types.*' => ['distinct', 'string', 'max:30'],
+            'needs' => ['nullable', 'array', 'max:30'],
+            'needs.*' => ['distinct', Rule::in($this->needs->keys())],
+            'source' => ['required', Rule::in(array_keys(self::SOURCES))],
+            'campaign' => ['nullable', 'string', 'max:80'],
+        ], attributes: ['shop_name' => 'اسم المحل', 'owner_name' => 'اسم صاحب المحل', 'phone' => 'الموبايل', 'shop_types' => 'نوع المحل', 'source' => 'جه منين']);
+        [$source, $medium] = self::SOURCES[$data['source']];
+        $opened = $this->shops->open($data['shop_name'], $data['owner_name'], $data['phone'], $data['shop_types'], $data['needs'] ?? null,
+            array_filter(['source' => $source, 'medium' => $medium, 'campaign' => $data['campaign'] ?? null]));
+        $this->log->record('shop_created', $opened['tenant_id'], details: ['source' => $data['source']]);
+        // Opened from a chat, not a page: no browser signals (never the admin's own IP).
+        $meta->send('CompleteRegistration', "reg-{$opened['tenant_id']}", $opened['phone'], $opened['tenant_id'], 'chat', custom: ['source' => $data['source']]);
+
+        return response()->json(['data' => [
+            'tenant_id' => $opened['tenant_id'],
+            'phone' => $opened['phone'],
+            'password' => $opened['password'],
+            'login_url' => rtrim((string) config('app.url'), '/').'/login',
+        ]], 201);
+    }
+
+    /** Where a hand-opened shop came from => [acquisition source, medium]. */
+    public const SOURCES = [
+        'facebook' => ['facebook', 'paid'],
+        'instagram' => ['instagram', 'paid'],
+        'whatsapp' => ['whatsapp', 'chat'],
+        'referral' => ['referral', 'word_of_mouth'],
+        'walk_in' => ['walk_in', 'offline'],
+        'other' => ['other', 'manual'],
+    ];
 
     public function overview(): JsonResponse
     {

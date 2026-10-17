@@ -18,7 +18,7 @@ CONTACT = {
     'phone': '0155 544 0882',          # the WhatsApp / call number as it should print
     'site': 'muhasebi.com',
 }
-OFFER = {'code': 'FOUNDERS50', 'text': 'خصم 50% أول 3 شهور', 'who': 'لأول 100 محل', 'until': 'العرض لحد 30 نوفمبر 2026'}
+OFFER = {'code': 'FOUNDERS', 'text': 'خصم 50% أول 3 شهور', 'who': 'لأول 100 محل', 'until': 'العرض لحد 30 نوفمبر 2026'}
 BLEED = 3  # mm
 
 
@@ -28,7 +28,7 @@ def qr(url, color='#0A2A2F'):
 
 QR_BROCHURE = qr('https://muhasebi.com/?utm_source=print&utm_medium=brochure&utm_campaign=field')
 QR_CARD = qr('https://muhasebi.com/?utm_source=print&utm_medium=card&utm_campaign=field')
-QR_OFFER = qr('https://muhasebi.com/?utm_source=print&utm_medium=offer_card&utm_campaign=founders50')
+QR_OFFER = qr('https://muhasebi.com/?utm_source=print&utm_medium=offer_card&utm_campaign=founders')
 
 ICONS = {
     'cart': '<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
@@ -141,7 +141,7 @@ def brochure_outside():
       <div style="position:absolute;right:0;bottom:0;width:30mm;height:64mm;border-radius:4.5mm;padding:1.3mm;background:#0B1416;box-shadow:0 3mm 8mm rgba(0,0,0,.5),0 0 0 .3mm rgba(94,234,212,.3)">
         <div style="width:100%;height:100%;border-radius:3.4mm;overflow:hidden"><img src="screens/m-dashboard.webp" style="width:100%;height:100%;object-fit:cover;object-position:top"></div></div>
     </div>
-    <div style="margin-top:7mm"><span class="cta">جرّب ببلاش 14 يوم</span></div>
+    <div style="margin-top:7mm"><span class="cta">جرّب ببلاش 7 أيام</span></div>
   </div>
 </div>
 <div class="panel p-m" style="background:#F6FAF9;display:flex;flex-direction:column">
@@ -166,7 +166,7 @@ def brochure_outside():
   <p style="margin-top:2mm">نفس البرنامج، وكل محل بيفتح الأقسام اللي تناسب شغله بس.</p>
   {flap}
   <div style="margin-top:7mm;border-top:.3mm solid #D7E7E5;padding-top:5mm;display:flex;flex-direction:column;gap:2.2mm">
-    {''.join(f'<div style="display:flex;gap:2.2mm;align-items:center;font-size:8.6pt;font-weight:600"><span style="color:#0D9488;font-size:4mm">{icon("check")}</span>{t}</div>' for t in ['محلك بيظهر لوحده في سوق محاسبي (قريباً)', 'على الكمبيوتر والموبايل والتابلت', 'نسخة احتياطية من بياناتك كل يوم', 'تجربة 14 يوم من غير كارت'])}
+    {''.join(f'<div style="display:flex;gap:2.2mm;align-items:center;font-size:8.6pt;font-weight:600"><span style="color:#0D9488;font-size:4mm">{icon("check")}</span>{t}</div>' for t in ['محلك بيظهر لوحده في سوق محاسبي (قريباً)', 'على الكمبيوتر والموبايل والتابلت', 'نسخة احتياطية من بياناتك كل يوم', 'تجربة 7 أيام من غير كارت'])}
   </div>
 </div>'''
     return page(297, 210, body, BRO_CSS)
@@ -215,7 +215,7 @@ def brochure_inside():
   <div class="dark" style="margin-top:4mm;position:relative;border-radius:4mm;padding:5mm;overflow:hidden">
     <p style="font-size:8pt">الباقات تبدأ من</p>
     <p style="font-weight:800;font-size:20pt;color:#fff;line-height:1.6"><span class="grad">299 ج</span> في الشهر</p>
-    <p style="font-size:8pt">شامل الضريبة · أول 14 يوم ببلاش · من غير عقود</p>
+    <p style="font-size:8pt">شامل الضريبة · أول 7 أيام ببلاش · من غير عقود</p>
     <p style="font-size:8pt;margin-top:1mm">وكل الباقات فيها ظهور تلقائي في سوق محاسبي</p>
     <p style="font-size:8pt;margin-top:1.5mm">كل الباقات على <span dir="ltr" style="color:#5EEAD4;font-weight:600">muhasebi.com/pricing</span></p>
   </div>
@@ -251,7 +251,7 @@ def card_back():
     {row('whatsapp', CONTACT['phone'])}{row('globe', CONTACT['site'])}
   </div>
   <div style="text-align:center"><div style="width:21mm;height:21mm">{QR_CARD}</div>
-    <div style="font-size:5.6pt;color:#5B7A7F;margin-top:1mm">جرّب ببلاش 14 يوم</div></div>
+    <div style="font-size:5.6pt;color:#5B7A7F;margin-top:1mm">جرّب ببلاش 7 أيام</div></div>
 </div>
 <div style="position:absolute;left:0;right:0;bottom:0;height:9.5mm;padding:0 8mm 3mm;background:linear-gradient(90deg,#0B4F58,#14B8A6);color:#fff;display:flex;align-items:center;justify-content:center;gap:1.4mm;font-size:6.2pt;font-weight:600">{icon('store')} محلك بيظهر لوحده في سوق محاسبي للزباين · قريباً</div>'''
     return page(85, 55, body, CARD_CSS)
@@ -273,7 +273,7 @@ def offer_front():
 
 
 def offer_back():
-    steps = ['امسح الـ QR وسجّل محلك', 'جرّب كل حاجة ببلاش 14 يوم', 'وانت بتشترك اكتب كود الخصم']
+    steps = ['امسح الـ QR وسجّل محلك', 'جرّب كل حاجة ببلاش 7 أيام', 'وانت بتشترك اكتب كود الخصم']
     li = ''.join(f'<li style="display:flex;gap:1.8mm;align-items:center;font-size:7.2pt"><b style="width:4mm;height:4mm;border-radius:50%;background:#0D9488;color:#fff;display:grid;place-items:center;font-size:6pt;flex:none">{i + 1}</b>{s}</li>' for i, s in enumerate(steps))
     body = f'''<div class="in" style="display:flex;gap:4mm;align-items:center;bottom:9.5mm;padding-top:2mm;padding-bottom:1mm">
   <div style="flex:1">

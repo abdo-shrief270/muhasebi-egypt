@@ -80,7 +80,7 @@
       <template v-if="data.data.yearly">
         السنوي بسعر <span class="num">{{ data.data.yearly_months }}</span> شهور ·
       </template>
-      أول <span class="num">{{ data.data.trial_days }}</span> يوم ببلاش ومن غير كارت
+      أول <span class="num">{{ data.data.trial_days }}</span> {{ data.data.trial_days >= 3 && data.data.trial_days <= 10 ? 'أيام' : 'يوم' }} ببلاش ومن غير كارت
     </p>
   </div>
 </template>

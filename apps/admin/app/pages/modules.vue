@@ -86,7 +86,7 @@
                 variant="soft"
                 label="احفظ"
                 :disabled="Number(days[m.key]) === m.trial_days || !Number(days[m.key])"
-                @click="saveModule(m, { trial_days: Number(days[m.key]) === 14 ? null : Number(days[m.key]) })"
+                @click="saveModule(m, { trial_days: Number(days[m.key]) === DEFAULT_TRIAL_DAYS ? null : Number(days[m.key]) })"
               />
             </div>
           </UFormField>
@@ -199,6 +199,8 @@ interface PlatformModule {
 
 const api = useAdminApi()
 const toast = useToast()
+// A module's trial without its own length (TenantModule::TRIAL_DAYS): saving it stores nothing.
+const DEFAULT_TRIAL_DAYS = 7
 
 const statuses: { value: Status, label: string, hint: string, icon: string }[] = [
   { value: 'live', label: 'شغال', hint: 'بالاشتراك أو التجربة', icon: 'i-lucide-circle-check' },

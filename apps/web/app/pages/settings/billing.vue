@@ -23,7 +23,9 @@
           <p class="text-sm text-(--ui-text-muted)">
             <template v-if="sub.paid_up">
               {{ sub.on_trial ? 'التجربة لحد' : sub.beta ? 'مجاناً لحد' : 'مدفوع لحد' }} <span class="num">{{ formatDate(sub.paid_until) }}</span>
-              (فاضل <span class="num">{{ Math.max(0, sub.days_left) }}</span> يوم)
+              <template v-if="sub.days_left > 0">
+                (فاضل <span class="num">{{ dayCount(sub.days_left) }}</span>)
+              </template>
             </template>
             <template v-else>
               خلص <span class="num">{{ formatDate(sub.paid_until) }}</span>

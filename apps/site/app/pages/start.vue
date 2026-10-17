@@ -31,7 +31,7 @@
           </div>
 
           <div class="flex flex-wrap gap-3">
-            <UButton :to="links.register" size="xl" icon="i-lucide-rocket" label="جرّب 14 يوم ببلاش" />
+            <UButton :to="links.register" size="xl" icon="i-lucide-rocket" label="جرّب 7 أيام ببلاش" />
             <ContactWhatsapp place="start-hero" text="السلام عليكم، عايز أعرف أكتر عن محاسبي وعرض المؤسسين" />
           </div>
           <p class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-(--ui-text-muted)">
@@ -127,7 +127,7 @@
           جرّب محاسبي على محلك
         </h2>
         <p class="mt-3 text-lg text-white/85">
-          14 يوم ببلاش، وبعدها خصم <span class="num">50%</span> لمدة 3 شهور بالكود <span class="num font-extrabold" dir="ltr">{{ CODE }}</span>.
+          7 أيام ببلاش، وبعدها خصم <span class="num">50%</span> لمدة 3 شهور بالكود <span class="num font-extrabold" dir="ltr">{{ CODE }}</span>.
         </p>
         <div class="mt-6 flex flex-wrap justify-center gap-3">
           <UButton :to="links.register" size="xl" color="neutral" variant="solid" icon="i-lucide-rocket" label="سجّل محلك دلوقتي" />
@@ -151,7 +151,7 @@ const links = useAppLinks()
 
 usePageSeo({
   title: 'محاسبي — نظام إدارة محلات الموبايلات | عرض المؤسسين',
-  description: 'نظام متكامل لمحلات الموبايلات في مصر: البيع بالباركود و IMEI، الصيانة، والمخزون لكل فرع. جرّبه 14 يوم ببلاش وخصم 50% لمدة 3 شهور بكود FOUNDERS.',
+  description: 'نظام متكامل لمحلات الموبايلات في مصر: البيع بالباركود و IMEI، الصيانة، والمخزون لكل فرع. جرّبه 7 أيام ببلاش وخصم 50% لمدة 3 شهور بكود FOUNDERS.',
   path: '/start',
   noindex: true,
 })

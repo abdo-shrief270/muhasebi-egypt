@@ -48,6 +48,17 @@ export function timeAgo(iso: string, now = Date.now()): string {
     : formatDate(iso, true)
 }
 
+/** "يوم" / "يومين" / "7 أيام" / "14 يوم": a number of days the way it's said. */
+export function dayCount(days: number): string {
+  if (days === 1) {
+    return 'يوم'
+  }
+  if (days === 2) {
+    return 'يومين'
+  }
+  return `${days} ${days >= 3 && days <= 10 ? 'أيام' : 'يوم'}`
+}
+
 /** A subscription's cycle in words. */
 export function cycleLabel(cycle: string | null | undefined): string {
   return cycle === 'yearly' ? 'سنوي' : cycle === 'lifetime' ? 'مدى الحياة' : 'شهري'

@@ -6,7 +6,7 @@
  * a screenshot; a platform admin approves it) or activated by a platform admin directly.
  */
 return [
-    'trial_days' => 14,
+    'trial_days' => 7,
     // After the paid period (or the trial) ends: everything works with a warning, then no new
     // products / users / branches, then read-only. Selling never stops before suspension.
     'grace_days' => 7,

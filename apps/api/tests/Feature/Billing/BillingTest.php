@@ -75,7 +75,8 @@ class BillingTest extends TestCase
     {
         $status = $this->asOwner()->getJson('/api/v1/billing/status')->assertOk()->json('data');
         $this->assertSame(['trialing', true], [$status['status'], $status['paid_up']]);
-        $this->assertContains($status['days_left'], [13, 14]);
+        $trial = (int) config('billing.trial_days');
+        $this->assertContains($status['days_left'], [$trial - 1, $trial]);
 
         $billing = $this->getJson('/api/v1/billing')->assertOk()->json('data');
         $this->assertSame(['accessories', 'repair', 'pro', 'business'], array_column($billing['plans'], 'key'));
@@ -159,7 +160,8 @@ class BillingTest extends TestCase
         $sell = fn () => $this->asOwner()->sell([['method' => 'cash', 'amount' => 45000]]);
         $newProduct = fn () => $this->asOwner()->postJson('/api/v1/products', ['name' => 'جديد', 'category_id' => $this->inShop(fn () => Category::query()->value('id')), 'variants' => [['price_retail' => 100]]]);
 
-        $this->travel(15)->days();
+        // A day after the trial.
+        $this->travel((int) config('billing.trial_days') + 1)->days();
         $this->assertSame('past_due', $this->asOwner()->getJson('/api/v1/billing/status')->json('data.status'));
         $sell()->assertCreated();
 

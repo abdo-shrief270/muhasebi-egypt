@@ -42,7 +42,7 @@
           <UButton v-for="l in nav" :key="l.to" :to="l.to" color="neutral" variant="ghost" size="lg" :label="l.label" class="justify-start" @click="menuOpen = false" />
           <USeparator class="my-2" />
           <UButton :to="links.login" color="neutral" variant="outline" size="lg" label="دخول" class="justify-center" />
-          <UButton :to="links.register" size="lg" label="جرّب 14 يوم ببلاش" class="justify-center" />
+          <UButton :to="links.register" size="lg" label="جرّب 7 أيام ببلاش" class="justify-center" />
         </nav>
       </template>
     </USlideover>

@@ -13,7 +13,7 @@
             محاسبي بيعرّفك بعت كام وكسبت كام النهارده، البضاعة فين، والفلوس عند مين. سريع على الباركود، بيحفظ IMEI كل جهاز، وبيكمّل بيع حتى لو النت فصل.
           </p>
           <div class="flex flex-wrap gap-3">
-            <UButton :to="links.register" size="xl" icon="i-lucide-rocket" label="جرّب 14 يوم ببلاش" />
+            <UButton :to="links.register" size="xl" icon="i-lucide-rocket" label="جرّب 7 أيام ببلاش" />
             <UButton to="/docs" size="xl" color="neutral" variant="outline" icon="i-lucide-book-open" label="اتفرج على الشرح" />
           </div>
           <p class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-(--ui-text-muted)">
@@ -275,7 +275,7 @@
           جرّب محاسبي في محلك النهارده
         </h2>
         <p class="mx-auto mt-3 max-w-xl text-white/85">
-          14 يوم ببلاش بكل الأقسام المناسبة لشغلك. من غير كارت ومن غير أي التزام.
+          7 أيام ببلاش بكل الأقسام المناسبة لشغلك. من غير كارت ومن غير أي التزام.
         </p>
         <UButton :to="links.register" size="xl" color="neutral" variant="solid" class="mt-8 bg-white text-primary hover:bg-white/90" label="سجّل محلك دلوقتي" />
       </div>
@@ -294,7 +294,7 @@ const faqItems = faqs.map(f => ({ label: f.q, content: f.a }))
 const { siteUrl, appUrl } = useSiteUrls()
 usePageSeo({
   title: 'محاسبي | برنامج حسابات ومخزون وصيانة لمحلات الموبايلات',
-  description: 'محاسبي: برنامج كاشير بالباركود وIMEI، مخزون وجرد، صيانة بتذاكر ورسايل واتساب، آجل العملاء والموردين، شحن وتحويلات ومستعمل، وتقارير المكسب لمحلات الموبايلات في مصر. بيشتغل من غير نت. جرّب 14 يوم ببلاش.',
+  description: 'محاسبي: برنامج كاشير بالباركود وIMEI، مخزون وجرد، صيانة بتذاكر ورسايل واتساب، آجل العملاء والموردين، شحن وتحويلات ومستعمل، وتقارير المكسب لمحلات الموبايلات في مصر. بيشتغل من غير نت. جرّب 7 أيام ببلاش.',
   path: '/',
   jsonLd: [
     {
@@ -311,7 +311,7 @@ usePageSeo({
       'screenshot': [`${siteUrl}/screens/dashboard.webp`, `${siteUrl}/screens/pos.webp`, `${siteUrl}/screens/repairs.webp`],
       'description': 'برنامج حسابات ومخزون وصيانة لمحلات الموبايلات والإكسسوارات في مصر: كاشير بالباركود وIMEI، صيانة، آجل، شحن وتحويلات، مستعمل، وتقارير، وبيشتغل من غير نت.',
       'featureList': features.map(f => f.title).join('، '),
-      'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'EGP', 'description': 'تجربة 14 يوم ببلاش، وبعدها اشتراك شهري أو شراء مدى الحياة', 'url': `${siteUrl}/pricing` },
+      'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'EGP', 'description': 'تجربة 7 أيام ببلاش، وبعدها اشتراك شهري أو شراء مدى الحياة', 'url': `${siteUrl}/pricing` },
       'publisher': { '@id': `${siteUrl}/#org` },
     },
     {

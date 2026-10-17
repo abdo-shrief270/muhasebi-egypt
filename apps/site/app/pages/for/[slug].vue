@@ -14,7 +14,7 @@
             {{ page.intro }}
           </p>
           <div class="flex flex-wrap gap-3">
-            <UButton :to="links.register" size="xl" icon="i-lucide-rocket" label="جرّب 14 يوم ببلاش" />
+            <UButton :to="links.register" size="xl" icon="i-lucide-rocket" label="جرّب 7 أيام ببلاش" />
             <ContactWhatsapp :text="`عايز أعرف أكتر عن محاسبي لـ${page.label}`" place="for" />
           </div>
         </div>

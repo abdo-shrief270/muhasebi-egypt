@@ -34,17 +34,17 @@ class RenewalRemindersTest extends TestCase
             $this->artisan('billing:remind')->assertSuccessful();
         }
 
+        // A trial is only a week long: no «a week left» on its first day.
         $this->assertSame([
-            'التجربة المجانية فاضل فيه 7 أيام (لحد '.$ends->format('d/m').')',
-            'التجربة المجانية فاضل فيه 3 أيام (لحد '.$ends->format('d/m').')',
-            'التجربة المجانية فاضل فيه 1 يوم (لحد '.$ends->format('d/m').')',
-            'التجربة المجانية بيخلص النهارده',
-            'التجربة المجانية خلص',
+            'التجربة المجانية فاضل فيها 3 أيام (لحد '.$ends->format('d/m').')',
+            'التجربة المجانية فاضل فيها 1 يوم (لحد '.$ends->format('d/m').')',
+            'التجربة المجانية بتخلص النهارده',
+            'التجربة المجانية خلصت',
         ], $this->titles($owner->tenant_id));
 
         // Only the owner sees them.
         Sanctum::actingAs($owner);
-        $this->assertSame(5, $this->getJson('/api/v1/notifications')->json('meta.unread'));
+        $this->assertSame(4, $this->getJson('/api/v1/notifications')->json('meta.unread'));
     }
 
     public function test_paying_starts_a_new_round_and_late_shops_hear_it(): void
@@ -57,10 +57,11 @@ class RenewalRemindersTest extends TestCase
         $this->artisan('billing:remind');
         $this->assertStringStartsWith('الاشتراك فاضل فيه 3 أيام', $this->titles($owner->tenant_id)[0]);
 
-        // Renewed: the next end date has its own reminders.
+        // Renewed: the next end date has its own reminders (a paid period hears a week ahead).
         $sub->forceFill(['paid_until' => now()->addDays(7)->addHour()])->save();
         $this->artisan('billing:remind');
         $this->assertCount(2, $this->titles($owner->tenant_id));
+        $this->assertStringStartsWith('الاشتراك فاضل فيه 7 أيام', $this->titles($owner->tenant_id)[1]);
 
         // Long overdue: restricted, then suspended.
         $sub->forceFill(['paid_until' => now()->subDays((int) config('billing.grace_days'))->subHour()])->save();

@@ -12,10 +12,10 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Renewal reminders to the shop's owner (the bell + a push): a week, three days and one day
- * before the subscription or trial ends, on the day, the day after (past due), when it becomes
- * restricted and when it's suspended. Each once per end date — paying moves the end date, so the
- * next period gets its own.
+ * Renewal reminders to the shop's owner (the bell + a push): a week (not for a trial — a week is
+ * about the whole trial), three days and one day before the subscription or trial ends, on the
+ * day, the day after (past due), when it becomes restricted and when it's suspended. Each once per
+ * end date — paying moves the end date, so the next period gets its own.
  */
 final class RenewalReminders
 {
@@ -39,7 +39,7 @@ final class RenewalReminders
                 $ends = Carbon::parse($s->paid_until->copy()->setTimezone(ShopDay::TZ)->toDateString());
                 $days = (int) $today->diffInDays($ends, false);
                 $step = match (true) {
-                    in_array($days, [7, 3, 1, 0], true) => "d{$days}",
+                    in_array($days, $s->on_trial ? [3, 1, 0] : [7, 3, 1, 0], true) => "d{$days}",
                     $days === -1 => 'past_due',
                     $days === -$grace => 'restricted',
                     $days === -$suspend => 'suspended',
@@ -68,16 +68,19 @@ final class RenewalReminders
     /** @return array{0: string, 1: string, 2: bool} title, body, urgent */
     private function message(string $step, int $days, bool $trial, Carbon $ends, int $grace): array
     {
-        $what = $trial ? 'التجربة المجانية' : 'الاشتراك';
+        // «التجربة» is feminine, «الاشتراك» masculine.
+        [$what, $ending, $ended, $left] = $trial
+            ? ['التجربة المجانية', 'بتخلص', 'خلصت', 'فيها']
+            : ['الاشتراك', 'بيخلص', 'خلص', 'فيه'];
         $date = $ends->format('d/m');
         $pay = 'جدّد من «الاشتراك» وادفع بـ InstaPay، والتفعيل بيتم في نفس اليوم.';
 
         return match ($step) {
-            'd0' => ["{$what} بيخلص النهارده", $pay, true],
-            'past_due' => ["{$what} خلص", "كل حاجة شغالة لحد دلوقتي، وبعد {$grace} أيام إضافة الأصناف والموظفين هتتقفل. {$pay}", true],
+            'd0' => ["{$what} {$ending} النهارده", $pay, true],
+            'past_due' => ["{$what} {$ended}", "كل حاجة شغالة لحد دلوقتي، وبعد {$grace} أيام إضافة الأصناف والموظفين هتتقفل. {$pay}", true],
             'restricted' => ['الاشتراك متأخر: البيع شغال بس', "مينفعش تضيف أصناف أو موظفين أو فروع لحد ما يتجدد. {$pay}", true],
             'suspended' => ['الاشتراك اتوقف', 'البرنامج بقى للفرجة بس. جدّد عشان ترجع تشتغل، وكل بياناتك محفوظة.', true],
-            default => ["{$what} فاضل فيه {$days} ".($days === 1 ? 'يوم' : 'أيام')." (لحد {$date})", $trial ? 'اشترك دلوقتي عشان الشغل يكمل من غير توقف.' : $pay, false],
+            default => ["{$what} فاضل {$left} {$days} ".($days === 1 ? 'يوم' : 'أيام')." (لحد {$date})", $trial ? 'اشترك دلوقتي عشان الشغل يكمل من غير توقف.' : $pay, false],
         };
     }
 }

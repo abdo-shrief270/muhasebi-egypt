@@ -147,7 +147,7 @@ class BetaAdminTest extends TestCase
         $this->assertSame(['باقة «برو» — 3 شهور', 'فترة Beta مجانية'], array_column($invoice['lines'], 'description'));
         $this->assertSame(0, array_sum(array_column($invoice['lines'], 'amount')));
         // Starts after the trial that was still running: nobody loses days.
-        $this->assertEqualsWithDelta(now()->addDays(14)->addMonthsNoOverflow(3)->timestamp, strtotime($data['subscription']['paid_until']), 5);
+        $this->assertEqualsWithDelta(now()->addDays((int) config('billing.trial_days'))->addMonthsNoOverflow(3)->timestamp, strtotime($data['subscription']['paid_until']), 5);
 
         // The plan's modules are granted.
         app(ModuleAccess::class)->forget($tenant);

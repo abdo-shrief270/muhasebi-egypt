@@ -28,7 +28,7 @@ const message = computed(() => {
   switch (s.status) {
     case 'trialing':
       return store.isOwner && s.days_left <= 5
-        ? { color: 'info' as const, icon: 'i-lucide-hourglass', title: `التجربة المجانية فاضل فيها ${Math.max(0, s.days_left)} يوم`, description: 'اشترك دلوقتي عشان الشغل يكمل من غير توقف.' }
+        ? { color: 'info' as const, icon: 'i-lucide-hourglass', title: s.days_left > 0 ? `التجربة المجانية فاضل فيها ${dayCount(s.days_left)}` : 'التجربة المجانية بتخلص النهارده', description: 'اشترك دلوقتي عشان الشغل يكمل من غير توقف.' }
         : null
     case 'active':
       return store.isOwner && s.days_left <= 5

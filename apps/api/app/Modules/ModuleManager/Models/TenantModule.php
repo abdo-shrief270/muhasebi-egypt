@@ -29,7 +29,7 @@ final class TenantModule extends Model
 {
     use BelongsToTenant;
 
-    public const TRIAL_DAYS = 14;
+    public const TRIAL_DAYS = 7;
 
     protected function casts(): array
     {

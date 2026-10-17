@@ -10,7 +10,7 @@
       variant="subtle"
       icon="i-lucide-lock"
       title="الفرع التاني محتاج قسم «الفروع المتعددة»"
-      description="جرّبه مجاناً 14 يوم من صفحة الأقسام."
+      description="جرّبه مجاناً 7 أيام من صفحة الأقسام."
       :actions="store.isOwner ? [{ label: 'الأقسام', to: '/settings/modules?need=multi_branch' }] : []"
     />
 

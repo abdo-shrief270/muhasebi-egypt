@@ -61,7 +61,7 @@
 
           <template v-if="mod.tier === 'optional' && mod.available" #footer>
             <div class="flex gap-2">
-              <UButton v-if="mod.trial_available" size="sm" icon="i-lucide-sparkles" :label="`جرّب مجاناً ${mod.trial_days} يوم`" :loading="busy === mod.key" @click="act(mod, 'trial')" />
+              <UButton v-if="mod.trial_available" size="sm" icon="i-lucide-sparkles" :label="`جرّب مجاناً ${dayCount(mod.trial_days)}`" :loading="busy === mod.key" @click="act(mod, 'trial')" />
               <UButton v-if="mod.state === 'disabled'" size="sm" icon="i-lucide-eye" label="إظهار" :loading="busy === mod.key" @click="act(mod, 'enable')" />
               <UButton v-if="mod.usable" size="sm" color="neutral" variant="outline" icon="i-lucide-eye-off" label="إخفاء" :loading="busy === mod.key" @click="act(mod, 'disable')" />
               <p v-if="!mod.entitled && !mod.usable && !mod.trial_available" class="self-center text-xs text-(--ui-text-muted)">

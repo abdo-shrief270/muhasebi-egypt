@@ -45,7 +45,7 @@ export interface ShopTypeOption {
 }
 
 /** One or more kinds of shop; shows the extra modules that come with them. */
-withDefaults(defineProps<{ modulesTitle?: string, showModules?: boolean }>(), { modulesTitle: 'الأقسام الإضافية اللي تناسبك (تجربة مجانية 14 يوم):', showModules: true })
+withDefaults(defineProps<{ modulesTitle?: string, showModules?: boolean }>(), { modulesTitle: 'الأقسام الإضافية اللي تناسبك (تجربة مجانية 7 أيام):', showModules: true })
 const model = defineModel<string[]>({ required: true })
 
 const api = useApi()

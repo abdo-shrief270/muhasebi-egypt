@@ -235,7 +235,7 @@
       color="neutral"
       variant="subtle"
       title="محتاج قسم زيادة؟"
-      description="جرّب الصيانة أو طلبات المحلات مجاناً 14 يوم من صفحة الأقسام."
+      description="جرّب الصيانة أو طلبات المحلات مجاناً 7 أيام من صفحة الأقسام."
       :actions="[{ label: 'الأقسام', to: '/settings/modules' }]"
     />
   </div>

@@ -69,7 +69,7 @@
           </UFormField>
         </div>
         <p class="text-xs text-(--ui-text-muted)">
-          المحل بيبدأ بتجربة 14 يوم بالأقسام اللي تناسب نوعه، وتسجيله بيوصل لميتا كـ CompleteRegistration (برقم الموبايل مشفّر) لو الـ Conversions API متظبط.
+          المحل بيبدأ بتجربة 7 أيام بالأقسام اللي تناسب نوعه، وتسجيله بيوصل لميتا كـ CompleteRegistration (برقم الموبايل مشفّر) لو الـ Conversions API متظبط.
         </p>
       </form>
     </template>

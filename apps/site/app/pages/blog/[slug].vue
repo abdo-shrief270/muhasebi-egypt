@@ -21,7 +21,7 @@
         خلّي البرنامج يعملها بدالك
       </p>
       <p class="mt-1 text-sm text-(--ui-text-muted)">
-        محاسبي معمول لمحلات الموبايلات في مصر. جرّبه 14 يوم ببلاش من غير كارت.
+        محاسبي معمول لمحلات الموبايلات في مصر. جرّبه 7 أيام ببلاش من غير كارت.
       </p>
       <div class="mt-4 flex flex-wrap justify-center gap-2">
         <UButton :to="links.register" label="سجّل محلك" />

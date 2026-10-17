@@ -5,6 +5,7 @@ namespace Tests\Feature\Modules;
 use App\Modules\Billing\Models\PlatformAdmin;
 use App\Modules\Identity\Enums\ShopType;
 use App\Modules\Identity\Models\User;
+use App\Modules\ModuleManager\Models\TenantModule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\Concerns\CreatesShops;
@@ -49,7 +50,7 @@ class PlatformModulesTest extends TestCase
     {
         $catalog = $this->asAdmin()->getJson('/api/v1/admin/modules')->assertOk();
         $used = collect($catalog->json('data.modules'))->firstWhere('key', 'used_devices');
-        $this->assertSame(['live', true, true, 14], [$used['status'], $used['trial_allowed'], $used['auto_trial'], $used['trial_days']]);
+        $this->assertSame(['live', true, true, TenantModule::TRIAL_DAYS], [$used['status'], $used['trial_allowed'], $used['auto_trial'], $used['trial_days']]);
         $this->assertArrayHasKey('repair', $catalog->json('data.shop_types'));
 
         // No trials for used devices, installments not started on trial at registration, 30-day trials for services.

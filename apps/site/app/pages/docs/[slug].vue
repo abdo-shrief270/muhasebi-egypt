@@ -55,7 +55,7 @@
           جاهز تجرب؟
         </p>
         <p class="mt-1 text-sm text-(--ui-text-muted)">
-          14 يوم ببلاش ومن غير كارت.
+          7 أيام ببلاش ومن غير كارت.
         </p>
         <UButton :to="links.register" class="mt-4" label="سجّل محلك" />
       </div>

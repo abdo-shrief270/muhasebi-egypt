@@ -8,6 +8,7 @@ use App\Modules\Billing\Models\BillingCoupon;
 use App\Modules\Billing\Models\BillingInvoice;
 use App\Modules\Billing\Models\CouponRedemption;
 use App\Modules\Billing\Models\Subscription;
+use App\Modules\Billing\Models\WalletTransaction;
 use App\Modules\Billing\Support\AdminLog;
 use App\Modules\Billing\Support\SubscriptionStatus;
 use App\Modules\Identity\Contracts\PlatformShops;
@@ -83,9 +84,16 @@ final class DeleteShopsCommand extends Command
         }
 
         $removed = DB::transaction(function () use ($platform, $log, $ids, $targets): array {
-            // Uses of a coupon by these shops stop counting against its limit.
-            $uses = CouponRedemption::withoutTenancy()->whereIn('tenant_id', $ids)->whereNotNull('coupon_id')
-                ->selectRaw('coupon_id, count(*) as n')->groupBy('coupon_id')->pluck('n', 'coupon_id');
+            // Uses of a coupon by these shops stop counting against its limit: a held discount, or
+            // credit put straight into the wallet.
+            $uses = [];
+            $discounts = CouponRedemption::withoutTenancy()->whereIn('tenant_id', $ids)->whereNotNull('coupon_id')
+                ->selectRaw('coupon_id as coupon, count(*) as n')->groupBy('coupon_id')->get();
+            $credits = WalletTransaction::withoutTenancy()->whereIn('tenant_id', $ids)->where('type', 'coupon')->where('ref_type', 'billing_coupon')
+                ->selectRaw('ref_id as coupon, count(*) as n')->groupBy('ref_id')->get();
+            foreach ([...$discounts, ...$credits] as $row) {
+                $uses[$row->coupon] = ($uses[$row->coupon] ?? 0) + (int) $row->n;
+            }
             $removed = $platform->delete($ids);
             foreach ($uses as $couponId => $n) {
                 BillingCoupon::query()->whereKey($couponId)->update(['redemptions' => DB::raw('greatest(redemptions - '.(int) $n.', 0)')]);

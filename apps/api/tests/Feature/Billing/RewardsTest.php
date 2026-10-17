@@ -129,6 +129,31 @@ class RewardsTest extends TestCase
         $this->assertSame(200 + 50, $this->getJson('/api/v1/billing')->json('data.wallet.points'));
     }
 
+    public function test_admins_edit_a_coupon_and_shops_that_used_it_keep_theirs(): void
+    {
+        $id = $this->as($this->admin)->postJson('/api/v1/admin/coupons', ['code' => 'EID', 'kind' => 'percent', 'value' => 50, 'months' => 1, 'new_shops_only' => true])->assertCreated()->json('data.id');
+        $this->postJson('/api/v1/admin/coupons', ['code' => 'GIFT', 'kind' => 'credit', 'value' => 5000])->assertCreated();
+        $this->as($this->inviter)->postJson('/api/v1/billing/coupon', ['code' => 'EID'])->assertOk();
+
+        // Every field can change; the code stays unique and the dates in order.
+        $edited = $this->as($this->admin)->patchJson("/api/v1/admin/coupons/{$id}", [
+            'code' => 'eid30', 'kind' => 'percent', 'value' => 30, 'months' => 3, 'new_shops_only' => false,
+            'starts_on' => '2026-01-01', 'ends_on' => '2099-12-31', 'max_redemptions' => 5, 'note' => 'عرض العيد',
+        ])->assertOk()->json('data');
+        $this->assertSame(['EID30', 'خصم 30% لمدة 3 شهور', false, 5, 'عرض العيد'], [$edited['code'], $edited['label'], $edited['new_shops_only'], $edited['max_redemptions'], $edited['note']]);
+        $this->patchJson("/api/v1/admin/coupons/{$id}", ['code' => 'gift'])->assertUnprocessable()->assertJsonValidationErrors('code');
+        $this->patchJson("/api/v1/admin/coupons/{$id}", ['ends_on' => '2025-12-31'])->assertUnprocessable()->assertJsonValidationErrors('ends_on');
+        $this->patchJson("/api/v1/admin/coupons/{$id}", ['kind' => 'amount'])->assertUnprocessable()->assertJsonValidationErrors('value');
+        $this->patchJson("/api/v1/admin/coupons/{$id}", ['value' => 150])->assertUnprocessable()->assertJsonValidationErrors('value');
+        $this->assertDatabaseHas('platform_admin_actions', ['action' => 'coupon_updated', 'subject_id' => $id]);
+
+        // The shop that used it keeps its 50% for a month; the next one gets the new terms, by the new code.
+        $this->assertSame(14950, $this->as($this->inviter)->postJson('/api/v1/billing/quote', ['plan' => 'accessories', 'cycle' => 'monthly'])->json('data.discount'));
+        $this->as($this->registerShop())->postJson('/api/v1/billing/coupon', ['code' => 'EID'])->assertUnprocessable()->assertJsonPath('code', 'coupon_invalid');
+        $this->assertSame('خصم 30% لمدة 3 شهور', $this->postJson('/api/v1/billing/coupon', ['code' => 'EID30'])->assertOk()->json('data.label'));
+        $this->assertSame(2, collect($this->as($this->admin)->getJson('/api/v1/admin/coupons')->json('data'))->firstWhere('code', 'EID30')['redemptions']);
+    }
+
     public function test_coupons_from_the_admins(): void
     {
         $this->as($this->admin)->postJson('/api/v1/admin/coupons', ['code' => 'eid', 'kind' => 'percent', 'value' => 50, 'months' => 1, 'new_shops_only' => true])->assertCreated();

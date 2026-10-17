@@ -38,7 +38,9 @@ class DeleteShopsTest extends TestCase
         $this->post("/api/v1/products/{$product}/images", ['image' => UploadedFile::fake()->image('case.jpg', 800, 600)], ['Accept' => 'application/json'])->assertCreated();
         $this->post('/api/v1/feedback', ['type' => 'problem', 'message' => 'تجربة', 'page' => '/', 'screenshot' => UploadedFile::fake()->image('s.png')], ['Accept' => 'application/json'])->assertCreated();
         BillingCoupon::query()->create(['code' => 'FOUNDERS', 'kind' => 'percent', 'value' => 50, 'months' => 3]);
+        BillingCoupon::query()->create(['code' => 'GIFT', 'kind' => 'credit', 'value' => 5000]);
         $this->postJson('/api/v1/billing/coupon', ['code' => 'FOUNDERS'])->assertOk();
+        $this->postJson('/api/v1/billing/coupon', ['code' => 'GIFT'])->assertOk();
         $this->post('/api/v1/billing/requests', ['plan' => 'repair', 'cycle' => 'monthly', 'reference' => 'IP-1', 'proof' => UploadedFile::fake()->image('t.jpg')], ['Accept' => 'application/json'])->assertCreated();
         $this->owner->createToken('phone');
 
@@ -99,7 +101,7 @@ class DeleteShopsTest extends TestCase
         $test = $this->owner->tenant_id;
         $other = $this->other->tenant_id;
         $this->assertArrayHasKey('sales.tenant_id', $this->rowsOf($test));
-        $this->assertSame(1, BillingCoupon::query()->value('redemptions'));
+        $this->assertSame([1, 1], BillingCoupon::query()->orderBy('code')->pluck('redemptions')->all());
         $this->assertNotEmpty(Storage::disk('local')->allFiles("products/{$test}"));
         $this->assertNotEmpty(Storage::disk('local')->allFiles("feedback/{$test}"));
         $this->assertNotEmpty(Storage::disk('local')->allFiles("billing-proofs/{$test}"));
@@ -118,8 +120,8 @@ class DeleteShopsTest extends TestCase
         $this->assertSame([], Storage::disk('local')->allFiles("products/{$test}"));
         $this->assertSame([], Storage::disk('local')->allFiles("feedback/{$test}"));
         $this->assertSame([], Storage::disk('local')->allFiles("billing-proofs/{$test}"));
-        // Its use of the coupon no longer counts; the admins' log says it happened.
-        $this->assertSame(0, BillingCoupon::query()->value('redemptions'));
+        // Its uses of the coupons (a held discount, credit in the wallet) no longer count; the admins' log says it happened.
+        $this->assertSame([0, 0], BillingCoupon::query()->orderBy('code')->pluck('redemptions')->all());
         $this->assertDatabaseHas('platform_admin_actions', ['action' => 'shop_deleted', 'tenant_id' => $test]);
 
         // The other shop keeps everything but the link to the deleted one.

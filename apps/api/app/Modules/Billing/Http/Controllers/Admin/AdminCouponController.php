@@ -34,18 +34,25 @@ final class AdminCouponController
         return response()->json(['data' => $coupon->toApi()], 201);
     }
 
+    /**
+     * Any field can change. Shops that already used it keep what they got (a held discount keeps
+     * its own copy of the kind, value and months); the change counts from the next use.
+     */
     public function update(Request $request, string $coupon): JsonResponse
     {
         $model = BillingCoupon::query()->findOrFail($coupon);
-        $model->update($request->validate([
-            'is_active' => ['sometimes', 'boolean'],
-            'ends_on' => ['nullable', 'date'],
-            'max_redemptions' => ['nullable', 'integer', 'min:1'],
-            'note' => ['nullable', 'string', 'max:255'],
-        ]));
-        $this->log->record('coupon_updated', null, $model->id, ['code' => $model->code, 'is_active' => $model->is_active]);
+        $before = $model->toApi();
+        $model->update($this->validated($request, $model));
+        $after = $model->refresh()->toApi();
+        $changes = [];
+        foreach (array_keys($request->all()) as $field) {
+            if (array_key_exists($field, $after) && $before[$field] !== $after[$field]) {
+                $changes[$field] = [$before[$field], $after[$field]];
+            }
+        }
+        $this->log->record('coupon_updated', null, $model->id, ['code' => $model->code, 'changes' => $changes]);
 
-        return response()->json(['data' => $model->toApi()]);
+        return response()->json(['data' => $after]);
     }
 
     /** Credit (piasters) or points into a shop's wallet: a gift, compensation. */
@@ -65,24 +72,33 @@ final class AdminCouponController
         return response()->json(['data' => $tx->toApi()], 201);
     }
 
-    /** @return array<string, mixed> */
-    private function validated(Request $request): array
+    /**
+     * A new coupon (every field it needs), or the fields sent to change one.
+     *
+     * @return array<string, mixed>
+     */
+    private function validated(Request $request, ?BillingCoupon $coupon = null): array
     {
         if ($request->has('code')) {
             $request->merge(['code' => mb_strtoupper(trim((string) $request->input('code')))]);
         }
-        $kind = $request->input('kind');
+        $required = $coupon === null ? 'required' : 'sometimes';
+        $kind = $request->input('kind', $coupon?->kind);
+        // The last day can't come before the first, whichever of the two this request sends.
+        $startsOn = $request->has('starts_on') ? $request->input('starts_on') : $coupon?->starts_on?->toDateString();
 
         return $request->validate([
-            'code' => ['required', 'string', 'regex:/^[A-Z0-9\-_]{3,32}$/', Rule::unique('billing_coupons', 'code')],
-            'kind' => ['required', Rule::in(BillingCoupon::KINDS)],
-            'value' => ['required', 'integer', 'min:1', $kind === 'percent' ? 'max:100' : 'max:100000000'],
+            'code' => [$required, 'string', 'regex:/^[A-Z0-9\-_]{3,32}$/', Rule::unique('billing_coupons', 'code')->ignore($coupon?->id)],
+            'kind' => [$required, Rule::in(BillingCoupon::KINDS)],
+            // A new kind needs its value with it (a percent and an amount in piasters don't mix).
+            'value' => [$coupon === null || $request->has('kind') ? 'required' : 'sometimes', 'integer', 'min:1', $kind === 'percent' ? 'max:100' : 'max:100000000'],
             'months' => ['sometimes', 'integer', 'min:1', 'max:24'],
             'new_shops_only' => ['sometimes', 'boolean'],
             'starts_on' => ['nullable', 'date'],
-            'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
+            'ends_on' => ['nullable', 'date', ...(is_string($startsOn) && $startsOn !== '' ? ['after_or_equal:'.$startsOn] : [])],
             'max_redemptions' => ['nullable', 'integer', 'min:1'],
+            'is_active' => ['sometimes', 'boolean'],
             'note' => ['nullable', 'string', 'max:255'],
-        ], ['code.regex' => 'الكود حروف إنجليزي وأرقام من 3 لـ 32.']);
+        ], ['code.regex' => 'الكود حروف إنجليزي وأرقام من 3 لـ 32.', 'ends_on.after_or_equal' => 'آخر يوم لازم يكون بعد أول يوم.']);
     }
 }

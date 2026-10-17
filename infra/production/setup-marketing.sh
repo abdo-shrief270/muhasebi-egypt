@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # One-shot setup of the website's marketing values: Search Console / Bing verification, Google
-# Analytics, Meta Pixel, WhatsApp + social links and the campaign bar (offer text / coupon / last
-# day). It asks for each one (Enter keeps the current value, "-" clears it), writes them into
-# .env, rebuilds the website and checks they show up on it. Safe to run again whenever a value
-# changes (e.g. a new offer, or the Pixel ID later).
+# Analytics, Meta Pixel, WhatsApp + social links. It asks for each one (Enter keeps the current
+# value, "-" clears it), writes them into .env, rebuilds the website and checks they show up on
+# it. Safe to run again whenever a value changes (e.g. the Pixel ID later).
 #
 # Usage: ./setup-marketing.sh
 set -euo pipefail
@@ -111,50 +110,28 @@ check_url() {
   [[ "$VALUE" =~ ^https://[^[:space:]]+\.[a-z]{2,}/[^[:space:]]+$ ]] && return 0
   warn "A full link, e.g. https://facebook.com/muhasebi.eg"; return 1
 }
-check_code() {
-  VALUE=${VALUE^^}
-  [[ "$VALUE" =~ ^[A-Z0-9_-]{3,40}$ ]] && return 0
-  warn "Letters and numbers only, e.g. FOUNDERS50."; return 1
-}
-check_date() {
-  if [[ "$VALUE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && date -d "$VALUE" >/dev/null 2>&1; then
-    [[ "$VALUE" < "$(date +%F)" ]] && warn "That day has passed: the bar will stay hidden."
-    return 0
-  fi
-  warn "A date like 2026-11-30."; return 1
-}
-
-bold "1/4  Search engines"
+bold "1/3  Search engines"
 echo "Google Search Console → Add property → URL prefix → HTML tag: paste the content value (or the whole line)."
 collect GOOGLE_SITE_VERIFICATION "Google verification" check_verification
 collect BING_SITE_VERIFICATION "Bing verification (optional)" check_verification
 echo "Meta Business Settings → Brand safety → Domains → Add → Meta-tag: paste the content value (or the whole line)."
 collect FACEBOOK_DOMAIN_VERIFICATION "Meta domain verification (optional)" check_verification
 
-bold "2/4  Measurement"
+bold "2/3  Measurement"
 collect GA_ID "Google Analytics Measurement ID (G-…)" check_ga
 collect META_PIXEL_ID "Meta Pixel / Dataset ID (optional, can be added later)" check_pixel
 echo "The server sends sign-ups and WhatsApp contacts to the same dataset too (Conversions API)."
 collect META_CAPI_TOKEN "Conversions API access token (optional)" check_token
 
-bold "3/4  Contact and social links"
+bold "3/3  Contact and social links"
 collect CONTACT_WHATSAPP "WhatsApp number (e.g. 01012345678)" check_whatsapp
 collect FACEBOOK_URL "Facebook page link" check_url
 collect INSTAGRAM_URL "Instagram link (optional)" check_url
 collect TIKTOK_URL "TikTok link (optional)" check_url
 collect YOUTUBE_URL "YouTube link (optional)" check_url
 
-bold "4/4  Campaign bar (top of every page)"
-echo "The coupon code must exist in the admin panel → الكوبونات. Leave all empty for no bar."
-collect OFFER_TEXT "Offer text (e.g. أول 100 محل: خصم 50% أول 3 شهور)"
-collect OFFER_CODE "Coupon code" check_code
-collect OFFER_UNTIL "Last day (YYYY-MM-DD)" check_date
-if [[ -z "${NEW[OFFER_TEXT]}" && ( -n "${NEW[OFFER_CODE]}" || -n "${NEW[OFFER_UNTIL]}" ) ]]; then
-  warn "No offer text: the bar won't show."
-fi
-
 KEYS=(GOOGLE_SITE_VERIFICATION BING_SITE_VERIFICATION FACEBOOK_DOMAIN_VERIFICATION GA_ID META_PIXEL_ID META_CAPI_TOKEN CONTACT_WHATSAPP FACEBOOK_URL
-  INSTAGRAM_URL TIKTOK_URL YOUTUBE_URL OFFER_TEXT OFFER_CODE OFFER_UNTIL)
+  INSTAGRAM_URL TIKTOK_URL YOUTUBE_URL)
 
 bold "Summary"
 changed=0
@@ -212,7 +189,6 @@ found GA_ID "Google Analytics"
 found META_PIXEL_ID "Meta Pixel"
 found CONTACT_WHATSAPP "WhatsApp number"
 found FACEBOOK_URL "Facebook link"
-found OFFER_CODE "Offer code"
 
 bold "Next"
 [[ -n "${NEW[GOOGLE_SITE_VERIFICATION]}" ]] && echo "• Search Console: press Verify, then Sitemaps → sitemap.xml → Submit."

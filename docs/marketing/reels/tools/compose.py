@@ -75,7 +75,7 @@ html,body{{width:1080px;height:1920px;overflow:hidden;font-family:'Readex Pro';d
 <div id="main"><div class="brand"><img src="mark.svg">محاسبي</div>{caps}
 <div class="win" id="win"><div class="bar"><i></i><i></i><i></i><u>app.muhasebi.com</u></div><div class="view"><img id="shot"></div></div></div>
 <div class="hook" id="hook"><div class="ic">{icon(story['hook']['icon'])}</div><div class="big">{story['hook']['html']}</div></div>
-<div class="end" id="end"><img src="mark.svg"><div class="n">محاسبي</div><h1>{story['end']['html']}</h1><div class="cta">جرّب ببلاش 14 يوم</div><div class="url">muhasebi.com</div></div>
+<div class="end" id="end"><img src="mark.svg"><div class="n">محاسبي</div><h1>{story['end']['html']}</h1><div class="cta">جرّب ببلاش 7 أيام</div><div class="url">muhasebi.com</div></div>
 </body></html>'''
 
 

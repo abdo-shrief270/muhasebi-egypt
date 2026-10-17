@@ -88,7 +88,7 @@ h1 span{{display:inline-block;padding:0 0 .18em;background:linear-gradient(90deg
   </div>
   <div class="card" style="left:40px;top:340px;width:420px;padding:22px 28px">
     <div class="row"><b>فاتورة #1048</b><span class="pill">اتدفعت ✓</span></div>
-    <div class="row"><b>آجل على العملاء</b><span class="pill amber">12 عميل</span></div>
+    <div class="row"><b>أجهزة صيانة جاهزة</b><span class="pill amber">5 أجهزة</span></div>
     <div class="row"><b>أصناف قربت تخلص</b><span class="pill amber">3 أصناف</span></div>
   </div>
   <div class="card" style="left:480px;top:300px;width:240px;padding:20px 24px">
@@ -100,6 +100,6 @@ h1 span{{display:inline-block;padding:0 0 .18em;background:linear-gradient(90deg
   <div class="brand"><img src="mark.svg"><div><div class="n">محاسبي</div><div class="l">MUHASEBI</div></div></div>
   <h1>شغلك كله…<br><span>في برنامج واحد</span></h1>
   <div class="sub">مبيعات، مخزون، حسابات، فريق وتقارير<br>بالعربي — على الكمبيوتر والموبايل</div>
-  <div class="tags"><span>جرّب 14 يوم ببلاش</span><span>muhasebi.com</span></div>
+  <div class="tags"><span>جرّب 7 أيام ببلاش</span><span>muhasebi.com</span></div>
 </div>
 </body></html>''')

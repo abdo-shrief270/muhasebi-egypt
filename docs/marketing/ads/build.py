@@ -18,12 +18,14 @@ SIZES = {
     'landscape': (1200, 628),   # Google display, Facebook link ads
 }
 
-CTA = 'جرّبه ببلاش 14 يوم'
+CTA = 'جرّبه ببلاش 7 أيام'
+
+# Keep آجل / تقسيط / تحويلات out of ad copy: Meta files such ads under financial services.
 
 CONCEPTS = [
     dict(key='01-main', eyebrow='لمحلات الموبايلات والصيانة',
          h1='محلك كله<br>في <span>برنامج واحد</span>',
-         sub='كاشير، مخزن بالـ IMEI، صيانة، آجل وتقسيط',
+         sub='كاشير، مخزن بالـ IMEI، صيانة، وتقارير المكسب',
          desktop='pos', phone='m-dashboard',
          chip=('i-check', 'بيع بالباركود في ثانية')),
     dict(key='02-offline', eyebrow='الكاشير مبيقفش',
@@ -49,7 +51,7 @@ CONCEPTS = [
     dict(key='06-offer', eyebrow='عرض المؤسسين',
          h1='خصم <span>50%</span><br>لأول 100 محل',
          sub='أول 3 شهور بالكود — العرض لحد 30 نوفمبر',
-         desktop='dashboard', phone='m-pos', code='FOUNDERS50',
+         desktop='dashboard', phone='m-pos', code='FOUNDERS',
          chip=None),
 ]
 

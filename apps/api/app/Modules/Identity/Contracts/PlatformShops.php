@@ -40,4 +40,23 @@ interface PlatformShops
      * @return array{tenant_id: string, owner_id: string, phone: string, password: string}
      */
     public function open(string $shopName, string $ownerName, string $phone, array $shopTypes, ?array $needs, array $acquisition): array;
+
+    /**
+     * What deleting these shops would remove (nothing changes): rows per table, their users'
+     * sign-in tokens, their files on the local disk.
+     *
+     * @param  list<string>  $tenantIds
+     * @return array{tables: array<string, int>, tokens: int, files: int}
+     */
+    public function deletionPlan(array $tenantIds): array;
+
+    /**
+     * Deletes these shops for good: every row of theirs in every table, their users' sign-ins, and
+     * once the caller's transaction commits their files and marketplace offers. For test shops on
+     * a live server; there is no undo (take a backup first).
+     *
+     * @param  list<string>  $tenantIds
+     * @return array{tables: array<string, int>, tokens: int, files: int} what was removed
+     */
+    public function delete(array $tenantIds): array;
 }

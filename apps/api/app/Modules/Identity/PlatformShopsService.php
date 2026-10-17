@@ -11,6 +11,7 @@ use App\Modules\Identity\Enums\ShopType;
 use App\Modules\Identity\Models\Branch;
 use App\Modules\Identity\Models\Tenant;
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Support\ShopEraser;
 use App\Support\Text\SearchText;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,20 @@ use Propaganistas\LaravelPhone\PhoneNumber;
 
 final class PlatformShopsService implements PlatformShops
 {
-    public function __construct(private readonly RegisterTenantAction $register) {}
+    public function __construct(
+        private readonly RegisterTenantAction $register,
+        private readonly ShopEraser $eraser,
+    ) {}
+
+    public function deletionPlan(array $tenantIds): array
+    {
+        return $this->eraser->plan($tenantIds);
+    }
+
+    public function delete(array $tenantIds): array
+    {
+        return $this->eraser->erase($tenantIds);
+    }
 
     public function open(string $shopName, string $ownerName, string $phone, array $shopTypes, ?array $needs, array $acquisition): array
     {

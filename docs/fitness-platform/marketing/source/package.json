@@ -1,0 +1,13 @@
+{
+  "name": "tamreen-brochures",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs .."
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-sans-arabic": "5.2.6",
+    "lucide-static": "0.460.0",
+    "puppeteer": "23.11.1"
+  }
+}

@@ -18,7 +18,7 @@ final class DefaultRoles
         return [
             'manager' => [
                 'name' => 'مدير فرع',
-                'permissions' => array_values(array_diff($allPermissions, ['roles.manage', 'audit.view'])),
+                'permissions' => array_values(array_diff($allPermissions, ['roles.manage', 'audit.view', 'payroll.manage'])),
             ],
             'cashier' => [
                 'name' => 'كاشير',

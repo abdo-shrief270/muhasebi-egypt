@@ -45,6 +45,7 @@ class RouteAuthorizationTest extends TestCase
         'api/v1/push/test' => 'a test push to your own devices',
         'api/v1/onboarding' => 'your own «ابدأ من هنا» card: only the steps you have the permission for, folded / hidden per user',
         'api/v1/feedback' => 'anyone signed in may write to the platform team (rate-limited per user and per shop)',
+        'api/v1/payroll/mine' => 'your own pay: this period so far and your payslips',
         'api/v1/client-errors' => 'the app reporting its own crashes (scrubbed, rate-limited, capped per shop)',
     ];
 

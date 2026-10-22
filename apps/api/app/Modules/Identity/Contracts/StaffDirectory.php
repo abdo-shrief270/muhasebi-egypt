@@ -15,6 +15,13 @@ interface StaffDirectory
     public function withPermission(string $permission): array;
 
     /**
+     * Every active staff member (owner included), by name.
+     *
+     * @return array<string, string> user id => name
+     */
+    public function all(): array;
+
+    /**
      * The active staff member with this permission whose approval PIN this is (a manager approving
      * at the counter), or null.
      *

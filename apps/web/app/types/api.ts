@@ -1619,3 +1619,40 @@ export interface Inquiry {
   created_by_name: string | null
   created_at: string
 }
+
+/** A pay period's line for one employee: a closed payslip, or the open period so far. */
+export interface PayrollRow {
+  id: string | null
+  user_id: string
+  name: string
+  cycle: 'monthly' | 'weekly'
+  starts_on: string
+  ends_on: string
+  base_salary: number
+  tickets: number
+  commission: number
+  clawback: number
+  bonuses: number
+  deductions: number
+  advances: number
+  net: number
+  paid_at: string | null
+  paid_from: 'drawer' | 'safe' | 'bank' | null
+  paid_by_name: string | null
+  closed: boolean
+}
+
+export interface PayrollPeriod { cycle: 'monthly' | 'weekly', starts_on: string, ends_on: string, label: string, previous: string, next: string }
+
+export interface PayrollAdjustment {
+  id: string
+  user_id: string
+  kind: 'advance' | 'bonus' | 'deduction'
+  kind_label: string
+  amount: number
+  note: string | null
+  on_date: string
+  paid_from: string | null
+  settled: boolean
+  created_by_name: string | null
+}

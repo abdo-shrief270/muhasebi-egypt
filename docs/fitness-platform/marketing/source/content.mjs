@@ -1,7 +1,7 @@
 // Brochure copy. Feature phases follow PRODUCT_BUSINESS_BLUEPRINT.md §4 / §13:
 // no tag = in the edition being sold (coach P1, gym P2), 'soon' = next phase, 'later' = P3+.
-// Prices: blueprint §7.1 (EGP, VAT included). Brand, domain: working names — change here.
-export const brand = { en: 'Tamreen', ar: 'تمرين', site: 'tamreen.app' };
+// Prices: blueprint §7.1 (EGP, VAT included). Brand and contact details live here only.
+export const brand = { en: 'Qowa', ar: 'قوّة', site: 'qowa.app', phone: '+20 155 544 0882', email: 'support@qowa.app' };
 
 // Mockup text shared by every brochure of a language; a brochure's `mock` overrides it.
 export const mockShared = {
@@ -101,7 +101,7 @@ export const brochures = {
         { icon: 'bell-ring', text: 'Renewal reminders on WhatsApp' },
       ],
       why: {
-        eyebrow: 'Why Tamreen',
+        eyebrow: 'Why Qowa',
         title: 'Less chasing. Fewer leaks. More renewals.',
         intro: 'Most gyms run on a desktop program, a notebook, Excel and a lot of WhatsApp. Here is what that costs you — and what changes.',
         painsTitle: 'Sound familiar?',
@@ -112,7 +112,7 @@ export const brochures = {
           'Working out trainer commissions takes days of arguing at month end.',
           'Cash at the desk never quite matches what was sold.',
         ],
-        gainsTitle: 'With Tamreen',
+        gainsTitle: 'With Qowa',
         gains: [
           'Every entry is checked in seconds: expired, frozen, owing money or outside their hours.',
           'Members are reminded before they expire — on WhatsApp and in the app.',
@@ -121,7 +121,7 @@ export const brochures = {
           'Each receptionist works a shift with a cash drawer: expected vs counted, differences flagged to you.',
         ],
         statementIcon: 'smartphone',
-        statement: 'Your members get the Tamreen app too: their membership card, class bookings and their own training log — a reason to stay longer.',
+        statement: 'Your members get the Qowa app too: their membership card, class bookings and their own training log — a reason to stay longer.',
       },
       who: {
         title: 'Made for',
@@ -145,12 +145,12 @@ export const brochures = {
           { icon: 'activity', title: 'Live occupancy', text: 'See how many people are in the gym right now, branch by branch.' },
           { icon: 'bell-ring', title: 'Renewal reminders', text: 'Members get a WhatsApp and in-app reminder before their membership ends, so your team doesn’t have to chase.' },
         ],
-        caption: 'Front desk on a tablet · the member’s card in the Tamreen app',
+        caption: 'Front desk on a tablet · the member’s card in the Qowa app',
       },
       f2: {
         eyebrow: 'Features · Part 2',
         title: 'Personal training, trainer pay and the shop',
-        intro: 'Personal training is where a gym’s money slips away. Tamreen puts every session and every pound on record.',
+        intro: 'Personal training is where a gym’s money slips away. Qowa puts every session and every pound on record.',
         items: [
           { icon: 'dumbbell', title: 'PT packages', text: 'Sell session packages with expiry rules; members book and confirm each session in the app.' },
           { icon: 'hand-coins', title: 'Trainer commissions', text: 'Salary, commission, per-session pay or a revenue share — monthly statements to review and approve.' },
@@ -197,7 +197,7 @@ export const brochures = {
         offer: '40% off your first 12 months — for the first 30 gyms, in return for regular feedback and a short case study.',
         fine: 'Early-access brochure. Features marked “Coming soon” or “On the roadmap” are planned and not available yet. Prices in EGP including VAT; features and prices may change before launch. Data import by our team is an optional one-off service.',
       },
-      cta: { title: 'Become a founding gym', text: 'We are opening Tamreen to a small group of founding gyms first. Book a demo and see it with your own plans and prices.', button: 'Book a demo' },
+      cta: { title: 'Become a founding gym', text: 'We are opening Qowa to a small group of founding gyms first. Book a demo and see it with your own plans and prices.', button: 'Book a demo' },
     },
     ar: {
       tags: tagsAr,
@@ -211,7 +211,7 @@ export const brochures = {
         { icon: 'bell-ring', text: 'تذكير بالتجديد على واتساب' },
       ],
       why: {
-        eyebrow: 'لماذا تمرين',
+        eyebrow: 'لماذا قوّة',
         title: 'مطاردة أقل. تسريب أقل. تجديدات أكثر.',
         intro: 'معظم الجيمات تعمل ببرنامج على الكمبيوتر ودفتر وإكسل وكثير من رسائل واتساب. هذه تكلفة ذلك عليك — وهذا ما يتغيّر.',
         painsTitle: 'هل يبدو هذا مألوفًا؟',
@@ -222,7 +222,7 @@ export const brochures = {
           'حساب عمولات المدربين يستغرق أيامًا من النقاش في آخر الشهر.',
           'النقدية في الاستقبال لا تطابق ما تم بيعه أبدًا.',
         ],
-        gainsTitle: 'مع تمرين',
+        gainsTitle: 'مع قوّة',
         gains: [
           'كل دخول يُفحص في ثوانٍ: اشتراك منتهٍ أو مجمَّد أو عليه مديونية أو خارج مواعيده.',
           'يصل للأعضاء تذكير قبل انتهاء الاشتراك — على واتساب وفي التطبيق.',
@@ -231,7 +231,7 @@ export const brochures = {
           'كل موظف استقبال يعمل بوردية ودرج نقدية: المتوقع مقابل الفعلي، والفروق تصلك.',
         ],
         statementIcon: 'smartphone',
-        statement: 'وأعضاؤك يحصلون على تطبيق تمرين أيضًا: كارت الاشتراك وحجز الحصص وسجل تمارينهم الخاص — سبب إضافي للبقاء معك.',
+        statement: 'وأعضاؤك يحصلون على تطبيق قوّة أيضًا: كارت الاشتراك وحجز الحصص وسجل تمارينهم الخاص — سبب إضافي للبقاء معك.',
       },
       who: {
         title: 'مصمَّم لـ',
@@ -255,12 +255,12 @@ export const brochures = {
           { icon: 'activity', title: 'الإشغال لحظة بلحظة', text: 'اعرف كم شخصًا داخل الجيم الآن، فرعًا فرعًا.' },
           { icon: 'bell-ring', title: 'تذكير بالتجديد', text: 'يصل للعضو تذكير على واتساب وفي التطبيق قبل انتهاء اشتراكه، فلا يحتاج فريقك لملاحقته.' },
         ],
-        caption: 'الاستقبال على التابلت · كارت العضو في تطبيق تمرين',
+        caption: 'الاستقبال على التابلت · كارت العضو في تطبيق قوّة',
       },
       f2: {
         eyebrow: 'المميزات · الجزء الثاني',
         title: 'التدريب الشخصي ومستحقات المدربين والمتجر',
-        intro: 'التدريب الشخصي هو المكان الذي تتسرب منه أموال الجيم. تمرين يسجّل كل جلسة وكل جنيه.',
+        intro: 'التدريب الشخصي هو المكان الذي تتسرب منه أموال الجيم. قوّة يسجّل كل جلسة وكل جنيه.',
         items: [
           { icon: 'dumbbell', title: 'باقات التدريب الشخصي', text: 'بِع باقات جلسات بقواعد صلاحية، ويحجز العضو كل جلسة ويؤكدها من التطبيق.' },
           { icon: 'hand-coins', title: 'عمولات المدربين', text: 'راتب أو عمولة أو أجر بالجلسة أو نسبة من الإيراد — مع كشوف شهرية للمراجعة والاعتماد.' },
@@ -307,7 +307,7 @@ export const brochures = {
         offer: 'خصم 40% على أول 12 شهرًا — لأول 30 جيمًا، مقابل ملاحظات منتظمة ودراسة حالة قصيرة.',
         fine: 'كتيّب وصول مبكر. المميزات الموسومة بـ«قريبًا» أو «لاحقًا» مخطط لها وغير متاحة بعد. الأسعار بالجنيه المصري شاملة ضريبة القيمة المضافة، وقد تتغير المميزات والأسعار قبل الإطلاق. استيراد البيانات بواسطة فريقنا خدمة اختيارية لمرة واحدة.',
       },
-      cta: { title: 'كن من الجيمات المؤسِّسة', text: 'نفتح تمرين أولًا لمجموعة صغيرة من الجيمات المؤسِّسة. احجز عرضًا تجريبيًا وشاهده بباقاتك وأسعارك.', button: 'احجز عرضًا تجريبيًا' },
+      cta: { title: 'كن من الجيمات المؤسِّسة', text: 'نفتح قوّة أولًا لمجموعة صغيرة من الجيمات المؤسِّسة. احجز عرضًا تجريبيًا وشاهده بباقاتك وأسعارك.', button: 'احجز عرضًا تجريبيًا' },
     },
   },
 
@@ -327,7 +327,7 @@ export const brochures = {
         { icon: 'wallet', text: 'InstaPay, wallets & cash tracked' },
       ],
       why: {
-        eyebrow: 'Why Tamreen',
+        eyebrow: 'Why Qowa',
         title: 'Your coaching business, out of WhatsApp.',
         intro: 'Most online coaches run on WhatsApp, Google Sheets and PDF meal plans. It works — until you have thirty clients.',
         painsTitle: 'Sound familiar?',
@@ -338,7 +338,7 @@ export const brochures = {
           'InstaPay screenshots get lost and renewals slip by without anyone noticing.',
           'Global apps are priced in dollars and don’t speak Arabic.',
         ],
-        gainsTitle: 'With Tamreen',
+        gainsTitle: 'With Qowa',
         gains: [
           'Build a program once, save it as a template, assign it in a minute.',
           'Check-ins arrive in one queue, with photos side by side and trends drawn for you.',
@@ -389,7 +389,7 @@ export const brochures = {
         ],
         later: [
           { kind: 'soon', title: 'Coming soon', items: ['Scheduling & calendar sync', 'Automations', 'Lead pipeline', 'Card payments via your own gateway', 'Team tools'] },
-          { kind: 'later', title: 'On the roadmap', items: ['Listing in the Tamreen marketplace', 'Video consults', 'AI drafting assistant'] },
+          { kind: 'later', title: 'On the roadmap', items: ['Listing in the Qowa marketplace', 'Video consults', 'AI drafting assistant'] },
         ],
         caption: 'Check-in review on the web · voice-note replies in the chat',
       },
@@ -418,7 +418,7 @@ export const brochures = {
         title: 'Start free. Grow when you are ready.',
         intro: 'Prices in EGP per month, VAT included. Yearly plans get two months free. Try Pro free for 14 days — no card needed.',
         items: [
-          { name: 'Free', price: '0', period: 'EGP / month', limit: 'Up to 3 active clients', features: ['Programs & check-ins', 'Chat with clients', 'Coach page (Tamreen branding)'] },
+          { name: 'Free', price: '0', period: 'EGP / month', limit: 'Up to 3 active clients', features: ['Programs & check-ins', 'Chat with clients', 'Coach page (Qowa branding)'] },
           { name: 'Starter', price: '349', period: 'EGP / month', limit: 'Up to 15 active clients', features: ['Everything in Free', 'Nutrition plans', 'Packages & payment tracking', 'Intake forms'] },
           { name: 'Pro', price: '799', period: 'EGP / month', limit: 'Up to 50 active clients, +10 EGP per extra client', highlight: true, ribbon: 'Recommended', features: ['Everything in Starter', 'Business dashboard', 'Your logo & colours', 'Scheduling, automations & lead pipeline (soon)', 'Card payments via your gateway (soon)'] },
           { name: 'Team', price: '1,999', period: 'EGP / month', limit: '3 coaches · 150 active clients', features: ['Everything in Pro', '+399 EGP per extra coach', 'Client assignment & shared templates (soon)', 'Roles & coach quality metrics (soon)'] },
@@ -427,7 +427,7 @@ export const brochures = {
         offer: '40% off your first 12 months — for the first 200 coaches, in return for feedback calls and a short case study.',
         fine: 'Early-access brochure. Features marked “Coming soon” or “On the roadmap” are planned and not available yet. An active client is one with an active coaching package during the month; archived clients are free. Prices in EGP including VAT; features and prices may change before launch.',
       },
-      cta: { title: 'Join the first 200 coaches', text: 'Start on the free plan, or try Pro for 14 days. Import your client list from a spreadsheet and start coaching in Tamreen the same day.', button: 'Start free' },
+      cta: { title: 'Join the first 200 coaches', text: 'Start on the free plan, or try Pro for 14 days. Import your client list from a spreadsheet and start coaching in Qowa the same day.', button: 'Start free' },
     },
     ar: {
       tags: tagsAr,
@@ -441,7 +441,7 @@ export const brochures = {
         { icon: 'wallet', text: 'تتبّع إنستاباي والمحافظ والنقدي' },
       ],
       why: {
-        eyebrow: 'لماذا تمرين',
+        eyebrow: 'لماذا قوّة',
         title: 'نشاطك التدريبي، خارج واتساب.',
         intro: 'معظم مدربي الأونلاين يعملون بواتساب وجداول جوجل وخطط تغذية PDF. هذا ينجح — حتى يصبح لديك ثلاثون عميلًا.',
         painsTitle: 'هل يبدو هذا مألوفًا؟',
@@ -452,7 +452,7 @@ export const brochures = {
           'صور تحويلات إنستاباي تضيع والتجديدات تفوت دون أن يلاحظ أحد.',
           'التطبيقات العالمية مسعّرة بالدولار ولا تتحدث العربية.',
         ],
-        gainsTitle: 'مع تمرين',
+        gainsTitle: 'مع قوّة',
         gains: [
           'ابنِ البرنامج مرة واحدة، واحفظه كقالب، وعيّنه في دقيقة.',
           'المتابعات تصل في قائمة واحدة، بالصور جنبًا إلى جنب والمنحنيات مرسومة لك.',
@@ -503,7 +503,7 @@ export const brochures = {
         ],
         later: [
           { kind: 'soon', title: 'قريبًا', items: ['المواعيد ومزامنة التقويم', 'الأتمتة', 'مسار العملاء المحتملين', 'الدفع بالكارت عبر بوابتك', 'أدوات الفرق'] },
-          { kind: 'later', title: 'لاحقًا', items: ['الظهور في سوق تمرين', 'استشارات فيديو', 'مساعد صياغة بالذكاء الاصطناعي'] },
+          { kind: 'later', title: 'لاحقًا', items: ['الظهور في سوق قوّة', 'استشارات فيديو', 'مساعد صياغة بالذكاء الاصطناعي'] },
         ],
         caption: 'مراجعة المتابعات على الويب · الرد برسالة صوتية في المحادثة',
       },
@@ -532,7 +532,7 @@ export const brochures = {
         title: 'ابدأ مجانًا. وتوسّع عندما تكون جاهزًا.',
         intro: 'الأسعار بالجنيه المصري شهريًا وتشمل ضريبة القيمة المضافة. الباقات السنوية بشهرين مجانًا. جرّب باقة المحترف مجانًا 14 يومًا — دون بطاقة.',
         items: [
-          { name: 'المجانية', price: '0', period: 'جنيه / شهر', limit: 'حتى 3 عملاء نشطين', features: ['البرامج والمتابعات', 'المحادثة مع العملاء', 'صفحة مدرب (بعلامة تمرين)'] },
+          { name: 'المجانية', price: '0', period: 'جنيه / شهر', limit: 'حتى 3 عملاء نشطين', features: ['البرامج والمتابعات', 'المحادثة مع العملاء', 'صفحة مدرب (بعلامة قوّة)'] },
           { name: 'البداية', price: '349', period: 'جنيه / شهر', limit: 'حتى 15 عميلًا نشطًا', features: ['كل ما في المجانية', 'خطط التغذية', 'الباقات وتتبّع المدفوعات', 'استمارات التقييم'] },
           { name: 'المحترف', price: '799', period: 'جنيه / شهر', limit: 'حتى 50 عميلًا نشطًا، و10 جنيهات لكل عميل إضافي', highlight: true, ribbon: 'نوصي بها', features: ['كل ما في البداية', 'لوحة النشاط', 'شعارك وألوانك', 'المواعيد والأتمتة ومسار العملاء (قريبًا)', 'الدفع بالكارت عبر بوابتك (قريبًا)'] },
           { name: 'الفريق', price: '1,999', period: 'جنيه / شهر', limit: '3 مدربين · 150 عميلًا نشطًا', features: ['كل ما في المحترف', '399 جنيهًا لكل مدرب إضافي', 'توزيع العملاء والقوالب المشتركة (قريبًا)', 'الصلاحيات ومؤشرات جودة المدربين (قريبًا)'] },
@@ -541,7 +541,7 @@ export const brochures = {
         offer: 'خصم 40% على أول 12 شهرًا — لأول 200 مدرب، مقابل مكالمات ملاحظات ودراسة حالة قصيرة.',
         fine: 'كتيّب وصول مبكر. المميزات الموسومة بـ«قريبًا» أو «لاحقًا» مخطط لها وغير متاحة بعد. العميل النشط هو عميل لديه باقة تدريب سارية خلال الشهر، والعملاء المؤرشفون مجانًا. الأسعار بالجنيه المصري شاملة ضريبة القيمة المضافة، وقد تتغير المميزات والأسعار قبل الإطلاق.',
       },
-      cta: { title: 'انضم إلى أول 200 مدرب', text: 'ابدأ بالباقة المجانية أو جرّب المحترف 14 يومًا. استورد قائمة عملائك من جدول وابدأ التدريب على تمرين في اليوم نفسه.', button: 'ابدأ مجانًا' },
+      cta: { title: 'انضم إلى أول 200 مدرب', text: 'ابدأ بالباقة المجانية أو جرّب المحترف 14 يومًا. استورد قائمة عملائك من جدول وابدأ التدريب على قوّة في اليوم نفسه.', button: 'ابدأ مجانًا' },
     },
   },
 
@@ -561,7 +561,7 @@ export const brochures = {
         { icon: 'key-round', text: 'Your data stays yours' },
       ],
       why: {
-        eyebrow: 'Why Tamreen',
+        eyebrow: 'Why Qowa',
         title: 'One app for your training, your coach and your gym.',
         intro: 'Your workouts are in a notes app, your plan is a PDF, your coach is on WhatsApp and your gym card is a slip of paper. Bring it all together.',
         painsTitle: 'Sound familiar?',
@@ -572,7 +572,7 @@ export const brochures = {
           'Your plan is a PDF you have to zoom into between sets.',
           'Most apps don’t speak Arabic or know Egyptian food.',
         ],
-        gainsTitle: 'With Tamreen',
+        gainsTitle: 'With Qowa',
         gains: [
           'Your history lives in your own space and moves with you.',
           'The logger works fully offline and syncs when you are back online.',
@@ -621,7 +621,7 @@ export const brochures = {
           { icon: 'utensils', title: 'Food diary', tag: 'soon', text: 'Log meals with Arabic search and Egyptian dishes.' },
           { icon: 'sparkles', title: 'Habits & reminders', tag: 'soon', text: 'Water, steps, sleep and supplements.' },
         ],
-        later: [{ kind: 'later', title: 'On the roadmap', items: ['Apple Health & Health Connect', 'Find a coach or a gym', 'Tamreen Plus analytics', 'Challenges & streaks'] }],
+        later: [{ kind: 'later', title: 'On the roadmap', items: ['Apple Health & Health Connect', 'Find a coach or a gym', 'Qowa Plus analytics', 'Challenges & streaks'] }],
         caption: 'Chat with your coach · your gym card (coming soon)',
       },
       how: {
@@ -643,23 +643,23 @@ export const brochures = {
           { icon: 'lock', title: 'Private photos', text: 'Progress photos are encrypted and never shown without your permission.' },
           { icon: 'download', title: 'Take it with you', text: 'Ask for a copy of all your data, or delete your account.' },
         ],
-        note: 'Tamreen is a training and wellness app, not a medical service. Check with a doctor before starting a new exercise or nutrition program, especially if you have a health condition.',
+        note: 'Qowa is a training and wellness app, not a medical service. Check with a doctor before starting a new exercise or nutrition program, especially if you have a health condition.',
       },
       plans: {
         eyebrow: 'Plans',
         title: 'Free to train. Plus when you want more.',
         intro: 'The core app is free for good. Coaches and gyms can unlock their features for their own clients and members.',
         items: [
-          { name: 'Free', price: '0', period: 'EGP — forever', limit: 'Unlimited workout logging', features: ['3 saved routines', '12 months of charts', '2 GB for progress photos', 'Coach plans, check-ins & chat', 'Gym features when your gym uses Tamreen'] },
-          { name: 'Through your coach or gym', price: 'Included', period: 'in their plan', limit: 'Unlocked by your membership', highlight: true, features: ['Your coach’s programs & meal plans', 'Check-ins and chat', 'Membership card & class booking (soon)', 'Nothing extra to pay Tamreen'] },
+          { name: 'Free', price: '0', period: 'EGP — forever', limit: 'Unlimited workout logging', features: ['3 saved routines', '12 months of charts', '2 GB for progress photos', 'Coach plans, check-ins & chat', 'Gym features when your gym uses Qowa'] },
+          { name: 'Through your coach or gym', price: 'Included', period: 'in their plan', limit: 'Unlocked by your membership', highlight: true, features: ['Your coach’s programs & meal plans', 'Check-ins and chat', 'Membership card & class booking (soon)', 'Nothing extra to pay Qowa'] },
           { name: 'Plus', price: '79', period: 'EGP / month', limit: 'or 599 EGP a year', ribbon: 'On the roadmap', features: ['Unlimited routines', 'Advanced analytics', 'Smart progression', 'Full food diary (barcode, recipes)', 'Wearable sync & CSV export'] },
         ],
         offerIcon: 'users',
         offerTitle: 'Training with a coach or at a gym?',
-        offer: 'Ask them to invite you to Tamreen — and your history comes with you, wherever you train next.',
+        offer: 'Ask them to invite you to Qowa — and your history comes with you, wherever you train next.',
         fine: 'Early-access brochure. Features marked “Coming soon” or “On the roadmap” are planned and not available yet. Plus prices are planned, in EGP including VAT; features and prices may change before launch. Not medical advice.',
       },
-      cta: { title: 'Be among the first to train with Tamreen', text: 'Join the early-access list and we will send you the app as soon as it opens in Egypt.', button: 'Join early access' },
+      cta: { title: 'Be among the first to train with Qowa', text: 'Join the early-access list and we will send you the app as soon as it opens in Egypt.', button: 'Join early access' },
     },
     ar: {
       tags: tagsAr,
@@ -680,7 +680,7 @@ export const brochures = {
         { icon: 'key-round', text: 'بياناتك ملكك' },
       ],
       why: {
-        eyebrow: 'لماذا تمرين',
+        eyebrow: 'لماذا قوّة',
         title: 'تطبيق واحد لتمرينك ومدربك وجيمك.',
         intro: 'تمارينك في تطبيق الملاحظات، وخطتك ملف PDF، ومدربك على واتساب، وكارت الجيم ورقة صغيرة. اجمع كل ذلك في مكان واحد.',
         painsTitle: 'هل يبدو هذا مألوفًا؟',
@@ -691,7 +691,7 @@ export const brochures = {
           'خطتك ملف PDF تحتاج إلى تكبيره بين المجموعات.',
           'معظم التطبيقات لا تتحدث العربية ولا تعرف الأكل المصري.',
         ],
-        gainsTitle: 'مع تمرين',
+        gainsTitle: 'مع قوّة',
         gains: [
           'سجلك يعيش في مساحتك الشخصية وينتقل معك.',
           'المسجّل يعمل دون إنترنت بالكامل ويزامن عند عودة الاتصال.',
@@ -740,7 +740,7 @@ export const brochures = {
           { icon: 'utensils', title: 'مذكرة الطعام', tag: 'soon', text: 'سجّل وجباتك ببحث عربي وأكلات مصرية.' },
           { icon: 'sparkles', title: 'العادات والتذكيرات', tag: 'soon', text: 'الماء والخطوات والنوم والمكملات.' },
         ],
-        later: [{ kind: 'later', title: 'لاحقًا', items: ['Apple Health و Health Connect', 'ابحث عن مدرب أو جيم', 'تحليلات تمرين بلس', 'تحديات وسلاسل إنجاز'] }],
+        later: [{ kind: 'later', title: 'لاحقًا', items: ['Apple Health و Health Connect', 'ابحث عن مدرب أو جيم', 'تحليلات قوّة بلس', 'تحديات وسلاسل إنجاز'] }],
         caption: 'المحادثة مع مدربك · كارت جيمك (قريبًا)',
       },
       how: {
@@ -762,23 +762,23 @@ export const brochures = {
           { icon: 'lock', title: 'صور خاصة', text: 'صور التقدّم مشفّرة ولا تُعرض أبدًا دون إذنك.' },
           { icon: 'download', title: 'خذها معك', text: 'اطلب نسخة من كل بياناتك، أو احذف حسابك.' },
         ],
-        note: 'تمرين تطبيق للتدريب والعافية وليس خدمة طبية. استشر طبيبًا قبل بدء برنامج تمارين أو تغذية جديد، خاصة إذا كانت لديك حالة صحية.',
+        note: 'قوّة تطبيق للتدريب والعافية وليس خدمة طبية. استشر طبيبًا قبل بدء برنامج تمارين أو تغذية جديد، خاصة إذا كانت لديك حالة صحية.',
       },
       plans: {
         eyebrow: 'الباقات',
         title: 'التمرين مجاني. وبلس عندما تريد المزيد.',
         intro: 'التطبيق الأساسي مجاني دائمًا. والمدربون والجيمات يمكنهم فتح مميزاتهم لعملائهم وأعضائهم.',
         items: [
-          { name: 'المجانية', price: '0', period: 'جنيه — دائمًا', limit: 'تسجيل تمارين بلا حد', features: ['3 روتينات محفوظة', 'منحنيات 12 شهرًا', '2 جيجابايت لصور التقدّم', 'خطط المدرب والمتابعات والمحادثة', 'مميزات الجيم عندما يستخدم جيمك تمرين'] },
-          { name: 'عن طريق مدربك أو جيمك', price: 'مضمَّنة', period: 'في باقتهم', limit: 'تُفتح باشتراكك', highlight: true, features: ['برامج مدربك وخطط وجباته', 'المتابعات والمحادثة', 'كارت الاشتراك وحجز الحصص (قريبًا)', 'لا شيء إضافي تدفعه لتمرين'] },
+          { name: 'المجانية', price: '0', period: 'جنيه — دائمًا', limit: 'تسجيل تمارين بلا حد', features: ['3 روتينات محفوظة', 'منحنيات 12 شهرًا', '2 جيجابايت لصور التقدّم', 'خطط المدرب والمتابعات والمحادثة', 'مميزات الجيم عندما يستخدم جيمك قوّة'] },
+          { name: 'عن طريق مدربك أو جيمك', price: 'مضمَّنة', period: 'في باقتهم', limit: 'تُفتح باشتراكك', highlight: true, features: ['برامج مدربك وخطط وجباته', 'المتابعات والمحادثة', 'كارت الاشتراك وحجز الحصص (قريبًا)', 'لا شيء إضافي تدفعه لقوّة'] },
           { name: 'بلس', price: '79', period: 'جنيه / شهر', limit: 'أو 599 جنيهًا سنويًا', ribbon: 'لاحقًا', features: ['روتينات بلا حد', 'تحليلات متقدمة', 'تدرّج ذكي في الأحمال', 'مذكرة طعام كاملة (باركود ووصفات)', 'ربط الساعات والأجهزة وتصدير CSV'] },
         ],
         offerIcon: 'users',
         offerTitle: 'تتمرن مع مدرب أو في جيم؟',
-        offer: 'اطلب منهم دعوتك إلى تمرين — وسجلك يأتي معك أينما تمرنت بعد ذلك.',
+        offer: 'اطلب منهم دعوتك إلى قوّة — وسجلك يأتي معك أينما تمرنت بعد ذلك.',
         fine: 'كتيّب وصول مبكر. المميزات الموسومة بـ«قريبًا» أو «لاحقًا» مخطط لها وغير متاحة بعد. أسعار بلس مخطط لها بالجنيه المصري شاملة ضريبة القيمة المضافة، وقد تتغير المميزات والأسعار قبل الإطلاق. ليس نصيحة طبية.',
       },
-      cta: { title: 'كن من أوائل من يتمرنون مع تمرين', text: 'انضم إلى قائمة الوصول المبكر وسنرسل لك التطبيق فور إتاحته في مصر.', button: 'انضم للوصول المبكر' },
+      cta: { title: 'كن من أوائل من يتمرنون مع قوّة', text: 'انضم إلى قائمة الوصول المبكر وسنرسل لك التطبيق فور إتاحته في مصر.', button: 'انضم للوصول المبكر' },
     },
   },
 };
@@ -808,13 +808,13 @@ brochures.gyms.ar.faq = { title: 'أسئلة يطرحها أصحاب الجيم�
   { q: 'هل يمكننا التجربة أولًا؟', a: 'نعم — 14 يومًا مجانًا من باقة النمو، مع مكالمة إعداد.' },
 ] };
 brochures.coaches.en.faq = { title: 'Questions coaches ask', items: [
-  { q: 'Does Tamreen take a cut of my income?', a: 'No. Payments from your own clients go straight to you; you pay a flat monthly plan. A 10% commission will apply only to clients who find you through the Tamreen marketplace (on the roadmap), for their first 12 months.' },
+  { q: 'Does Qowa take a cut of my income?', a: 'No. Payments from your own clients go straight to you; you pay a flat monthly plan. A 10% commission will apply only to clients who find you through the Qowa marketplace (on the roadmap), for their first 12 months.' },
   { q: 'Do my clients pay for the app?', a: 'No. The client app is free for them.' },
   { q: 'What happens when a client leaves?', a: 'They keep their own logs and a read-only copy of the programs they paid for. Your templates, videos and private notes stay yours.' },
   { q: 'Can I bring my current clients?', a: 'Yes. Invite them with a WhatsApp link or a QR code, or import your list from a spreadsheet.' },
 ] };
 brochures.coaches.ar.faq = { title: 'أسئلة يطرحها المدربون', items: [
-  { q: 'هل يأخذ تمرين نسبة من دخلي؟', a: 'لا. مدفوعات عملائك تصلك مباشرة، وأنت تدفع باقة شهرية ثابتة. عمولة 10% تُطبَّق فقط على العملاء الذين يجدونك عبر سوق تمرين (لاحقًا)، لأول 12 شهرًا.' },
+  { q: 'هل يأخذ قوّة نسبة من دخلي؟', a: 'لا. مدفوعات عملائك تصلك مباشرة، وأنت تدفع باقة شهرية ثابتة. عمولة 10% تُطبَّق فقط على العملاء الذين يجدونك عبر سوق قوّة (لاحقًا)، لأول 12 شهرًا.' },
   { q: 'هل يدفع عملائي مقابل التطبيق؟', a: 'لا. تطبيق العميل مجاني لهم.' },
   { q: 'ماذا يحدث عندما يغادر عميل؟', a: 'يحتفظ بسجلاته ونسخة للقراءة فقط من البرامج التي دفع ثمنها. وقوالبك وفيديوهاتك وملاحظاتك الخاصة تبقى لك.' },
   { q: 'هل يمكنني نقل عملائي الحاليين؟', a: 'نعم. ادعُهم برابط واتساب أو كود QR، أو استورد قائمتك من جدول.' },

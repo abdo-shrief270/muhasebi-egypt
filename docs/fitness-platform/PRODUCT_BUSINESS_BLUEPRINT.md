@@ -1,4 +1,4 @@
-# Tamreen — Product & Business Blueprint
+# Qowa — Product & Business Blueprint
 
 **A unified fitness & coaching ecosystem for gyms, coaches and trainees — Egypt first, Saudi Arabia / GCC next**
 
@@ -7,7 +7,7 @@
 | Document | `PRODUCT_BUSINESS_BLUEPRINT.md` (companion: [`TECHNICAL_SYSTEM_ARCHITECTURE.md`](./TECHNICAL_SYSTEM_ARCHITECTURE.md)) |
 | Version / date | v1.0 — 22 October 2026 |
 | Status | Research & planning baseline. No code. Decisions marked **[DECISION]** are proposed and need founder sign-off (§18). |
-| Working name | **Tamreen** (تمرين, "training/exercise") — a placeholder. Trademark and domain availability have **not** been checked. |
+| Brand | **Qowa** (قوّة, "strength"). Domain `qowa.app`; support `support@qowa.app`, `+20 155 544 0882`. Trademark registration (Egypt ITDA, Saudi SAIP) **not yet checked**. |
 | Currency | Egyptian pounds (EGP) unless stated. USD conversions use **52.5 EGP/USD** (bank quotes were \~52.7–52.8 on 13 Oct 2026 [S21]); SAR is pegged at 3.75/USD → **14.0 EGP/SAR**. |
 
 ### How to read this document
@@ -66,11 +66,11 @@ Both documents use these terms the same way. The technical document maps each on
 | **Staff Assignment** | A Person's role inside an Org (owner, manager, branch manager, receptionist, trainer, nutritionist, sales), optionally limited to some branches. |
 | **Client Relationship** | A Person as a customer of an Org. Two kinds: **Gym Membership** (contract to use a gym) and **Coaching Engagement** (a client working with a coach under a package). |
 | **Data Access Grant** | A consented, scoped, time-boxed, revocable permission for an Org (and the staff assigned to that client) to read or write parts of a Personal Space. |
-| **Platform Subscription** | What a Person or an Org pays *Tamreen*: Trainee Plus, Coach Starter/Pro/Team, Gym Essentials/Growth/Pro. |
+| **Platform Subscription** | What a Person or an Org pays *Qowa*: Trainee Plus, Coach Starter/Pro/Team, Gym Essentials/Growth/Pro. |
 | **Entitlement** | A feature or limit a Person or Org may use, computed from Platform Subscriptions plus Sponsored Entitlements. |
 | **Sponsored Entitlement** | A feature an Org gives its clients (e.g. a coach's clients get full logging; a gym's members get the member app). |
 | **Offering** | What an Org sells to its own clients: membership plans, class packs, PT packages, coaching packages, products, digital programs. |
-| **Merchant Collection** | Money an Org collects from its clients. Three modes: **Recorded** (cash/InstaPay/POS outside the platform, recorded in it), **Connected Gateway** (the Org's own gateway account), **Platform Checkout** (Tamreen-operated checkout with split/payout, marketplace only, Phase 3). |
+| **Merchant Collection** | Money an Org collects from its clients. Three modes: **Recorded** (cash/InstaPay/POS outside the platform, recorded in it), **Connected Gateway** (the Org's own gateway account), **Platform Checkout** (Qowa-operated checkout with split/payout, marketplace only, Phase 3). |
 | **Marketplace** | Public discovery: Public Profiles, Listings, reviews, Platform Checkout. |
 | **Program Template / Assigned Program** | A coach's reusable plan (the Org's intellectual property) vs. the copy delivered to a client (lives in the client's Personal Space, with provenance). |
 | **Progress Check-in** | The coaching ritual (weekly form, weight, photos, feedback). Not to be confused with a **Gym Visit** (door check-in/attendance). |
@@ -88,7 +88,7 @@ Both documents use these terms the same way. The technical document maps each on
 
 Most products in this space pick one customer: gym software (front desk, contracts, POS), coaching software (programs, check-ins, chat) or consumer apps (logging, calories). In Egypt and the Gulf the three overlap in daily life: a member trains at a gym, buys PT sessions from a freelance trainer who rents floor time there, follows an Instagram coach's nutrition plan, and logs workouts in a separate app. Data is scattered across WhatsApp chats, PDFs and spreadsheets, and the trainee loses it every time they change coach or gym.
 
-Tamreen joins these three around one idea: **the trainee owns their Personal Space; businesses get scoped, consented access to it while they serve that trainee.** That one rule settles most of the hard questions — data ownership, coach switching, gym exits, privacy law, marketplace trust — and it is the main thing that sets the product apart (§14).
+Qowa joins these three around one idea: **the trainee owns their Personal Space; businesses get scoped, consented access to it while they serve that trainee.** That one rule settles most of the hard questions — data ownership, coach switching, gym exits, privacy law, marketplace trust — and it is the main thing that sets the product apart (§14).
 
 ### 1.2 What we recommend building, in order
 
@@ -336,7 +336,7 @@ Phases: **P1** Coach MVP (to L1), **P2** Gym Core (L2–L7), **P3** Marketplace 
 | GYM-21 | Reports: revenue, renewals, churn, attendance heat-map, class utilisation, trainer productivity, payment reconciliation, Excel export | Owner | Decisions | P2 core, P3 advanced |
 | GYM-22 | Public gym page, class timetable widget, custom domain | Owner | Acquisition | P3 |
 | GYM-23 | Chain console: cross-branch access, consolidated reports, branch comparison | Chain ops | Chains | P3 |
-| GYM-24 | Member app (the same Tamreen app, gym features unlocked by membership) | Member | Retention | P2 |
+| GYM-24 | Member app (the same Qowa app, gym features unlocked by membership) | Member | Retention | P2 |
 | GYM-25 | Member requests and complaints (freeze, transfer, cancellation) with SLA | Member, manager | Service | P3 |
 | GYM-26 | ETA e-receipts (Egypt) / ZATCA invoices (KSA) for the gym's own sales | Owner | Compliance | P4 (or via partner) |
 | GYM-27 | Franchise management (royalties, brand standards) | Franchisor | Enterprise | P5 |
@@ -426,7 +426,7 @@ Notes: ¹ only if the owner allows price edits per role. ² their own coaching b
 
 ```mermaid
 flowchart TD
-    A["Coach opens tamreen link from an Instagram ad or a referral"] --> B["Sign up with phone OTP"]
+    A["Coach opens Qowa link from an Instagram ad or a referral"] --> B["Sign up with phone OTP"]
     B --> C["Choose 'I coach clients' → creates coaching business Org"]
     C --> D["Wizard: name, specialties, languages, logo"]
     D --> E["Create first package: price, duration, check-in frequency"]
@@ -447,7 +447,7 @@ flowchart TD
 sequenceDiagram
     autonumber
     participant C as Coach (Coach OS)
-    participant T as Tamreen
+    participant T as Qowa
     participant P as Client (Trainee app)
     C->>T: Invite client (phone, package)
     T->>P: WhatsApp/SMS link (deep link to app or web)
@@ -466,7 +466,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     participant P as Client
-    participant T as Tamreen
+    participant T as Qowa
     participant C as Coach
     T->>P: Reminder (push, WhatsApp utility template if no app open in 48h)
     P->>T: Submits check-in: weight, measurements, photos, adherence, notes
@@ -556,7 +556,7 @@ sequenceDiagram
     autonumber
     participant M as Member
     participant R as Reception / Trainer
-    participant T as Tamreen
+    participant T as Qowa
     participant O as Gym owner
     R->>T: Sell PT package (10 sessions, 4,000 EGP) to member, trainer = Omar
     T->>T: Revenue recorded, 10 session credits, commission rule snapshot attached
@@ -602,7 +602,7 @@ A coach can choose a stricter policy ("programs are view-only during the engagem
 | Situation | Client relationship owner | Effect |
 |---|---|---|
 | In-house trainer leaves | **Gym** | Trainer's access to gym clients ends immediately; clients are reassigned; remaining PT credits stay with the gym. |
-| Freelance trainer, clients acquired **through the gym** (agreement type "gym-sourced") | Gym | Same as above; the agreement may include a non-solicitation clause — Tamreen enforces data access, not the law. |
+| Freelance trainer, clients acquired **through the gym** (agreement type "gym-sourced") | Gym | Same as above; the agreement may include a non-solicitation clause — Qowa enforces data access, not the law. |
 | Freelance trainer, **own clients** training at the gym (agreement type "trainer-sourced") | **Trainer's coaching business** | Clients stay with the trainer; the gym keeps only attendance/floor-fee records. |
 | Client of either kind independently follows the trainer | Client decides | A client can start a new engagement with the trainer's own business; a new grant is required. The gym is not notified of the content, only that the gym engagement ended. |
 
@@ -629,7 +629,7 @@ This classification is set **when the client is added** (default chosen by the g
 |---|---|---|---|---|---|
 | Person | **Free** | 0 | — | Unlimited logging; 3 own routines; 12 months of charts; 2 GB photo storage | Logger, coach plans view, chat with coaches, check-ins, gym member features when sponsored |
 | Person | **Trainee Plus** | 79 | 599 (≈ 37% off) | Unlimited routines, full history analytics | Advanced analytics, smart progression, full food diary features (barcode, recipes), wearable sync, CSV export |
-| Coaching business | **Coach Free** | 0 | — | 3 active clients, 1 coach | Programs, check-ins, chat, public page (with "Tamreen" branding) |
+| Coaching business | **Coach Free** | 0 | — | 3 active clients, 1 coach | Programs, check-ins, chat, public page (with "Qowa" branding) |
 | Coaching business | **Coach Starter** | 349 | 3,490 | 15 active clients, 1 coach | + nutrition plans, payment tracking, packages, intake forms |
 | Coaching business | **Coach Pro** | 799 | 7,990 | 50 active clients, 1 coach; +10 EGP per extra active client | + automations, lead pipeline, scheduling, business dashboard, Connected Gateway, custom page colours/logo |
 | Coaching business | **Coach Team** | 1,999 | 19,990 | 3 coaches, 150 active clients; +399/extra coach | + client assignment, shared templates, coach quality metrics, roles |
@@ -728,7 +728,7 @@ Rule: **losing an entitlement never deletes trainee data**. It only limits creat
 
 ### 8.4 Who does what in billing
 
-| Concern | Payment provider | Tamreen billing domain |
+| Concern | Payment provider | Qowa billing domain |
 |---|---|---|
 | Card data, 3-D Secure, tokenisation, PCI scope | ✓ | Never stores card numbers; hosted/iframe checkout only |
 | Charging a saved card, refunds at network level | ✓ (API) | Decides *when* and *how much*; idempotent requests |
@@ -754,7 +754,7 @@ Rule: **losing an entitlement never deletes trainee data**. It only limits creat
 
 ### 8.6 Revenue recognition (for the accountant)
 
-Platform subscriptions: recognised over the service period (yearly plans deferred monthly). Marketplace: Tamreen's revenue is the **commission only** (agent model), not the gross order value — subject to the legal structure in §9.3 **[VERIFY with auditor]**. Setup fees: recognised when the service is delivered.
+Platform subscriptions: recognised over the service period (yearly plans deferred monthly). Marketplace: Qowa's revenue is the **commission only** (agent model), not the gross order value — subject to the legal structure in §9.3 **[VERIFY with auditor]**. Setup fees: recognised when the service is delivered.
 
 ---
 
@@ -793,11 +793,11 @@ On every Platform Checkout order, payment processing (\~2.75% + EGP 3 in Egypt) 
 
 | Option | How | Pros | Cons | Verdict |
 |---|---|---|---|---|
-| **A. Licensed gateway marketplace/split** | Client pays through a licensed gateway's marketplace product; funds split between coach (sub-merchant or payout beneficiary) and Tamreen commission. Paymob documents "MarketPlace by Paymob" and split features [S23]; Kashier offers payouts [S24]. | Regulated party holds the funds; less licensing exposure | Depends on gateway product fit (individual coaches without a commercial register as beneficiaries) | **[RECOMMENDATION] Primary**, subject to legal opinion |
-| B. Tamreen collects and pays out | Tamreen's merchant account collects; Tamreen pays coaches | Simple UX, full control | Likely a regulated payment activity under CBE's June 2025 licensing rules [S31] **[VERIFY]**; capital/guarantee requirements | Avoid unless licensed |
-| C. Lead generation only | Client pays coach directly (Connected Gateway / InstaPay); Tamreen charges a fixed lead fee or listing fee | No money handling | Weak attribution, disintermediation | Fallback if A is blocked |
+| **A. Licensed gateway marketplace/split** | Client pays through a licensed gateway's marketplace product; funds split between coach (sub-merchant or payout beneficiary) and Qowa commission. Paymob documents "MarketPlace by Paymob" and split features [S23]; Kashier offers payouts [S24]. | Regulated party holds the funds; less licensing exposure | Depends on gateway product fit (individual coaches without a commercial register as beneficiaries) | **[RECOMMENDATION] Primary**, subject to legal opinion |
+| B. Qowa collects and pays out | Qowa's merchant account collects; Qowa pays coaches | Simple UX, full control | Likely a regulated payment activity under CBE's June 2025 licensing rules [S31] **[VERIFY]**; capital/guarantee requirements | Avoid unless licensed |
+| C. Lead generation only | Client pays coach directly (Connected Gateway / InstaPay); Qowa charges a fixed lead fee or listing fee | No money handling | Weak attribution, disintermediation | Fallback if A is blocked |
 
-**Tax/legal [VERIFY]**: VAT on commission (14% in Egypt); whether payouts to individuals trigger withholding obligations; consumer-protection obligations for distance sales; terms of service making Tamreen an intermediary, not the coaching provider.
+**Tax/legal [VERIFY]**: VAT on commission (14% in Egypt); whether payouts to individuals trigger withholding obligations; consumer-protection obligations for distance sales; terms of service making Qowa an intermediary, not the coaching provider.
 
 ### 9.4 Payouts
 
@@ -813,14 +813,14 @@ On every Platform Checkout order, payment processing (\~2.75% + EGP 3 in Egypt) 
 
 - Each listing shows the seller's cancellation policy (choose from 3 standard policies: flexible, moderate, strict) before purchase.
 - Platform default for unstarted packages: full refund within 48 h of purchase if no program was delivered.
-- Disputes: client opens a case → seller has 72 h to respond → Tamreen mediates with the evidence in the platform (delivered programs, chat, check-ins). Decision within 7 days.
+- Disputes: client opens a case → seller has 72 h to respond → Qowa mediates with the evidence in the platform (delivered programs, chat, check-ins). Decision within 7 days.
 - Egyptian consumer-protection rules for distance services must be reflected in terms **[VERIFY with counsel]**.
 
 ### 9.6 Conflicts between gyms, trainers, trainees and the marketplace
 
 | Conflict | Risk | Resolution in the product |
 |---|---|---|
-| A gym's freelance trainer lists themself on the marketplace and takes gym members off-book | Gym loses PT revenue; trust in Tamreen drops | Client-ownership classification (§6.11) at enrolment; the gym sees PT sessions held **on its premises** (location-tagged bookings); marketplace listings for in-gym sessions show the gym and its floor rules |
+| A gym's freelance trainer lists themself on the marketplace and takes gym members off-book | Gym loses PT revenue; trust in Qowa drops | Client-ownership classification (§6.11) at enrolment; the gym sees PT sessions held **on its premises** (location-tagged bookings); marketplace listings for in-gym sessions show the gym and its floor rules |
 | A gym wants to see what its members do with outside coaches | Privacy breach | Gyms never see another Org's data. Members can share selected data with the gym's trainers via a grant |
 | A coach wants to see clients' full history from before the engagement | Over-collection | Grants have a "history window" (default: last 90 days + all future data during the engagement); the client can extend |
 | Marketplace ranking favours gyms' own trainers or paying advertisers | Trust | Ranking rules published; "featured" placements labelled; no paid placement until P5 |
@@ -845,7 +845,7 @@ Lead-to-purchase conversion, median first-response time, GMV per active seller, 
 
 ### 10.1 Trainer arrangements the system must support
 
-| Arrangement | Who sells to the client | Who collects money | Who owns the client relationship | How Tamreen computes pay |
+| Arrangement | Who sells to the client | Who collects money | Who owns the client relationship | How Qowa computes pay |
 |---|---|---|---|---|
 | Salaried | Gym | Gym | Gym | Fixed salary (exported to payroll), no per-session calc |
 | Salary + PT commission | Gym (trainer sells) | Gym | Gym | % of PT package net revenue, earned per confirmed session |
@@ -861,7 +861,7 @@ Lead-to-purchase conversion, median first-response time, GMV per active seller, 
 
 **Example 2 — freelance revenue share, gym-sourced client.** Gym sells a 12-session package for 6,000 EGP (net 5,263). Agreement: 60% trainer / 40% gym on gym-sourced clients. Trainer earns 5,263 × 60% ÷ 12 = 263.2 EGP per confirmed session; the gym keeps 2,105 EGP. Statement at month end: gym owes the trainer for sessions confirmed.
 
-**Example 3 — freelance per-session floor fee.** Trainer's own client pays the trainer 500 EGP/session (outside the gym's books). Gym charges 100 EGP per session held on premises. 20 sessions → gym invoices the trainer 2,000 EGP. Tamreen counts sessions from location-tagged bookings confirmed by the client — the main way the gym prevents off-book sessions.
+**Example 3 — freelance per-session floor fee.** Trainer's own client pays the trainer 500 EGP/session (outside the gym's books). Gym charges 100 EGP per session held on premises. 20 sessions → gym invoices the trainer 2,000 EGP. Qowa counts sessions from location-tagged bookings confirmed by the client — the main way the gym prevents off-book sessions.
 
 **Example 4 — class instructor.** 150 EGP per class + 10 EGP per attendee above 12. A class with 18 attendees → 150 + 6 × 10 = 210 EGP.
 
@@ -919,7 +919,7 @@ Monday: review check-ins (queue sorted by due time) → adjust plans → send vo
 
 ### 11.2 Price comparison (EGP/month at 52.5 EGP/USD)
 
-| Customer | Tamreen | SuperCoach | Trainerize | Everfit | Local gym tools |
+| Customer | Qowa | SuperCoach | Trainerize | Everfit | Local gym tools |
 |---|---|---|---|---|---|
 | Coach with 10 clients | 349 | \~998 ($19) | \~1,200+ (Pro tier for 15) | \~1,000+ | — |
 | Coach with 40 clients | 799 | \~2,360+ ($45+, rises) | \~4,000–6,300 | \~3,000+ (+ add-ons) | — |
@@ -1063,7 +1063,7 @@ Support: 1 customer-success person per \~300 paying coaches or \~60 gyms (Arabic
 
 ```mermaid
 gantt
-    title Tamreen roadmap (months from project start, L1 = month 7)
+    title Qowa roadmap (months from project start, L1 = month 7)
     dateFormat  YYYY-MM
     axisFormat  %b %y
     section Build
@@ -1128,7 +1128,7 @@ Closed beta with 20 coaches (6 weeks before L1) → public launch with founders 
 
 ## 14. Differentiation and positioning
 
-**Positioning statement.** For Arabic-speaking coaches and gyms who run their business on WhatsApp and spreadsheets, Tamreen is the operating system that runs programs, check-ins, memberships, PT and payments the way Egyptians and Saudis actually pay — and gives every trainee a training record they own. Unlike coach-only tools priced in dollars or gym tools that stop at the front desk, Tamreen connects gyms, coaches and trainees in one ecosystem.
+**Positioning statement.** For Arabic-speaking coaches and gyms who run their business on WhatsApp and spreadsheets, Qowa is the operating system that runs programs, check-ins, memberships, PT and payments the way Egyptians and Saudis actually pay — and gives every trainee a training record they own. Unlike coach-only tools priced in dollars or gym tools that stop at the front desk, Qowa connects gyms, coaches and trainees in one ecosystem.
 
 | Pillar | Proof point in the product | Hard to copy because |
 |---|---|---|
@@ -1150,7 +1150,7 @@ Closed beta with 20 coaches (6 weeks before L1) → public launch with founders 
 | Channel | Tactic | Target metric |
 |---|---|---|
 | Instagram/TikTok ads (Arabic) | Short demos: "your check-ins in 2 hours not 8"; lead to free sign-up | CPA (paying) ≤ 1,200 EGP |
-| Coach ambassadors | 20 respected coaches get Pro free for a year + referral bonus; their public pages show "Powered by Tamreen" | ≥ 25% of new coaches via referral by L12 |
+| Coach ambassadors | 20 respected coaches get Pro free for a year + referral bonus; their public pages show "Powered by Qowa" | ≥ 25% of new coaches via referral by L12 |
 | Certification academies and courses | Free Starter for graduates for 3 months; guest lessons on "running an online coaching business" | 3 academy partnerships by L6 |
 | Content/SEO | Arabic guides ("how to price online coaching", "check-in templates") + coach pages | 30% of sign-ups organic by L12 |
 | Migration service | We import their Sheets/PDF programs for Pro/Team annual buyers | Activation ≥ 70% |

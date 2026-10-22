@@ -1,4 +1,4 @@
-# Tamreen — Technical System Architecture
+# Qowa — Technical System Architecture
 
 **Architecture, data, security, infrastructure and delivery plan for the unified fitness & coaching ecosystem**
 
@@ -134,7 +134,7 @@ The complete feature inventory with IDs is Blueprint §4. Grouped by capability:
 
 ### 3.1 Context that matters for the choice
 
-- The founder already runs a production **Laravel 13 / PHP 8.4 + PostgreSQL + Nuxt 4** modular monolith (the Muhasebi codebase this document sits in) with multi-tenancy (`BelongsToTenant`), module manifests, permission resolution, Reverb real-time, an offline PWA outbox, InstaPay billing approval flows and WhatsApp templates. That is real, transferable productivity — patterns, not shared code: the fitness platform should be a **separate repository and deployment** (different customers, different data protection profile).
+- The founder already runs a production **Laravel 13 / PHP 8.4 + PostgreSQL + Nuxt 4** modular monolith (Muhasebi, `abdo-shrief270/muhasebi-egypt`) with multi-tenancy (`BelongsToTenant`), module manifests, permission resolution, Reverb real-time, an offline PWA outbox, InstaPay billing approval flows and WhatsApp templates. That is real, transferable productivity — patterns, not shared code: the fitness platform should be a **separate repository and deployment** (different customers, different data protection profile).
 - Egypt's developer market has deep PHP/Laravel, JavaScript/Vue/React and Flutter talent pools **[ASSUMPTION — based on job-market familiarity; validate with hiring tests in P0]**.
 - Laravel 13 shipped in March 2026 (PHP ≥ 8.3), with bug fixes to Q3 2027 and security fixes to Q1 2028; Reverb gained a database scaling driver [S51] **[FACT]**.
 
@@ -193,7 +193,7 @@ Weights sum to 100; scores 1–5; total = Σ(weight × score)/100.
 | TCO (10) | 5 | 4 | 5 | 2 | 3 |
 | **Weighted total** | **4.65** | 4.00 | 3.70 | 3.55 | 3.55 |
 
-**[RECOMMENDATION] One Flutter app ("Tamreen") with modes:** Trainee mode (everyone) and Coach mode (Persons with a coaching Staff Assignment), switched through the workspace switcher. Gym staff use the web app (desktop and front-desk tablet PWA); gym members use the Trainee mode, which unlocks gym features when a Gym Membership exists. One app = one store listing, one review pipeline, one codebase.
+**[RECOMMENDATION] One Flutter app ("Qowa") with modes:** Trainee mode (everyone) and Coach mode (Persons with a coaching Staff Assignment), switched through the workspace switcher. Gym staff use the web app (desktop and front-desk tablet PWA); gym members use the Trainee mode, which unlocks gym features when a Gym Membership exists. One app = one store listing, one review pipeline, one codebase.
 
 Mobile building blocks: Riverpod (state), Drift/SQLite (offline store + outbox), Dio (HTTP with auth/idempotency interceptors), a Pusher-protocol client for Reverb, Firebase Cloud Messaging, `health` plugin (HealthKit + Health Connect, P3), RevenueCat SDK (Plus IAP, P3), Sentry, `intl` ARB localisation with RTL, image compression before upload, background sync via WorkManager/BGTaskScheduler.
 
@@ -490,7 +490,7 @@ flowchart LR
         VI["Marketplace visitors<br/>(public web)"]
         AD["Platform staff<br/>(admin console)"]
     end
-    T["Tamreen platform"]
+    T["Qowa platform"]
     subgraph External
         PG1["Payment gateways<br/>Paymob · Moyasar/Tap"]
         ST["App stores + RevenueCat"]
@@ -1653,7 +1653,7 @@ Laravel migrations per module (`Database/migrations`), forward-only in productio
 
 | Topic | Convention |
 |---|---|
-| Base URL | `https://api.tamreen.app/api/v1` (domain is a placeholder) |
+| Base URL | `https://api.qowa.app/api/v1` |
 | Versioning | Major version in the path; additive changes are non-breaking; removals announced with `Deprecation` and `Sunset` headers ≥ 6 months ahead; mobile clients send `X-App-Version` and the API can return `426 upgrade_required` below a floor |
 | Context | `Authorization: Bearer …` (mobile) or session cookie (web); `X-Workspace: personal` \| `org:{uuid}`; `X-Branch-Id` where branch-scoped |
 | Naming | Plural nouns, snake_case JSON, ISO-8601 UTC timestamps (`2026-10-22T09:30:00Z`), `date` fields as `YYYY-MM-DD` in the Org's timezone |
@@ -1672,7 +1672,7 @@ Laravel migrations per module (`Database/migrations`), forward-only in productio
 
 ```json
 {
-  "type": "https://docs.tamreen.app/errors/membership_frozen",
+  "type": "https://docs.qowa.app/errors/membership_frozen",
   "title": "العضوية متجمدة",
   "status": 409,
   "code": "membership_frozen",
@@ -1764,7 +1764,7 @@ Idempotency-Key: 5d6a2c4e-…
 {
   "org_client": { "id": "0192a2…", "status": "invited", "sourcing": "direct" },
   "engagement": { "id": "0192a3…", "status": "pending", "starts_at": "2026-10-31T21:00:00Z" },
-  "invite": { "url": "https://tamreen.app/i/Q7XK2M", "expires_at": "2026-11-07T21:00:00Z" }
+  "invite": { "url": "https://qowa.app/i/Q7XK2M", "expires_at": "2026-11-07T21:00:00Z" }
 }
 ```
 
@@ -1892,7 +1892,7 @@ Idempotency-Key: 4e5f…
 201 Created
 { "sale": { "id": "0192h2…", "number": "R-001245", "total": { "amount_minor": 450000, "currency": "EGP" }, "vat": { "amount_minor": 55263, "currency": "EGP" } },
   "created": { "membership_id": "0192h3…", "ends_on": "2027-02-02" },
-  "receipt_url": "https://tamreen.app/r/kT9…" }
+  "receipt_url": "https://qowa.app/r/kT9…" }
 ```
 One transaction: sale → membership contract → membership event → cash-drawer movement → ledger posting → audit entry.
 
@@ -1917,7 +1917,7 @@ POST /api/v1/billing/checkout
 X-Workspace: org:0192a0…
 Idempotency-Key: 3b9c…
 
-{ "plan_key": "coach_pro", "interval": "month", "method": "card", "coupon": "FOUNDERS40", "return_url": "https://app.tamreen.app/billing/return" }
+{ "plan_key": "coach_pro", "interval": "month", "method": "card", "coupon": "FOUNDERS40", "return_url": "https://app.qowa.app/billing/return" }
 ```
 ```json
 201 Created
@@ -1964,7 +1964,7 @@ Idempotency-Key: 6c2d…
 
 ### 9.5 Outbound webhooks (P5 partner API)
 
-Events (`membership.activated`, `visit.recorded`, `sale.completed`, …) delivered as `POST` with `Tamreen-Signature: t=…,v1=HMAC-SHA256(secret, t + "." + body)`, at-least-once, retried with exponential back-off for 24 h, each carrying `event_id` for de-duplication; a delivery log and replay button per endpoint.
+Events (`membership.activated`, `visit.recorded`, `sale.completed`, …) delivered as `POST` with `Qowa-Signature: t=…,v1=HMAC-SHA256(secret, t + "." + body)`, at-least-once, retried with exponential back-off for 24 h, each carrying `event_id` for de-duplication; a delivery log and replay button per endpoint.
 
 ---
 
@@ -2076,9 +2076,9 @@ Example: 1,000 consults/month × 30 min × 2 participants = 60k participant-minu
 
 | Flow | Merchant | Module | Examples |
 |---|---|---|---|
-| **Platform Billing** | Tamreen | Billing → Payments | Coach Pro, Gym Growth, Trainee Plus |
+| **Platform Billing** | Qowa | Billing → Payments | Coach Pro, Gym Growth, Trainee Plus |
 | **Merchant Collections** | The Org | Commerce/Coaching → Payments | Gym membership at the desk, coach package paid by InstaPay, Connected Gateway link |
-| **Platform Checkout** (P3) | Licensed gateway split; Tamreen earns commission | Marketplace → Payments | Marketplace coaching package |
+| **Platform Checkout** (P3) | Licensed gateway split; Qowa earns commission | Marketplace → Payments | Marketplace coaching package |
 
 ```mermaid
 flowchart TB
@@ -2577,7 +2577,7 @@ AWS Budgets with alerts at 80/100/120% per account; Cost Anomaly Detection; tagg
 
 ### 16.3 Payment security boundary
 
-Tamreen never receives card numbers: hosted checkout/iframe from the gateway; tokens only. PCI DSS scope: SAQ A (redirect/iframe) **[VERIFY with chosen integration]**. Webhooks verified by HMAC and replay window; amounts always recomputed server-side from our records, never trusted from the client or the webhook alone.
+Qowa never receives card numbers: hosted checkout/iframe from the gateway; tokens only. PCI DSS scope: SAQ A (redirect/iframe) **[VERIFY with chosen integration]**. Webhooks verified by HMAC and replay window; amounts always recomputed server-side from our records, never trusted from the client or the webhook alone.
 
 ### 16.4 Secure file access
 
@@ -2593,7 +2593,7 @@ Mobile tokens hashed in DB, rotated on privilege change, revoked on logout/passw
 
 ### 16.6 Compliance mapping and verification steps
 
-Tamreen does **not** claim compliance with any law until the verification steps below are done by qualified counsel.
+Qowa does **not** claim compliance with any law until the verification steps below are done by qualified counsel.
 
 | Regime | Applies because | Obligations (summary) | Implementation | Verification step |
 |---|---|---|---|---|

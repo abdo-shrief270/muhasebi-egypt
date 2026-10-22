@@ -1,18 +1,18 @@
-# Tamreen marketing brochures
+# Qowa marketing brochures
 
 Six A4 brochures, one per audience and language, for early-access marketing:
 
 | Audience | English | Arabic |
 |---|---|---|
-| Gyms & fitness centres | `Tamreen-Gyms-EN.pdf` | `Tamreen-Gyms-AR.pdf` |
-| Coaches & personal trainers | `Tamreen-Coaches-EN.pdf` | `Tamreen-Coaches-AR.pdf` |
-| Trainees & athletes | `Tamreen-Trainees-EN.pdf` | `Tamreen-Trainees-AR.pdf` |
+| Gyms & fitness centres | `Qowa-Gyms-EN.pdf` | `Qowa-Gyms-AR.pdf` |
+| Coaches & personal trainers | `Qowa-Coaches-EN.pdf` | `Qowa-Coaches-AR.pdf` |
+| Trainees & athletes | `Qowa-Trainees-EN.pdf` | `Qowa-Trainees-AR.pdf` |
 
 Each has six pages: cover, problems → solutions, features (two pages with app mock-ups), getting started + payments + trust + FAQ, plans and call to action.
 
 The content follows `../PRODUCT_BUSINESS_BLUEPRINT.md`: features without a tag are in the edition being sold (coach P1, gym P2), **Coming soon / قريبًا** = the next phase, **On the roadmap / لاحقًا** = P3 or later. Prices are §7.1 (EGP, VAT included); the founders offers, trials and data rules are §6.10–6.11, §7–8 and §9.2. The app screens are illustrations; names in them are fictional.
 
-**Before printing or sharing:** the brand (`Tamreen` / `تمرين`) and the domain `tamreen.app` are working names, set in one place at the top of `source/content.mjs`. There is no phone number or e-mail yet.
+Brand **Qowa / قوّة**, site `qowa.app`, phone `+20 155 544 0882` and `support@qowa.app` are set in one place at the top of `source/content.mjs` (shown in each brochure's call to action and footer).
 
 ## Rebuild
 

@@ -1,4 +1,4 @@
-// Tamreen marketing brochures: one 6-page A4 PDF per audience (gyms, coaches, trainees) and language (en, ar).
+// Qowa marketing brochures: one 6-page A4 PDF per audience (gyms, coaches, trainees) and language (en, ar).
 // Usage: node build.mjs [outDir] [audience] [lang]
 // Needs (npm): puppeteer, lucide-static@0.460.0, @fontsource/ibm-plex-sans-arabic; system fonts Inter / Inter Display.
 // Chromium path and flags come from pconf.json.
@@ -14,7 +14,7 @@ const outDir = path.resolve(process.argv[2] || path.join(here, 'out'));
 const onlyAudience = process.argv[3];
 const onlyLang = process.argv[4];
 fs.mkdirSync(outDir, { recursive: true });
-const htmlDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tamreen-brochures-'));
+const htmlDir = fs.mkdtempSync(path.join(os.tmpdir(), 'qowa-brochures-'));
 
 const nm = p => path.join(here, 'node_modules', p);
 const icon = (name, size = 22, stroke = 2) => fs.readFileSync(nm(`lucide-static/icons/${name}.svg`), 'utf8')
@@ -254,7 +254,8 @@ function pages(c, t) {
     <div class="included"><b>${esc(t.plans.includedTitle)}</b><div class="inc-grid">${t.plans.included.map(x => `<span>${icon('circle-check', 14)}${esc(x)}</span>`).join('')}</div></div>
     <div class="offer">${icon(t.plans.offerIcon || 'badge-percent', 26)}<div><b>${esc(t.plans.offerTitle)}</b><p>${esc(t.plans.offer)}</p></div></div>
     <div class="cta">
-      <div><h3>${esc(t.cta.title)}</h3><p>${esc(t.cta.text)}</p></div>
+      <div><h3>${esc(t.cta.title)}</h3><p>${esc(t.cta.text)}</p>
+        <div class="contact"><span>${icon('phone', 13)}<span dir="ltr">${esc(brand.phone)}</span></span><span>${icon('mail', 13)}<span dir="ltr">${esc(brand.email)}</span></span></div></div>
       <div class="cta-btn"><span class="cta-label">${esc(t.cta.button)}${icon(c.lang === 'ar' ? 'arrow-left' : 'arrow-right', 15, 2.6)}</span><small dir="ltr">${esc(brand.site)}</small></div>
     </div>
     <p class="fine pinned">${esc(t.plans.fine)}</p>
@@ -398,6 +399,9 @@ svg { flex-shrink: 0; }
 .cta { display:flex; justify-content:space-between; align-items:center; gap: 6mm; background: linear-gradient(${ar ? '240deg' : '120deg'}, var(--navy), var(--accent2)); color:#fff; border-radius: 5mm; padding: 7mm 8mm; }
 .cta h3 { color:#fff; font-size: 14.5pt; margin-bottom: 1.5mm; }
 .cta p { margin:0; color: rgba(255,255,255,.88); font-size: 9.4pt; max-width: 110mm; }
+.contact { display:flex; flex-wrap:wrap; gap: 2mm 6mm; margin-top: 3mm; font-size: 9pt; font-weight: 600; }
+.contact > span { display:flex; align-items:center; gap: 1.6mm; }
+.contact svg { color: #fff; opacity: .85; }
 .cta-btn { display:flex; flex-direction:column; align-items:center; gap: 1mm; background:#fff; color: var(--navy); border-radius: 4mm; padding: 4mm 6mm; font-weight: 800; font-size: 11pt; text-align:center; flex-shrink:0; }
 .cta-label { display:flex; align-items:center; gap: 1.8mm; }
 .cta-btn svg { color: var(--accent); }
@@ -534,7 +538,7 @@ async function render(browser, audience, lang) {
   t.f1.art = art(b.f1Art); t.f1.artCount = b.f1Art.length;
   t.f2.art = art(b.f2Art); t.f2.artCount = b.f2Art.length;
   const html = `<!doctype html><html lang="${lang}" dir="${lang === 'ar' ? 'rtl' : 'ltr'}"><head><meta charset="utf-8"><title>${esc(brand[lang])} — ${esc(t.tag)}</title><style>${css(c)}</style></head><body>${pages(c, t)}</body></html>`;
-  const base = `Tamreen-${b.file}-${lang.toUpperCase()}`;
+  const base = `Qowa-${b.file}-${lang.toUpperCase()}`;
   const htmlPath = path.join(htmlDir, base + '.html');
   fs.writeFileSync(htmlPath, html);
   const page = await browser.newPage();

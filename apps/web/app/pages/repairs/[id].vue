@@ -222,8 +222,14 @@
 
         <!-- Device -->
         <UCard>
-          <p class="mb-3 font-bold">
-            الجهاز وهو داخل
+          <div class="mb-3 flex items-center justify-between gap-2">
+            <p class="font-bold">
+              حالة الجهاز وقت الاستلام
+            </p>
+            <UButton v-if="canWork && ticket.status !== 'delivered' && options" size="xs" color="neutral" variant="ghost" icon="i-lucide-pencil" label="عدّل / كمّل" @click="intakeOpen = true" />
+          </div>
+          <p v-if="!ticket.imei && !ticket.color && !ticket.accessories.length && !ticket.condition.length && !Object.keys(ticket.checks).length && ticket.unlock_type === 'none'" class="text-sm text-(--ui-text-muted)">
+            لسه متسجلش حاجة عن شكل الجهاز وفحصه.
           </p>
           <dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
             <div v-if="ticket.imei">
@@ -442,6 +448,8 @@
             <UButton size="sm" color="neutral" variant="outline" icon="i-lucide-printer" label="اطبع كارت الضمان" @click="printWarranty" />
           </div>
         </UCard>
+
+        <RepairsIntakeEditModal v-if="options" v-model:open="intakeOpen" :ticket="ticket" :options="options" @saved="(t) => { data = { data: t } }" />
 
         <UModal :open="voidTarget !== null" title="إلغاء الضمان" @update:open="(v: boolean) => { if (!v) voidTarget = null }">
           <template #body>
@@ -728,6 +736,7 @@ async function printWarranty() {
   await print()
   printingWarranty.value = false
 }
+const intakeOpen = ref(false)
 const voidTarget = ref<RepairWarranty | null>(null)
 const voidReason = ref('')
 const voiding = ref(false)

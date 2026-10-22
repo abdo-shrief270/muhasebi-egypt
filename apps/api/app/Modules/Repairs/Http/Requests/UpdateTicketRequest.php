@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Repairs\Http\Requests;
 
+use App\Modules\Repairs\Support\IntakeOptions;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class UpdateTicketRequest extends FormRequest
 {
@@ -32,6 +34,15 @@ final class UpdateTicketRequest extends FormRequest
             'imei' => ['sometimes', 'nullable', 'string', 'max:40'],
             'color' => ['sometimes', 'nullable', 'string', 'max:40'],
             'note' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            // How the device came in, filled in or corrected after the intake.
+            'accessories' => ['sometimes', 'nullable', 'array'],
+            'accessories.*' => ['string', 'max:40'],
+            'condition' => ['sometimes', 'nullable', 'array'],
+            'condition.*' => ['string', Rule::in(array_keys(IntakeOptions::CONDITION))],
+            'checks' => ['sometimes', 'nullable', 'array:'.implode(',', array_keys(IntakeOptions::CHECKS))],
+            'checks.*' => [Rule::in(IntakeOptions::CHECK_VALUES)],
+            'unlock_type' => ['sometimes', Rule::in(IntakeOptions::UNLOCK_TYPES)],
+            'unlock_code' => ['sometimes', 'nullable', 'string', 'max:60'],
         ];
     }
 }

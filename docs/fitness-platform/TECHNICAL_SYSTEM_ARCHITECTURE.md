@@ -52,7 +52,7 @@ AWS prices below were gathered on 22 Oct 2026 from third-party price trackers an
 
 | Constraint | Consequence |
 |---|---|
-| Solo founder + 2–3 engineers until ~L8 (Blueprint §12) | One deployable backend, one web codebase, one mobile codebase. No microservices, no Kubernetes, no self-built infrastructure we don't need. |
+| Solo founder + 2–3 engineers until \~L8 (Blueprint §12) | One deployable backend, one web codebase, one mobile codebase. No microservices, no Kubernetes, no self-built infrastructure we don't need. |
 | Budget: AWS ≈ $250/month at launch, ≤ 10% of revenue later | Graviton (ARM) everywhere, no NAT gateway until needed, managed services only where they replace real ops work. |
 | Sensitive data (health, financial, minors) under Egypt's PDPL and Saudi PDPL [S27][S28][S30] | Personal Space ownership model, consent records, encryption, access logging, data minimisation, licences before launch. |
 | Egypt-first, KSA later, possible data residency asks | Region-agnostic IDs and a `home_region` on persons/orgs so a regional "cell" can be added later (§4.6). |
@@ -158,7 +158,7 @@ Weights sum to 100; scores 1–5; total = Σ(weight × score)/100.
 
 **[RECOMMENDATION] Laravel 13 on PHP 8.4, running under Octane with FrankenPHP** (persistent workers; no PHP-FPM cold boot per request). It wins on productivity (queues, scheduler, policies, validation, notifications, broadcasting, Horizon, Pennant feature flags, Sanctum in the box), on hiring and on the founder's proven patterns.
 
-**When another stack wins:** if the team is TypeScript-first and wants one language across web, API and (React Native) mobile, **NestJS + Next.js + React Native** is the credible alternative (score 4.13). If a future service needs very high concurrency with low memory (e.g. a dedicated real-time gateway beyond ~50k concurrent sockets), **Go or Elixir** for that one service.
+**When another stack wins:** if the team is TypeScript-first and wants one language across web, API and (React Native) mobile, **NestJS + Next.js + React Native** is the credible alternative (score 4.13). If a future service needs very high concurrency with low memory (e.g. a dedicated real-time gateway beyond \~50k concurrent sockets), **Go or Elixir** for that one service.
 
 ### 3.3 Web frontend
 
@@ -221,7 +221,7 @@ Mobile building blocks: Riverpod (state), Drift/SQLite (offline store + outbox),
 ### 3.6 Final stack
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Clients
         M["Flutter app<br/>(Trainee + Coach modes)"]
         W["Nuxt 4 web SPA<br/>(dashboards, front desk PWA)"]
@@ -399,22 +399,16 @@ Prepared now (cheap): UUIDv7 IDs (no sequence collisions), `home_region` on `per
 ### 5.3 Decision layers
 
 ```mermaid
-flowchart TD
-    R["Request + token + X-Workspace + X-Branch-Id"] --> L1{"1. Authenticated Person?"}
-    L1 -- "no" --> D401["401"]
-    L1 -- "yes" --> L2{"2. Context valid?<br/>active Staff Assignment in Org<br/>branch in scope"}
-    L2 -- "no" --> D404["404 / 403"]
-    L2 -- "yes" --> L3{"3. Role permission?<br/>e.g. memberships.freeze"}
-    L3 -- "no" --> D403["403 permission_denied"]
-    L3 -- "yes" --> L4{"4. Relationship?<br/>client assigned to me<br/>or role has all-clients"}
-    L4 -- "no" --> D404b["404"]
-    L4 -- "yes" --> L5{"5. Grant scope?<br/>(Personal Space data only)<br/>active, in window, scope matches"}
-    L5 -- "no" --> D403b["403 grant_required"]
-    L5 -- "yes" --> L6{"6. Attribute rules?<br/>contract state, time window,<br/>ownership class, sensitivity"}
-    L6 -- "no" --> D409["409 / 422 business rule"]
-    L6 -- "yes" --> L7{"7. Entitlement?<br/>plan allows feature/limit"}
-    L7 -- "no" --> D402["402 entitlement_required"]
-    L7 -- "yes" --> OK["Allow → action → audit if sensitive"]
+flowchart TB
+    R["Request: token + X-Workspace + X-Branch-Id"]
+    R --> L1["1. Authenticated Person? — else 401 unauthenticated"]
+    L1 --> L2["2. Context valid: active Staff Assignment in the Org, branch in scope? — else 404 / 403"]
+    L2 --> L3["3. Role permission, e.g. memberships.freeze? — else 403 permission_denied"]
+    L3 --> L4["4. Relationship: client assigned to me, or role sees all clients? — else 404"]
+    L4 --> L5["5. Grant scope (Personal Space data only): active, in window, scope matches? — else 403 grant_required"]
+    L5 --> L6["6. Attribute rules: contract state, time window, ownership class, sensitivity? — else 409 / 422"]
+    L6 --> L7["7. Entitlement: does the plan allow this feature or limit? — else 402 entitlement_required"]
+    L7 --> OK(["Allow → run the action → audit if sensitive"])
 ```
 
 Layers 1–6 answer "may this person do this?"; layer 7 answers "has this business paid for it?" — kept separate so that a lapsed subscription never turns into a privacy decision.
@@ -488,7 +482,7 @@ Platform support never has standing access to Org or Personal Space data. An Org
 ### 6.1 System context
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph People
         TR["Trainees / members<br/>(mobile app, web)"]
         CO["Coaches & trainers<br/>(mobile app, web)"]
@@ -525,7 +519,7 @@ flowchart TB
 ### 6.2 Containers
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Edge
         CF["CloudFront + WAF<br/>app., api., ws., cdn., www."]
     end
@@ -1237,6 +1231,7 @@ erDiagram
 
 ```mermaid
 erDiagram
+    direction LR
     ORGANIZATIONS ||--o{ SALES : "sells"
     SALES ||--o{ SALE_LINES : "contains"
     SALES ||--o{ SALE_PAYMENTS : "paid by"
@@ -1629,11 +1624,11 @@ erDiagram
 
 | Table | Base-case volume at L24 **[ESTIMATE]** | Plan |
 |---|---|---|
-| `workout_sets` | ~20k active loggers × 3 workouts/week × 20 sets ≈ 5M rows/month | Monthly range partitions on `created_at` from P3; BRIN on time |
+| `workout_sets` | \~20k active loggers × 3 workouts/week × 20 sets ≈ 5M rows/month | Monthly range partitions on `created_at` from P3; BRIN on time |
 | `gym_visits` | 183 gyms × 400 members × 12 visits/month ≈ 0.9M/month | Monthly partitions from P3 |
-| `messages` | ~3M/month | Monthly partitions from P3 |
-| `audit_events`, `data_access_log` | ~1–2M/month | Monthly partitions; > 24 months exported to S3 (Parquet) |
-| `ledger_entries` | ~100k/month | No partitioning needed before ~50M rows |
+| `messages` | \~3M/month | Monthly partitions from P3 |
+| `audit_events`, `data_access_log` | \~1–2M/month | Monthly partitions; > 24 months exported to S3 (Parquet) |
+| `ledger_entries` | \~100k/month | No partitioning needed before \~50M rows |
 
 ### 8.7 Migrations
 
@@ -1993,10 +1988,10 @@ Events (`membership.activated`, `visit.recorded`, `sale.completed`, …) deliver
 
 | Option | Ops | Cost at 3k concurrent / 30M messages per month **[ESTIMATE]** | Presence | Laravel/Flutter fit | Notes |
 |---|---|---|---|---|---|
-| **Laravel Reverb (self-hosted on ECS)** | Low–medium | 1–2 small tasks: **~$10–35/month** | Yes | Native (Pusher protocol, Echo; Flutter Pusher clients) | Horizontal scaling via Valkey pub/sub (or the Laravel 13 database driver [S51]) |
+| **Laravel Reverb (self-hosted on ECS)** | Low–medium | 1–2 small tasks: **\~$10–35/month** | Yes | Native (Pusher protocol, Echo; Flutter Pusher clients) | Horizontal scaling via Valkey pub/sub (or the Laravel 13 database driver [S51]) |
 | Pusher Channels | None | Tiers by connections and daily messages: $49 (500 conn, 1M msg/day) up to $1,199 (30k conn) [S49] | Yes | Native | Plan limits hard-block over-quota |
 | Ably | None | Free → $29 → $399 + usage [S49] | Yes | Pusher-compat adapter | Billing by messages/connection-minutes |
-| AWS AppSync Events | None | ~$1 per million operations + $0.08 per million connection-minutes [S47] → roughly **$10–40/month** | No built-in presence | Custom auth (Lambda), AWS-specific client | Cheapest managed; more custom code |
+| AWS AppSync Events | None | \~$1 per million operations + $0.08 per million connection-minutes [S47] → roughly **$10–40/month** | No built-in presence | Custom auth (Lambda), AWS-specific client | Cheapest managed; more custom code |
 | API Gateway WebSockets | None | Per message + per connection-minute **[VERIFY rates]** | No | Custom | Connection state in DynamoDB; more plumbing |
 | Server-Sent Events | Low | Part of API | No | Simple one-way | Good for dashboards; no client→server; PHP workers held open |
 | Long-polling | Low | Part of API | No | Simple | Fallback only |
@@ -2060,7 +2055,7 @@ sequenceDiagram
 
 ### 10.6 Cost
 
-Reverb tasks: MVP 0.25 vCPU/0.5 GB (~$8/month), growth 2 tasks of 1 vCPU/2 GB (~$66/month) on Fargate ARM (§15). Equivalent Pusher plan for 3k concurrent connections would be a few hundred dollars per month [S49]. Push via FCM: free. Bandwidth is negligible (small JSON events).
+Reverb tasks: MVP 0.25 vCPU/0.5 GB (\~$8/month), growth 2 tasks of 1 vCPU/2 GB (\~$66/month) on Fargate ARM (§15). Equivalent Pusher plan for 3k concurrent connections would be a few hundred dollars per month [S49]. Push via FCM: free. Bandwidth is negligible (small JSON events).
 
 ### 10.7 Video calls and live streaming are different problems
 
@@ -2086,7 +2081,7 @@ Example: 1,000 consults/month × 30 min × 2 participants = 60k participant-minu
 | **Platform Checkout** (P3) | Licensed gateway split; Tamreen earns commission | Marketplace → Payments | Marketplace coaching package |
 
 ```mermaid
-flowchart LR
+flowchart TB
     CAT["Catalog<br/>plans · prices · coupons"] --> SUB["Subscriptions"]
     SUB --> INV["Invoices (VAT, numbering)"]
     INV --> PI["Payment intents<br/>(idempotency key)"]
@@ -2266,7 +2261,7 @@ sequenceDiagram
 ### 12.4 Trainer commission engine (Compensation module)
 
 ```mermaid
-flowchart LR
+flowchart TB
     S1["SessionConfirmed (PT)"] --> E["Earnings calculator"]
     S2["ClassSessionCompleted (attendance)"] --> E
     S3["SaleCompleted (sales-commission staff)"] --> E
@@ -2294,8 +2289,8 @@ Reviews unlock 7 days after an order's engagement starts (or after the first con
 
 | Region | Status (Oct 2026) | Expected latency from Egypt **[ESTIMATE — measure]** | Price level | Risk / notes | Verdict |
 |---|---|---|---|---|---|
-| **eu-central-1 Frankfurt** | Mature; full service catalogue | ~50–80 ms from Cairo ISPs (Egypt's international routes run mostly via Mediterranean cables into Europe) | EU baseline | Lowest risk; most peering | **Primary** |
-| eu-south-1 Milan | GA; narrower catalogue | Possibly a little lower than Frankfurt; ~13 ms from Frankfurt [S55] | Slightly higher than Frankfurt on some services **[VERIFY]** | Good DR partner | **Backups/DR**; primary candidate only if measurements show a clear win |
+| **eu-central-1 Frankfurt** | Mature; full service catalogue | \~50–80 ms from Cairo ISPs (Egypt's international routes run mostly via Mediterranean cables into Europe) | EU baseline | Lowest risk; most peering | **Primary** |
+| eu-south-1 Milan | GA; narrower catalogue | Possibly a little lower than Frankfurt; \~13 ms from Frankfurt [S55] | Slightly higher than Frankfurt on some services **[VERIFY]** | Good DR partner | **Backups/DR**; primary candidate only if measurements show a clear win |
 | me-central-1 UAE | One AZ struck and lost in March 2026 [S37] | Not measured | Higher | Conflict exposure demonstrated | Not for primary in 2026 |
 | me-south-1 Bahrain | AWS stated in Sep 2026 that resources/data hosted only there cannot be restored [S37] | — | — | Unusable | No |
 | me-central-2 Saudi Arabia | Targeted to launch by Dec 2026 [S36]; services expand after launch | Best for KSA users | Likely higher | New region; service gaps at launch | Future KSA cell (§4.6) |
@@ -2312,8 +2307,8 @@ Static content and media are served from **CloudFront's Cairo edge** (since May 
 
 | Option | Fit for Laravel + Reverb + workers | Ops burden | Cost (MVP) | Scaling | Verdict |
 |---|---|---|---|---|---|
-| EC2 + Docker Compose | Works (the founder's current style) | Patching, AMIs, SSH, manual rolling deploys | Lowest (~$62 for 2 × t4g.medium + EBS) | Manual/ASG | Fallback |
-| **ECS on Fargate (ARM64)** | API, Reverb, workers, scheduler as separate services from one image | No hosts; managed rolling deploys + circuit breaker | ~$91 for the MVP task set (§15) | Service autoscaling | **MVP → early traction** |
+| EC2 + Docker Compose | Works (the founder's current style) | Patching, AMIs, SSH, manual rolling deploys | Lowest (\~$62 for 2 × t4g.medium + EBS) | Manual/ASG | Fallback |
+| **ECS on Fargate (ARM64)** | API, Reverb, workers, scheduler as separate services from one image | No hosts; managed rolling deploys + circuit breaker | \~$91 for the MVP task set (§15) | Service autoscaling | **MVP → early traction** |
 | ECS on EC2 (Graviton) capacity provider | Same task definitions | Hosts managed via ASG + ECS-optimised AMI | Cheaper per vCPU with Savings Plans at steady load | Cluster autoscaling | **Growth tier** |
 | EKS | Works | Kubernetes expertise, control-plane fee | Higher | Excellent | Not needed |
 | Lambda (Bref) | HTTP API yes; Reverb no (long-lived sockets); Horizon no | Low | Low at idle | Excellent | No — splits the stack |
@@ -2334,12 +2329,12 @@ Static content and media are served from **CloudFront's Cairo edge** (since May 
 
 | Component | Managed choice | Self-managed alternative | Monthly saving if self-managed (MVP) | Risk taken | Decision |
 |---|---|---|---|---|---|
-| PostgreSQL | RDS | Postgres container on EC2 | ~$30–40 | Data loss/restore complexity | **Managed** |
-| Valkey | ElastiCache Serverless (~$6–10 floor) [S43] | Valkey container | ~$10 | Low (cache/queue; outbox protects events) | Managed (cheap enough) |
+| PostgreSQL | RDS | Postgres container on EC2 | \~$30–40 | Data loss/restore complexity | **Managed** |
+| Valkey | ElastiCache Serverless (\~$6–10 floor) [S43] | Valkey container | \~$10 | Low (cache/queue; outbox protects events) | Managed (cheap enough) |
 | WebSockets | Reverb on ECS (self-run) | Pusher ($49+) | — | Low | **Self-run** |
 | Search | Postgres | OpenSearch domain | — | — | Postgres until thresholds |
 | Email | SES | Postfix | negligible | Deliverability | Managed |
-| Monitoring | CloudWatch + Sentry | Prometheus/Grafana stack | ~$20 | Ops time | Managed |
+| Monitoring | CloudWatch + Sentry | Prometheus/Grafana stack | \~$20 | Ops time | Managed |
 | Video | LiveKit Cloud (P4) | Self-hosted LiveKit on EC2 | depends on volume | TURN/scaling ops | Managed first |
 
 ---
@@ -2383,7 +2378,7 @@ flowchart TB
     T2 --> GWE
 ```
 
-- **MVP:** tasks in public subnets with public IPs (outbound to gateways, FCM, Meta without a NAT gateway); inbound locked to the ALB security group; no SSH (ECS Exec via SSM when needed); IMDSv2 only. This saves a NAT gateway (~$38/month + $0.052/GB processed **[VERIFY Frankfurt rate]**) and interface endpoints (~$7–9/month each per AZ).
+- **MVP:** tasks in public subnets with public IPs (outbound to gateways, FCM, Meta without a NAT gateway); inbound locked to the ALB security group; no SSH (ECS Exec via SSM when needed); IMDSv2 only. This saves a NAT gateway (\~$38/month + $0.052/GB processed **[VERIFY Frankfurt rate]**) and interface endpoints (\~$7–9/month each per AZ).
 - **From early traction (≈ L9):** move tasks to private subnets with one NAT gateway (two at growth tier for AZ independence), add interface endpoints only where traffic justifies them (ECR, CloudWatch Logs, Secrets Manager).
 - Data subnets have no internet route; RDS/Valkey security groups allow only the task security group.
 
@@ -2440,7 +2435,7 @@ AWS Secrets Manager for database credentials (rotation) and provider secrets; SS
 ### 14.7 Deployment and rollback
 
 ```mermaid
-flowchart LR
+flowchart TB
     PR["Pull request"] --> CI["CI: lint, static analysis, tests,<br/>architecture + tenancy tests,<br/>Terraform plan, image scan"]
     CI --> M["Merge to main"]
     M --> B["Build arm64 image → ECR (immutable tag = git SHA)"]
@@ -2463,31 +2458,31 @@ Rollback is safe because migrations are expand-only in the release that introduc
 | Item | Price used | Source / confidence |
 |---|---|---|
 | EC2 t4g.small / t4g.medium / t4g.large | $0.0192 / $0.0384 / $0.0768 per hour | [S40] third-party trackers (t4g.medium $0.038) — **[VERIFY]** |
-| Fargate Linux/ARM64 | ~$0.03725 per vCPU-hour, ~$0.00409 per GB-hour | **[ASSUMPTION ≈ us-east-1 × regional uplift — VERIFY]** |
-| RDS PostgreSQL db.t4g.medium (Single-AZ) | ~$54/month (~$0.074/h); Multi-AZ ≈ ×2 | [S41] |
-| RDS gp3 storage | ~$0.137 per GB-month (×2 for Multi-AZ) | **[ASSUMPTION — VERIFY]** |
+| Fargate Linux/ARM64 | \~$0.03725 per vCPU-hour, \~$0.00409 per GB-hour | **[ASSUMPTION ≈ us-east-1 × regional uplift — VERIFY]** |
+| RDS PostgreSQL db.t4g.medium (Single-AZ) | \~$54/month (\~$0.074/h); Multi-AZ ≈ ×2 | [S41] |
+| RDS gp3 storage | \~$0.137 per GB-month (×2 for Multi-AZ) | **[ASSUMPTION — VERIFY]** |
 | ALB | $0.027 per hour + $0.008 per LCU-hour | [S45] |
-| Public IPv4 | $0.005 per address-hour (~$3.65/month) | [S42] |
-| NAT gateway | ~$0.052 per hour + ~$0.052 per GB processed | **[ASSUMPTION — VERIFY]** |
+| Public IPv4 | $0.005 per address-hour (\~$3.65/month) | [S42] |
+| NAT gateway | \~$0.052 per hour + \~$0.052 per GB processed | **[ASSUMPTION — VERIFY]** |
 | S3 Standard | $0.0245 per GB-month (first 50 TB) | [S44] |
 | CloudFront to Middle East/Africa (incl. Cairo edge) | $0.110 per GB (first 10 TB); always-free 1 TB/month; flat-rate plans Free/$15/$200/$1,000 with no overage | [S39] |
-| ElastiCache Serverless Valkey | ~$6/month floor (100 MB minimum) | [S43] (us-east-1 rate) |
-| CloudWatch Logs ingestion | ~$0.63 per GB | **[ASSUMPTION — VERIFY]** |
-| SES | ~$0.10 per 1,000 e-mails | **[ASSUMPTION — VERIFY]** |
+| ElastiCache Serverless Valkey | \~$6/month floor (100 MB minimum) | [S43] (us-east-1 rate) |
+| CloudWatch Logs ingestion | \~$0.63 per GB | **[ASSUMPTION — VERIFY]** |
+| SES | \~$0.10 per 1,000 e-mails | **[ASSUMPTION — VERIFY]** |
 | New-account credits | Up to $200 credits; free plan 6 months | [S46] |
 
 ### 15.2 Monthly AWS cost by stage **[ESTIMATE]**
 
 Line items are reproducible from §15.1; on-demand prices, before tax.
 
-**Development / staging — ~$29/month** (one t4g.small running the whole stack in Docker Compose, 40 GB gp3, one public IP, S3, logs). First months are covered by new-account credits [S46].
+**Development / staging — \~$29/month** (one t4g.small running the whole stack in Docker Compose, 40 GB gp3, one public IP, S3, logs). First months are covered by new-account credits [S46].
 
-**MVP production (≤ 5k MAU, ~L1–L8) — ~$245/month** (add ~$60/month when RDS goes Multi-AZ before the first paying gym, ~L7)
+**MVP production (≤ 5k MAU, \~L1–L8) — \~$245/month** (add \~$60/month when RDS goes Multi-AZ before the first paying gym, \~L7)
 
 | Line | $/month |
 |---|---|
 | Fargate ARM: api 2 × (1 vCPU, 2 GB), worker (0.5, 1), reverb (0.25, 0.5) | 91 |
-| ALB (hour + ~1 LCU) | 26 |
+| ALB (hour + \~1 LCU) | 26 |
 | Public IPv4 (4 tasks + 2 ALB) | 22 |
 | RDS db.t4g.medium Single-AZ + 50 GB gp3 + PITR | 61 |
 | ElastiCache Serverless Valkey | 10 |
@@ -2496,34 +2491,34 @@ Line items are reproducible from §15.1; on-demand prices, before tax.
 | SES (30k), CloudWatch (10 GB logs + alarms), Secrets, Route 53, backups | 27 |
 | **Total** | **≈ 245** (EC2-based alternative ≈ $207) |
 
-**Early traction (≤ 30k MAU, ~L9–L20) — ~$1,180/month on demand, ~$1,040 with 1-year Compute Savings Plan + reserved RDS/cache**
+**Early traction (≤ 30k MAU, \~L9–L20) — \~$1,180/month on demand, \~$1,040 with 1-year Compute Savings Plan + reserved RDS/cache**
 
 | Line | $/month |
 |---|---|
 | Fargate ARM: api 3 × (2 vCPU, 4 GB), workers 2 × (1, 2), reverb 1 × (1, 2) | 299 |
-| ALB (~4 LCU) | 43 |
+| ALB (\~4 LCU) | 43 |
 | NAT gateway (1) + 150 GB | 46 |
 | Public IPv4 (ALB + NAT) | 11 |
 | RDS db.t4g.large **Multi-AZ** + 200 GB gp3 | 271 |
 | ElastiCache Valkey cache.t4g.small primary + replica | 54 |
 | S3 1.5 TB + requests | 49 |
-| CloudFront Business flat-rate plan (or ~1 TB billable at $0.110/GB) | 200 |
-| MediaConvert (~2k output minutes) | 30 |
+| CloudFront Business flat-rate plan (or \~1 TB billable at $0.110/GB) | 200 |
+| MediaConvert (\~2k output minutes) | 30 |
 | SES, CloudWatch (60 GB logs), WAF, GuardDuty/Security Hub, backups + cross-region copies, KMS/Secrets/Route 53 | 178 |
 | **Total** | **≈ 1,180** |
 
-**Growth (≤ 100k MAU, ~L21+ in base case) — ~$2,625/month on demand, ~$2,280 with commitments**
+**Growth (≤ 100k MAU, \~L21+ in base case) — \~$2,625/month on demand, \~$2,280 with commitments**
 
 ECS on EC2 (4 × c7g.large API hosts $248, 2 × t4g.large workers $112, 2 × t4g.medium Reverb $56), ALB $78, 2 NAT gateways + 500 GB $102, RDS db.m7g.large Multi-AZ + 500 GB $425, read replica $177, Valkey r7g.large pair $368, S3 5 TB $153, CloudFront $260, MediaConvert $120, CloudWatch $186, WAF + GuardDuty/Security Hub/Inspector $130, backups $90, SES $50, Secrets/Route 53/KMS $30, EBS + public IPv4 $41.
 
-**Scale (≥ 100k MAU, KSA live, optional Saudi cell) — ~$5,000–6,500/month** **[ESTIMATE]**: larger RDS (r7g.xlarge Multi-AZ + replica), OpenSearch (2 small data nodes), more API hosts, video consult minutes (pass-through), plus ~$1,000–1,500/month for a minimal Saudi cell if required.
+**Scale (≥ 100k MAU, KSA live, optional Saudi cell) — \~$5,000–6,500/month** **[ESTIMATE]**: larger RDS (r7g.xlarge Multi-AZ + replica), OpenSearch (2 small data nodes), more API hosts, video consult minutes (pass-through), plus \~$1,000–1,500/month for a minimal Saudi cell if required.
 
 | Stage | MAU | AWS $/month | AWS per MAU (at the top of the tier) | Share of base-case net revenue |
 |---|---|---|---|---|
-| MVP | ≤ 5k | ~245 | ~$0.05 | > 100% at L1 → ~12% at L8 |
-| Early traction | ≤ 30k | ~1,040–1,180 | ~$0.035–0.04 | ~40% at L9 → ~7% at L20 |
-| Growth | ≤ 100k | ~2,280–2,625 | ~$0.023–0.026 | ~14% at L21 → ~10% at L24 |
-| Scale | ≥ 100k | ~5,000–6,500 | ~$0.03–0.04 | ~9% (aggressive scenario at L24) |
+| MVP | ≤ 5k | \~245 | \~$0.05 | > 100% at L1 → \~12% at L8 |
+| Early traction | ≤ 30k | \~1,040–1,180 | \~$0.035–0.04 | \~40% at L9 → \~7% at L20 |
+| Growth | ≤ 100k | \~2,280–2,625 | \~$0.023–0.026 | \~14% at L21 → \~10% at L24 |
+| Scale | ≥ 100k | \~5,000–6,500 | \~$0.03–0.04 | \~9% (aggressive scenario at L24) |
 
 The financial model applies each tier's full cost from the tier's lower MAU bound, which overstates spend right after each step (e.g. L9). In practice capacity is added gradually — Multi-AZ at L7, NAT at L9, a third API task when CPU stays above 60% — so real spend should sit below the model between steps.
 
@@ -2535,7 +2530,7 @@ These tiers feed the Blueprint's financial model (Blueprint Appendix B).
 |---|---|---|
 | NAT gateway hours + per-GB processing | Every outbound byte from private subnets (gateway calls, FCM, image downloads) | Public-subnet tasks at MVP; S3 gateway endpoint (free); NAT only from early traction |
 | Public IPv4 charges | Every task/ALB/NAT IP is billed since 2024 [S42] | Count them; IPv6 dual-stack where supported |
-| Interface VPC endpoints | ~$7–9 per endpoint per AZ per month | Only where traffic justifies |
+| Interface VPC endpoints | \~$7–9 per endpoint per AZ per month | Only where traffic justifies |
 | Load balancer LCUs | WebSocket connections and new connections count | Monitor LCU; one ALB for API + WS |
 | CloudWatch Logs ingestion | Chatty logs at $0.5–0.6/GB add up fast | INFO-level only in prod, sampling, 14–30-day retention, archive to S3 |
 | Cross-AZ data transfer | $0.01/GB each way between AZs | Keep chatty pairs (task ↔ cache) aware; accept for HA |
@@ -2602,7 +2597,7 @@ Tamreen does **not** claim compliance with any law until the verification steps 
 
 | Regime | Applies because | Obligations (summary) | Implementation | Verification step |
 |---|---|---|---|---|
-| **Egypt PDPL (Law 151/2020) + Executive Regulations (Decree 816/2025)** | Egyptian data subjects; Egyptian controller | Licences/permits from the PDPC (controller/processor; **sensitive data**; **cross-border transfer — storing abroad counts**) [S27][S29]; explicit consent for sensitive data (health, financial, children) [S28]; data subject rights; DPO; records of processing; breach notification (72 h reported) [S27]; representative for foreign entities | Consent records per purpose/version; Consent centre; export/delete; data access log; DPO appointed (founder initially + external counsel); RoPA document; incident runbook with 72 h clock | Written legal opinion in P0 on licence types, fees and timelines; application filed before L1; review again at the end of the grace period (~Nov 2026) [S27] |
+| **Egypt PDPL (Law 151/2020) + Executive Regulations (Decree 816/2025)** | Egyptian data subjects; Egyptian controller | Licences/permits from the PDPC (controller/processor; **sensitive data**; **cross-border transfer — storing abroad counts**) [S27][S29]; explicit consent for sensitive data (health, financial, children) [S28]; data subject rights; DPO; records of processing; breach notification (72 h reported) [S27]; representative for foreign entities | Consent records per purpose/version; Consent centre; export/delete; data access log; DPO appointed (founder initially + external counsel); RoPA document; incident runbook with 72 h clock | Written legal opinion in P0 on licence types, fees and timelines; application filed before L1; review again at the end of the grace period (\~Nov 2026) [S27] |
 | **Saudi PDPL** | Saudi data subjects (P4) | Lawful basis (consent for health data; legitimate interest does not cover sensitive data) [S30]; transfer safeguards (SCCs/risk assessment) [S30]; data subject rights; breach notification **[VERIFY timeline]** | Same consent engine; SCCs with AWS/processors; transfer risk assessment; optional Saudi cell | Saudi counsel opinion before L16 |
 | **GDPR** | Only if we target EU residents or have an EU establishment — hosting in the EU **does not by itself** make GDPR apply **[VERIFY]** | — | AWS DPA in place regardless | Counsel confirmation |
 | **UAE PDPL** | If UAE expansion | Similar principles | Same engine | Before entering UAE |
@@ -2845,11 +2840,11 @@ Phase names, dates and business gates match Blueprint §13. Effort is in person-
 
 | Phase | Window | Team (FTE) | Effort | Relative cost | Gate to next phase |
 |---|---|---|---|---|---|
-| P0 Discovery & foundation | 6 weeks before P1 | Founder 1, full-stack 1, Flutter 0.5, designer 0.5 | ~18 pw | $ (≈ 0.55M EGP incl. part of legal) | Legal path chosen; pricing validated; foundations green |
-| P1 Coach MVP | 18 weeks → L1 | Founder 1, full-stack 1, Flutter 1, designer 0.5 | ~63 pw | $$ (≈ 0.97M EGP) | 50 paying coaches by L3; weekly check-in loop ≥ 60% |
-| P2 Gym Core | L2–L7 | + backend (L8 in model; earlier if funded), QA/support engineer (L7), sales | ~120 pw | $$$ | 5 design-partner gyms live (L5); check-in p95 < 3 s end-to-end |
-| P3 Marketplace & Growth | L8–L15 | 5–6 engineers + designer | ~220 pw | $$$$ | Liquidity thresholds; refund rate < 3% |
-| P4 GCC & Scale | L13–L24 | 6–7 engineers + designer | ~200 pw | $$$$ | KSA live; 99.9% availability held 3 months |
+| P0 Discovery & foundation | 6 weeks before P1 | Founder 1, full-stack 1, Flutter 0.5, designer 0.5 | \~18 pw | $ (≈ 0.55M EGP incl. part of legal) | Legal path chosen; pricing validated; foundations green |
+| P1 Coach MVP | 18 weeks → L1 | Founder 1, full-stack 1, Flutter 1, designer 0.5 | \~63 pw | $$ (≈ 0.97M EGP) | 50 paying coaches by L3; weekly check-in loop ≥ 60% |
+| P2 Gym Core | L2–L7 | + backend (L8 in model; earlier if funded), QA/support engineer (L7), sales | \~120 pw | $$$ | 5 design-partner gyms live (L5); check-in p95 < 3 s end-to-end |
+| P3 Marketplace & Growth | L8–L15 | 5–6 engineers + designer | \~220 pw | $$$$ | Liquidity thresholds; refund rate < 3% |
+| P4 GCC & Scale | L13–L24 | 6–7 engineers + designer | \~200 pw | $$$$ | KSA live; 99.9% availability held 3 months |
 | P5 Expansion | On trigger | Per initiative | Per initiative | Per business case | Per initiative |
 
 ### 21.2 P0 — Discovery and foundation
@@ -2872,7 +2867,7 @@ Phase names, dates and business gates match Blueprint §13. Effort is in person-
 |---|---|---|---|
 | S1 | Identity (OTP via WhatsApp/SMS, sessions, devices), Organizations (coaching business), context middleware, audit | Auth, onboarding wizard | Auth, workspace switcher, i18n/RTL shell |
 | S2 | Access (grants, consent records), invites, roster, unclaimed persons | Client list, invite flows | Invite acceptance + consent screens |
-| S3 | Exercises (seed ~300, media pipeline), program templates (JSON Schema, versioning) | Program builder | Exercise library browsing |
+| S3 | Exercises (seed \~300, media pipeline), program templates (JSON Schema, versioning) | Program builder | Exercise library browsing |
 | S4 | Assignment, sync endpoint, idempotency | Assign program | Today view, **offline logger** (Drift outbox), rest timer |
 | S5 | Body metrics, sensitive media bucket, PR jobs, history | Client 360° (charts) | Metrics, photos (compressed, private), history/PRs |
 | S6 | Check-ins (forms, schedules, reminders), notifications (FCM, SES, WhatsApp templates) | Review queue | Check-in submission |
@@ -3033,7 +3028,7 @@ Format: Context → Decision → Alternatives → Consequences. Status: **Propos
 
 **ADR-006 — AWS eu-central-1 primary, eu-south-1 for backups; no Gulf primary in 2026.** *Context:* Egypt has no AWS region; 2026 strikes destroyed/impaired Gulf regions [S37]; Saudi region expected Dec 2026 [S36]. *Decision:* Frankfurt (subject to P0 latency probes; Milan if clearly faster). *Consequences:* EU latency acceptable with CloudFront Cairo edge and offline-first apps; Egyptian cross-border transfer licence required (§16.6).
 
-**ADR-007 — ECS on Fargate (ARM64) first, EC2 capacity providers at growth.** *Alternatives:* EC2 + Compose, EKS, Lambda/Bref, Lightsail, App Runner. *Consequences:* no host management for a tiny team at ~$35/month premium over EC2 at MVP; same task definitions move to EC2 capacity when cheaper.
+**ADR-007 — ECS on Fargate (ARM64) first, EC2 capacity providers at growth.** *Alternatives:* EC2 + Compose, EKS, Lambda/Bref, Lightsail, App Runner. *Consequences:* no host management for a tiny team at \~$35/month premium over EC2 at MVP; same task definitions move to EC2 capacity when cheaper.
 
 **ADR-008 — Laravel Reverb for WebSockets (Pusher protocol).** *Alternatives:* Pusher, Ably, AppSync Events, API Gateway WebSockets, SSE. *Consequences:* low cost, native Laravel integration, presence; we operate it (2 tasks + Valkey); switching to Pusher/Ably is configuration.
 
@@ -3133,7 +3128,7 @@ Accessed 22 October 2026 via web search unless noted. IDs S1–S37, S52 and S54 
 | S51 | Laravel 13 release, PHP 8.3 minimum, Reverb database driver — https://laravel-news.com/laravel-13 ; https://www.cloudways.com/blog/laravel-13/ | News, Mar 2026 |
 | S52 | Google Fit migration FAQ — https://developer.android.com/health-and-fitness/guides/health-connect/migrate/migration-faq ; Fitbit Web API change — https://www.thryve.health/blog/fitbit-shutdown-september-2026-migration-options | Google; third party |
 | S53 | USDA FoodData Central (CC0/public domain) — https://catalog.data.gov/dataset/fooddata-central | US government |
-| S55 | AWS inter-region latency (eu-central-1 ↔ eu-south-1 ~13 ms, ↔ me-central-1 ~112 ms) — https://www.economize.cloud/resources/aws/latency/eu-central-1-vs-me-central-1/ | Third party |
+| S55 | AWS inter-region latency (eu-central-1 ↔ eu-south-1 \~13 ms, ↔ me-central-1 \~112 ms) — https://www.economize.cloud/resources/aws/latency/eu-central-1-vs-me-central-1/ | Third party |
 
 ## Appendix B — Vocabulary to schema map
 

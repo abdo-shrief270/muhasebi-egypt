@@ -8,7 +8,7 @@
 | Version / date | v1.0 — 22 October 2026 |
 | Status | Research & planning baseline. No code. Decisions marked **[DECISION]** are proposed and need founder sign-off (§18). |
 | Working name | **Tamreen** (تمرين, "training/exercise") — a placeholder. Trademark and domain availability have **not** been checked. |
-| Currency | Egyptian pounds (EGP) unless stated. USD conversions use **52.5 EGP/USD** (bank quotes were ~52.7–52.8 on 13 Oct 2026 [S21]); SAR is pegged at 3.75/USD → **14.0 EGP/SAR**. |
+| Currency | Egyptian pounds (EGP) unless stated. USD conversions use **52.5 EGP/USD** (bank quotes were \~52.7–52.8 on 13 Oct 2026 [S21]); SAR is pegged at 3.75/USD → **14.0 EGP/SAR**. |
 
 ### How to read this document
 
@@ -94,11 +94,11 @@ Tamreen joins these three around one idea: **the trainee owns their Personal Spa
 
 | # | Recommendation | Why |
 |---|---|---|
-| 1 | **[DECISION] Beachhead = independent online coaches in Egypt** (Coach OS + Trainee app), launched after ~6 months of build. | Self-serve sales, short sales cycle, each paying coach brings 10–50 trainees into the app (supply + demand for later phases). Gym sales cycles are longer and need front-desk, POS and contract depth that is not needed to prove the core. |
-| 2 | **Gym OS from L7** (design partners from L5): memberships, front desk QR check-in, classes, PT packages and trainer commissions, POS-lite, WhatsApp reminders. | Higher revenue per customer (~2,400 EGP/month vs ~650 for a coach) and lower churn; reuses the trainee app as the member app. The wedge is **the gym's PT business** (in-house + freelance trainers), which local gym tools handle poorly. |
+| 1 | **[DECISION] Beachhead = independent online coaches in Egypt** (Coach OS + Trainee app), launched after \~6 months of build. | Self-serve sales, short sales cycle, each paying coach brings 10–50 trainees into the app (supply + demand for later phases). Gym sales cycles are longer and need front-desk, POS and contract depth that is not needed to prove the core. |
+| 2 | **Gym OS from L7** (design partners from L5): memberships, front desk QR check-in, classes, PT packages and trainer commissions, POS-lite, WhatsApp reminders. | Higher revenue per customer (\~2,400 EGP/month vs \~650 for a coach) and lower churn; reuses the trainee app as the member app. The wedge is **the gym's PT business** (in-house + freelance trainers), which local gym tools handle poorly. |
 | 3 | **Marketplace from L10**, once there are ≥ 300 coaches with public profiles in Greater Cairo/Alexandria. | A marketplace without supply fails. Supply arrives as a by-product of steps 1–2. |
-| 4 | **Saudi Arabia from L16** through a channel partner, with SAR pricing, mada/Apple Pay via a Saudi gateway and ZATCA-compliant invoicing. | Saudi revenue per customer is ~2–3× Egypt's; Arabic product and content carry over. The timing allows for the planned AWS Saudi region (targeted Dec 2026 [S36]) and legal work. |
-| 5 | **Trainee Plus (B2C) as a funnel, not a revenue pillar.** | Willingness to pay for self-tracking in Egypt is low. In the base case Plus is ~1% of L24 revenue; its job is to keep ex-clients and organic users in the ecosystem. |
+| 4 | **Saudi Arabia from L16** through a channel partner, with SAR pricing, mada/Apple Pay via a Saudi gateway and ZATCA-compliant invoicing. | Saudi revenue per customer is \~2–3× Egypt's; Arabic product and content carry over. The timing allows for the planned AWS Saudi region (targeted Dec 2026 [S36]) and legal work. |
+| 5 | **Trainee Plus (B2C) as a funnel, not a revenue pillar.** | Willingness to pay for self-tracking in Egypt is low. In the base case Plus is \~1% of L24 revenue; its job is to keep ex-clients and organic users in the ecosystem. |
 | 6 | **AI, wearables, video, white-label later (Phase 3–5)**, each behind a clear trigger (§13.4). | They add cost and risk without proving the core. Competitors' AI is mostly "draft a workout" [S54]. |
 
 ### 1.3 Business model in one table
@@ -115,20 +115,20 @@ Tamreen joins these three around one idea: **the trainee owns their Personal Spa
 
 | Metric | L12 | L24 |
 |---|---|---|
-| Paying coaches (Egypt + KSA) | ~296 | ~992 |
-| Paying gyms (Egypt + KSA) | ~29 | ~183 |
-| Monthly active users (all apps) | ~12k | ~55k |
-| Net monthly revenue (after VAT) | ~245k EGP (~$4.7k) | ~1.23M EGP (~$23.4k) |
-| ARR run-rate | ~$56k | ~$281k |
-| Gross margin | ~72% | ~80% |
+| Paying coaches (Egypt + KSA) | \~296 | \~992 |
+| Paying gyms (Egypt + KSA) | \~29 | \~183 |
+| Monthly active users (all apps) | \~12k | \~55k |
+| Net monthly revenue (after VAT) | \~245k EGP (\~$4.7k) | \~1.23M EGP (\~$23.4k) |
+| ARR run-rate | \~$56k | \~$281k |
+| Gross margin | \~72% | \~80% |
 | Monthly EBITDA | −386k EGP | +74k EGP (break-even month ≈ L24) |
-| Peak cash need incl. 6-month build | — | ~9.0M EGP (~$172k) |
+| Peak cash need incl. 6-month build | — | \~9.0M EGP (\~$172k) |
 
-A **lean variant** (founder writes the backend, smaller team until L10) breaks even at about **L20** with a peak cash need of about **4.7M EGP (~$90k)**. The conservative scenario does **not** break even within 24 months; §12.7 sets stop/pivot triggers.
+A **lean variant** (founder writes the backend, smaller team until L10) breaks even at about **L20** with a peak cash need of about **4.7M EGP (\~$90k)**. The conservative scenario does **not** break even within 24 months; §12.7 sets stop/pivot triggers.
 
 ### 1.5 Technology and infrastructure in one paragraph
 
-A **modular monolith** in **Laravel 13 / PHP 8.4** with **PostgreSQL** (RDS), **Valkey** (ElastiCache) and **Laravel Reverb** WebSockets; a **Nuxt 4** web app (SPA for the dashboards, server-rendered public pages for SEO); one **Flutter** mobile app with role modes (trainee and coach); **ECS Fargate (ARM)** in **AWS eu-central-1 (Frankfurt)**, CloudFront with its Cairo edge, backups copied to eu-south-1 (Milan). Production starts at **~$245/month** of AWS spend and reaches **~$1,000–1,200/month** at ~30k monthly active users (Technical §15). The Gulf AWS regions are *not* recommended as primary hosting in 2026: after strikes in March–April 2026, AWS said in September that resources hosted only in its Bahrain region cannot be restored, and its UAE region lost an availability zone [S37]. Hosting Egyptians' data abroad needs a cross-border transfer licence from Egypt's data protection regulator — a **blocking legal dependency** (§16, Technical §16).
+A **modular monolith** in **Laravel 13 / PHP 8.4** with **PostgreSQL** (RDS), **Valkey** (ElastiCache) and **Laravel Reverb** WebSockets; a **Nuxt 4** web app (SPA for the dashboards, server-rendered public pages for SEO); one **Flutter** mobile app with role modes (trainee and coach); **ECS Fargate (ARM)** in **AWS eu-central-1 (Frankfurt)**, CloudFront with its Cairo edge, backups copied to eu-south-1 (Milan). Production starts at **\~$245/month** of AWS spend and reaches **\~$1,000–1,200/month** at \~30k monthly active users (Technical §15). The Gulf AWS regions are *not* recommended as primary hosting in 2026: after strikes in March–April 2026, AWS said in September that resources hosted only in its Bahrain region cannot be restored, and its UAE region lost an availability zone [S37]. Hosting Egyptians' data abroad needs a cross-border transfer licence from Egypt's data protection regulator — a **blocking legal dependency** (§16, Technical §16).
 
 ---
 
@@ -138,12 +138,12 @@ A **modular monolith** in **Laravel 13 / PHP 8.4** with **PostgreSQL** (RDS), **
 
 | Topic | What we know | Product implication |
 |---|---|---|
-| Gyms | Business directories count **~8,000 "gyms"** (Jul 2026) or **~10,000 gyms and studios** (Mar 2025) in Egypt [S19] **[FACT, low precision]**. No official licensing count was found. | Serviceable market for gym software is in the thousands. Our base case reaches ~158 Egyptian gyms by L24 (~2% of directory count). |
-| Gym prices | Cairo monthly memberships range from ~EGP 750 to EGP 5,000; annual Gold's Gym EGP 6,500; F45 EGP 4,000–5,000/month [S17] **[FACT, secondary]**. Average business-district gym ~EGP 1,261/month (Sep 2025) [S18]. | A 400-member mid-tier gym turns over roughly 400–600k EGP/month; a 1,000–2,000 EGP/month software bill is < 0.5% of revenue. |
+| Gyms | Business directories count **\~8,000 "gyms"** (Jul 2026) or **\~10,000 gyms and studios** (Mar 2025) in Egypt [S19] **[FACT, low precision]**. No official licensing count was found. | Serviceable market for gym software is in the thousands. Our base case reaches \~158 Egyptian gyms by L24 (\~2% of directory count). |
+| Gym prices | Cairo monthly memberships range from \~EGP 750 to EGP 5,000; annual Gold's Gym EGP 6,500; F45 EGP 4,000–5,000/month [S17] **[FACT, secondary]**. Average business-district gym \~EGP 1,261/month (Sep 2025) [S18]. | A 400-member mid-tier gym turns over roughly 400–600k EGP/month; a 1,000–2,000 EGP/month software bill is < 0.5% of revenue. |
 | Online coaching | No reliable published EGP price list was found **[GAP]**. Instagram coaches commonly sell monthly packages. We **assume** 1,000–3,000 EGP/month for online coaching and use 1,800 EGP as the average marketplace order (§12). | Validate in discovery interviews (P0) before final pricing. |
 | Payments | Paymob standard online rate **2.75% + EGP 3**, no monthly fee [S23]; Apple Pay live since Dec 2024 [S22]; InstaPay widely used for person-to-business transfers; wallets (Vodafone Cash etc.) common. Recurring card charges are possible (Paymob Subscriptions) [S23] but many users pay by transfer. | Billing must support **prepaid periods with reminders** as the default, auto-renew as an option, and **manual InstaPay proof upload** with admin approval. |
 | Messaging | WhatsApp is the default business channel. Meta charges ≈ $0.0036–0.0054 per utility and ≈ $0.064–0.077 per marketing message in Egypt; service replies start being charged on 1 Oct 2026 [S34] **[FACT, sources disagree]**. | Use free `wa.me` click-to-chat links for staff-initiated messages; use paid templates only for automated utility messages (renewal reminders, booking confirmations). Pass marketing messages through at cost. |
-| Data protection | Law 151/2020 and its Executive Regulations (Decree 816 of 2025, published ~Nov 2025, one-year grace to ~Nov 2026) [S27]. **Health, biometric, financial and children's data are "sensitive"** [S28]. Processing sensitive data and transferring data abroad (including *storing* it abroad) require licences from the Personal Data Protection Centre [S27][S29]. | Consent flows, licences and data minimisation are launch requirements, not polish (§16, Technical §16). |
+| Data protection | Law 151/2020 and its Executive Regulations (Decree 816 of 2025, published \~Nov 2025, one-year grace to \~Nov 2026) [S27]. **Health, biometric, financial and children's data are "sensitive"** [S28]. Processing sensitive data and transferring data abroad (including *storing* it abroad) require licences from the Personal Data Protection Centre [S27][S29]. | Consent flows, licences and data minimisation are launch requirements, not polish (§16, Technical §16). |
 | Tax | VAT 14%. B2C e-receipts are being phased in by named taxpayer lists (e.g. Decision 361 from 15 Nov 2025) [S32]. | Platform invoices for our own SaaS must be ETA-compliant once we are in scope; gyms may need e-receipts for their own sales (integration in Phase 4 or via partner). |
 
 ### 2.2 Saudi Arabia — context
@@ -178,15 +178,15 @@ Prices in USD per month unless noted; all third-party or vendor-reported, **[VER
 |---|---|---|---|---|---|
 | **SuperCoach** | MENA online coaches, some facilities | $19 (10 clients), $45+ | Arabic, Egypt/KSA presence, coach + trainee apps | Gym ops, marketplace, EGP pricing, trainee data ownership (unverified) | [S1][S2] |
 | **ElCoach** (consumer) | Arabic B2C coaching | SAR 56/month, SAR 206/year (coupon sites) | Brand in Egypt/KSA B2C | B2C only; different model | [S3][S4] |
-| **ABC Trainerize** | Global coaches, studios | Free (1 client), Pro from ~$22–23 (5 clients), Studio Plus ~$248/location; branded app $169 setup; nutrition/payments/video add-ons | Mature, branded apps, integrations | English-first, add-on creep, USD | [S5] |
-| **TrueCoach** | Global coaches | ~$26–30 (5), ~$58 (20), ~$137 (50); no free tier | Simple, coach-loved | No nutrition depth, no gyms | [S6] |
-| **Everfit** | Global coaches/studios | Free (5 clients), Pro ~$19 (5) → ~$290 (300); add-ons for payments, automation, meal plans | AI workout builder, automation | Add-on costs, English-first | [S7][S54] |
+| **ABC Trainerize** | Global coaches, studios | Free (1 client), Pro from \~$22–23 (5 clients), Studio Plus \~$248/location; branded app $169 setup; nutrition/payments/video add-ons | Mature, branded apps, integrations | English-first, add-on creep, USD | [S5] |
+| **TrueCoach** | Global coaches | \~$26–30 (5), \~$58 (20), \~$137 (50); no free tier | Simple, coach-loved | No nutrition depth, no gyms | [S6] |
+| **Everfit** | Global coaches/studios | Free (5 clients), Pro \~$19 (5) → \~$290 (300); add-ons for payments, automation, meal plans | AI workout builder, automation | Add-on costs, English-first | [S7][S54] |
 | **Hevy Coach** | Coaches with Hevy-logging clients | Low | Excellent logging UX | Light business tooling | [S54] |
 | **Mindbody** | Studios/gyms (US/global) | $99–139 → $699 + add-ons, long contracts | Marketplace (consumer app), payments | Expensive, not localised | [S9] |
 | **ABC Glofox** | Boutique studios/gyms | €220–515/month (2026 page) | Branded apps, class booking | Price, no Arabic | [S8] |
 | **PushPress** | Gyms (CrossFit-style) | Free tier (higher processing), $159, $229 | Free entry via payments margin | US-centric payments | [S10] |
 | **Gymdesk** | Small gyms/martial arts | $75–200 by members | Transparent pricing | No Arabic, no MENA payments | [S11] |
-| **GymFlow** (Egypt) | Egyptian gyms | "From ~500 EGP/month" | Arabic, QR attendance, WhatsApp workflows | Coaching/marketplace absent (vendor page) | [S12] |
+| **GymFlow** (Egypt) | Egyptian gyms | "From \~500 EGP/month" | Arabic, QR attendance, WhatsApp workflows | Coaching/marketplace absent (vendor page) | [S12] |
 | **ArabGym** | MENA gyms | 30-day trial | Arabic, KSA/UAE/Egypt | Coaching absent (vendor page) | [S13] |
 | **IDS Fitness / Gymsly / Easy Gym** | Saudi gyms | Quote | ZATCA QR, mada, BNPL | Coaching/marketplace absent | [S14] |
 | **Enhance Fitness, HeyTrainer, FitLov** | GCC PT booking marketplaces | Commission/packages | Demand generation | Not a business OS; UAE-centric | [S15][S16] |
@@ -261,7 +261,7 @@ Phases: **P1** Coach MVP (to L1), **P2** Gym Core (L2–L7), **P3** Marketplace 
 | COA-03 | Credentials upload; manual verification → "Verified" badge | Coach, platform | Marketplace trust | P1 upload, P3 badge |
 | COA-04 | Client invites (link, QR, WhatsApp), bulk import from CSV/Sheets | Coach | Fast migration | P1 |
 | COA-05 | Intake & assessment forms (templates: goals, training history, injuries, readiness questionnaire, preferences, food dislikes); conditional questions | Coach, client | Personalisation; safety screening | P1 |
-| COA-06 | Exercise library: ~300 platform exercises (AR/EN names, cues, muscles, equipment, demo video); custom exercises with own video | Coach | Content moat | P1 |
+| COA-06 | Exercise library: \~300 platform exercises (AR/EN names, cues, muscles, equipment, demo video); custom exercises with own video | Coach | Content moat | P1 |
 | COA-07 | Program builder: phases/weeks/days, blocks, supersets/circuits, sets × reps/time/distance, load/% 1RM/RPE/RIR, tempo, rest, notes; template library; duplicate and bulk edit | Coach | Core value | P1 |
 | COA-08 | Assign programs with start date; automatic simple progression rules (+load/+reps per week) | Coach | Saves time | P1 assign, P2 progression |
 | COA-09 | Nutrition: macro/calorie targets, meal plans with alternatives, local food database, recipes, printable PDF | Coach, nutritionist | Most coaches sell training + nutrition | P1 basic, P2 recipes/swaps |
@@ -502,7 +502,7 @@ flowchart TD
 ### 6.5 Front-desk entry decision
 
 ```mermaid
-flowchart LR
+flowchart TD
     S["Scan member QR or search phone"] --> A{"Active membership at this branch?"}
     A -- "No" --> X1["Deny: show 'renew' button"]
     A -- "Yes" --> B{"Frozen?"}
@@ -724,7 +724,7 @@ Rule: **losing an entitlement never deletes trainee data**. It only limits creat
 |---|---|---|---|
 | Egypt | Cards (incl. Meeza), Apple Pay, mobile wallets, Fawry reference, **InstaPay transfer + proof** | **Paymob** primary (2.75% + EGP 3 standard [S23]); Kashier as second quote (2.85% + EGP 3 reported, older source [S24]) | InstaPay proofs approved by platform staff (auto-match on amount + reference later) |
 | Saudi Arabia | mada, Visa/Mastercard, Apple Pay, STC Pay, bank transfer | **Moyasar** or **Tap** (both licensed; get quotes) [S26] | ZATCA-compliant invoices needed |
-| App stores (Trainee Plus in-app) | Apple / Google billing | via RevenueCat (free < $2.5k monthly tracked revenue, then ~1%) [S35] | 15–30% store fee **[VERIFY current programme terms]** |
+| App stores (Trainee Plus in-app) | Apple / Google billing | via RevenueCat (free < $2.5k monthly tracked revenue, then \~1%) [S35] | 15–30% store fee **[VERIFY current programme terms]** |
 
 ### 8.4 Who does what in billing
 
@@ -780,12 +780,12 @@ The marketplace is a **phase-3 product built on supply we already have**, not a 
 | Transaction | Commission | Who pays | Rationale |
 |---|---|---|---|
 | Coaching package bought by a client **who found the coach through the marketplace** | **10%** of net price, for the first 12 months of that client relationship | Deducted from coach payout | Pay only for demand we create; cheaper than Instagram ads per client |
-| Coaching package bought by a client **the coach brought** (invite/own link) through Platform Checkout | **0% commission**; processing at cost (~2.75% + EGP 3) | Coach | Encourages moving payments onto the platform → better data, renewals |
+| Coaching package bought by a client **the coach brought** (invite/own link) through Platform Checkout | **0% commission**; processing at cost (\~2.75% + EGP 3) | Coach | Encourages moving payments onto the platform → better data, renewals |
 | Gym membership bought via marketplace | 5% of the first term | Gym | Gyms' margins are thinner; first term only |
 | Class drop-in / class pack via marketplace | 10% | Gym/studio | ClassPass-like demand |
 | Products (P4 online store) | 5% | Seller | Low-margin goods |
 
-On every Platform Checkout order, payment processing (~2.75% + EGP 3 in Egypt) is passed through to the seller as a separate statement line; commission is charged on the net price and carries VAT (14% in Egypt). Worked ledger example: Technical §11.8.
+On every Platform Checkout order, payment processing (\~2.75% + EGP 3 in Egypt) is passed through to the seller as a separate statement line; commission is charged on the net price and carries VAT (14% in Egypt). Worked ledger example: Technical §11.8.
 
 **Disintermediation** (client and coach going off-platform to skip the fee) is reduced by: low fee; commission only on originated clients; reviews only for purchases made on the platform; renewals, receipts and refunds protection only on-platform; and the coach's ranking rewarding on-platform renewals.
 
@@ -911,9 +911,9 @@ Monday: review check-ins (queue sorted by due time) → adjust plans → send vo
 
 | Principle | Application |
 |---|---|
-| Price under USD-priced rivals for the Egyptian long tail, compete on value for the top | Coach Starter 349 EGP (~$6.6) vs SuperCoach Essential $19 (~1,000 EGP) and Trainerize Pro-5 ~$23 [S1][S5] |
-| Software cost ≤ 2–3% of the customer's revenue | A 35-client coach charging ~1,500 EGP earns ~52k EGP/month → Pro (799) = 1.5%. A 450-member gym at ~1,000 EGP/month = ~450k → Growth (1,900) ≈ 0.4% |
-| Local gym tools anchor gyms low | GymFlow "from ~500 EGP" [S12]; our Essentials at 900 includes the member app; Growth at 1,900 sells the PT/commission wedge |
+| Price under USD-priced rivals for the Egyptian long tail, compete on value for the top | Coach Starter 349 EGP (\~$6.6) vs SuperCoach Essential $19 (\~1,000 EGP) and Trainerize Pro-5 \~$23 [S1][S5] |
+| Software cost ≤ 2–3% of the customer's revenue | A 35-client coach charging \~1,500 EGP earns \~52k EGP/month → Pro (799) = 1.5%. A 450-member gym at \~1,000 EGP/month = \~450k → Growth (1,900) ≈ 0.4% |
+| Local gym tools anchor gyms low | GymFlow "from \~500 EGP" [S12]; our Essentials at 900 includes the member app; Growth at 1,900 sells the PT/commission wedge |
 | Free tier for coaches, not for gyms | Coaches self-serve and spread the product; gyms need onboarding and support |
 | B2C stays cheap | 79 EGP/month ≈ a single protein bar's price difference; yearly 599 |
 
@@ -921,9 +921,9 @@ Monday: review check-ins (queue sorted by due time) → adjust plans → send vo
 
 | Customer | Tamreen | SuperCoach | Trainerize | Everfit | Local gym tools |
 |---|---|---|---|---|---|
-| Coach with 10 clients | 349 | ~998 ($19) | ~1,200+ (Pro tier for 15) | ~1,000+ | — |
-| Coach with 40 clients | 799 | ~2,360+ ($45+, rises) | ~4,000–6,300 | ~3,000+ (+ add-ons) | — |
-| Gym, 1 branch, 450 members | 1,900 (Growth) | ? | ~13,000 (Studio Plus $248) | — | ~500+ (GymFlow) |
+| Coach with 10 clients | 349 | \~998 ($19) | \~1,200+ (Pro tier for 15) | \~1,000+ | — |
+| Coach with 40 clients | 799 | \~2,360+ ($45+, rises) | \~4,000–6,300 | \~3,000+ (+ add-ons) | — |
+| Gym, 1 branch, 450 members | 1,900 (Growth) | ? | \~13,000 (Studio Plus $248) | — | \~500+ (GymFlow) |
 
 ### 11.3 Tactics
 
@@ -938,7 +938,7 @@ Monday: review check-ins (queue sorted by due time) → adjust plans → send vo
 
 ## 12. Financial forecasts and unit economics
 
-All figures are **[ESTIMATE]** from an assumption-driven monthly model (inputs in Appendix B). They are planning scenarios, not predictions. Money is in EGP, **net of VAT** (Egyptian list prices include 14% VAT; Saudi B2B prices exclude VAT). Month L1 is the first month the Coach MVP is sold; the 6-month build before it costs ~1.52M EGP (~$28.9k) and is included in cumulative cash.
+All figures are **[ESTIMATE]** from an assumption-driven monthly model (inputs in Appendix B). They are planning scenarios, not predictions. Money is in EGP, **net of VAT** (Egyptian list prices include 14% VAT; Saudi B2B prices exclude VAT). Month L1 is the first month the Coach MVP is sold; the 6-month build before it costs \~1.52M EGP (\~$28.9k) and is included in cumulative cash.
 
 ### 12.1 Key assumptions (summary)
 
@@ -981,18 +981,18 @@ Gross margin dips when MAU crosses an AWS tier (L9, L21) and recovers as revenue
 | Year 1 cost of revenue | 0.22M | 0.38M | 0.51M |
 | Year 1 operating expenses | 4.74M | 5.01M | 5.29M |
 | Year 1 EBITDA | −4.51M | −4.23M | −3.41M |
-| Net MRR at L12 | 89k (~$1.7k) | 245k (~$4.7k) | 531k (~$10.1k) |
+| Net MRR at L12 | 89k (\~$1.7k) | 245k (\~$4.7k) | 531k (\~$10.1k) |
 | Paying coaches / gyms at L12 | 112 / 13 | 296 / 29 | 635 / 47 |
 | **Year 2 (L13–L24)** revenue | 2.61M | 8.22M | 19.20M |
 | Year 2 cost of revenue | 0.91M | 1.80M | 3.32M |
 | Year 2 operating expenses | 8.08M | 9.61M | 11.37M |
 | Year 2 EBITDA | −6.37M | −3.19M | +4.51M |
-| Net MRR at L24 | 364k (~$6.9k) | 1.23M (~$23.4k) | 2.98M (~$56.8k) |
-| ARR run-rate at L24 | ~$83k | ~$281k | ~$682k |
+| Net MRR at L24 | 364k (\~$6.9k) | 1.23M (\~$23.4k) | 2.98M (\~$56.8k) |
+| ARR run-rate at L24 | \~$83k | \~$281k | \~$682k |
 | Paying coaches / gyms at L24 (EG + KSA) | 291 / 59 | 992 / 183 | 2,611 / 345 |
 | MAU at L24 | 17k | 55k | 129k |
 | First month with positive EBITDA | not within 24 months | L24 | L17 |
-| Peak cash need (incl. build) | > 12.4M (still burning) | 9.0M (~$172k) | 5.7M (~$109k) |
+| Peak cash need (incl. build) | > 12.4M (still burning) | 9.0M (\~$172k) | 5.7M (\~$109k) |
 
 L24 revenue mix (base): coaches 42%, gyms 27%, KSA 23%, marketplace 7%, Plus 1%.
 
@@ -1001,22 +1001,22 @@ L24 revenue mix (base): coaches 42%, gyms 27%, KSA 23%, marketplace 7%, Plus 1%.
 | | Coach (Egypt) | Gym (Egypt) |
 |---|---|---|
 | ARPA, net of VAT | 570 EGP | 2,105 EGP |
-| Variable cost per month (processing, WhatsApp, infrastructure share) | ~50 EGP | ~431 EGP |
-| Contribution margin | ~91% | ~80% |
+| Variable cost per month (processing, WhatsApp, infrastructure share) | \~50 EGP | \~431 EGP |
+| Contribution margin | \~91% | \~80% |
 | Monthly churn → expected lifetime | 5% → 20 months | 2.5% → 40 months |
-| Contribution LTV | ~10,400 EGP | ~67,000 EGP |
+| Contribution LTV | \~10,400 EGP | \~67,000 EGP |
 | CAC (marketing) | 1,200 EGP | 9,000 EGP |
-| CAC incl. sales salary | 1,200 EGP (self-serve) | ~14,000 EGP (one rep closing ~5 gyms/month) |
-| LTV / CAC | ~8.7 | ~4.8 (fully loaded) |
-| CAC payback | ~2.3 months | ~8.4 months (fully loaded) |
+| CAC incl. sales salary | 1,200 EGP (self-serve) | \~14,000 EGP (one rep closing \~5 gyms/month) |
+| LTV / CAC | \~8.7 | \~4.8 (fully loaded) |
+| CAC payback | \~2.3 months | \~8.4 months (fully loaded) |
 
 Infrastructure cost per MAU at L24 base: $2,300 / 55k ≈ **$0.04 per MAU per month**. Payment processing on our own billing ≈ 1.8% of SaaS revenue (60% card share).
 
 ### 12.5 Break-even analysis
 
-- **Operating break-even (base) ≈ L24**, when monthly net revenue (1.23M) covers cost of revenue (0.25M) and operating expenses (0.91M, of which ~0.37M is growth spend on CAC).
-- **Steady-state break-even** (no growth spend): fixed costs at L24 are ~538k EGP/month (team, legal, tools, brand). They are covered by, for example, **600 coaches (~312k contribution) + 135 gyms (~226k contribution)**.
-- **Lean team variant** (founder writes the backend; Flutter engineer, freelance designer and one support person until L10; backend hire at L10): **break-even L20, peak cash need ~4.7M EGP (~$90k)**, Year 2 EBITDA ≈ −0.07M. It ships the roadmap more slowly (Gym Core slips ~2 months) — the trade-off between runway and speed.
+- **Operating break-even (base) ≈ L24**, when monthly net revenue (1.23M) covers cost of revenue (0.25M) and operating expenses (0.91M, of which \~0.37M is growth spend on CAC).
+- **Steady-state break-even** (no growth spend): fixed costs at L24 are \~538k EGP/month (team, legal, tools, brand). They are covered by, for example, **600 coaches (\~312k contribution) + 135 gyms (\~226k contribution)**.
+- **Lean team variant** (founder writes the backend; Flutter engineer, freelance designer and one support person until L10; backend hire at L10): **break-even L20, peak cash need \~4.7M EGP (\~$90k)**, Year 2 EBITDA ≈ −0.07M. It ships the roadmap more slowly (Gym Core slips \~2 months) — the trade-off between runway and speed.
 
 ### 12.6 Sensitivity (base, one change at a time)
 
@@ -1040,8 +1040,8 @@ Infrastructure cost per MAU at L24 base: $2,300 / 55k ≈ **$0.04 per MAU per mo
 
 | Path | Cash to plan for | Fits |
 |---|---|---|
-| Bootstrap, lean team | ~4.7M EGP (~$90k) + 20% buffer | Founder can write backend code and accept slower Gym Core |
-| Small pre-seed, base team | ~9.0M EGP (~$172k) + 20% buffer ≈ $205k | Faster roadmap, KSA from L16 |
+| Bootstrap, lean team | \~4.7M EGP (\~$90k) + 20% buffer | Founder can write backend code and accept slower Gym Core |
+| Small pre-seed, base team | \~9.0M EGP (\~$172k) + 20% buffer ≈ $205k | Faster roadmap, KSA from L16 |
 
 Triggers reviewed at L6 and L12 (the "conservative" path is the warning case):
 
@@ -1053,7 +1053,7 @@ Triggers reviewed at L6 and L12 (the "conservative" path is the warning case):
 
 ### 12.8 Operational overhead assumptions
 
-Support: 1 customer-success person per ~300 paying coaches or ~60 gyms (Arabic, WhatsApp-first); onboarding call for every gym (60–90 min) and data import service; accounting + legal retainer 15k EGP/month; one-off legal ~250k EGP before launch (data protection licences, terms, payment structure) and ~300k EGP before KSA. Corporate income tax (22.5% in Egypt) is not modelled (losses carried forward).
+Support: 1 customer-success person per \~300 paying coaches or \~60 gyms (Arabic, WhatsApp-first); onboarding call for every gym (60–90 min) and data import service; accounting + legal retainer 15k EGP/month; one-off legal \~250k EGP before launch (data protection licences, terms, payment structure) and \~300k EGP before KSA. Corporate income tax (22.5% in Egypt) is not modelled (losses carried forward).
 
 ---
 
@@ -1096,7 +1096,7 @@ Dates assume a November 2026 start; shift as needed. Detailed technical mileston
 | Must have (P1) | Why it can't wait |
 |---|---|
 | Phone OTP sign-up, coach business creation, client invites via WhatsApp | Activation |
-| Exercise library (~300, Arabic) + program builder + templates | Core value; switching cost |
+| Exercise library (\~300, Arabic) + program builder + templates | Core value; switching cost |
 | Basic nutrition plan (macro targets + meal plan with Egyptian foods + PDF) | Most Egyptian coaches sell training + nutrition |
 | Trainee app: today view, offline workout logger, body metrics, photos | The client experience is what coaches sell |
 | Progress Check-ins with review queue | The biggest time saver |
@@ -1250,10 +1250,10 @@ Onboarding checklist in-app (first program, first client, first check-in reviewe
 
 | ID | Assumption | Validate by | When |
 |---|---|---|---|
-| A-01 | Egyptian online coaches average ~18 active clients and charge ~1,000–3,000 EGP/month | 30 interviews + survey of 100 coaches | P0 |
+| A-01 | Egyptian online coaches average \~18 active clients and charge \~1,000–3,000 EGP/month | 30 interviews + survey of 100 coaches | P0 |
 | A-02 | Coaches will pay 349–799 EGP/month | Founders-offer pre-commitments (≥ 15) | P0 |
 | A-03 | Gyms struggle to manage PT/freelance trainer revenue | 15 gym interviews; design partners | P0, P2 |
-| A-04 | Gym ARPA ~2,400 EGP achievable | Design-partner conversion at list price | L7–L10 |
+| A-04 | Gym ARPA \~2,400 EGP achievable | Design-partner conversion at list price | L7–L10 |
 | A-05 | 35% of gym members will use the member app monthly | Design partners | L7–L12 |
 | A-06 | Marketplace clients accept web checkout | Conversion test | L10 |
 | A-07 | KSA channel partner at 20% share is available | Partner outreach | L10–L14 |
@@ -1332,7 +1332,7 @@ The model (a short Python script kept with the planning notes; reproducible from
 
 | Input | Value | Note |
 |---|---|---|
-| Build phase | 6 months × (senior full-stack 85k + senior Flutter 80k + designer 50% 30k + tools 8k + AWS dev ~8k) + legal 250k = **1.52M EGP** | Founder unpaid during build |
+| Build phase | 6 months × (senior full-stack 85k + senior Flutter 80k + designer 50% 30k + tools 8k + AWS dev \~8k) + legal 250k = **1.52M EGP** | Founder unpaid during build |
 | Team from L1 (monthly, loaded) | full-stack 85k, Flutter 80k, designer 30k, founder stipend 30k, CS 20k; + gym sales 25k (L6), QA/support engineer 35k (L7), backend 75k (L8), CS #2 20k (L9), engineer 70k + sales #2 25k (L13) | **[ASSUMPTION]** Egyptian market salaries, loaded |
 | Fixed overhead | accounting/legal 15k, tools 8k, brand/content 20k per month; KSA legal/entity 300k one-off at L14 | |
 | VAT | Egypt 14% (prices inclusive); KSA B2B exclusive (reverse charge assumed **[VERIFY]**) | |

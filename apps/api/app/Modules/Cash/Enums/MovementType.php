@@ -16,6 +16,7 @@ enum MovementType: string
     case UsedDevicePurchase = 'used_device_purchase';
     case Delivery = 'delivery';
     case ImportPayment = 'import_payment';
+    case Payroll = 'payroll';
     case Expense = 'expense';
     case Deposit = 'deposit';
     case Withdrawal = 'withdrawal';
@@ -33,6 +34,7 @@ enum MovementType: string
             self::UsedDevicePurchase => 'شراء جهاز مستعمل',
             self::Delivery => 'مصاريف توصيل',
             self::ImportPayment => 'دفعة استيراد',
+            self::Payroll => 'مرتبات وسلف',
             self::Expense => 'مصروف',
             self::Deposit => 'إيداع',
             self::Withdrawal => 'سحب',

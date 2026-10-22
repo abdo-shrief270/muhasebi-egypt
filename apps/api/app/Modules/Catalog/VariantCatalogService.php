@@ -111,6 +111,7 @@ final class VariantCatalogService implements VariantCatalog
             priceWholesale: $v->price_wholesale,
             priceTechnician: $v->price_technician,
             qualityLabel: $v->quality_grade?->label(),
+            warrantyDays: $v->product->warranty_days,
         );
     }
 }

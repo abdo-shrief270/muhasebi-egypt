@@ -153,5 +153,20 @@ export function useMessages() {
     open(key, order.customer_phone || null, text(key, vars, () => onlineOrderText(order, shopName.value)), { type: 'online_order', id: order.id })
   }
 
-  return { templates, load, ticketText, sendTicket, sendOnlineOrder, sendSale, sendDebtReminder, sendReturnNote, sendInstallmentReminder }
+  /** «الضمان قرّب يخلص»: a warranty item ending soon. */
+  function sendWarrantyEnding(w: { ticket_id: string, reference: string | null, customer_name: string | null, customer_phone: string | null, device_name: string | null, name: string, ends_at: string, public_token: string | null }) {
+    const vars = {
+      customer: w.customer_name,
+      shop: shopName.value,
+      device: w.device_name,
+      ticket: w.reference,
+      items: w.name,
+      warranty: formatDate(w.ends_at),
+      link: tracking.value && w.public_token ? ticketUrl(w.public_token) : null,
+    }
+    const fallback = () => `أهلاً ${w.customer_name ?? ''} 👋\nضمان صيانة ${w.device_name ?? ''} عند ${shopName.value} على (${w.name}) بيخلص ${formatDate(w.ends_at)}.\nلو فيه أي حاجة في الجهاز عدّي علينا قبلها 🙏`
+    open('warranty_ending', w.customer_phone, text('warranty_ending', vars, fallback), { type: 'repair_ticket', id: w.ticket_id })
+  }
+
+  return { templates, load, ticketText, sendTicket, sendOnlineOrder, sendSale, sendDebtReminder, sendReturnNote, sendInstallmentReminder, sendWarrantyEnding }
 }

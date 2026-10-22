@@ -35,12 +35,20 @@
             </dd>
           </div>
         </dl>
-        <UFormField v-if="ticket.status === 'ready' && withWarranty" label="الضمان" hint="بالأيام — صفر = من غير ضمان">
-          <div class="flex flex-wrap items-center gap-2">
-            <UInput v-model="warranty" type="number" min="0" max="730" dir="ltr" class="w-24" />
-            <UButton v-for="d in [0, 7, 14, 30, 90]" :key="d" size="xs" color="neutral" :variant="Number(warranty) === d ? 'soft' : 'outline'" :label="d ? `${d} يوم` : 'مفيش'" @click="warranty = String(d)" />
-          </div>
-        </UFormField>
+        <div v-if="ticket.status === 'ready' && withWarranty" class="space-y-3">
+          <p class="font-bold">
+            الضمان <span class="text-sm font-normal text-(--ui-text-muted)">(بالأيام — صفر = من غير ضمان)</span>
+          </p>
+          <UFormField v-for="w in items" :key="w.key" :label="w.name">
+            <div class="flex flex-wrap items-center gap-2">
+              <UInput v-model="w.days" type="number" min="0" max="730" dir="ltr" class="w-20" :aria-label="`ضمان ${w.name} بالأيام`" />
+              <UButton v-for="d in [0, 7, 14, 30, 90, 180]" :key="d" size="xs" color="neutral" :variant="Number(w.days) === d ? 'soft' : 'outline'" :label="d ? (d === 180 ? '6 شهور' : `${d} يوم`) : 'مفيش'" @click="w.days = String(d)" />
+            </div>
+          </UFormField>
+          <p v-if="ticket.warranty_defaults?.warranty_terms" class="text-xs text-(--ui-text-muted)">
+            الشروط: {{ ticket.warranty_defaults.warranty_terms }}
+          </p>
+        </div>
         <p v-if="ticket.due < 0" class="text-sm text-(--ui-text-muted)">
           العربون أكتر من الحساب؛ الفرق هيرجع كاش من درجك.
         </p>
@@ -77,7 +85,18 @@ const emit = defineEmits<{ delivered: [ticket: RepairTicket] }>()
 
 const api = useApi()
 const store = useSessionStore()
-const warranty = ref('30')
+// Item by item: each part fitted (its product's days, else the labor's) and the labor (the shop's default).
+const items = ref<{ key: string, part_id: number | null, name: string, days: string }[]>([])
+function resetItems() {
+  const labor = props.ticket?.warranty_defaults?.labor_warranty_days ?? 30
+  items.value = [
+    ...(props.ticket?.parts ?? []).map(p => ({ key: `p${p.id}`, part_id: p.id, name: p.name, days: String(p.warranty_days ?? labor) })),
+    ...(props.ticket && props.ticket.labor > 0 ? [{ key: 'labor', part_id: null, name: 'المصنعية', days: String(labor) }] : []),
+  ]
+  if (!items.value.length) {
+    items.value = [{ key: 'labor', part_id: null, name: 'الصيانة', days: String(labor) }]
+  }
+}
 const payOpen = ref(false)
 const saving = ref(false)
 const error = ref<string | null>(null)
@@ -92,7 +111,7 @@ watch(open, (isOpen) => {
   if (isOpen) {
     error.value = null
     needsShift.value = false
-    warranty.value = '30'
+    resetItems()
   }
 })
 
@@ -105,7 +124,7 @@ async function deliver(payments: { method: string, amount: number }[]) {
   try {
     const res = await api<{ data: RepairTicket }>(`/repairs/tickets/${props.ticket.id}/deliver`, {
       method: 'POST',
-      body: { payments, warranty_days: props.ticket.status === 'ready' && withWarranty.value ? Number(warranty.value) || 0 : 0 },
+      body: { payments, warranties: props.ticket.status === 'ready' && withWarranty.value ? items.value.map(w => ({ part_id: w.part_id, days: Number(w.days) || 0 })) : [] },
     })
     payOpen.value = false
     open.value = false

@@ -170,6 +170,16 @@
       </div>
     </UCard>
 
+    <RepairsCustomerDevices v-else-if="tab === 'devices'" :customer-id="id" />
+
+    <div v-else-if="tab === 'inquiries'" class="space-y-3">
+      <div v-if="store.can('inquiries.manage') && customer && !customer.erased_at" class="flex justify-end">
+        <UButton icon="i-lucide-plus" label="استعلام جديد" @click="inquiryOpen = true" />
+      </div>
+      <InquiriesList :items="inquiries" @changed="loadInquiries" />
+      <InquiriesFormModal v-model:open="inquiryOpen" :customer="customer" @saved="loadInquiries" />
+    </div>
+
     <UCard v-else-if="tab === 'installments'" :ui="{ body: 'p-0 sm:p-0' }">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -253,7 +263,7 @@
 
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { Customer, CustomerTransaction, InstallmentPlan, Paginated, Sale } from '~/types/api'
+import type { Customer, CustomerTransaction, Inquiry, InstallmentPlan, Paginated, Sale } from '~/types/api'
 
 definePageMeta({ permission: 'customers.view' })
 
@@ -286,10 +296,22 @@ const statement = computed(() => statementData.value?.data ?? [])
 const sales = computed(() => salesData.value?.data ?? [])
 const plans = computed(() => plansData.value?.data ?? [])
 
+const seesDevices = computed(() => store.hasModule('repairs') && store.can('repairs.view'))
 const tab = ref('statement')
+// «الاستعلامات»: loaded when the tab opens.
+const inquiries = ref<Inquiry[]>([])
+const inquiryOpen = ref(false)
+async function loadInquiries() {
+  inquiries.value = (await api<{ data: Inquiry[] }>('/inquiries', { query: { customer_id: id.value } }).catch(() => ({ data: [] }))).data
+}
+watch(() => tab.value, (t) => {
+  if (t === 'inquiries') loadInquiries()
+})
 const tabs = computed(() => [
   { label: 'كشف الحساب', value: 'statement', icon: 'i-lucide-scroll-text' },
   ...(store.can('sales.view') ? [{ label: 'الفواتير', value: 'sales', icon: 'i-lucide-receipt' }] : []),
+  ...(seesDevices.value ? [{ label: 'الأجهزة والصيانة', value: 'devices', icon: 'i-lucide-smartphone' }] : []),
+  ...(store.can('inquiries.view') ? [{ label: 'الاستعلامات', value: 'inquiries', icon: 'i-lucide-message-circle-question' }] : []),
   ...(seesPlans.value ? [{ label: 'التقسيط', value: 'installments', icon: 'i-lucide-calendar-clock' }] : []),
 ])
 

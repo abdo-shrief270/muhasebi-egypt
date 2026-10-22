@@ -1,10 +1,12 @@
 <?php
 
 use App\Modules\Repairs\Http\Controllers\CommissionController;
+use App\Modules\Repairs\Http\Controllers\DeviceController;
 use App\Modules\Repairs\Http\Controllers\FaultCategoryController;
 use App\Modules\Repairs\Http\Controllers\PartRequestController;
 use App\Modules\Repairs\Http\Controllers\PublicTicketController;
 use App\Modules\Repairs\Http\Controllers\TicketController;
+use App\Modules\Repairs\Http\Controllers\WarrantyController;
 use App\Modules\Repairs\Http\Middleware\ResolveTicketShop;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +31,23 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:repairs'])->prefix('repairs
     });
 
     // Tickets live in a branch.
+    // «الضمانات»: the branch's warranty items; the shop's wording and the labor's default days.
+    Route::middleware('feature:repairs.warranty')->controller(WarrantyController::class)->group(function (): void {
+        Route::pattern('warranty', '[0-9a-fA-F-]{36}');
+        Route::get('warranties', 'index')->middleware(['branch', 'can:repairs.view']);
+        Route::post('warranties/{warranty}/void', 'void');
+        Route::get('warranty-settings', 'settings')->middleware('can:repairs.view');
+        Route::put('warranty-settings', 'saveSettings')->middleware('can:repairs.settings');
+    });
+
+    // A customer's devices and their history (every branch).
+    Route::controller(DeviceController::class)->group(function (): void {
+        Route::pattern('device', '[0-9a-fA-F-]{36}');
+        Route::get('devices', 'index')->middleware('can:repairs.view');
+        Route::get('devices/{device}', 'show')->middleware('can:repairs.view');
+        Route::patch('devices/{device}', 'update');
+    });
+
     Route::middleware('branch')->controller(TicketController::class)->group(function (): void {
         Route::middleware('can:repairs.view')->group(function (): void {
             Route::get('tickets', 'index');
@@ -43,6 +62,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:repairs'])->prefix('repairs
         // repairs.update_status and shop_orders.place are checked in the controller.
         Route::post('tickets/{ticket}/outsource', 'outsource')->middleware('feature:repairs.outsourcing');
         Route::post('tickets/{ticket}/parts', 'addPart');
+        Route::patch('tickets/{ticket}/parts/{part}', 'pricePart')->whereNumber('part');
         Route::delete('tickets/{ticket}/parts/{part}', 'removePart')->whereNumber('part');
         Route::post('tickets/{ticket}/deliver', 'deliver');
         Route::post('tickets/{ticket}/warranty', 'warranty')->middleware('feature:repairs.warranty');

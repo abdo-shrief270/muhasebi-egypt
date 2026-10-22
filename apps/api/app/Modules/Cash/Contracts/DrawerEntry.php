@@ -24,4 +24,6 @@ enum DrawerEntry: string
     case Delivery = 'delivery';
     /** Cash paid to an import contact (supplier, shipping, customs…) out of the drawer (negative); its reversal puts it back. */
     case ImportPayment = 'import_payment';
+    /** A salary or an advance paid to an employee out of the drawer (negative). */
+    case Payroll = 'payroll';
 }

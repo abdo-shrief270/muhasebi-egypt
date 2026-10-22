@@ -56,8 +56,8 @@
             </p>
             <div class="grid gap-4 md:grid-cols-2">
               <div class="space-y-3">
-                <div class="num flex h-16 items-center justify-center rounded-(--ui-radius) border-2 border-(--ui-primary) bg-(--ui-bg) text-3xl font-bold tracking-wider" dir="ltr">
-                  {{ phoneShown || '01' }}<span class="animate-pulse text-(--ui-primary)">|</span>
+                <div class="num flex h-16 items-center justify-center rounded-(--ui-radius) border-2 border-(--ui-primary) bg-(--ui-bg) text-3xl leading-none font-bold tracking-wider ps-[.05em]" dir="ltr">
+                  <span class="relative">{{ phoneShown || '01' }}<span class="absolute start-full animate-pulse text-(--ui-primary)">|</span></span>
                 </div>
                 <RepairsKeypad v-model="form.phone" :max-length="11" />
               </div>
@@ -96,6 +96,40 @@
             <p class="text-xl font-bold">
               الجهاز
             </p>
+            <div v-if="customerDevices.length && !deviceQuery.trim()" class="space-y-3">
+              <p class="text-sm text-(--ui-text-muted)">
+                أجهزة {{ form.customer?.name }} اللي دخلت قبل كده
+              </p>
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <button v-for="d in customerDevices" :key="d.id" type="button" :class="tile(form.device_id === d.id)" class="!text-start" @click="pickOwnDevice(d)">
+                  <span class="block">{{ d.name }}<span v-if="d.color" class="font-normal"> — {{ d.color }}</span></span>
+                  <span class="block text-sm font-normal" :class="d.warranty_until && !d.open_ticket_id ? 'text-success' : 'text-(--ui-text-muted)'">
+                    {{ d.open_ticket_id ? 'جوه المحل دلوقتي' : d.warranty_until ? `في الضمان لحد ${formatDate(d.warranty_until)}` : `آخر مرة ${formatDate(d.tickets[0]?.received_at)}` }}
+                  </span>
+                </button>
+              </div>
+              <div v-if="ownDevice" class="space-y-2 rounded-(--ui-radius) border border-(--ui-border) p-3">
+                <p class="font-bold">
+                  تاريخ الجهاز ده
+                </p>
+                <ul class="space-y-1 text-sm">
+                  <li v-for="t in ownDevice.tickets.slice(0, 4)" :key="t.id" class="flex flex-wrap justify-between gap-2 rounded-(--ui-radius) bg-(--ui-bg-elevated) px-3 py-2">
+                    <span><span class="num font-bold">{{ t.reference }}</span> · {{ t.faults.join('، ') || t.note || '—' }}</span>
+                    <span class="text-(--ui-text-muted)">{{ formatDate(t.received_at) }}<template v-if="t.technician_name"> · {{ t.technician_name }}</template><template v-if="t.total"> · <span class="num">{{ formatMoney(t.total) }}</span></template></span>
+                  </li>
+                </ul>
+                <p v-if="ownDevice.notes" class="text-sm text-(--ui-text-muted)">
+                  ملاحظات: {{ ownDevice.notes }}
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <UButton v-if="ownDevice.warranty_ticket_id && !ownDevice.open_ticket_id && store.hasFeature('repairs.warranty')" size="xl" icon="i-lucide-shield-check" label="رجوع في الضمان (من غير فلوس)" :loading="returning" @click="warrantyReturn(ownDevice)" />
+                  <UButton size="xl" color="neutral" variant="outline" icon="i-lucide-arrow-left" label="عطل جديد على نفس الجهاز" @click="step = 3" />
+                </div>
+              </div>
+              <p class="text-sm text-(--ui-text-muted)">
+                أو جهاز تاني:
+              </p>
+            </div>
             <UInput v-model="deviceQuery" size="xl" icon="i-lucide-search" placeholder="دوّر أو اكتب اسم الجهاز" class="w-full" :ui="{ base: 'h-14 text-lg' }" @keydown.enter.prevent="useTyped" />
             <div v-if="deviceQuery.trim()" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <button v-for="m in found" :key="m.id" type="button" :class="tile(form.device_model_id === m.id)" @click="pickDevice(m.id, m.full_name)">
@@ -186,9 +220,9 @@
                     {{ t.label }}
                   </button>
                 </div>
-                <RepairsPatternInput v-if="form.unlock_type === 'pattern'" v-model="form.unlock_code" />
+                <RepairsPatternInput v-if="form.unlock_type === 'pattern'" v-model="form.unlock_code" large />
                 <template v-else-if="form.unlock_type === 'pin'">
-                  <div class="num flex h-14 items-center justify-center rounded-(--ui-radius) border border-(--ui-border) text-2xl font-bold tracking-[.4em]" dir="ltr">
+                  <div class="num flex h-14 items-center justify-center rounded-(--ui-radius) border border-(--ui-border) text-2xl leading-none font-bold tracking-[.4em] ps-[.4em]" dir="ltr">
                     {{ form.unlock_code || '—' }}
                   </div>
                   <RepairsKeypad v-model="form.unlock_code" :max-length="12" />
@@ -200,7 +234,7 @@
                 <p class="font-semibold">
                   التكلفة المبدئية <span class="font-normal text-(--ui-text-muted)">(ج)</span>
                 </p>
-                <div class="num flex h-14 items-center justify-center rounded-(--ui-radius) border border-(--ui-border) text-2xl font-bold" dir="ltr">
+                <div class="num flex h-14 items-center justify-center rounded-(--ui-radius) border border-(--ui-border) text-2xl leading-none font-bold" dir="ltr">
                   {{ form.estimate || '—' }}
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -212,10 +246,31 @@
                 <p class="pt-2 font-semibold">
                   هيستلمه إمتى
                 </p>
-                <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
                   <button v-for="p in promises" :key="p.label" type="button" :class="tile(form.promise === p.label)" class="!min-h-14 !text-base" @click="form.promise = form.promise === p.label ? '' : p.label">
                     {{ p.label }}
                   </button>
+                  <button type="button" :class="tile(form.promise === LATER)" class="!min-h-14 !text-base" @click="pickLater">
+                    {{ LATER }}
+                  </button>
+                </div>
+                <div v-if="form.promise === LATER" class="space-y-3 rounded-(--ui-radius) border border-(--ui-border) p-3">
+                  <div class="flex items-center justify-center gap-3">
+                    <UButton size="xl" color="neutral" variant="outline" icon="i-lucide-minus" aria-label="يوم أقل" class="size-14 justify-center" :disabled="laterDays <= 1" @click="setDays(laterDays - 1)" />
+                    <span class="num min-w-28 text-center text-2xl leading-none font-bold">{{ dayCount(laterDays) }}</span>
+                    <UButton size="xl" color="neutral" variant="outline" icon="i-lucide-plus" aria-label="يوم زيادة" class="size-14 justify-center" :disabled="laterDays >= 60" @click="setDays(laterDays + 1)" />
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <UFormField label="اليوم">
+                      <UInput v-model="form.promise_date" type="date" size="xl" :min="isoDay(new Date())" class="w-full" />
+                    </UFormField>
+                    <UFormField label="الساعة">
+                      <UInput v-model="form.promise_time" type="time" size="xl" class="w-full" />
+                    </UFormField>
+                  </div>
+                  <p class="text-center text-sm text-(--ui-text-muted)">
+                    {{ laterLabel }}
+                  </p>
                 </div>
 
                 <template v-if="store.hasFeature('repairs.deposits')">
@@ -260,7 +315,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Brand, Customer, DeviceModel, RepairOptions, RepairTicket } from '~/types/api'
+import type { Brand, Customer, DeviceModel, RepairDevice, RepairOptions, RepairTicket } from '~/types/api'
 
 /**
  * Touch-first intake: one question per screen with big buttons — phone (number pad; a known customer is
@@ -297,6 +352,7 @@ const blank = () => ({
   customer: null as Customer | null,
   name: '',
   consent: true,
+  device_id: null as string | null,
   device_model_id: null as number | null,
   device_name: '',
   fault_ids: [] as number[],
@@ -305,6 +361,8 @@ const blank = () => ({
   unlock_code: '',
   estimate: '',
   promise: '',
+  promise_date: '',
+  promise_time: '18:00',
   deposit: '',
 })
 const form = reactive(blank())
@@ -360,6 +418,16 @@ function pickCustomer(c: Customer) {
   step.value = 2
 }
 
+// «استلم الجهاز ده تاني» from the customer page: ?customer=…&device=… starts at the device.
+const route = useRoute()
+if (typeof route.query.customer === 'string') {
+  const res = await api<{ data: Customer }>(`/customers/${route.query.customer}`).catch(() => null)
+  if (res) {
+    pickCustomer(res.data)
+    form.device_id = typeof route.query.device === 'string' ? route.query.device : null
+  }
+}
+
 // Device.
 const deviceQuery = ref('')
 const brand = ref<Brand | null>(null)
@@ -376,11 +444,40 @@ watch(deviceQuery, (q) => {
   }, 200)
 })
 function pickDevice(id: number | null, name: string) {
+  form.device_id = null
   form.device_model_id = id
   form.device_name = name
   deviceQuery.value = ''
   brand.value = null
   step.value = 3
+}
+// The customer's own devices (from earlier tickets): picking one shows its history first.
+const { data: devicesData } = await useAsyncData('quick-customer-devices', () => form.customer && store.can('repairs.view')
+  ? api<{ data: RepairDevice[] }>('/repairs/devices', { query: { customer_id: form.customer.id } }).catch(() => ({ data: [] }))
+  : Promise.resolve({ data: [] as RepairDevice[] }), { watch: [() => form.customer?.id] })
+const customerDevices = computed(() => devicesData.value?.data ?? [])
+const ownDevice = computed(() => customerDevices.value.find(d => d.id === form.device_id) ?? null)
+watch(ownDevice, (d) => {
+  if (d && !form.device_name) pickOwnDevice(d)
+}, { immediate: true })
+function pickOwnDevice(d: RepairDevice) {
+  form.device_id = d.id
+  form.device_model_id = d.device_model_id
+  form.device_name = d.name
+}
+const returning = ref(false)
+async function warrantyReturn(d: RepairDevice) {
+  returning.value = true
+  try {
+    const res = await api<{ data: RepairTicket }>(`/repairs/tickets/${d.warranty_ticket_id}/warranty`, { method: 'POST' })
+    await navigateTo(`/repairs/${res.data.id}`)
+  }
+  catch (e) {
+    error.value = apiErrorMessage(e)
+  }
+  finally {
+    returning.value = false
+  }
 }
 function useTyped() {
   const name = deviceQuery.value.trim()
@@ -423,12 +520,43 @@ const promises = [
   { label: 'بعد 3 أيام', when: at(3, 18) },
 ]
 
+// «بعد كام يوم…»: any day (− / + or the calendar) at any hour.
+const LATER = 'يوم تاني…'
+const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const laterWhen = computed(() => {
+  if (!form.promise_date) return null
+  const d = new Date(`${form.promise_date}T${form.promise_time || '18:00'}`)
+  return Number.isNaN(d.getTime()) ? null : d
+})
+const laterDays = computed(() => {
+  if (!laterWhen.value) return 3
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return Math.max(0, Math.round((new Date(`${form.promise_date}T00:00`).getTime() - today.getTime()) / 86_400_000))
+})
+const laterLabel = computed(() => laterWhen.value
+  ? laterWhen.value.toLocaleString('ar-EG-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' })
+  : '')
+function setDays(days: number) {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  form.promise_date = isoDay(d)
+}
+function pickLater() {
+  if (form.promise === LATER) {
+    form.promise = ''
+    return
+  }
+  form.promise = LATER
+  if (!form.promise_date) setDays(3)
+}
+
 const summary = computed(() => [
   { step: 0, icon: 'i-lucide-phone', value: form.customer ? localPhone(form.customer.phone) : phoneOk.value ? form.phone : '', empty: 'الموبايل' },
   { step: form.customer ? 0 : 1, icon: 'i-lucide-user', value: form.customer?.name ?? form.name.trim(), empty: 'الاسم' },
   { step: 2, icon: 'i-lucide-smartphone', value: form.device_name, empty: 'الجهاز' },
   { step: 3, icon: 'i-lucide-wrench', value: [...form.fault_ids.map(id => allFaults.value.find(f => f.id === id)?.name), form.note.trim()].filter(Boolean).join('، '), empty: 'العطل' },
-  { step: 4, icon: 'i-lucide-banknote', value: [form.estimate ? `${form.estimate} ج` : '', form.promise, form.deposit ? `عربون ${form.deposit} ج` : '', form.unlock_type !== 'none' ? 'عليه قفل' : ''].filter(Boolean).join(' · '), empty: 'السعر والميعاد' },
+  { step: 4, icon: 'i-lucide-banknote', value: [form.estimate ? `${form.estimate} ج` : '', form.promise === LATER ? laterLabel.value : form.promise, form.deposit ? `عربون ${form.deposit} ج` : '', form.unlock_type !== 'none' ? 'عليه قفل' : ''].filter(Boolean).join(' · '), empty: 'السعر والميعاد' },
 ])
 
 const tile = (on: boolean) => [
@@ -448,11 +576,12 @@ async function save() {
   needsShift.value = false
   try {
     const deposit = store.hasFeature('repairs.deposits') ? toPiasters(form.deposit) ?? 0 : 0
-    const when = promises.find(p => p.label === form.promise)?.when()
+    const when = form.promise === LATER ? laterWhen.value : promises.find(p => p.label === form.promise)?.when()
     const res = await api<{ data: RepairTicket }>('/repairs/tickets', {
       method: 'POST',
       body: {
         ...(form.customer ? { customer_id: form.customer.id } : { customer_name: form.name.trim(), customer_phone: form.phone, consent: form.consent }),
+        device_id: form.device_id,
         device_model_id: form.device_model_id,
         device_name: form.device_name,
         unlock_type: form.unlock_type,

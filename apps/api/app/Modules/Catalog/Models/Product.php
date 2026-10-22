@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $search_name
  * @property string|null $sku
  * @property bool $track_serial
+ * @property int|null $warranty_days a part's warranty once fitted in a repair
  * @property bool $is_active
  * @property string|null $notes
  * @property bool $online_visible
@@ -34,7 +35,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, ProductVariant> $variants
  * @property-read Collection<int, DeviceModel> $deviceModels
  */
-#[Fillable(['tenant_id', 'category_id', 'brand_id', 'name', 'sku', 'track_serial', 'is_active', 'notes', 'online_visible', 'online_description'])]
+#[Fillable(['tenant_id', 'category_id', 'brand_id', 'name', 'sku', 'track_serial', 'warranty_days', 'is_active', 'notes', 'online_visible', 'online_description'])]
 final class Product extends Model
 {
     use BelongsToTenant, HasUuids;
@@ -56,6 +57,7 @@ final class Product extends Model
     {
         return [
             'track_serial' => 'boolean',
+            'warranty_days' => 'integer',
             'is_active' => 'boolean',
             'online_visible' => 'boolean',
         ];

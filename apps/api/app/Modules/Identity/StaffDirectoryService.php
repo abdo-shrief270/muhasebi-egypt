@@ -29,6 +29,17 @@ final class StaffDirectoryService implements StaffDirectory
             ->all();
     }
 
+    public function all(): array
+    {
+        return User::query()
+            ->where('tenant_id', $this->tenant->idOrFail())
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (User $user) => [$user->id => $user->name])
+            ->all();
+    }
+
     public function matchPin(string $permission, string $pin): ?array
     {
         $user = User::query()

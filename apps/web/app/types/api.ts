@@ -248,6 +248,7 @@ export interface Product {
   name: string
   sku: string | null
   track_serial: boolean
+  warranty_days?: number | null
   is_active: boolean
   notes: string | null
   online_visible: boolean
@@ -971,7 +972,10 @@ export interface RepairTicket {
   under_warranty: boolean
   warranty_of_id: string | null
   public_token: string
-  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, serials: string[] | null, added_by_name: string | null }[]
+  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, list_price: number | null, price_note: string | null, warranty_days: number | null, serials: string[] | null, added_by_name: string | null }[]
+  warranties?: RepairWarranty[]
+  warranty_defaults?: { warranty_terms: string, labor_warranty_days: number }
+  device_id?: string | null
   payments?: { kind: 'deposit' | 'payment' | 'refund', method: string, amount: number, user_name: string | null, created_at: string }[]
   /** «طلب قطعة»: waiting, refused or taken back (handed ones are in parts) */
   part_requests?: RepairPartRequest[]
@@ -1534,4 +1538,121 @@ export interface ImportShipmentDetail extends ImportShipment {
   payments: ImportPayment[]
   paid: number
   attachments: { id: string, kind: string, kind_label: string, name: string, mime: string, size: number, uploaded_by_name: string | null, created_at: string }[]
+}
+
+/** A customer's device and its repair history (newest ticket first, every branch). */
+export interface RepairDevice {
+  id: string
+  customer_id: string
+  device_model_id: number | null
+  name: string
+  imei: string | null
+  color: string | null
+  notes: string | null
+  last_seen_at: string | null
+  tickets_count: number
+  open_ticket_id: string | null
+  warranty_ticket_id: string | null
+  warranty_until: string | null
+  unlock_type: string | null
+  tickets: {
+    id: string
+    reference: string
+    branch_id: string
+    branch_name: string | null
+    status: string
+    status_label: string
+    faults: string[]
+    note: string | null
+    technician_name: string | null
+    total: number
+    received_at: string | null
+    delivered_at: string | null
+    warranty_until: string | null
+    under_warranty: boolean
+    warranty_return: boolean
+  }[]
+}
+
+/** One guaranteed item of a delivered repair. */
+export interface RepairWarranty {
+  id: string
+  kind: 'part' | 'labor' | 'repair'
+  name: string
+  days: number
+  starts_at: string
+  ends_at: string
+  state: 'active' | 'expired' | 'voided'
+  void_reason: string | null
+  voided_by_name: string | null
+  voided_at: string | null
+}
+
+/** A row of «الضمانات». */
+export interface RepairWarrantyRow extends RepairWarranty {
+  ticket_id: string
+  reference: string | null
+  customer_id: string
+  customer_name: string | null
+  customer_phone: string | null
+  device_name: string | null
+  public_token: string | null
+  came_back_ticket_id: string | null
+}
+
+/** «الاستعلامات»: what a customer asked about. */
+export interface Inquiry {
+  id: string
+  branch_id: string | null
+  customer_id: string
+  customer_name: string
+  customer_phone: string | null
+  kind: 'item' | 'repair' | 'phone' | 'other'
+  kind_label: string
+  text: string
+  status: 'open' | 'answered' | 'converted' | 'closed'
+  status_label: string
+  follow_up_at: string | null
+  overdue: boolean
+  outcome: string | null
+  converted_to: 'sale' | 'repair' | null
+  created_by_name: string | null
+  created_at: string
+}
+
+/** A pay period's line for one employee: a closed payslip, or the open period so far. */
+export interface PayrollRow {
+  id: string | null
+  user_id: string
+  name: string
+  cycle: 'monthly' | 'weekly'
+  starts_on: string
+  ends_on: string
+  base_salary: number
+  tickets: number
+  commission: number
+  clawback: number
+  bonuses: number
+  deductions: number
+  advances: number
+  net: number
+  paid_at: string | null
+  paid_from: 'drawer' | 'safe' | 'bank' | null
+  paid_by_name: string | null
+  closed: boolean
+}
+
+export interface PayrollPeriod { cycle: 'monthly' | 'weekly', starts_on: string, ends_on: string, label: string, previous: string, next: string }
+
+export interface PayrollAdjustment {
+  id: string
+  user_id: string
+  kind: 'advance' | 'bonus' | 'deduction'
+  kind_label: string
+  amount: number
+  note: string | null
+  on_date: string
+  paid_from: string | null
+  settled: boolean
+  created_by_name: string | null
 }

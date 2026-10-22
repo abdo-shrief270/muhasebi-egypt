@@ -157,9 +157,29 @@
               <span>
                 <span class="num">{{ p.qty }}</span> × {{ p.name }}
                 <span v-if="p.serials?.length" class="block text-xs text-(--ui-text-muted) num" dir="ltr">{{ p.serials.join(' · ') }}</span>
+                <span v-if="p.list_price !== null && p.list_price !== p.unit_price" class="block text-xs text-(--ui-text-muted)">
+                  سعر المحل <s class="num">{{ formatMoney(p.list_price) }}</s><template v-if="p.price_note"> · {{ p.price_note }}</template>
+                </span>
               </span>
               <span class="flex items-center gap-2">
                 <span class="font-bold num">{{ formatMoney(p.line_total) }}</span>
+                <UPopover v-if="canPrice && ticket.status !== 'delivered'" :content="{ align: 'end' }" @update:open="(open: boolean) => open && startPrice(p)">
+                  <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-pencil" square :aria-label="`غيّر سعر ${p.name}`" />
+                  <template #content>
+                    <form class="w-64 space-y-3 p-3" @submit.prevent="savePrice(p.id)">
+                      <p class="text-sm font-bold">
+                        سعر {{ p.name }} للعميل ده
+                      </p>
+                      <UFormField label="سعر القطعة (ج)">
+                        <UInput v-model="priceInput" type="number" min="0" step="any" dir="ltr" class="w-full" autofocus />
+                      </UFormField>
+                      <UFormField label="السبب (اختياري)">
+                        <UInput v-model="priceNote" maxlength="120" placeholder="عميل قديم" class="w-full" />
+                      </UFormField>
+                      <UButton type="submit" block label="احفظ السعر" :loading="pricing" :disabled="priceInput === ''" />
+                    </form>
+                  </template>
+                </UPopover>
                 <UDropdownMenu
                   v-if="canWork && ticket.status !== 'delivered' && binOn"
                   :items="[[
@@ -392,11 +412,50 @@
           <p v-if="ticket.status === 'delivered' && ticket.commission !== null && ticket.commission_rule" class="mt-3 text-sm text-(--ui-text-muted)">
             عمولة {{ ticket.technician_name }}: <span class="font-bold text-(--ui-text) num">{{ formatMoney(ticket.commission) }}</span> ({{ ticket.commission_rule }})
           </p>
-          <p v-if="ticket.warranty_until" class="mt-3 text-sm" :class="ticket.under_warranty ? 'text-success' : 'text-(--ui-text-muted)'">
-            <UIcon name="i-lucide-shield-check" class="size-4 align-middle" />
-            ضمان {{ ticket.warranty_days }} يوم — لحد {{ formatDate(ticket.warranty_until) }}
-          </p>
         </UCard>
+
+        <UCard v-if="ticket.warranties?.length">
+          <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <p class="font-bold">
+              الضمان
+            </p>
+            <UBadge :color="ticket.under_warranty ? 'success' : 'neutral'" variant="subtle">
+              {{ ticket.under_warranty ? `شغال لحد ${formatDate(ticket.warranty_until)}` : 'خلص' }}
+            </UBadge>
+          </div>
+          <ul class="divide-y divide-(--ui-border) text-sm">
+            <li v-for="w in ticket.warranties" :key="w.id" class="flex flex-wrap items-center justify-between gap-2 py-2">
+              <span>
+                <span class="font-bold">{{ w.name }}</span> · {{ dayCount(w.days) }}
+                <span v-if="w.state === 'voided'" class="block text-xs text-error">اتلغى: {{ w.void_reason }} ({{ w.voided_by_name }})</span>
+              </span>
+              <span class="flex items-center gap-2">
+                <span class="num" :class="w.state === 'active' ? 'text-success' : 'text-(--ui-text-muted)'">لحد {{ formatDate(w.ends_at) }}</span>
+                <UButton v-if="w.state === 'active' && store.can('repairs.settings')" size="xs" color="error" variant="ghost" label="إلغاء" @click="voidTarget = w" />
+              </span>
+            </li>
+          </ul>
+          <p v-if="ticket.warranty_defaults?.warranty_terms" class="mt-2 text-xs text-(--ui-text-muted)">
+            {{ ticket.warranty_defaults.warranty_terms }}
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <UButton size="sm" color="neutral" variant="outline" icon="i-lucide-printer" label="اطبع كارت الضمان" @click="printWarranty" />
+          </div>
+        </UCard>
+
+        <UModal :open="voidTarget !== null" title="إلغاء الضمان" @update:open="(v: boolean) => { if (!v) voidTarget = null }">
+          <template #body>
+            <form class="space-y-3" @submit.prevent="voidWarranty">
+              <p class="text-sm">
+                ضمان «{{ voidTarget?.name }}» هيتلغى من دلوقتي، والسبب هيتسجل في سجل العمليات.
+              </p>
+              <UFormField label="السبب" required>
+                <UInput v-model="voidReason" maxlength="200" placeholder="الجهاز وقع / اتفتح برّه" class="w-full" autofocus />
+              </UFormField>
+              <UButton type="submit" color="error" block label="ألغِ الضمان" :loading="voiding" :disabled="!voidReason.trim()" />
+            </form>
+          </template>
+        </UModal>
 
         <UCard v-if="canWork && ticket.status !== 'delivered'">
           <UFormField label="ملاحظة على التذكرة">
@@ -411,13 +470,14 @@
     <RepairsDeliverModal v-model:open="deliverOpen" :ticket="ticket" @delivered="onChanged" />
     <RepairsOutsourceModal v-model:open="outsourceOpen" :ticket="ticket" @saved="onOutsourced" />
     <PrintSheet v-if="printing" :page-size="paper.page.value">
-      <RepairsIntakeReceipt :ticket="ticket" :shop="shop" />
+      <RepairsWarrantyCard v-if="printingWarranty" :ticket="ticket" :shop="shop" />
+      <RepairsIntakeReceipt v-else :ticket="ticket" :shop="shop" />
     </PrintSheet>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { PriceCheckItem, RepairOptions, RepairTicket, TicketStatus } from '~/types/api'
+import type { PriceCheckItem, RepairOptions, RepairTicket, RepairWarranty, TicketStatus } from '~/types/api'
 
 definePageMeta({ module: 'repairs', permission: 'repairs.view' })
 
@@ -584,6 +644,32 @@ function addFirstPart() {
 }
 // With supplier returns on, a part that turned out bad goes to the returns bin instead of stock.
 const binOn = computed(() => store.hasModule('supplier_returns'))
+// «تغيير سعر القطعة»: this customer's price; under the shop's floor the API asks for a manager.
+const canPrice = computed(() => store.can('repairs.part_price'))
+const priceInput = ref('')
+const priceNote = ref('')
+const pricing = ref(false)
+function startPrice(p: { unit_price: number, price_note: string | null }) {
+  priceInput.value = String(p.unit_price / 100)
+  priceNote.value = p.price_note ?? ''
+}
+async function savePrice(partId: number) {
+  pricing.value = true
+  try {
+    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/parts/${partId}`, {
+      method: 'PATCH',
+      body: { unit_price: toPiasters(priceInput.value) ?? 0, note: priceNote.value.trim() || null },
+    })
+    toast.add({ color: 'success', title: 'اتغيّر السعر' })
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    pricing.value = false
+  }
+}
+
 async function removePart(partId: number, defective = false) {
   try {
     data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/parts/${partId}`, { method: 'DELETE', query: defective ? { defective: 1 } : undefined })
@@ -634,4 +720,31 @@ async function warrantyReturn() {
 }
 
 const { printing, print } = usePrint()
+
+// «الضمان»: the warranty card, and voiding an item (repairs.settings).
+const printingWarranty = ref(false)
+async function printWarranty() {
+  printingWarranty.value = true
+  await print()
+  printingWarranty.value = false
+}
+const voidTarget = ref<RepairWarranty | null>(null)
+const voidReason = ref('')
+const voiding = ref(false)
+async function voidWarranty() {
+  if (!voidTarget.value) return
+  voiding.value = true
+  try {
+    await api(`/repairs/warranties/${voidTarget.value.id}/void`, { method: 'POST', body: { reason: voidReason.value.trim() } })
+    voidTarget.value = null
+    voidReason.value = ''
+    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}`)
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    voiding.value = false
+  }
+}
 </script>

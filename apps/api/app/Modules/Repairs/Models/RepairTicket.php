@@ -68,7 +68,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $partner_reference
  */
 #[Fillable([
-    'id', 'tenant_id', 'branch_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone',
+    'id', 'tenant_id', 'branch_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone', 'device_id',
     'device_model_id', 'device_name', 'imei', 'color', 'unlock_type', 'unlock_code', 'accessories', 'condition', 'checks',
     'reported_faults', 'reported_note', 'diagnosed_faults', 'diagnosis_note',
     'received_by', 'received_by_name', 'received_at', 'expected_at', 'technician_id', 'technician_name',
@@ -187,6 +187,12 @@ final class RepairTicket extends Model
     public function events(): HasMany
     {
         return $this->hasMany(RepairTicketEvent::class, 'ticket_id')->orderBy('seq');
+    }
+
+    /** @return HasMany<RepairWarranty, $this> */
+    public function warranties(): HasMany
+    {
+        return $this->hasMany(RepairWarranty::class, 'ticket_id')->orderByRaw("kind = 'labor'")->orderBy('created_at');
     }
 
     /** What the repair cost the shop: parts from stock and a partner shop's price. */

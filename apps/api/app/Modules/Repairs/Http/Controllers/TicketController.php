@@ -12,6 +12,7 @@ use App\Modules\Repairs\Actions\DeliverTicketAction;
 use App\Modules\Repairs\Actions\OutsourceTicketAction;
 use App\Modules\Repairs\Actions\ReceiveDeviceAction;
 use App\Modules\Repairs\Actions\RemovePartAction;
+use App\Modules\Repairs\Actions\SetPartPriceAction;
 use App\Modules\Repairs\Actions\UpdateTicketAction;
 use App\Modules\Repairs\Actions\WarrantyReturnAction;
 use App\Modules\Repairs\Enums\TicketStatus;
@@ -131,7 +132,7 @@ final class TicketController
 
         $this->markNotified(collect([$ticket]));
 
-        return new TicketResource($ticket->load(['parts', 'payments', 'events', 'partRequests']));
+        return new TicketResource($ticket->load(['parts', 'payments', 'events', 'partRequests', 'warranties']));
     }
 
     /**
@@ -234,6 +235,20 @@ final class TicketController
         return $this->show($ticket->refresh());
     }
 
+    /** The part's price for this customer (repairs.part_price; under the shop's floor only with repairs.settings). */
+    public function pricePart(Request $request, RepairTicket $ticket, int $part, SetPartPriceAction $action): TicketResource
+    {
+        $this->inBranch($ticket);
+        abort_unless((bool) $request->user()?->can('repairs.part_price'), 403);
+        $model = RepairTicketPart::query()->where('ticket_id', $ticket->id)->findOrFail($part);
+        $data = $request->validate([
+            'unit_price' => ['required', 'integer', 'min:0', 'max:100000000000'],
+            'note' => ['nullable', 'string', 'max:120'],
+        ], [], ['unit_price' => 'السعر']);
+
+        return $this->show($action->handle($ticket, $model, (int) $data['unit_price'], $data['note'] ?? null, (bool) $request->user()->can('repairs.settings')));
+    }
+
     public function removePart(Request $request, RepairTicket $ticket, int $part, RemovePartAction $action): TicketResource
     {
         $this->inBranch($ticket);
@@ -248,7 +263,8 @@ final class TicketController
     public function deliver(DeliverTicketRequest $request, RepairTicket $ticket, DeliverTicketAction $action): TicketResource
     {
         $this->inBranch($ticket);
-        if ((int) ($request->validated('warranty_days') ?? 0) > 0) {
+        $warranties = $request->warranties();
+        if ((int) ($request->validated('warranty_days') ?? 0) > 0 || array_filter($warranties ?? [], fn (array $w) => $w['days'] > 0) !== []) {
             $this->features->ensure('repairs.warranty');
         }
 
@@ -258,6 +274,7 @@ final class TicketController
             (int) ($request->validated('warranty_days') ?? 0),
             $request->validated('note'),
             (bool) $request->user()?->can('customers.credit'),
+            $warranties,
         ));
     }
 

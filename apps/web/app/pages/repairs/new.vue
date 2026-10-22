@@ -38,6 +38,26 @@
           <p class="mb-3 font-bold">
             الجهاز
           </p>
+          <div v-if="ownDevices.length" class="mb-4 space-y-2">
+            <p class="text-sm text-(--ui-text-muted)">
+              أجهزة العميل اللي دخلت قبل كده:
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <UButton
+                v-for="d in ownDevices"
+                :key="d.id"
+                :color="form.device_id === d.id ? 'primary' : 'neutral'"
+                :variant="form.device_id === d.id ? 'soft' : 'outline'"
+                :label="`${d.name}${d.color ? ` — ${d.color}` : ''}`"
+                :trailing-icon="d.warranty_until ? 'i-lucide-shield-check' : undefined"
+                @click="pickOwn(d)"
+              />
+              <UButton v-if="form.device_id" color="neutral" variant="ghost" label="جهاز تاني" @click="form.device_id = null" />
+            </div>
+            <p v-if="pickedOwn" class="text-sm text-(--ui-text-muted)">
+              {{ pickedOwn.tickets_count }} زيارة · آخرها {{ pickedOwn.tickets[0]?.reference }} ({{ pickedOwn.tickets[0]?.faults.join('، ') || pickedOwn.tickets[0]?.note }})<template v-if="pickedOwn.warranty_until"> · في الضمان لحد {{ formatDate(pickedOwn.warranty_until) }}</template><template v-if="pickedOwn.notes"> · {{ pickedOwn.notes }}</template>
+            </p>
+          </div>
           <div class="grid gap-3 sm:grid-cols-2">
             <UFormField label="الموديل" hint="من القايمة، أو اكتبه تحت">
               <DeviceModelPicker v-model="form.device_model_id" placeholder="دوّر على الموديل" @pick="m => { if (m) form.device_name = m.full_name }" />
@@ -155,13 +175,29 @@
 </template>
 
 <script setup lang="ts">
-import type { CashMethod, PosCustomer, RepairBooking, RepairOptions, RepairTicket } from '~/types/api'
+import type { CashMethod, PosCustomer, RepairBooking, RepairDevice, RepairOptions, RepairTicket } from '~/types/api'
 
 definePageMeta({ module: 'repairs', permission: 'repairs.create' })
 
 const paper = useThermalPaper()
 const api = useApi()
 const store = useSessionStore()
+// The picked customer's devices: picking one fills the device and keeps its history together.
+const { data: ownData } = await useAsyncData('new-ticket-devices', () => customer.value && store.can('repairs.view')
+  ? api<{ data: RepairDevice[] }>('/repairs/devices', { query: { customer_id: customer.value.id } }).catch(() => ({ data: [] }))
+  : Promise.resolve({ data: [] as RepairDevice[] }), { watch: [() => customer.value?.id] })
+const ownDevices = computed(() => ownData.value?.data ?? [])
+const pickedOwn = computed(() => ownDevices.value.find(d => d.id === form.device_id) ?? null)
+function pickOwn(d: RepairDevice) {
+  form.device_id = d.id
+  form.device_model_id = d.device_model_id ?? undefined
+  form.device_name = d.name
+  form.imei = d.imei ?? ''
+  form.color = d.color ?? ''
+}
+watch(() => customer.value?.id, () => {
+  form.device_id = null
+})
 const canCustomers = computed(() => store.can('customers.view'))
 const shop = useReceiptShop()
 
@@ -174,6 +210,7 @@ const form = reactive({
   customer_name: '',
   customer_phone: '',
   consent: true,
+  device_id: null as string | null,
   device_model_id: undefined as number | undefined,
   device_name: '',
   imei: '',
@@ -258,6 +295,7 @@ async function save() {
       method: 'POST',
       body: {
         ...(customer.value ? { customer_id: customer.value.id } : { customer_name: form.customer_name, customer_phone: form.customer_phone, consent: form.consent }),
+        device_id: form.device_id,
         device_model_id: form.device_model_id ?? null,
         device_name: form.device_name,
         imei: form.imei || null,

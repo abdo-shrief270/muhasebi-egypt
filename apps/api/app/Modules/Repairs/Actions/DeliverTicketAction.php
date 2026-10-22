@@ -14,6 +14,7 @@ use App\Modules\Repairs\Support\Commission;
 use App\Modules\Repairs\Support\PartnerSync;
 use App\Modules\Repairs\Support\TicketMoney;
 use App\Modules\Repairs\Support\Timeline;
+use App\Modules\Repairs\Support\Warranties;
 use App\Support\Audit\Auditor;
 use App\Support\Events\EventRecorder;
 use App\Support\Exceptions\DomainRuleException;
@@ -41,10 +42,11 @@ final class DeliverTicketAction
 
     /**
      * @param  list<array{method: string, amount: int}>  $payments
+     * @param  list<array{part_id: int|null, days: int}>|null  $warranties  item by item (null = $warrantyDays for the whole repair)
      */
-    public function handle(RepairTicket $ticket, array $payments, int $warrantyDays, ?string $note, bool $canCredit): RepairTicket
+    public function handle(RepairTicket $ticket, array $payments, int $warrantyDays, ?string $note, bool $canCredit, ?array $warranties = null): RepairTicket
     {
-        return DB::transaction(function () use ($ticket, $payments, $warrantyDays, $note, $canCredit): RepairTicket {
+        return DB::transaction(function () use ($ticket, $payments, $warrantyDays, $note, $canCredit, $warranties): RepairTicket {
             $ticket = RepairTicket::query()->lockForUpdate()->findOrFail($ticket->id);
             if (! $ticket->status->canDeliver()) {
                 throw new DomainRuleException('الجهاز لسه مش جاهز للتسليم.', 'ticket_not_ready', context: ['status' => $ticket->status->value]);
@@ -97,8 +99,12 @@ final class DeliverTicketAction
             $ticket->delivered_at = now();
             $ticket->delivered_by = $user?->getAuthIdentifier();
             $ticket->delivered_by_name = $user?->getAttribute('name');
-            $ticket->warranty_days = $repaired ? $warrantyDays : 0;
-            $ticket->warranty_until = $repaired && $warrantyDays > 0 ? now()->addDays($warrantyDays) : null;
+            if ($repaired) {
+                Warranties::start($ticket, $warranties, $warrantyDays);
+            } else {
+                $ticket->warranty_days = 0;
+                $ticket->warranty_until = null;
+            }
             // The technician's cut, fixed now by their rule (only for a device that was repaired).
             // None at all when the owner switched commissions off.
             [$ticket->commission, $ticket->commission_rule] = $repaired && $this->features->enabled('repairs.commission') ? Commission::for($ticket) : [0, null];

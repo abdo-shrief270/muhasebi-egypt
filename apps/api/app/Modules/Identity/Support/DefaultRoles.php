@@ -18,7 +18,7 @@ final class DefaultRoles
         return [
             'manager' => [
                 'name' => 'مدير فرع',
-                'permissions' => array_values(array_diff($allPermissions, ['roles.manage', 'audit.view'])),
+                'permissions' => array_values(array_diff($allPermissions, ['roles.manage', 'audit.view', 'payroll.manage'])),
             ],
             'cashier' => [
                 'name' => 'كاشير',
@@ -26,13 +26,14 @@ final class DefaultRoles
                     'sales.sell', 'sales.view', 'products.view', 'inventory.view',
                     'customers.view', 'customers.manage', 'cash.shift', 'cash.expenses', 'messages.send',
                     'repairs.view', 'repairs.create', 'repairs.deliver', 'repairs.hand_parts', 'services.manage', 'shop_orders.view', 'installments.collect',
+                    'inquiries.view', 'inquiries.manage',
                 ],
             ],
             'technician' => [
                 'name' => 'فني صيانة',
                 'permissions' => [
-                    'repairs.view', 'repairs.create', 'repairs.update_status', 'repairs.request_parts', 'products.view',
-                    'inventory.view', 'messages.send', 'shop_orders.view', 'shop_orders.fulfil',
+                    'repairs.view', 'repairs.create', 'repairs.update_status', 'repairs.request_parts', 'repairs.part_price', 'products.view',
+                    'inventory.view', 'messages.send', 'shop_orders.view', 'shop_orders.fulfil', 'inquiries.view', 'inquiries.manage',
                 ],
             ],
             'storekeeper' => [

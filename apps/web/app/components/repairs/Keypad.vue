@@ -5,7 +5,7 @@
       <button
         v-else
         type="button"
-        class="num h-16 rounded-(--ui-radius) border border-(--ui-border) bg-(--ui-bg) text-2xl font-bold transition select-none active:scale-95 active:bg-(--ui-bg-accented) disabled:opacity-40"
+        class="num flex h-16 items-center justify-center rounded-(--ui-radius) border border-(--ui-border) bg-(--ui-bg) text-2xl leading-none font-bold transition select-none active:scale-95 active:bg-(--ui-bg-accented) disabled:opacity-40"
         :disabled="k === '.' && model.includes('.')"
         :aria-label="k === '.' ? 'علامة عشرية' : k"
         @click="press(k)"

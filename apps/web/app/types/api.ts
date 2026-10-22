@@ -1599,3 +1599,23 @@ export interface RepairWarrantyRow extends RepairWarranty {
   public_token: string | null
   came_back_ticket_id: string | null
 }
+
+/** «الاستعلامات»: what a customer asked about. */
+export interface Inquiry {
+  id: string
+  branch_id: string | null
+  customer_id: string
+  customer_name: string
+  customer_phone: string | null
+  kind: 'item' | 'repair' | 'phone' | 'other'
+  kind_label: string
+  text: string
+  status: 'open' | 'answered' | 'converted' | 'closed'
+  status_label: string
+  follow_up_at: string | null
+  overdue: boolean
+  outcome: string | null
+  converted_to: 'sale' | 'repair' | null
+  created_by_name: string | null
+  created_at: string
+}

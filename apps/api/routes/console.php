@@ -24,6 +24,7 @@ Schedule::command('billing:remind')->dailyAt('08:07')->withoutOverlapping();
 
 // Import shipments past their expected arrival (once per expected date).
 Schedule::command('imports:late-alerts')->dailyAt('07:13')->withoutOverlapping();
+Schedule::command('inquiries:remind')->everyTenMinutes()->withoutOverlapping();
 
 // Owner app: each shop's end-of-day summary, once its hour (owner_app.daily_summary) has come.
 Schedule::command('notifications:daily-summary')->everyTenMinutes()->withoutOverlapping();

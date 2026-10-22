@@ -26,13 +26,14 @@ final class DefaultRoles
                     'sales.sell', 'sales.view', 'products.view', 'inventory.view',
                     'customers.view', 'customers.manage', 'cash.shift', 'cash.expenses', 'messages.send',
                     'repairs.view', 'repairs.create', 'repairs.deliver', 'repairs.hand_parts', 'services.manage', 'shop_orders.view', 'installments.collect',
+                    'inquiries.view', 'inquiries.manage',
                 ],
             ],
             'technician' => [
                 'name' => 'فني صيانة',
                 'permissions' => [
                     'repairs.view', 'repairs.create', 'repairs.update_status', 'repairs.request_parts', 'repairs.part_price', 'products.view',
-                    'inventory.view', 'messages.send', 'shop_orders.view', 'shop_orders.fulfil',
+                    'inventory.view', 'messages.send', 'shop_orders.view', 'shop_orders.fulfil', 'inquiries.view', 'inquiries.manage',
                 ],
             ],
             'storekeeper' => [

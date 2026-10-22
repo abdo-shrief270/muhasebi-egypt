@@ -42,6 +42,12 @@ final class Categories
             'permission' => 'repairs.hand_parts',
             'prefixes' => ['repair_part.'],
         ],
+        'inquiries' => [
+            'label' => 'الاستعلامات',
+            'description' => 'جه ميعاد إنك تكلّم عميل سأل على حاجة.',
+            'permission' => 'inquiries.view',
+            'prefixes' => ['inquiry.'],
+        ],
         'imports' => [
             'label' => 'شحنات الاستيراد',
             'description' => 'شحنة عدّت ميعاد وصولها المتوقع ولسه ما اتستلمتش.',

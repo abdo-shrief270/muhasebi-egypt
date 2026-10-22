@@ -107,6 +107,8 @@ final class TicketResource extends JsonResource
                 'qty' => $p->qty,
                 'unit_price' => $p->unit_price,
                 'line_total' => $p->qty * $p->unit_price,
+                'list_price' => $p->list_price,
+                'price_note' => $p->price_note,
                 'serials' => $p->serials,
                 'added_by_name' => $p->added_by_name,
             ])->all()),

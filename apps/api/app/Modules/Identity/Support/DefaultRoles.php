@@ -31,7 +31,7 @@ final class DefaultRoles
             'technician' => [
                 'name' => 'فني صيانة',
                 'permissions' => [
-                    'repairs.view', 'repairs.create', 'repairs.update_status', 'repairs.request_parts', 'products.view',
+                    'repairs.view', 'repairs.create', 'repairs.update_status', 'repairs.request_parts', 'repairs.part_price', 'products.view',
                     'inventory.view', 'messages.send', 'shop_orders.view', 'shop_orders.fulfil',
                 ],
             ],

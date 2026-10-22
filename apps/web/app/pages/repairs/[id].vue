@@ -157,9 +157,29 @@
               <span>
                 <span class="num">{{ p.qty }}</span> × {{ p.name }}
                 <span v-if="p.serials?.length" class="block text-xs text-(--ui-text-muted) num" dir="ltr">{{ p.serials.join(' · ') }}</span>
+                <span v-if="p.list_price !== null && p.list_price !== p.unit_price" class="block text-xs text-(--ui-text-muted)">
+                  سعر المحل <s class="num">{{ formatMoney(p.list_price) }}</s><template v-if="p.price_note"> · {{ p.price_note }}</template>
+                </span>
               </span>
               <span class="flex items-center gap-2">
                 <span class="font-bold num">{{ formatMoney(p.line_total) }}</span>
+                <UPopover v-if="canPrice && ticket.status !== 'delivered'" :content="{ align: 'end' }" @update:open="(open: boolean) => open && startPrice(p)">
+                  <UButton size="xs" color="neutral" variant="ghost" icon="i-lucide-pencil" square :aria-label="`غيّر سعر ${p.name}`" />
+                  <template #content>
+                    <form class="w-64 space-y-3 p-3" @submit.prevent="savePrice(p.id)">
+                      <p class="text-sm font-bold">
+                        سعر {{ p.name }} للعميل ده
+                      </p>
+                      <UFormField label="سعر القطعة (ج)">
+                        <UInput v-model="priceInput" type="number" min="0" step="any" dir="ltr" class="w-full" autofocus />
+                      </UFormField>
+                      <UFormField label="السبب (اختياري)">
+                        <UInput v-model="priceNote" maxlength="120" placeholder="عميل قديم" class="w-full" />
+                      </UFormField>
+                      <UButton type="submit" block label="احفظ السعر" :loading="pricing" :disabled="priceInput === ''" />
+                    </form>
+                  </template>
+                </UPopover>
                 <UDropdownMenu
                   v-if="canWork && ticket.status !== 'delivered' && binOn"
                   :items="[[
@@ -584,6 +604,32 @@ function addFirstPart() {
 }
 // With supplier returns on, a part that turned out bad goes to the returns bin instead of stock.
 const binOn = computed(() => store.hasModule('supplier_returns'))
+// «تغيير سعر القطعة»: this customer's price; under the shop's floor the API asks for a manager.
+const canPrice = computed(() => store.can('repairs.part_price'))
+const priceInput = ref('')
+const priceNote = ref('')
+const pricing = ref(false)
+function startPrice(p: { unit_price: number, price_note: string | null }) {
+  priceInput.value = String(p.unit_price / 100)
+  priceNote.value = p.price_note ?? ''
+}
+async function savePrice(partId: number) {
+  pricing.value = true
+  try {
+    data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/parts/${partId}`, {
+      method: 'PATCH',
+      body: { unit_price: toPiasters(priceInput.value) ?? 0, note: priceNote.value.trim() || null },
+    })
+    toast.add({ color: 'success', title: 'اتغيّر السعر' })
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    pricing.value = false
+  }
+}
+
 async function removePart(partId: number, defective = false) {
   try {
     data.value = await api<{ data: RepairTicket }>(`/repairs/tickets/${id.value}/parts/${partId}`, { method: 'DELETE', query: defective ? { defective: 1 } : undefined })

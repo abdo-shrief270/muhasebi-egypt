@@ -8,9 +8,11 @@ use App\Modules\Repairs\Models\CommissionRule;
 use App\Modules\Repairs\Models\RepairTicket;
 
 /**
- * The technician's commission on a repaired device, by their rule: a percent of the labor
- * (after the discount comes off it) or of the profit (the bill less the parts' cost), or a fixed
- * amount per device. Warranty returns earn nothing: the work was already paid for.
+ * The technician's commission on a repaired device, by their rule: what's set of a percent of the
+ * labor (after the discount comes off it), a percent of the parts (their price, or their price
+ * less their cost), a percent of the profit (the bill less what the repair cost) and a fixed
+ * amount, added up. Warranty returns earn nothing: the work was already paid for (whether the
+ * first ticket's commission is taken back is the rule's `warranty_clawback`, settled in payroll).
  */
 final class Commission
 {
@@ -23,16 +25,17 @@ final class Commission
             return [0, null];
         }
         $rule = CommissionRule::query()->where('user_id', $ticket->technician_id)->first();
-        if ($rule === null) {
+        if ($rule === null || $rule->isEmpty()) {
             return [0, null];
         }
 
-        $amount = match (true) {
-            $rule->type === 'fixed' => $rule->value,
-            $rule->base === 'profit' => intdiv(max(0, $ticket->total - $ticket->cost()) * $rule->value + 5000, 10000),
-            default => intdiv(max(0, $ticket->labor - $ticket->discount) * $rule->value + 5000, 10000),
-        };
+        $share = fn (int $base, int $bp): int => $bp === 0 ? 0 : intdiv(max(0, $base) * $bp + 5000, 10000);
+        $parts = $rule->parts_base === 'profit' ? $ticket->parts_total - $ticket->parts_cost : $ticket->parts_total;
+        $amount = $share($ticket->labor - $ticket->discount, $rule->labor_rate)
+            + $share($parts, $rule->parts_rate)
+            + $share($ticket->total - $ticket->cost(), $rule->profit_rate)
+            + $rule->fixed;
 
-        return [$amount, $rule->describe()];
+        return [$amount, mb_substr($rule->describe(), 0, 160)];
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Modules\Repairs\RepairsServiceProvider;
 use App\Support\Modules\Feature;
+use App\Support\Modules\FeatureSetting;
 use App\Support\Modules\MenuItem;
 use App\Support\Modules\ModuleManifest;
 use App\Support\Modules\ModuleTier;
@@ -20,6 +21,7 @@ return new ModuleManifest(
         'repairs.settings' => 'تعديل قوايم الأعطال',
         'repairs.request_parts' => 'طلب قطع غيار من المخزن (بيشوف سعر الفني بس)',
         'repairs.hand_parts' => 'صرف قطع الغيار للفنيين',
+        'repairs.part_price' => 'تغيير سعر القطعة في التذكرة (للعميل ده)',
     ],
     menu: [
         new MenuItem('/repairs', 'الصيانة', 'i-lucide-wrench', 'repairs.view', group: 'services'),
@@ -40,6 +42,12 @@ return new ModuleManifest(
             'الفني يطلب القطع من المخزن بسعر الفني',
             'الفني يدوّر على القطعة ويشوف سعر الفني بس، ويبعت «طلب قطعة»؛ أمين المخزن أو الكاشير يصرفها فتتسجل على التذكرة بسعر الفني، والفني يحط مكسبه في المصنعية.',
             default: false,
+        ),
+        new Feature(
+            'repairs.price_floor',
+            'أقل سعر للقطعة في التذكرة',
+            'اللي بيغيّر سعر قطعة في التذكرة مينزلش تحت الحد ده؛ أقل منه محتاج مدير (صلاحية إعدادات الصيانة). لو قفلته مفيش حد.',
+            setting: FeatureSetting::choice('الحد', 'cost', ['cost' => 'التكلفة', 'technician' => 'سعر الفني']),
         ),
         new Feature('repairs.outsourcing', 'تبعت الجهاز لمحل شريك', 'زرار «ابعته لمحل شريك» في التذكرة (محتاج قسم طلبات المحلات).'),
     ],

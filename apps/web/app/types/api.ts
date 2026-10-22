@@ -971,7 +971,7 @@ export interface RepairTicket {
   under_warranty: boolean
   warranty_of_id: string | null
   public_token: string
-  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, serials: string[] | null, added_by_name: string | null }[]
+  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, list_price: number | null, price_note: string | null, serials: string[] | null, added_by_name: string | null }[]
   payments?: { kind: 'deposit' | 'payment' | 'refund', method: string, amount: number, user_name: string | null, created_at: string }[]
   /** «طلب قطعة»: waiting, refused or taken back (handed ones are in parts) */
   part_requests?: RepairPartRequest[]

@@ -12,22 +12,52 @@
           عمولة الفنيين
         </p>
         <p class="text-sm text-(--ui-text-muted)">
-          بتتحسب لوحدها وقت تسليم الجهاز المتصلّح، وبتظهر في تقرير الصيانة. مفيش عمولة على الرجوع في الضمان.
+          الخانات بتتجمع، واللي تسيبه صفر مش بيتحسب: مثلاً 30% من المصنعية + 10% من سعر القطع. بتتحسب وقت تسليم الجهاز المتصلّح وبتظهر في تقرير الصيانة. مفيش عمولة على الرجوع في الضمان.
         </p>
       </template>
       <ul class="divide-y divide-(--ui-border)">
-        <li v-for="c in commissions" :key="c.user_id" class="flex flex-wrap items-center gap-2 py-2">
-          <span class="w-40 font-bold">{{ c.name }}</span>
-          <USelect v-model="c.type" :items="commissionTypes" size="sm" class="w-32" :aria-label="`نوع عمولة ${c.name}`" />
-          <template v-if="c.type !== 'none'">
-            <UInput v-model="c.input" size="sm" type="number" min="0" step="any" dir="ltr" class="w-24" :aria-label="`قيمة عمولة ${c.name}`">
-              <template #trailing>
-                <span class="text-xs text-(--ui-text-muted)">{{ c.type === 'percent' ? '%' : 'ج' }}</span>
-              </template>
-            </UInput>
-            <USelect v-if="c.type === 'percent'" v-model="c.base" :items="commissionBases" size="sm" class="w-32" :aria-label="`من إيه لـ ${c.name}`" />
-          </template>
-          <UButton size="sm" color="neutral" variant="outline" label="حفظ" class="ms-auto" @click="saveCommission(c)" />
+        <li v-for="c in commissions" :key="c.user_id" class="space-y-3 py-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-bold">{{ c.name }}</span>
+            <span class="text-sm text-(--ui-text-muted)">{{ c.description || 'من غير عمولة' }}</span>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <UFormField label="من المصنعية">
+              <UInput v-model="c.labor" type="number" min="0" max="100" step="any" dir="ltr" class="w-full" :aria-label="`نسبة المصنعية لـ ${c.name}`">
+                <template #trailing>
+                  <span class="text-xs text-(--ui-text-muted)">%</span>
+                </template>
+              </UInput>
+            </UFormField>
+            <UFormField label="من القطع">
+              <div class="flex gap-2">
+                <UInput v-model="c.parts" type="number" min="0" max="100" step="any" dir="ltr" class="w-24" :aria-label="`نسبة القطع لـ ${c.name}`">
+                  <template #trailing>
+                    <span class="text-xs text-(--ui-text-muted)">%</span>
+                  </template>
+                </UInput>
+                <USelect v-model="c.parts_base" :items="partsBases" class="flex-1" :aria-label="`من إيه في القطع لـ ${c.name}`" />
+              </div>
+            </UFormField>
+            <UFormField label="من مكسب الجهاز كله">
+              <UInput v-model="c.profit" type="number" min="0" max="100" step="any" dir="ltr" class="w-full" :aria-label="`نسبة المكسب لـ ${c.name}`">
+                <template #trailing>
+                  <span class="text-xs text-(--ui-text-muted)">%</span>
+                </template>
+              </UInput>
+            </UFormField>
+            <UFormField label="مبلغ ثابت لكل جهاز">
+              <UInput v-model="c.fixedInput" type="number" min="0" step="any" dir="ltr" class="w-full" :aria-label="`المبلغ الثابت لـ ${c.name}`">
+                <template #trailing>
+                  <span class="text-xs text-(--ui-text-muted)">ج</span>
+                </template>
+              </UInput>
+            </UFormField>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <UCheckbox v-model="c.warranty_clawback" label="لو الجهاز رجع في الضمان، عمولته تتخصم من الرواتب" />
+            <UButton size="sm" color="neutral" variant="outline" label="حفظ" class="ms-auto" @click="saveCommission(c)" />
+          </div>
         </li>
       </ul>
     </UCard>
@@ -84,24 +114,26 @@ const toast = useToast()
 const { data, refresh } = await useAsyncData('fault-categories', () => api<{ data: RepairFaultCategory[] }>('/repairs/fault-categories'))
 const categories = computed(() => data.value?.data ?? [])
 
-interface CommissionRow { user_id: string, name: string, type: 'none' | 'percent' | 'fixed', value: number | null, base: 'labor' | 'profit', input: string }
-const commissionTypes = [{ label: 'من غير عمولة', value: 'none' }, { label: 'نسبة', value: 'percent' }, { label: 'مبلغ للجهاز', value: 'fixed' }]
-const commissionBases = [{ label: 'من المصنعية', value: 'labor' }, { label: 'من المكسب', value: 'profit' }]
+interface CommissionRule { user_id: string, name: string, labor_rate: number, parts_rate: number, parts_base: 'price' | 'profit', profit_rate: number, fixed: number, warranty_clawback: boolean, description: string | null }
+interface CommissionRow extends CommissionRule { labor: string, parts: string, profit: string, fixedInput: string }
+const partsBases = [{ label: 'من سعر القطعة', value: 'price' }, { label: 'من مكسب القطعة', value: 'profit' }]
 // The owner's «عمولة الفنيين» switch: off, the section isn't there (and the API refuses it).
 const { data: commissionData } = await useAsyncData('repair-commissions', async () => store.hasFeature('repairs.commission')
-  ? await api<{ data: Omit<CommissionRow, 'input'>[] }>('/repairs/commissions')
+  ? await api<{ data: CommissionRule[] }>('/repairs/commissions')
   : { data: [] })
 const commissions = ref<CommissionRow[]>([])
+// Rates are kept in basis points (1500 = 15%), the fixed amount in piasters: shown as people type them.
+const shown = (n: number) => (n ? String(n / 100) : '')
+const stored = (v: string) => Math.max(0, Math.round(Number(v || 0) * 100))
 watch(commissionData, (value) => {
-  // Percent is kept in basis points (1500 = 15%), fixed in piasters: show both as people type them.
-  commissions.value = (value?.data ?? []).map(c => ({ ...c, input: c.value === null ? '' : String(c.value / 100) }))
+  commissions.value = (value?.data ?? []).map(c => ({ ...c, labor: shown(c.labor_rate), parts: shown(c.parts_rate), profit: shown(c.profit_rate), fixedInput: shown(c.fixed) }))
 }, { immediate: true })
 
 async function saveCommission(c: CommissionRow) {
   try {
-    const res = await api<{ data: Omit<CommissionRow, 'input'>[] }>(`/repairs/commissions/${c.user_id}`, {
+    const res = await api<{ data: CommissionRule[] }>(`/repairs/commissions/${c.user_id}`, {
       method: 'PUT',
-      body: { type: c.type, value: c.type === 'none' ? null : Math.round(Number(c.input || 0) * 100), base: c.base },
+      body: { labor_rate: stored(c.labor), parts_rate: stored(c.parts), parts_base: c.parts_base, profit_rate: stored(c.profit), fixed: stored(c.fixedInput), warranty_clawback: c.warranty_clawback },
     })
     commissionData.value = res
     toast.add({ color: 'success', title: `اتحفظت عمولة ${c.name}` })

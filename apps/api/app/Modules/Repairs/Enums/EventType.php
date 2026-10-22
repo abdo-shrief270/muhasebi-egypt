@@ -13,6 +13,7 @@ enum EventType: string
     case Assigned = 'assigned';
     case PartAdded = 'part_added';
     case PartRemoved = 'part_removed';
+    case PartPriced = 'part_priced';
     case PartRequest = 'part_request';
     case Payment = 'payment';
     case Delivered = 'delivered';
@@ -29,6 +30,7 @@ enum EventType: string
             self::Assigned => 'اتسند لفني',
             self::PartAdded => 'قطعة اتركبت',
             self::PartRemoved => 'قطعة اتشالت',
+            self::PartPriced => 'سعر قطعة اتغيّر',
             self::PartRequest => 'طلب قطعة',
             self::Payment => 'فلوس',
             self::Delivered => 'تسليم الجهاز',

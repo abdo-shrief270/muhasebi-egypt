@@ -44,20 +44,28 @@ class CommissionsAndReportTest extends TestCase
 
     public function test_commission_follows_the_technicians_rule(): void
     {
-        $this->assertSame('none', collect($this->getJson('/api/v1/repairs/commissions')->assertOk()->json('data'))->firstWhere('user_id', $this->tech->id)['type']);
+        $this->assertNull(collect($this->getJson('/api/v1/repairs/commissions')->assertOk()->json('data'))->firstWhere('user_id', $this->tech->id)['description']);
         $this->assertSame(0, $this->repair(40000)['commission'], 'no rule, no commission');
 
         // 15% of the labor after the discount: (400 - 100) × 15% = 45.
-        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['type' => 'percent', 'value' => 1500])->assertOk();
+        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['labor_rate' => 1500])->assertOk();
         $ticket = $this->repair(40000, discount: 10000);
         $this->assertSame([4500, '15% من المصنعية'], [$ticket['commission'], $ticket['commission_rule']]);
 
         // 20% of the profit: labor 300 + charger 450 (cost 300) → 450 profit → 90.
-        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['type' => 'percent', 'value' => 2000, 'base' => 'profit'])->assertOk();
+        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['profit_rate' => 2000])->assertOk();
         $this->assertSame(9000, $this->repair(30000, part: true)['commission']);
 
+        // Labor and parts together: 30% of the labor 300 + 10% of the charger's price 450 = 90 + 45.
+        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['labor_rate' => 3000, 'parts_rate' => 1000])->assertOk();
+        $ticket = $this->repair(30000, part: true);
+        $this->assertSame([13500, '30% من المصنعية + 10% من سعر القطع'], [$ticket['commission'], $ticket['commission_rule']]);
+        // … or of the parts' profit (450 − 300), plus 20 a device: 90 + 15 + 20.
+        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['labor_rate' => 3000, 'parts_rate' => 1000, 'parts_base' => 'profit', 'fixed' => 2000])->assertOk();
+        $this->assertSame(12500, $this->repair(30000, part: true)['commission']);
+
         // A fixed 50 per device; a warranty return earns nothing.
-        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['type' => 'fixed', 'value' => 5000])->assertOk();
+        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['fixed' => 5000])->assertOk();
         $first = $this->repair(20000);
         $this->assertSame(5000, $first['commission']);
         $back = $this->postJson("/api/v1/repairs/tickets/{$first['id']}/warranty")->assertCreated()->json('data');
@@ -65,8 +73,8 @@ class CommissionsAndReportTest extends TestCase
         $this->postJson("/api/v1/repairs/tickets/{$back['id']}/status", ['status' => 'ready'])->assertOk();
         $this->assertSame(0, $this->postJson("/api/v1/repairs/tickets/{$back['id']}/deliver", ['warranty_days' => 0])->assertOk()->json('data.commission'));
 
-        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['type' => 'percent', 'value' => 20000])->assertUnprocessable();
-        $this->putJson('/api/v1/repairs/commissions/01999999-0000-7000-8000-000000000000', ['type' => 'fixed', 'value' => 1])->assertNotFound();
+        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['labor_rate' => 20000])->assertUnprocessable();
+        $this->putJson('/api/v1/repairs/commissions/01999999-0000-7000-8000-000000000000', ['fixed' => 100])->assertNotFound();
 
         // The technician sees their own commission; a cashier never does, nor can they set rules.
         Sanctum::actingAs($this->tech);
@@ -80,7 +88,7 @@ class CommissionsAndReportTest extends TestCase
 
     public function test_the_repairs_report(): void
     {
-        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['type' => 'fixed', 'value' => 5000])->assertOk();
+        $this->putJson("/api/v1/repairs/commissions/{$this->tech->id}", ['fixed' => 5000])->assertOk();
         $this->repair(30000, ['كسر زجاج', 'مش بيشحن'], part: true);
         $this->repair(20000, ['كسر زجاج'], 'iPhone 13');
         $this->postJson('/api/v1/repairs/tickets', ['customer_name' => 'x', 'customer_phone' => '01011112222', 'device_name' => 'iPhone 13', 'reported_note' => 'مش بيفتح'])->assertCreated();

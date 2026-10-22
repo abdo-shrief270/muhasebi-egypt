@@ -43,6 +43,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:repairs'])->prefix('repairs
         // repairs.update_status and shop_orders.place are checked in the controller.
         Route::post('tickets/{ticket}/outsource', 'outsource')->middleware('feature:repairs.outsourcing');
         Route::post('tickets/{ticket}/parts', 'addPart');
+        Route::patch('tickets/{ticket}/parts/{part}', 'pricePart')->whereNumber('part');
         Route::delete('tickets/{ticket}/parts/{part}', 'removePart')->whereNumber('part');
         Route::post('tickets/{ticket}/deliver', 'deliver');
         Route::post('tickets/{ticket}/warranty', 'warranty')->middleware('feature:repairs.warranty');

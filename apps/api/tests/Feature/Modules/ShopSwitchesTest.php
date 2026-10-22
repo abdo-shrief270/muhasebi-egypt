@@ -312,7 +312,7 @@ class ShopSwitchesTest extends TestCase
         $this->ticket();
 
         $tech = $this->staff('technician');
-        $this->putJson("/api/v1/repairs/commissions/{$tech->id}", ['type' => 'fixed', 'value' => 5000])->assertOk();
+        $this->putJson("/api/v1/repairs/commissions/{$tech->id}", ['fixed' => 5000])->assertOk();
         $this->switch('repairs.warranty', false);
         $this->switch('repairs.commission', false);
         $this->refused($this->getJson('/api/v1/repairs/commissions'), 'repairs.commission');

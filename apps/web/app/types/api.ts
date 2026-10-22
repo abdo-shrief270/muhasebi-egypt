@@ -248,6 +248,7 @@ export interface Product {
   name: string
   sku: string | null
   track_serial: boolean
+  warranty_days?: number | null
   is_active: boolean
   notes: string | null
   online_visible: boolean
@@ -971,7 +972,10 @@ export interface RepairTicket {
   under_warranty: boolean
   warranty_of_id: string | null
   public_token: string
-  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, list_price: number | null, price_note: string | null, serials: string[] | null, added_by_name: string | null }[]
+  parts?: { id: number, variant_id: string, name: string, qty: number, unit_price: number, line_total: number, list_price: number | null, price_note: string | null, warranty_days: number | null, serials: string[] | null, added_by_name: string | null }[]
+  warranties?: RepairWarranty[]
+  warranty_defaults?: { warranty_terms: string, labor_warranty_days: number }
+  device_id?: string | null
   payments?: { kind: 'deposit' | 'payment' | 'refund', method: string, amount: number, user_name: string | null, created_at: string }[]
   /** «طلب قطعة»: waiting, refused or taken back (handed ones are in parts) */
   part_requests?: RepairPartRequest[]
@@ -1568,4 +1572,30 @@ export interface RepairDevice {
     under_warranty: boolean
     warranty_return: boolean
   }[]
+}
+
+/** One guaranteed item of a delivered repair. */
+export interface RepairWarranty {
+  id: string
+  kind: 'part' | 'labor' | 'repair'
+  name: string
+  days: number
+  starts_at: string
+  ends_at: string
+  state: 'active' | 'expired' | 'voided'
+  void_reason: string | null
+  voided_by_name: string | null
+  voided_at: string | null
+}
+
+/** A row of «الضمانات». */
+export interface RepairWarrantyRow extends RepairWarranty {
+  ticket_id: string
+  reference: string | null
+  customer_id: string
+  customer_name: string | null
+  customer_phone: string | null
+  device_name: string | null
+  public_token: string | null
+  came_back_ticket_id: string | null
 }

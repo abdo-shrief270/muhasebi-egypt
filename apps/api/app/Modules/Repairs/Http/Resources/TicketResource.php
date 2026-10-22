@@ -11,8 +11,10 @@ use App\Modules\Repairs\Models\RepairTicket;
 use App\Modules\Repairs\Models\RepairTicketEvent;
 use App\Modules\Repairs\Models\RepairTicketPart;
 use App\Modules\Repairs\Models\RepairTicketPayment;
+use App\Modules\Repairs\Models\RepairWarranty;
 use App\Modules\Repairs\Support\Faults;
 use App\Modules\Repairs\Support\IntakeOptions;
+use App\Modules\Repairs\Support\WarrantySettings;
 use App\Support\Modules\FeatureAccess;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -100,6 +102,9 @@ final class TicketResource extends JsonResource
             'under_warranty' => $this->underWarranty(),
             'device_id' => $this->device_id,
             'warranty_of_id' => $this->warranty_of_id,
+            'warranties' => $this->whenLoaded('warranties', fn () => $this->warranties->map(fn (RepairWarranty $w) => $w->toPublicArray())->all()),
+            // The delivery's warranty defaults: the labor's days and the terms (each part carries its own days).
+            'warranty_defaults' => $this->whenLoaded('warranties', fn () => WarrantySettings::get($this->tenant_id)),
             'public_token' => $this->public_token,
             'parts' => $this->whenLoaded('parts', fn () => $this->parts->map(fn (RepairTicketPart $p) => [
                 'id' => $p->id,
@@ -109,6 +114,7 @@ final class TicketResource extends JsonResource
                 'unit_price' => $p->unit_price,
                 'line_total' => $p->qty * $p->unit_price,
                 'list_price' => $p->list_price,
+                'warranty_days' => $p->warranty_days,
                 'price_note' => $p->price_note,
                 'serials' => $p->serials,
                 'added_by_name' => $p->added_by_name,

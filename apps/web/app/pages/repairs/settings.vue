@@ -5,6 +5,27 @@
       <PageHeader title="قوايم الأعطال" description="الأجزاء والأعطال اللي بتظهر وقت الاستلام والتشخيص. السعر المقترح بيتحط كمصنعية." class="flex-1" />
     </div>
 
+    <!-- Warranty wording and the labor's default -->
+    <UCard v-if="store.hasFeature('repairs.warranty')">
+      <template #header>
+        <p class="font-bold">
+          الضمان
+        </p>
+        <p class="text-sm text-(--ui-text-muted)">
+          الشروط بتتطبع على كارت الضمان وبتظهر في صفحة متابعة العميل. ضمان القطعة نفسها بيتحدد من الصنف (فورم الصنف).
+        </p>
+      </template>
+      <form class="space-y-3" @submit.prevent="saveWarranty">
+        <UFormField label="ضمان المصنعية الافتراضي (يوم)">
+          <UInput v-model="warrantyForm.labor_warranty_days" type="number" min="0" max="730" dir="ltr" class="w-32" />
+        </UFormField>
+        <UFormField label="شروط الضمان">
+          <UTextarea v-model="warrantyForm.warranty_terms" :rows="3" autoresize maxlength="2000" class="w-full" />
+        </UFormField>
+        <UButton type="submit" color="neutral" variant="outline" label="حفظ" :loading="savingWarranty" />
+      </form>
+    </UCard>
+
     <!-- Technicians' commission -->
     <UCard v-if="commissions.length">
       <template #header>
@@ -140,6 +161,30 @@ async function saveCommission(c: CommissionRow) {
   }
   catch (e) {
     toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+}
+
+// Warranty wording and the labor's default days.
+const warrantyForm = reactive({ warranty_terms: '', labor_warranty_days: '30' })
+const savingWarranty = ref(false)
+if (store.hasFeature('repairs.warranty')) {
+  const w = await api<{ data: { warranty_terms: string, labor_warranty_days: number } }>('/repairs/warranty-settings').catch(() => null)
+  if (w) {
+    warrantyForm.warranty_terms = w.data.warranty_terms
+    warrantyForm.labor_warranty_days = String(w.data.labor_warranty_days)
+  }
+}
+async function saveWarranty() {
+  savingWarranty.value = true
+  try {
+    await api('/repairs/warranty-settings', { method: 'PUT', body: { warranty_terms: warrantyForm.warranty_terms.trim() || null, labor_warranty_days: Number(warrantyForm.labor_warranty_days) || 0 } })
+    toast.add({ color: 'success', title: 'اتحفظت إعدادات الضمان' })
+  }
+  catch (e) {
+    toast.add({ color: 'error', title: apiErrorMessage(e) })
+  }
+  finally {
+    savingWarranty.value = false
   }
 }
 

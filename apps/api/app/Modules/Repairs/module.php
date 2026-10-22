@@ -25,6 +25,7 @@ return new ModuleManifest(
     ],
     menu: [
         new MenuItem('/repairs', 'الصيانة', 'i-lucide-wrench', 'repairs.view', group: 'services'),
+        new MenuItem('/repairs/warranties', 'الضمانات', 'i-lucide-shield-check', 'repairs.view', group: 'services', feature: 'repairs.warranty'),
         new MenuItem('/repairs/parts', 'طلبات القطع', 'i-lucide-package-search', 'repairs.hand_parts', group: 'services', feature: 'repairs.part_requests'),
     ],
     provider: RepairsServiceProvider::class,
@@ -35,7 +36,7 @@ return new ModuleManifest(
         new Feature('repairs.public_tracking', 'صفحة متابعة الجهاز للعميل', 'العميل يتابع حالة جهازه من لينك / QR على إيصال الاستلام وفي رسايل واتساب.'),
         new Feature('repairs.status_whatsapp', 'رسايل واتساب للعميل', 'زرار «ابعت واتساب» مع كل حالة (استلام، جاهز، اتسلّم…) وعدّاد «جاهزة والعميل ما اتبلغش».'),
         new Feature('repairs.deposits', 'عربون عند الاستلام', 'تاخد عربون من العميل وانت بتستلم الجهاز، ويتخصم من الحساب وقت التسليم.'),
-        new Feature('repairs.warranty', 'الضمان على الصيانة', 'مدة ضمان وقت التسليم وزرار «رجع في الضمان». لو قفلته الأجهزة تتسلّم من غير ضمان.'),
+        new Feature('repairs.warranty', 'الضمان على الصيانة', 'ضمان لكل قطعة وللمصنعية وقت التسليم، صفحة «الضمانات» وزرار «رجع في الضمان». لو قفلته الأجهزة تتسلّم من غير ضمان.'),
         new Feature('repairs.commission', 'عمولة الفنيين', 'عمولة كل فني على الأجهزة اللي صلّحها (في الإعدادات والتذكرة والتقرير). لو قفلتها مفيش عمولة بتتحسب.'),
         new Feature(
             'repairs.part_requests',

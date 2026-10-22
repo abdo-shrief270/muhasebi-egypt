@@ -68,6 +68,9 @@ final class Templates
             'repair_delivered' => ['label' => 'بعد التسليم', 'group' => 'repairs', 'variables' => $repair, 'body' => implode("\n", [
                 self::HELLO, 'شكراً لتعاملك مع {shop} 🌷', 'الضمان لحد {warranty}.',
             ])],
+            'warranty_ending' => ['label' => 'الضمان قرّب يخلص', 'group' => 'repairs', 'variables' => [...$repair, 'items' => 'على إيه'], 'body' => implode("\n", [
+                self::HELLO, 'ضمان صيانة {device} عند {shop} على ({items}) بيخلص {warranty}.', 'لو فيه أي حاجة في الجهاز عدّي علينا قبلها 🙏',
+            ])],
             'online_order_confirmed' => ['label' => 'تأكيد الطلب', 'group' => 'online_store', 'variables' => $order, 'body' => implode("\n", [
                 self::HELLO, 'طلبك {order} من {shop} اتأكد ✅', '{items}', 'الإجمالي: {total}', $follow,
             ])],
@@ -120,6 +123,7 @@ final class Templates
     {
         return match (true) {
             str_starts_with($key, 'repair_') => 'repairs.status_whatsapp',
+            $key === 'warranty_ending' => 'repairs.warranty',
             $key === 'sale_receipt' => 'sales.receipt_link',
             $key === 'debt_reminder' => 'customers.debt_reminders',
             $key === 'installment_reminder' => 'installments.reminders',

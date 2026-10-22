@@ -14,6 +14,9 @@
         <UFormField label="كود الصنف (SKU)" hint="اختياري">
           <UInput v-model="form.sku" dir="ltr" class="w-full" />
         </UFormField>
+        <UFormField v-if="store.hasModule('repairs') && store.hasFeature('repairs.warranty')" label="ضمان القطعة لو اتركبت في صيانة" hint="بالأيام، اختياري">
+          <UInput v-model="form.warranty_days" type="number" min="0" max="730" dir="ltr" placeholder="زي المصنعية" class="w-full" />
+        </UFormField>
         <div class="flex flex-col justify-end gap-3 pb-1">
           <USwitch v-model="form.track_serial" label="كل قطعة ليها IMEI / سيريال" description="للموبايلات والأجهزة: هتسجّل رقم كل قطعة وقت الشراء والبيع." />
           <USwitch v-if="product" v-model="form.is_active" label="الصنف شغال" description="الصنف الموقوف مش بيظهر في البيع." />
@@ -176,6 +179,7 @@ const form = reactive({
   brand_id: p?.brand?.id ?? NONE,
   sku: p?.sku ?? '',
   track_serial: p?.track_serial ?? false,
+  warranty_days: p?.warranty_days == null ? '' : String(p.warranty_days),
   is_active: p?.is_active ?? true,
   notes: p?.notes ?? '',
   online_visible: p?.online_visible ?? true,
@@ -200,6 +204,7 @@ async function save() {
     brand_id: form.brand_id === NONE ? null : form.brand_id,
     sku: form.sku || null,
     track_serial: form.track_serial,
+    warranty_days: form.warranty_days === '' ? null : Number(form.warranty_days),
     is_active: form.is_active,
     notes: form.notes || null,
     online_visible: form.online_visible,

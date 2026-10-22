@@ -25,6 +25,7 @@ final readonly class VariantSummary
         public ?int $priceWholesale = null,
         public ?int $priceTechnician = null,
         public ?string $qualityLabel = null,
+        public ?int $warrantyDays = null,
     ) {}
 
     /** Price for a price level; falls back to retail when the level has none. */
@@ -66,6 +67,7 @@ final readonly class VariantSummary
             'min_stock' => $this->minStock,
             'is_active' => $this->isActive,
             'track_serial' => $this->trackSerial,
+            'warranty_days' => $this->warrantyDays,
         ];
     }
 }

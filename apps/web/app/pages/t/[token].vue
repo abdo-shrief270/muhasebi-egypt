@@ -68,7 +68,7 @@
               {{ formatMoney(t.due) }}
             </dd>
           </div>
-          <div v-if="t.warranty_until" class="flex justify-between">
+          <div v-if="t.warranty_until && !t.warranties?.length" class="flex justify-between">
             <dt class="text-(--ui-text-muted)">
               الضمان لحد
             </dt><dd class="num">
@@ -76,6 +76,21 @@
             </dd>
           </div>
         </dl>
+      </UCard>
+
+      <UCard v-if="t.warranties?.length">
+        <p class="mb-2 font-bold">
+          الضمان
+        </p>
+        <ul class="space-y-1 text-sm">
+          <li v-for="(w, i) in t.warranties" :key="i" class="flex justify-between gap-2">
+            <span>{{ w.name }}</span>
+            <span class="num" :class="w.state === 'active' ? 'text-success' : 'text-(--ui-text-muted)'">{{ w.state === 'voided' ? 'اتلغى' : `لحد ${formatDate(w.ends_at)}` }}</span>
+          </li>
+        </ul>
+        <p v-if="t.warranty_terms" class="mt-2 text-xs text-(--ui-text-muted)">
+          {{ t.warranty_terms }}
+        </p>
       </UCard>
 
       <UButton v-if="t.shop?.phone" :to="`tel:${t.shop.phone}`" block color="neutral" variant="outline" icon="i-lucide-phone" :label="`كلّم المحل ${localPhone(t.shop.phone)}`" />
@@ -107,6 +122,8 @@ interface PublicTicket {
   total: number
   due: number
   warranty_until: string | null
+  warranties?: { kind: string, name: string, days: number, ends_at: string, state: string }[]
+  warranty_terms?: string | null
 }
 
 const route = useRoute()

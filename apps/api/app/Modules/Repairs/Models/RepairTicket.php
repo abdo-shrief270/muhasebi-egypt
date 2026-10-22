@@ -189,6 +189,12 @@ final class RepairTicket extends Model
         return $this->hasMany(RepairTicketEvent::class, 'ticket_id')->orderBy('seq');
     }
 
+    /** @return HasMany<RepairWarranty, $this> */
+    public function warranties(): HasMany
+    {
+        return $this->hasMany(RepairWarranty::class, 'ticket_id')->orderByRaw("kind = 'labor'")->orderBy('created_at');
+    }
+
     /** What the repair cost the shop: parts from stock and a partner shop's price. */
     public function cost(): int
     {

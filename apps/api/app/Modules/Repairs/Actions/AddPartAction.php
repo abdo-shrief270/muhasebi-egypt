@@ -73,6 +73,7 @@ final class AddPartAction
                 'added_by' => $user?->getAuthIdentifier(),
                 'added_by_name' => $addedByName ?? $user?->getAttribute('name'),
                 'serials' => $serials,
+                'warranty_days' => $variant->warrantyDays,
             ]);
             $ticket->recalculate();
             $ticket->save();

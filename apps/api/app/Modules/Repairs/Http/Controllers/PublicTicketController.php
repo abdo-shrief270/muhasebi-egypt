@@ -7,6 +7,8 @@ namespace App\Modules\Repairs\Http\Controllers;
 use App\Modules\Identity\Contracts\ShopDirectory;
 use App\Modules\Repairs\Enums\TicketStatus;
 use App\Modules\Repairs\Models\RepairTicket;
+use App\Modules\Repairs\Models\RepairWarranty;
+use App\Modules\Repairs\Support\WarrantySettings;
 use App\Support\Modules\FeatureAccess;
 use Illuminate\Http\JsonResponse;
 
@@ -41,6 +43,9 @@ final class PublicTicketController
             'paid' => $ticket->paid,
             'due' => max(0, $ticket->due()),
             'warranty_until' => $ticket->warranty_until?->toIso8601String(),
+            'warranties' => RepairWarranty::query()->where('ticket_id', $ticket->id)->orderByRaw("kind = 'labor'")->orderBy('created_at')->get()
+                ->map(fn (RepairWarranty $w) => array_intersect_key($w->toPublicArray(), array_flip(['kind', 'name', 'days', 'ends_at', 'state'])))->all(),
+            'warranty_terms' => $ticket->warranty_until !== null ? WarrantySettings::get($ticket->tenant_id)['warranty_terms'] : null,
         ]]);
     }
 }

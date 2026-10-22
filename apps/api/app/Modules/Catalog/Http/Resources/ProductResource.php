@@ -24,6 +24,7 @@ final class ProductResource extends JsonResource
             'name' => $this->name,
             'sku' => $this->sku,
             'track_serial' => $this->track_serial,
+            'warranty_days' => $this->warranty_days,
             'is_active' => $this->is_active,
             'notes' => $this->notes,
             'online_visible' => $this->online_visible,

@@ -132,7 +132,7 @@ final class TicketController
 
         $this->markNotified(collect([$ticket]));
 
-        return new TicketResource($ticket->load(['parts', 'payments', 'events', 'partRequests']));
+        return new TicketResource($ticket->load(['parts', 'payments', 'events', 'partRequests', 'warranties']));
     }
 
     /**
@@ -263,7 +263,8 @@ final class TicketController
     public function deliver(DeliverTicketRequest $request, RepairTicket $ticket, DeliverTicketAction $action): TicketResource
     {
         $this->inBranch($ticket);
-        if ((int) ($request->validated('warranty_days') ?? 0) > 0) {
+        $warranties = $request->warranties();
+        if ((int) ($request->validated('warranty_days') ?? 0) > 0 || array_filter($warranties ?? [], fn (array $w) => $w['days'] > 0) !== []) {
             $this->features->ensure('repairs.warranty');
         }
 
@@ -273,6 +274,7 @@ final class TicketController
             (int) ($request->validated('warranty_days') ?? 0),
             $request->validated('note'),
             (bool) $request->user()?->can('customers.credit'),
+            $warranties,
         ));
     }
 

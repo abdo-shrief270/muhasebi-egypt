@@ -8,6 +8,7 @@ use App\Modules\Customers\Contracts\CustomerAccounts;
 use App\Modules\OnlineStore\Contracts\RepairBookings;
 use App\Modules\Repairs\Enums\EventType;
 use App\Modules\Repairs\Enums\TicketStatus;
+use App\Modules\Repairs\Models\RepairDevice;
 use App\Modules\Repairs\Models\RepairTicket;
 use App\Modules\Repairs\Support\Faults;
 use App\Modules\Repairs\Support\TicketMoney;
@@ -52,6 +53,7 @@ final class ReceiveDeviceAction
                 throw new DomainRuleException('العميل ده ملوش موبايل؛ ضيفه عشان نقدر نبلّغه.', 'customer_phone_missing');
             }
 
+            $device = RepairDevice::forIntake($tenantId, $customer->id, $data);
             $user = $this->auth->guard('sanctum')->user();
             $ticket = RepairTicket::create([
                 'tenant_id' => $tenantId,
@@ -61,6 +63,7 @@ final class ReceiveDeviceAction
                 'customer_id' => $customer->id,
                 'customer_name' => $customer->name,
                 'customer_phone' => $customer->phone,
+                'device_id' => $device->id,
                 'device_model_id' => $data['device_model_id'] ?? null,
                 'device_name' => $data['device_name'],
                 'imei' => $data['imei'] ?? null,

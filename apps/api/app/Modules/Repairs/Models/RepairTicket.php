@@ -68,7 +68,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $partner_reference
  */
 #[Fillable([
-    'id', 'tenant_id', 'branch_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone',
+    'id', 'tenant_id', 'branch_id', 'number', 'status', 'customer_id', 'customer_name', 'customer_phone', 'device_id',
     'device_model_id', 'device_name', 'imei', 'color', 'unlock_type', 'unlock_code', 'accessories', 'condition', 'checks',
     'reported_faults', 'reported_note', 'diagnosed_faults', 'diagnosis_note',
     'received_by', 'received_by_name', 'received_at', 'expected_at', 'technician_id', 'technician_name',

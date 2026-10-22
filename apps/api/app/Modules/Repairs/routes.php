@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Repairs\Http\Controllers\CommissionController;
+use App\Modules\Repairs\Http\Controllers\DeviceController;
 use App\Modules\Repairs\Http\Controllers\FaultCategoryController;
 use App\Modules\Repairs\Http\Controllers\PartRequestController;
 use App\Modules\Repairs\Http\Controllers\PublicTicketController;
@@ -29,6 +30,14 @@ Route::middleware(['auth:sanctum', 'tenant', 'module:repairs'])->prefix('repairs
     });
 
     // Tickets live in a branch.
+    // A customer's devices and their history (every branch).
+    Route::controller(DeviceController::class)->group(function (): void {
+        Route::pattern('device', '[0-9a-fA-F-]{36}');
+        Route::get('devices', 'index')->middleware('can:repairs.view');
+        Route::get('devices/{device}', 'show')->middleware('can:repairs.view');
+        Route::patch('devices/{device}', 'update');
+    });
+
     Route::middleware('branch')->controller(TicketController::class)->group(function (): void {
         Route::middleware('can:repairs.view')->group(function (): void {
             Route::get('tickets', 'index');

@@ -170,6 +170,8 @@
       </div>
     </UCard>
 
+    <RepairsCustomerDevices v-else-if="tab === 'devices'" :customer-id="id" />
+
     <UCard v-else-if="tab === 'installments'" :ui="{ body: 'p-0 sm:p-0' }">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -286,10 +288,12 @@ const statement = computed(() => statementData.value?.data ?? [])
 const sales = computed(() => salesData.value?.data ?? [])
 const plans = computed(() => plansData.value?.data ?? [])
 
+const seesDevices = computed(() => store.hasModule('repairs') && store.can('repairs.view'))
 const tab = ref('statement')
 const tabs = computed(() => [
   { label: 'كشف الحساب', value: 'statement', icon: 'i-lucide-scroll-text' },
   ...(store.can('sales.view') ? [{ label: 'الفواتير', value: 'sales', icon: 'i-lucide-receipt' }] : []),
+  ...(seesDevices.value ? [{ label: 'الأجهزة والصيانة', value: 'devices', icon: 'i-lucide-smartphone' }] : []),
   ...(seesPlans.value ? [{ label: 'التقسيط', value: 'installments', icon: 'i-lucide-calendar-clock' }] : []),
 ])
 

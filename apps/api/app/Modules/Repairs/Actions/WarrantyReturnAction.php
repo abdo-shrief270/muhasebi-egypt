@@ -21,6 +21,7 @@ final class WarrantyReturnAction
 
         return $this->receive->handle($original->tenant_id, $branchId, [
             'customer_id' => $original->customer_id,
+            'device_id' => $original->device_id,
             'device_model_id' => $original->device_model_id,
             'device_name' => $original->device_name,
             'imei' => $original->imei,

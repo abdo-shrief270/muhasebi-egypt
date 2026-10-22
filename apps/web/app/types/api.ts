@@ -1535,3 +1535,37 @@ export interface ImportShipmentDetail extends ImportShipment {
   paid: number
   attachments: { id: string, kind: string, kind_label: string, name: string, mime: string, size: number, uploaded_by_name: string | null, created_at: string }[]
 }
+
+/** A customer's device and its repair history (newest ticket first, every branch). */
+export interface RepairDevice {
+  id: string
+  customer_id: string
+  device_model_id: number | null
+  name: string
+  imei: string | null
+  color: string | null
+  notes: string | null
+  last_seen_at: string | null
+  tickets_count: number
+  open_ticket_id: string | null
+  warranty_ticket_id: string | null
+  warranty_until: string | null
+  unlock_type: string | null
+  tickets: {
+    id: string
+    reference: string
+    branch_id: string
+    branch_name: string | null
+    status: string
+    status_label: string
+    faults: string[]
+    note: string | null
+    technician_name: string | null
+    total: number
+    received_at: string | null
+    delivered_at: string | null
+    warranty_until: string | null
+    under_warranty: boolean
+    warranty_return: boolean
+  }[]
+}

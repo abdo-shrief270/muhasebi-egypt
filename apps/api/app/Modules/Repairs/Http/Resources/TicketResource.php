@@ -98,6 +98,7 @@ final class TicketResource extends JsonResource
             'warranty_days' => $this->warranty_days,
             'warranty_until' => $this->warranty_until?->toIso8601String(),
             'under_warranty' => $this->underWarranty(),
+            'device_id' => $this->device_id,
             'warranty_of_id' => $this->warranty_of_id,
             'public_token' => $this->public_token,
             'parts' => $this->whenLoaded('parts', fn () => $this->parts->map(fn (RepairTicketPart $p) => [

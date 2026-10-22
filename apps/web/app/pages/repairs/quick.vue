@@ -96,6 +96,40 @@
             <p class="text-xl font-bold">
               الجهاز
             </p>
+            <div v-if="customerDevices.length && !deviceQuery.trim()" class="space-y-3">
+              <p class="text-sm text-(--ui-text-muted)">
+                أجهزة {{ form.customer?.name }} اللي دخلت قبل كده
+              </p>
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <button v-for="d in customerDevices" :key="d.id" type="button" :class="tile(form.device_id === d.id)" class="!text-start" @click="pickOwnDevice(d)">
+                  <span class="block">{{ d.name }}<span v-if="d.color" class="font-normal"> — {{ d.color }}</span></span>
+                  <span class="block text-sm font-normal" :class="d.warranty_until && !d.open_ticket_id ? 'text-success' : 'text-(--ui-text-muted)'">
+                    {{ d.open_ticket_id ? 'جوه المحل دلوقتي' : d.warranty_until ? `في الضمان لحد ${formatDate(d.warranty_until)}` : `آخر مرة ${formatDate(d.tickets[0]?.received_at)}` }}
+                  </span>
+                </button>
+              </div>
+              <div v-if="ownDevice" class="space-y-2 rounded-(--ui-radius) border border-(--ui-border) p-3">
+                <p class="font-bold">
+                  تاريخ الجهاز ده
+                </p>
+                <ul class="space-y-1 text-sm">
+                  <li v-for="t in ownDevice.tickets.slice(0, 4)" :key="t.id" class="flex flex-wrap justify-between gap-2 rounded-(--ui-radius) bg-(--ui-bg-elevated) px-3 py-2">
+                    <span><span class="num font-bold">{{ t.reference }}</span> · {{ t.faults.join('، ') || t.note || '—' }}</span>
+                    <span class="text-(--ui-text-muted)">{{ formatDate(t.received_at) }}<template v-if="t.technician_name"> · {{ t.technician_name }}</template><template v-if="t.total"> · <span class="num">{{ formatMoney(t.total) }}</span></template></span>
+                  </li>
+                </ul>
+                <p v-if="ownDevice.notes" class="text-sm text-(--ui-text-muted)">
+                  ملاحظات: {{ ownDevice.notes }}
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <UButton v-if="ownDevice.warranty_ticket_id && !ownDevice.open_ticket_id && store.hasFeature('repairs.warranty')" size="xl" icon="i-lucide-shield-check" label="رجوع في الضمان (من غير فلوس)" :loading="returning" @click="warrantyReturn(ownDevice)" />
+                  <UButton size="xl" color="neutral" variant="outline" icon="i-lucide-arrow-left" label="عطل جديد على نفس الجهاز" @click="step = 3" />
+                </div>
+              </div>
+              <p class="text-sm text-(--ui-text-muted)">
+                أو جهاز تاني:
+              </p>
+            </div>
             <UInput v-model="deviceQuery" size="xl" icon="i-lucide-search" placeholder="دوّر أو اكتب اسم الجهاز" class="w-full" :ui="{ base: 'h-14 text-lg' }" @keydown.enter.prevent="useTyped" />
             <div v-if="deviceQuery.trim()" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <button v-for="m in found" :key="m.id" type="button" :class="tile(form.device_model_id === m.id)" @click="pickDevice(m.id, m.full_name)">
@@ -281,7 +315,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Brand, Customer, DeviceModel, RepairOptions, RepairTicket } from '~/types/api'
+import type { Brand, Customer, DeviceModel, RepairDevice, RepairOptions, RepairTicket } from '~/types/api'
 
 /**
  * Touch-first intake: one question per screen with big buttons — phone (number pad; a known customer is
@@ -318,6 +352,7 @@ const blank = () => ({
   customer: null as Customer | null,
   name: '',
   consent: true,
+  device_id: null as string | null,
   device_model_id: null as number | null,
   device_name: '',
   fault_ids: [] as number[],
@@ -383,6 +418,16 @@ function pickCustomer(c: Customer) {
   step.value = 2
 }
 
+// «استلم الجهاز ده تاني» from the customer page: ?customer=…&device=… starts at the device.
+const route = useRoute()
+if (typeof route.query.customer === 'string') {
+  const res = await api<{ data: Customer }>(`/customers/${route.query.customer}`).catch(() => null)
+  if (res) {
+    pickCustomer(res.data)
+    form.device_id = typeof route.query.device === 'string' ? route.query.device : null
+  }
+}
+
 // Device.
 const deviceQuery = ref('')
 const brand = ref<Brand | null>(null)
@@ -399,11 +444,40 @@ watch(deviceQuery, (q) => {
   }, 200)
 })
 function pickDevice(id: number | null, name: string) {
+  form.device_id = null
   form.device_model_id = id
   form.device_name = name
   deviceQuery.value = ''
   brand.value = null
   step.value = 3
+}
+// The customer's own devices (from earlier tickets): picking one shows its history first.
+const { data: devicesData } = await useAsyncData('quick-customer-devices', () => form.customer && store.can('repairs.view')
+  ? api<{ data: RepairDevice[] }>('/repairs/devices', { query: { customer_id: form.customer.id } }).catch(() => ({ data: [] }))
+  : Promise.resolve({ data: [] as RepairDevice[] }), { watch: [() => form.customer?.id] })
+const customerDevices = computed(() => devicesData.value?.data ?? [])
+const ownDevice = computed(() => customerDevices.value.find(d => d.id === form.device_id) ?? null)
+watch(ownDevice, (d) => {
+  if (d && !form.device_name) pickOwnDevice(d)
+}, { immediate: true })
+function pickOwnDevice(d: RepairDevice) {
+  form.device_id = d.id
+  form.device_model_id = d.device_model_id
+  form.device_name = d.name
+}
+const returning = ref(false)
+async function warrantyReturn(d: RepairDevice) {
+  returning.value = true
+  try {
+    const res = await api<{ data: RepairTicket }>(`/repairs/tickets/${d.warranty_ticket_id}/warranty`, { method: 'POST' })
+    await navigateTo(`/repairs/${res.data.id}`)
+  }
+  catch (e) {
+    error.value = apiErrorMessage(e)
+  }
+  finally {
+    returning.value = false
+  }
 }
 function useTyped() {
   const name = deviceQuery.value.trim()
@@ -507,6 +581,7 @@ async function save() {
       method: 'POST',
       body: {
         ...(form.customer ? { customer_id: form.customer.id } : { customer_name: form.name.trim(), customer_phone: form.phone, consent: form.consent }),
+        device_id: form.device_id,
         device_model_id: form.device_model_id,
         device_name: form.device_name,
         unlock_type: form.unlock_type,

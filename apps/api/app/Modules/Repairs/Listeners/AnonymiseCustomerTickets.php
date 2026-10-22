@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Repairs\Listeners;
 
 use App\Modules\Customers\Events\CustomerErased;
+use App\Modules\Repairs\Models\RepairDevice;
 use App\Modules\Repairs\Models\RepairTicket;
 use App\Support\Events\DomainEvent;
 use App\Support\Events\ModuleListener;
@@ -39,5 +40,6 @@ final class AnonymiseCustomerTickets extends ModuleListener
                 'unlock_code' => null,
                 // The IMEI stays: it identifies the device, not the person (stolen-phone checks, warranty).
             ]);
+        RepairDevice::query()->where('customer_id', $event->customerId)->update(['notes' => null]);
     }
 }

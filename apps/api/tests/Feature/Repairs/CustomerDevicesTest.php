@@ -69,4 +69,17 @@ class CustomerDevicesTest extends TestCase
         Sanctum::actingAs($this->staff('technician'));
         $this->getJson("/api/v1/repairs/devices?customer_id={$ticket['customer_id']}")->assertOk();
     }
+
+    public function test_how_it_came_in_is_filled_in_after_the_intake(): void
+    {
+        $ticket = $this->receive(['customer_name' => 'محمد', 'customer_phone' => '01012345678', 'device_name' => 'iPhone 13']);
+        $after = $this->patchJson("/api/v1/repairs/tickets/{$ticket['id']}", [
+            'imei' => '356789104512338', 'color' => 'أزرق',
+            'accessories' => ['charger'], 'condition' => ['scratches'], 'checks' => ['powers_on' => 'yes', 'touch' => 'no'],
+            'unlock_type' => 'pattern', 'unlock_code' => '1-5-9',
+        ])->assertOk()->json('data');
+        $this->assertSame([['scratches'], 'no', 'pattern', '1-5-9', '356789104512338'], [$after['condition'], $after['checks']['touch'], $after['unlock_type'], $after['unlock_code'], $after['imei']]);
+        $this->assertDatabaseHas('repair_devices', ['id' => $ticket['device_id'], 'imei' => '356789104512338', 'color' => 'أزرق']);
+        $this->patchJson("/api/v1/repairs/tickets/{$ticket['id']}", ['condition' => ['flying']])->assertUnprocessable();
+    }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Repairs\Actions;
 
 use App\Modules\Repairs\Enums\EventType;
+use App\Modules\Repairs\Models\RepairDevice;
 use App\Modules\Repairs\Models\RepairTicket;
 use App\Modules\Repairs\Support\Faults;
 use App\Modules\Repairs\Support\Timeline;
@@ -56,6 +57,29 @@ final class UpdateTicketAction
                 if (array_key_exists($key, $data)) {
                     $ticket->{$key} = $data[$key];
                 }
+            }
+            // How it came in (filled in after the intake): on the timeline, the code never written there.
+            $intake = [];
+            foreach (['accessories', 'condition'] as $key) {
+                if (array_key_exists($key, $data)) {
+                    $ticket->{$key} = array_values($data[$key] ?? []);
+                    $intake[] = $key;
+                }
+            }
+            if (array_key_exists('checks', $data)) {
+                $ticket->checks = $data['checks'] ?? [];
+                $intake[] = 'checks';
+            }
+            if (array_key_exists('unlock_type', $data)) {
+                $ticket->unlock_type = $data['unlock_type'];
+                $ticket->unlock_code = $data['unlock_type'] === 'none' ? null : ($data['unlock_code'] ?? $ticket->unlock_code);
+                $intake[] = 'unlock';
+            }
+            if ($intake !== [] || array_key_exists('imei', $data) || array_key_exists('color', $data)) {
+                $this->timeline->add($ticket, EventType::Note, 'اتعدّلت بيانات الجهاز وقت الاستلام');
+            }
+            if ($ticket->device_id !== null && (array_key_exists('imei', $data) || array_key_exists('color', $data))) {
+                RepairDevice::query()->whereKey($ticket->device_id)->update(array_filter(['imei' => $data['imei'] ?? null, 'color' => $data['color'] ?? null], fn ($v) => $v !== null && $v !== ''));
             }
             if (array_key_exists('technician_id', $data) && $data['technician_id'] !== $ticket->technician_id) {
                 $ticket->technician_id = $data['technician_id'];
